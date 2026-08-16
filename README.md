@@ -55,6 +55,7 @@ stays self-contained. The build refuses any character the bitmap font cannot dra
 
 ## Docs
 
+- **`ROADMAP.md`** — open punch list and the plan for reshaping the city into a real neighbourhood.
 - **`CLAUDE.md`** — architecture: coordinate systems, the baked ground layer, the y-sorted render pass,
   traffic lane rules, and the invariants that keep every address winnable.
 - **`JOURNAL.md`** — the original brief, why each design call was made (and which alternatives were

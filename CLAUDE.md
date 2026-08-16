@@ -44,6 +44,9 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 
 ## Related docs
 
+- `ROADMAP.md` — the open punch list, and the tiered plan for reshaping the city into the real
+  neighbourhood. **Read before touching the street grid**: it records which six modules assume a uniform
+  block pitch, and which tiers are safe versus which are a rewrite.
 - `README.md` — what the game is, controls, and the development commands.
 
 - `JOURNAL.md` — the original brief, why each design call was made (including rejected alternatives), the
