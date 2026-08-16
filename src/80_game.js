@@ -680,12 +680,18 @@ const G = {
 
     x.drawImage(Art.seal, ((VW - Art.seal.width) / 2) | 0, 12);
 
-    // drop shadow first, as the original's CRT bloom did the same job
-    text(x, CONTENT.slogan, VW / 2 + 1, 135, '#12126a', 2, 1);
-    text(x, CONTENT.slogan, VW / 2, 134, PAL.gold, 2, 1);
+    // slogan and attribution both accept a string or an array of lines, so
+    // copy too wide for 384px can wrap instead of being cut. Drop shadow
+    // first, the way the original's CRT bloom did the same job.
+    const slog = [].concat(CONTENT.slogan);
+    slog.forEach((s, i) => {
+      const y = 132 + i * 18;
+      text(x, s, VW / 2 + 1, y + 1, '#12126a', 2, 1);
+      text(x, s, VW / 2, y, PAL.gold, 2, 1);
+    });
 
-    const lines = [].concat(CONTENT.attribution);
-    lines.forEach((s, i) => text(x, s, VW / 2, 156 + i * 11, PAL.gold, 1, 1));
+    const attY = 132 + slog.length * 18 + 6;
+    [].concat(CONTENT.attribution).forEach((s, i) => text(x, s, VW / 2, attY + i * 11, PAL.gold, 1, 1));
 
     text(x, CONTENT.credit, VW - 8, VH - 12, PAL.bone, 1, 2);
   },

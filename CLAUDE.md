@@ -32,10 +32,15 @@ a `file://` page is blocked by CORS, so a runtime load would blank the screen ex
 `build.mjs` emits `src/05_content.js` (a generated `const CONTENT`), which the bundle and the dev page both
 pick up with no second code path.
 
-The build **fails loudly** rather than shipping broken text: it rejects any character the 5×7 font cannot
-draw, naming the offenders (curly quotes pasted from a document are the usual culprit), and rejects a
-missing field. If you add copy elsewhere, put it here and widen the validation rather than hard-coding
-strings in `80_game.js`.
+The build **fails loudly** rather than shipping broken text. It rejects any character the 5×7 font cannot
+draw, naming the offenders (curly quotes pasted from a document are the usual culprit); it rejects a
+missing field; and it rejects copy too wide for the 384px screen, reporting how many characters to trim.
+That last one exists because the width limit was a comment in the JSON before it was a guard, and the first
+person to edit the file immediately exceeded it — **a note is not a guard.**
+
+`slogan` and `attribution` each accept a string *or* an array of lines, and `overlayWinners` lays the
+attribution out below whatever the slogan needs, so long copy wraps rather than being cut. If you add copy
+elsewhere, put it here and widen the validation rather than hard-coding strings in `80_game.js`.
 
 ## Related docs
 

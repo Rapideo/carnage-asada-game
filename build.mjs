@@ -14,18 +14,35 @@ const SRC = 'src';
 // mirrors the glyph table in src/10_font.js — anything else draws as a gap
 const FONT_CHARS = /^[A-Z0-9 .,:;!?$+\-/\\%#()[\]*=<>'"_&@^~]*$/;
 
+// the virtual screen, and the scale each field is drawn at in overlayWinners
+const VW = 384, EDGE = 8;
+const FIELD_SCALE = { slogan: 2, attribution: 1, credit: 1 };
+const textPx = (s, k) => (s.length ? s.length * 6 - 1 : 0) * k;
+
 function buildContent() {
   const raw = JSON.parse(readFileSync(join('content', 'winners.json'), 'utf8'));
   const out = {};
   for (const [k, v] of Object.entries(raw)) {
     if (k.startsWith('_')) continue;                       // notes to the author
     const list = Array.isArray(v) ? v : [v];
+    const scale = FIELD_SCALE[k] || 1;
     for (const s of list) {
       if (typeof s !== 'string') throw new Error(`content/winners.json: "${k}" must be a string or array of strings`);
       const up = s.toUpperCase();
       if (!FONT_CHARS.test(up)) {
         const bad = [...new Set([...up].filter((ch) => !FONT_CHARS.test(ch)))].join(' ');
         throw new Error(`content/winners.json: "${k}" uses characters the 5x7 font cannot draw: ${bad}`);
+      }
+      // Width matters as much as charset: the copy is centred on a 384px
+      // screen, so an over-long line silently runs off BOTH edges. The note in
+      // the JSON said so, but a note is not a guard.
+      const w = textPx(up, scale);
+      if (w > VW - EDGE) {
+        const max = Math.floor((VW - EDGE) / scale / 6);
+        throw new Error(
+          `content/winners.json: "${k}" is ${w}px wide at scale ${scale}, but the screen is ${VW}px.\n` +
+          `  ${JSON.stringify(s)} is ${s.length} characters; the limit at this scale is ${max}.\n` +
+          `  Trim ${s.length - max} character${s.length - max === 1 ? '' : 's'}, or split it across the array.`);
       }
     }
     out[k] = v;

@@ -2,9 +2,12 @@
 'use strict';
 
 const CONTENT = {
-  "slogan": "\"WINNERS DON'T USE DRUGS\"",
+  "slogan": [
+    "\"WINNERS DON'T USE DRUGS.",
+    "THEY DRINK.\""
+  ],
   "attribution": [
-    "WILLIAM S. SESSIONS , DIRECTOR, FBI"
+    "KASH S. PATEL , DIRECTOR, FBI"
   ],
   "credit": "CREDIT: 0"
 };
