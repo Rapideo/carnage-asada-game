@@ -3110,7 +3110,10 @@ const G = {
     x.drawImage(Art.badge, ((VW - Art.badge.width) / 2) | 0, 14);
     x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 130);
 
-    if ((t * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 180, PAL.amber, 2, 1);
+    // textOut, not text: at scale 1 the 1px strokes read thin and lost, but a
+    // 1px ink outline thickens them to ~3px so the prompt still carries. The
+    // dark halo also lifts it off the city scrolling behind.
+    if ((t * 2 | 0) % 2) textOut(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 184, PAL.amber, 1, 1);
   },
 
   overlayResults(x) {
