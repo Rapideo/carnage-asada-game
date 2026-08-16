@@ -609,34 +609,60 @@ const WALLS = [
   ['#e6d9c0', '#c8b89a', '#93836a'],
 ];
 
-/* Graffiti alphabet for the title wordmark — 9x11, hand-authored, and only
-   the characters "CARNAGE ASADA" needs. The 5x7 game font has no room for
-   letterform character: every stroke is 1 cell, so sprayed bitmap text reads
-   as the game font wearing drips. These have weight, angled terminals and
-   tapering strokes. Title art only — the game font is untouched. */
-const GRAF_W = 7, GRAF_H = 9;
-const GRAF_SRC = {
-  'A': '..###..,..###..,.##.##.,.##.##.,##...##,#######,#######,##...##,##...##',
-  'C': '.#####.,##...##,##.....,##.....,##.....,##.....,##.....,##...##,.#####.',
-  'D': '#####..,##..##.,##...##,##...##,##...##,##...##,##...##,##..##.,#####..',
-  'E': '#######,#######,##.....,##.....,#####..,#####..,##.....,#######,#######',
-  'G': '.#####.,##...##,##.....,##.....,##..###,##...##,##...##,##...##,.#####.',
-  'N': '##...##,###..##,####.##,##.####,##..###,##...##,##...##,##...##,##...##',
-  'R': '#####..,##..##.,##...##,##..##.,#####..,##.##..,##..##.,##...##,##...##',
-  'S': '.#####.,##...##,##.....,###....,.#####.,....###,.....##,##...##,.#####.',
+/* The shop's display face — hand-authored 7x9, fat strokes with clipped
+   corners, in the style of the real Taco Shop sticker. Used for BOTH the
+   badge wordmark and the CARNAGE ASADA title so the two read as one lockup.
+   Only the 12 characters those two phrases need are authored.
+
+   7x9 is not arbitrary: at scale 3 four characters measure 93px, which is the
+   ~2px overspill the 88px badge face wants, and at scale 2 thirteen measure
+   206px, the title's established width. One grid, both sizes, no resampling.
+   Display art only — the 5x7 game font is untouched. */
+const LOGO_W = 7, LOGO_H = 9;
+const LOGO_SRC = {
+  'A': '..###..,.#####.,##...##,##...##,#######,#######,##...##,##...##,##...##',
+  'C': '..###..,.#####.,##...##,##.....,##.....,##.....,##...##,.#####.,..###..',
+  'D': '#####..,######.,##..###,##...##,##...##,##...##,##..###,######.,#####..',
+  'E': '#######,#######,##.....,##.....,######.,######.,##.....,#######,#######',
+  'G': '..###..,.#####.,##...##,##.....,##..###,##..###,##...##,.#####.,..###..',
+  'H': '##...##,##...##,##...##,##...##,#######,#######,##...##,##...##,##...##',
+  'N': '##...##,###..##,####.##,#######,##.####,##..###,##...##,##...##,##...##',
+  'O': '..###..,.#####.,##...##,##...##,##...##,##...##,##...##,.#####.,..###..',
+  'P': '#####..,######.,##..###,##...##,##..###,######.,#####..,##.....,##.....',
+  'R': '#####..,######.,##..###,##...##,##..###,######.,#####..,##..##.,##...##',
+  'S': '.#####.,#######,##...##,##.....,.#####.,.....##,##...##,#######,.#####.',
+  'T': '#######,#######,..###..,..###..,..###..,..###..,..###..,..###..,..###..',
   ' ': '.......,.......,.......,.......,.......,.......,.......,.......,.......',
 };
-const GRAF = Object.create(null);
-for (const ch in GRAF_SRC) {
-  const rows = GRAF_SRC[ch].split(','), bits = [];
-  for (let y = 0; y < GRAF_H; y++) {
+const LOGO = Object.create(null);
+for (const ch in LOGO_SRC) {
+  const rows = LOGO_SRC[ch].split(','), bits = [];
+  for (let y = 0; y < LOGO_H; y++) {
     const row = rows[y] || '';
-    for (let gx = 0; gx < GRAF_W; gx++) if (row[gx] === '#') bits.push(gx, y);
+    for (let gx = 0; gx < LOGO_W; gx++) if (row[gx] === '#') bits.push(gx, y);
   }
-  GRAF[ch] = bits;
+  LOGO[ch] = bits;
 }
-/** width of a graffiti string in px at a given scale (1 cell letter gap) */
-function grafW(str, s) { return str.length ? (str.length * (GRAF_W + 1) - 1) * s : 0; }
+/** width of a logo-face string in px at a given scale (1 cell letter gap) */
+function logoW(str, s) { return str.length ? (str.length * (LOGO_W + 1) - 1) * s : 0; }
+
+/** draw a LOGO-face string centred on cx, with a k-px ink keyline.
+    k is in device px and does NOT scale with s — see keyline() for why. */
+function logoText(x, str, cx, y, s, k, col) {
+  const ox = (cx - logoW(str, s) / 2) | 0;
+  const paint = (dx, dy, c) => {
+    let gx = 0;
+    for (const ch of String(str).toUpperCase()) {
+      const g = LOGO[ch];
+      if (g) for (let b = 0; b < g.length; b += 2)
+        R(x, c, ox + dx + (gx + g[b]) * s, y + dy + g[b + 1] * s, s, s);
+      gx += LOGO_W + 1;
+    }
+  };
+  for (let dy = -k; dy <= k; dy++)
+    for (let dx = -k; dx <= k; dx++) if (dx || dy) paint(dx, dy, PAL.ink);
+  paint(0, 0, col);
+}
 
 /* kraft paper for the taco bag, and what comes out of it when you miss */
 const BAG_MID = '#a97c4e', BAG_HI = '#c2955f', BAG_LO = '#8a6238', BAG_FOLD = '#946a42';
@@ -1041,54 +1067,17 @@ const Art = {
     }
     this.taqueria = this.mkTaqueria(makeRng(4242));
     this.badge = this.mkBadge();
-    // scale 2 on a 9x11 grid ≈ the same cap height as scale 3 on the 5x7 font
-    this.wordmark = this.mkSprayText('CARNAGE ASADA', 2, PAL.red, 77311);
+    // same display face as the badge, at scale 2 => 206px wide
+    this.wordmark = this.mkLogoText('CARNAGE ASADA', 2, PAL.gold, 2);
   },
 
-  /* ---------- sprayed wordmark ----------------------------
-     Two passes: a mist halo, then the solid core last so the letterforms
-     stay crisp. Baked once at boot from a seeded rng, so it is deterministic
-     and costs nothing per frame. */
-  mkSprayText(str, s, col, seed) {
-    const r = makeRng(seed);
-
-    // lit cells in unscaled glyph space, from the graffiti alphabet
-    const cells = [];
-    let gx = 0;
-    for (const ch of String(str).toUpperCase()) {
-      const g = GRAF[ch];
-      if (g) for (let b = 0; b < g.length; b += 2) cells.push([gx + g[b], g[b + 1]]);
-      gx += GRAF_W + 1;
-    }
-    // TAIL only has to clear the mist now that there are no drips
-    const PAD = 10, TAIL = 8;
-    const t = mkCanvas(grafW(str, s) + PAD * 2, GRAF_H * s + PAD + TAIL);
-    const x = t.x;
-    const px = (a) => PAD + a * s, py = (b) => PAD + b * s;
-
-    // 1. overspray — a tight halo around every lit cell, thinning outward.
-    // Radius has to stay near 1.5 cells: the glyphs are 5x7 with 1-cell
-    // counters, so a wider halo floods the holes in A/G/R and the whole
-    // wordmark turns to mush. Mist is DARKER than the core, not lighter —
-    // thinly-sprayed paint over a dark ground reads dark.
-    const RAD = s * 1.25;   // counters are only 1-3 cells on the 7x9 grid
-    const mist = shade(col, -0.12);
-    for (const [a, b] of cells) {
-      const n = 4 + r.int(4);   // 9x11 glyphs have ~3x the cells of the 5x7 font
-      for (let i = 0; i < n; i++) {
-        const ang = r() * TAU, d = Math.sqrt(r()) * RAD;
-        x.globalAlpha = 0.06 + 0.20 * (1 - d / RAD);
-        R(x, mist, px(a) + s / 2 + Math.cos(ang) * d, py(b) + s / 2 + Math.sin(ang) * d, 1, 1);
-      }
-    }
-    x.globalAlpha = 1;
-
-    // 2. solid core on top, lightly mottled so it is not a flat fill
-    for (const [a, b] of cells) {
-      R(x, col, px(a), py(b), s, s);
-      if (r.chance(0.16)) R(x, shade(col, 0.24), px(a), py(b), s, 1);
-    }
-    return { c: t.c, w: t.c.width, h: t.c.height };
+  /* ---------- title wordmark ------------------------------
+     Baked once at boot so the 9-pass keyline is not redrawn every frame. */
+  mkLogoText(str, s, col, k) {
+    const w = logoW(str, s) + k * 2, h = LOGO_H * s + k * 2;
+    const t = mkCanvas(w, h);
+    logoText(t.x, str, w / 2, k, s, k, col);
+    return { c: t.c, w, h, inset: k };
   },
 
   /* ---------- the shop badge, for the title screen --------
@@ -1115,13 +1104,12 @@ const Art = {
     disc(x, c - 15, c - 17, 19, '#ffffff');
     x.globalAlpha = 1;
 
-    // Wordmark. NOT textOut(): that offsets its outline by the glyph scale,
-    // so the eight copies merge into a solid black slab past about 2x. The
-    // logo wants a constant-width keyline, independent of letter size.
-    // At 92px the words just overspill the 88px face — the real sticker
-    // breaks its circle the same way.
-    keyline(x, 'TACO', c, 19, 4, 2, PAL.gold);
-    keyline(x, 'SHOP', c, 51, 4, 2, PAL.gold);
+    // Wordmark in the shop's own display face at scale 3 — 93px, so it just
+    // overspills the 88px face, the way the real sticker breaks its circle.
+    logoText(x, 'TACO', c, 19, 3, 2, PAL.gold);
+    logoText(x, 'SHOP', c, 51, 3, 2, PAL.gold);
+    // EST. 1970 stays on the 5x7 game font: it is small subtext, and the real
+    // sticker sets it in a different (script) face anyway
     keyline(x, 'EST. 1970', c, 85, 1, 1, PAL.gold);
     return t.c;
   },
@@ -3108,7 +3096,7 @@ const G = {
     // badge and sprayed wordmark, both baked once at boot. Controls are not
     // listed here by design — they live in the pause overlay.
     x.drawImage(Art.badge, ((VW - Art.badge.width) / 2) | 0, 14);
-    x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 130);
+    x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 138);
 
     // textOut, not text: at scale 1 the 1px strokes read thin and lost, but a
     // 1px ink outline thickens them to ~3px so the prompt still carries. The

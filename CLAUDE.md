@@ -60,7 +60,7 @@ There is no `package.json` — nothing to install. `taco-shop.html` and `index.h
 | `00_core` | screen/world constants, `PAL`, RNG, `classify()`, `mkCanvas`/`R` helpers, `Input` |
 | `10_font` | hand-authored 5×7 glyph table; `text()`, `textOut()`, `money()`, `clockStr()` |
 | `20_audio` | `Audio5`: WebAudio SFX, engine voice, siren, and the 4-bar chip loop scheduler |
-| `30_art` | `Art.build()` — bakes every sprite/tile once at boot; `rotFrames`/`drawRot`; `shade()`, `disc()`, `keyline()`; `GRAF` graffiti alphabet + `mkSprayText()` |
+| `30_art` | `Art.build()` — bakes every sprite/tile once at boot; `rotFrames`/`drawRot`; `shade()`, `disc()`, `keyline()`; `LOGO` display face + `logoText()`/`mkLogoText()` |
 | `40_city` | `City.gen()` — street grid, addressed houses, baked ground layer, spatial buckets |
 | `50_entities` | `Player`, `Traffic`, `Ped`, `Cop`, `Bag`, `Fx`; shared car physics + collision |
 | `60_nav` | `Nav` (TACO-NAV unit) and `solve()` — Dijkstra over the intersection graph |
@@ -137,21 +137,29 @@ machine output — don't spend it elsewhere.
 
 ### Title screen and controls
 
-`overlayTitle` is badge + sprayed wordmark + blinking prompt, nothing else. **The controls are documented
-only in `overlayPause`** — the page used to carry a key legend under the canvas and no longer does, so
-that overlay is the single place a player can find them. Don't strip it back to a resume line.
+`overlayTitle` is badge + wordmark + blinking prompt, nothing else. **The controls are documented only in
+`overlayPause`** — the page used to carry a key legend under the canvas and no longer does, so that overlay
+is the single place a player can find them. Don't strip it back to a resume line.
 
-`Art.mkSprayText()` bakes the wordmark at boot in two passes — a mist halo, then the solid core last so
-the letterforms stay crisp. It draws from **`GRAF`, a separate hand-authored 7×9 alphabet in `30_art.js`**,
-not the 5×7 game font: every stroke in the game font is one cell wide, so spraying it only ever produced
-"the game font wearing drips". `GRAF` only covers the characters `CARNAGE ASADA` needs.
+### The display face (`LOGO`)
 
-Keep the mist radius near 1.25 cells. Wider and the halo floods the 1–3 cell counters in A/G/R and the
-word turns to mush — that was the single biggest legibility problem while building it.
+`LOGO` in `30_art.js` is a hand-authored **7×9** face in the style of the shop's sticker — fat 2-cell
+strokes, clipped corners — covering only the 12 characters `TACO SHOP` and `CARNAGE ASADA` need. Both the
+badge wordmark and the title are drawn from it, which is what makes them read as one lockup. The 5×7 game
+font is separate and untouched; it has one-cell strokes and reads as a scaled-up UI font at display sizes.
 
-Sizing is constrained to whole numbers in both directions: cells are drawn as `s×s` rects, so a fractional
-scale lands on half-pixels and blurs. To resize the wordmark, change the **glyph grid** (7×9 vs 9×11), not
-the scale — the advance ratio gives exact percentages that `s` cannot.
+**The 7×9 grid is load-bearing.** At scale 3 four characters measure 93px, giving the ~2px overspill the
+88px badge face wants; at scale 2 thirteen measure 206px, the title's established width. One grid serves
+both sizes with no resampling — changing `LOGO_W`/`LOGO_H` breaks both at once.
+
+`logoText()` draws it with a keyline whose width is in **device px and does not scale with `s`** — the same
+reason `keyline()` exists for the 5×7 font. `mkLogoText()` bakes the title once at boot so the 9-pass
+keyline isn't redrawn every frame.
+
+Sizing is constrained to whole numbers: cells are drawn as `s×s` rects, so a fractional scale lands on
+half-pixels and blurs. To resize display type by an arbitrary percentage, change the **glyph grid**, not
+the scale — the advance ratio gives exact percentages that `s` cannot. `EST. 1970` deliberately stays on
+the 5×7 font: it's small subtext, and the real sticker sets it in a different face anyway.
 
 ### Branding
 

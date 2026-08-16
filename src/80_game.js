@@ -571,7 +571,7 @@ const G = {
     // badge and sprayed wordmark, both baked once at boot. Controls are not
     // listed here by design — they live in the pause overlay.
     x.drawImage(Art.badge, ((VW - Art.badge.width) / 2) | 0, 14);
-    x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 130);
+    x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 138);
 
     // textOut, not text: at scale 1 the 1px strokes read thin and lost, but a
     // 1px ink outline thickens them to ~3px so the prompt still carries. The

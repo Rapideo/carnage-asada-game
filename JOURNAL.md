@@ -299,6 +299,24 @@ entirely at the user's request, but while they existed the rule was that a run m
 lit cell in its column — "nothing directly below" also matches the crossbar of A and the waist of S, and
 those runs poured straight down through the strokes beneath.
 
+### One face for both
+
+The graffiti alphabet did not survive. The badge was drawing its wordmark from the 5×7 game font at 4×
+and the title from the angular `GRAF` face — two unrelated sources, which is exactly why the screen never
+felt like one design. Both now draw from `LOGO`, a single hand-authored 7×9 display face in the style of
+the shop's sticker: fat 2-cell strokes, clipped corners, 12 characters. `GRAF` and `mkSprayText` were
+deleted rather than left lying around.
+
+The grid size fell out of a constraint rather than taste, and it is worth writing down because it is the
+sort of thing that looks arbitrary later. The badge wanted ~92px for four characters; the title wanted
+206px for thirteen. Those imply different per-character widths, and integer scaling only offers 1× and 2×,
+so most grids can serve one or the other but not both. 7×9 happens to serve both exactly: scale 3 gives
+93px for `TACO`, scale 2 gives 206px for `CARNAGE ASADA`. Changing `LOGO_W`/`LOGO_H` breaks both at once.
+
+The title also dropped its spray treatment entirely and went gold with a black keyline, matching the badge.
+The screen reads as one branded lockup now rather than a clean logo above a rough tag — a deliberate trade
+of contrast for coherence.
+
 ### Process note
 
 `taco-shop.html` is generated and nothing rebuilds it automatically. The tests read `src/` directly, so a
