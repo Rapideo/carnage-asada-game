@@ -45,7 +45,9 @@ There is no `package.json` — nothing to install. `taco-shop.html` and `index.h
   files is a fatal redeclaration that only surfaces in the bundle, never in dev. `node test/headless.mjs`
   catches it because it concatenates the same way.
 - `shell.html` is the page template; `build.mjs` substitutes the `/*__GAME__*/` marker inside its
-  `<script>`. Page chrome (bezel, header, key legend, CSS) lives there, not in JS.
+  `<script>`. It deliberately has **no page chrome** — no header, footer, bezel or key legend. The canvas
+  is the whole product. Keep the `#stage` div: `90_main.js` measures it to size the canvas, and deleting
+  it silently falls back to `window.innerWidth`.
 - `shell.html` deliberately has no `<!doctype>`/`<html>`/`<body>` — the artifact host wraps it. `build.mjs`
   synthesises those wrappers only for the dev `index.html`.
 - **Because there is no `<head>`, there is no `<meta charset>`.** Any non-ASCII character in *rendered*
@@ -132,6 +134,18 @@ and read like real directions. `Nav.update` recomputes every 0.4s and derives th
 the cardinal exit heading against the player's cardinal approach; being off-road forces the
 `RECALCULATING` state. Cyan (`PAL.cyan`) is reserved exclusively for guidance UI so it always reads as
 machine output — don't spend it elsewhere.
+
+### Title screen and controls
+
+`overlayTitle` is badge + sprayed wordmark + blinking prompt, nothing else. **The controls are documented
+only in `overlayPause`** — the page used to carry a key legend under the canvas and no longer does, so
+that overlay is the single place a player can find them. Don't strip it back to a resume line.
+
+`Art.mkSprayText()` bakes the wordmark at boot from the 5×7 glyph table in three passes — mist, drips,
+solid core last. Two rules make it legible rather than mush, both learned the hard way: mist radius stays
+near 1.5 cells (wider and the halo floods the 1-cell counters in A/G/R), and a drip may only start at the
+**lowest lit cell in its column** — "nothing directly below" also matches the crossbar of A and the waist
+of S, and those runs pour straight down through the strokes beneath.
 
 ### Branding
 

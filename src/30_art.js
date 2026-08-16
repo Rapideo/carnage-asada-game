@@ -25,7 +25,7 @@ const SPILL = ['#7a4a2a', '#c9542f', '#5aa14c', '#e0b055', '#d8b98a'];
 const Art = {
   tile: {}, house: [], bldg: [], tree: [], prop: {},
   car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [],
-  badge: null,
+  badge: null, wordmark: null,
 
   build(rng) {
     this.buildTiles(rng);
@@ -421,6 +421,71 @@ const Art = {
     }
     this.taqueria = this.mkTaqueria(makeRng(4242));
     this.badge = this.mkBadge();
+    this.wordmark = this.mkSprayText('CARNAGE ASADA', 3, PAL.red, 77311);
+  },
+
+  /* ---------- sprayed wordmark ----------------------------
+     The bitmap font is far too clean to read as spray paint, so the shape is
+     rebuilt from the glyph table in three passes: mist, then drips, then a
+     solid core last so the letterforms stay legible. Baked once at boot from
+     a seeded rng, so it is deterministic and costs nothing per frame. */
+  mkSprayText(str, s, col, seed) {
+    const r = makeRng(seed);
+
+    // lit cells in unscaled glyph space, and a lookup to find bottom edges
+    const cells = [];
+    let gx = 0;
+    for (const ch of String(str).toUpperCase()) {
+      const g = GLYPH[ch];
+      if (g) for (let b = 0; b < g.length; b += 2) cells.push([gx + g[b], g[b + 1]]);
+      gx += FW + 1;
+    }
+    // lowest lit cell per column — drips may only start here. "Nothing
+    // directly below" is not enough: that includes the crossbar of A and the
+    // waist of S, so runs poured straight down through the strokes beneath
+    // and turned the word to mush.
+    const lowest = new Map();
+    for (const [a, b] of cells) lowest.set(a, Math.max(lowest.has(a) ? lowest.get(a) : -1, b));
+
+    const PAD = 10, TAIL = 24;
+    const t = mkCanvas(textW(str, s) + PAD * 2, FH * s + PAD + TAIL);
+    const x = t.x;
+    const px = (a) => PAD + a * s, py = (b) => PAD + b * s;
+
+    // 1. overspray — a tight halo around every lit cell, thinning outward.
+    // Radius has to stay near 1.5 cells: the glyphs are 5x7 with 1-cell
+    // counters, so a wider halo floods the holes in A/G/R and the whole
+    // wordmark turns to mush. Mist is DARKER than the core, not lighter —
+    // thinly-sprayed paint over a dark ground reads dark.
+    const RAD = s * 1.5;
+    const mist = shade(col, -0.12);
+    for (const [a, b] of cells) {
+      const n = 6 + r.int(5);
+      for (let i = 0; i < n; i++) {
+        const ang = r() * TAU, d = Math.sqrt(r()) * RAD;
+        x.globalAlpha = 0.06 + 0.20 * (1 - d / RAD);
+        R(x, mist, px(a) + s / 2 + Math.cos(ang) * d, py(b) + s / 2 + Math.sin(ang) * d, 1, 1);
+      }
+    }
+    x.globalAlpha = 1;
+
+    // 2. drips, only from cells with nothing beneath them
+    const drip = shade(col, -0.18);
+    const wdt = Math.max(1, s - 1);
+    for (const [a, b] of cells) {
+      if (b !== lowest.get(a) || !r.chance(0.38)) continue;
+      const len = 5 + r.int(10);
+      const dx = px(a) + r.int(s - wdt + 1);
+      R(x, drip, dx, py(b) + s, wdt, len);
+      R(x, drip, dx - 1, py(b) + s + len - 2, wdt + 2, 3);   // heavier tail blob
+    }
+
+    // 3. solid core on top, lightly mottled so it is not a flat fill
+    for (const [a, b] of cells) {
+      R(x, col, px(a), py(b), s, s);
+      if (r.chance(0.16)) R(x, shade(col, 0.24), px(a), py(b), s, 1);
+    }
+    return { c: t.c, w: t.c.width, h: t.c.height };
   },
 
   /* ---------- the shop badge, for the title screen --------

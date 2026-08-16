@@ -568,23 +568,12 @@ const G = {
   overlayTitle(x) {
     x.fillStyle = 'rgba(20,12,28,0.62)'; x.fillRect(0, 0, VW, VH);
     const t = this.time;
-    // the shop badge, baked once at boot
-    const bw = Art.badge.width;
-    x.drawImage(Art.badge, ((VW - bw) / 2) | 0, 2);
+    // badge and sprayed wordmark, both baked once at boot. Controls are not
+    // listed here by design — they live in the pause overlay.
+    x.drawImage(Art.badge, ((VW - Art.badge.width) / 2) | 0, 8);
+    x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 124);
 
-    text(x, 'CARNAGE ASADA', VW / 2 + 2, 120, PAL.ink2, 2, 1);
-    text(x, 'CARNAGE ASADA', VW / 2, 118, PAL.red, 2, 1);
-    text(x, 'SUNDAY NIGHT DELIVERY SHIFT', VW / 2, 137, PAL.bone, 1, 1);
-
-    const rows = [
-      'WASD / ARROWS   DRIVE      SHIFT  HANDBRAKE',
-      'MOUSE AIM  +  CLICK / SPACE   TOSS THE BAG',
-      'THE TIP SHRINKS EVERY SECOND. THE NAV IS DUMB.',
-    ];
-    rows.forEach((r, i) => text(x, r, VW / 2, 152 + i * 10, i === 2 ? PAL.cyan : PAL.boneDim, 1, 1));
-
-    if ((t * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, VH - 26, PAL.amber, 2, 1);
-    text(x, 'M MUTE    N MUSIC    P PAUSE', VW / 2, VH - 10, '#6b5f84', 1, 1);
+    if ((t * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 188, PAL.amber, 2, 1);
   },
 
   overlayResults(x) {
@@ -621,10 +610,40 @@ const G = {
     text(x, 'ESC - TITLE', VW / 2, VH - 11, '#6b5f84', 1, 1);
   },
 
+  /* The page frame used to carry a key legend under the canvas. It doesn't
+     any more, so this overlay is the only place the controls are written
+     down — keep them here. */
   overlayPause(x) {
-    x.fillStyle = 'rgba(20,12,28,0.7)'; x.fillRect(0, 0, VW, VH);
-    text(x, 'PAUSED', VW / 2, VH / 2 - 14, PAL.amber, 3, 1);
-    text(x, 'P OR ESC TO RESUME', VW / 2, VH / 2 + 10, PAL.boneDim, 1, 1);
+    x.fillStyle = 'rgba(20,12,28,0.88)'; x.fillRect(0, 0, VW, VH);
+    // solid card, like the results screen: six rows of text over the live
+    // HUD is unreadable on a dim wash alone
+    const w = 222, h = 132, px = (VW - w) / 2 | 0, py = 30;
+    R(x, PAL.ink, px, py, w, h);
+    R(x, '#241a2e', px + 2, py + 2, w - 4, h - 4);
+    x.strokeStyle = PAL.amber; x.lineWidth = 1;
+    x.strokeRect(px + 0.5, py + 0.5, w - 1, h - 1);
+
+    text(x, 'PAUSED', VW / 2, py + 10, PAL.amber, 3, 1);
+    R(x, PAL.red, px + 16, py + 34, w - 32, 1);
+
+    // keys right-aligned to x=198, actions left from x=210: widest pair is
+    // 107px + 83px, so the block spans 91..293 inside a card at 81..303
+    const rows = [
+      ['W A S D  /  ARROWS', 'DRIVE'],
+      ['SHIFT', 'HANDBRAKE'],
+      ['MOUSE', 'AIM THE TOSS'],
+      ['CLICK  /  SPACE', 'THROW THE BAG'],
+      ['M  /  N', 'MUTE  /  MUSIC'],
+      ['P  /  ESC', 'PAUSE'],
+    ];
+    rows.forEach((r, i) => {
+      const y = py + 46 + i * 13;
+      text(x, r[0], 198, y, PAL.bone, 1, 2);
+      text(x, r[1], 210, y, PAL.boneDim, 1);
+    });
+
+    // just under the card, not at VH-20: that lands on the nav panel
+    text(x, 'P OR ESC TO RESUME', VW / 2, py + h + 7, PAL.cyan, 1, 1);
   },
 };
 

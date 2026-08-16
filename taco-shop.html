@@ -2,60 +2,23 @@
      decoded as Latin-1 when the file is opened directly. Entity = ASCII bytes. -->
 <title>Taco Shop &mdash; Carnage Asada</title>
 <style>
-  :root{
-    --void:#120d1a;
-    --bezel:#1b1425;
-    --bezel-2:#241a30;
-    --line:#3a2c48;
-    --bone:#f2e9d0;
-    --dim:#8d829c;
-    --amber:#ffb01f;
-    --red:#e8452c;
-    --cyan:#3fb8b0;
-    --jade:#1fa37e;
-    --gold:#fbc63f;
-  }
   *{box-sizing:border-box;}
   html,body{height:100%;}
   body{
     margin:0;
-    background:
-      radial-gradient(120% 90% at 50% 0%, #2a1b32 0%, rgba(18,13,26,0) 62%),
-      var(--void);
-    color:var(--bone);
-    font-family:ui-monospace,"Cascadia Mono","Segoe UI Mono",Menlo,Consolas,"Liberation Mono",monospace;
-    font-size:12px;
-    display:flex;
-    flex-direction:column;
+    background:#120d1a;
     overflow:hidden;
+    display:flex;
   }
 
-  header{
-    display:flex;align-items:baseline;justify-content:space-between;gap:16px;
-    padding:8px 18px 7px;
-    border-bottom:1px solid var(--line);
-    flex:0 0 auto;
-  }
-  .mark{
-    font-weight:700;letter-spacing:.34em;text-transform:uppercase;
-    font-size:13px;color:var(--gold);
-  }
-  .mark b{color:var(--jade);font-weight:700;}
-  .sub{letter-spacing:.22em;text-transform:uppercase;color:var(--dim);font-size:10px;}
-
+  /* No page chrome by design — the canvas is the whole product. #stage is
+     kept because 90_main.js measures it to size the canvas; removing it
+     would silently fall back to window.innerWidth. */
   #stage{
     flex:1 1 auto;min-height:0;
     display:flex;align-items:center;justify-content:center;
-    padding:14px;
   }
-  .bezel{
-    padding:10px;
-    background:linear-gradient(180deg,var(--bezel-2),var(--bezel));
-    border:1px solid var(--line);
-    border-radius:4px;
-    box-shadow:0 0 0 1px rgba(251,198,63,.16), 0 18px 60px -18px rgba(0,0,0,.9);
-    line-height:0;
-  }
+
   canvas{
     display:block;
     image-rendering:pixelated;
@@ -64,59 +27,12 @@
     cursor:crosshair;
     outline:none;
   }
-  canvas:focus-visible{box-shadow:0 0 0 2px var(--cyan);}
-
-  footer{
-    flex:0 0 auto;
-    border-top:1px solid var(--line);
-    padding:7px 18px 8px;
-    display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;
-  }
-  .ctl{display:flex;align-items:center;gap:7px;}
-  .ctl span{color:var(--dim);text-transform:uppercase;letter-spacing:.1em;font-size:10px;}
-  kbd{
-    display:inline-block;
-    padding:2px 6px;
-    border:1px solid var(--line);
-    border-bottom-width:2px;
-    border-radius:3px;
-    background:var(--bezel-2);
-    color:var(--bone);
-    font:inherit;font-size:10px;
-    letter-spacing:.06em;
-  }
-  .rule{flex:1 1 auto;}
-  .tip{color:var(--cyan);text-transform:uppercase;letter-spacing:.12em;font-size:10px;}
-
-  @media (max-width:720px){
-    header{padding:10px 12px 8px;}
-    footer{padding:8px 12px 10px;gap:6px 12px;}
-    .ctl:nth-child(n+5){display:none;}
-  }
+  canvas:focus-visible{box-shadow:0 0 0 2px #3fb8b0;}
 </style>
 
-<header>
-  <div class="mark"><b>Taco</b> Shop</div>
-  <div class="sub">Carnage Asada &middot; Sunday night delivery shift</div>
-</header>
-
 <div id="stage">
-  <div class="bezel">
-    <canvas id="screen" width="384" height="216" tabindex="0" aria-label="Taco Shop: Carnage Asada, a top-down taco delivery arcade game"></canvas>
-  </div>
+  <canvas id="screen" width="384" height="216" tabindex="0" aria-label="Taco Shop: Carnage Asada, a top-down taco delivery arcade game"></canvas>
 </div>
-
-<footer>
-  <div class="ctl"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>Drive</span></div>
-  <div class="ctl"><kbd>Shift</kbd><span>Handbrake</span></div>
-  <div class="ctl"><kbd>Mouse</kbd><span>Aim</span></div>
-  <div class="ctl"><kbd>Click</kbd><kbd>Space</kbd><span>Toss</span></div>
-  <div class="ctl"><kbd>P</kbd><span>Pause</span></div>
-  <div class="ctl"><kbd>M</kbd><span>Mute</span></div>
-  <div class="ctl"><kbd>N</kbd><span>Music</span></div>
-  <div class="rule"></div>
-  <div class="tip">The tip shrinks every second you take</div>
-</footer>
 
 <script>
 
@@ -700,7 +616,7 @@ const SPILL = ['#7a4a2a', '#c9542f', '#5aa14c', '#e0b055', '#d8b98a'];
 const Art = {
   tile: {}, house: [], bldg: [], tree: [], prop: {},
   car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [],
-  badge: null,
+  badge: null, wordmark: null,
 
   build(rng) {
     this.buildTiles(rng);
@@ -1096,6 +1012,71 @@ const Art = {
     }
     this.taqueria = this.mkTaqueria(makeRng(4242));
     this.badge = this.mkBadge();
+    this.wordmark = this.mkSprayText('CARNAGE ASADA', 3, PAL.red, 77311);
+  },
+
+  /* ---------- sprayed wordmark ----------------------------
+     The bitmap font is far too clean to read as spray paint, so the shape is
+     rebuilt from the glyph table in three passes: mist, then drips, then a
+     solid core last so the letterforms stay legible. Baked once at boot from
+     a seeded rng, so it is deterministic and costs nothing per frame. */
+  mkSprayText(str, s, col, seed) {
+    const r = makeRng(seed);
+
+    // lit cells in unscaled glyph space, and a lookup to find bottom edges
+    const cells = [];
+    let gx = 0;
+    for (const ch of String(str).toUpperCase()) {
+      const g = GLYPH[ch];
+      if (g) for (let b = 0; b < g.length; b += 2) cells.push([gx + g[b], g[b + 1]]);
+      gx += FW + 1;
+    }
+    // lowest lit cell per column — drips may only start here. "Nothing
+    // directly below" is not enough: that includes the crossbar of A and the
+    // waist of S, so runs poured straight down through the strokes beneath
+    // and turned the word to mush.
+    const lowest = new Map();
+    for (const [a, b] of cells) lowest.set(a, Math.max(lowest.has(a) ? lowest.get(a) : -1, b));
+
+    const PAD = 10, TAIL = 24;
+    const t = mkCanvas(textW(str, s) + PAD * 2, FH * s + PAD + TAIL);
+    const x = t.x;
+    const px = (a) => PAD + a * s, py = (b) => PAD + b * s;
+
+    // 1. overspray — a tight halo around every lit cell, thinning outward.
+    // Radius has to stay near 1.5 cells: the glyphs are 5x7 with 1-cell
+    // counters, so a wider halo floods the holes in A/G/R and the whole
+    // wordmark turns to mush. Mist is DARKER than the core, not lighter —
+    // thinly-sprayed paint over a dark ground reads dark.
+    const RAD = s * 1.5;
+    const mist = shade(col, -0.12);
+    for (const [a, b] of cells) {
+      const n = 6 + r.int(5);
+      for (let i = 0; i < n; i++) {
+        const ang = r() * TAU, d = Math.sqrt(r()) * RAD;
+        x.globalAlpha = 0.06 + 0.20 * (1 - d / RAD);
+        R(x, mist, px(a) + s / 2 + Math.cos(ang) * d, py(b) + s / 2 + Math.sin(ang) * d, 1, 1);
+      }
+    }
+    x.globalAlpha = 1;
+
+    // 2. drips, only from cells with nothing beneath them
+    const drip = shade(col, -0.18);
+    const wdt = Math.max(1, s - 1);
+    for (const [a, b] of cells) {
+      if (b !== lowest.get(a) || !r.chance(0.38)) continue;
+      const len = 5 + r.int(10);
+      const dx = px(a) + r.int(s - wdt + 1);
+      R(x, drip, dx, py(b) + s, wdt, len);
+      R(x, drip, dx - 1, py(b) + s + len - 2, wdt + 2, 3);   // heavier tail blob
+    }
+
+    // 3. solid core on top, lightly mottled so it is not a flat fill
+    for (const [a, b] of cells) {
+      R(x, col, px(a), py(b), s, s);
+      if (r.chance(0.16)) R(x, shade(col, 0.24), px(a), py(b), s, 1);
+    }
+    return { c: t.c, w: t.c.width, h: t.c.height };
   },
 
   /* ---------- the shop badge, for the title screen --------
@@ -3108,23 +3089,12 @@ const G = {
   overlayTitle(x) {
     x.fillStyle = 'rgba(20,12,28,0.62)'; x.fillRect(0, 0, VW, VH);
     const t = this.time;
-    // the shop badge, baked once at boot
-    const bw = Art.badge.width;
-    x.drawImage(Art.badge, ((VW - bw) / 2) | 0, 2);
+    // badge and sprayed wordmark, both baked once at boot. Controls are not
+    // listed here by design — they live in the pause overlay.
+    x.drawImage(Art.badge, ((VW - Art.badge.width) / 2) | 0, 8);
+    x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 124);
 
-    text(x, 'CARNAGE ASADA', VW / 2 + 2, 120, PAL.ink2, 2, 1);
-    text(x, 'CARNAGE ASADA', VW / 2, 118, PAL.red, 2, 1);
-    text(x, 'SUNDAY NIGHT DELIVERY SHIFT', VW / 2, 137, PAL.bone, 1, 1);
-
-    const rows = [
-      'WASD / ARROWS   DRIVE      SHIFT  HANDBRAKE',
-      'MOUSE AIM  +  CLICK / SPACE   TOSS THE BAG',
-      'THE TIP SHRINKS EVERY SECOND. THE NAV IS DUMB.',
-    ];
-    rows.forEach((r, i) => text(x, r, VW / 2, 152 + i * 10, i === 2 ? PAL.cyan : PAL.boneDim, 1, 1));
-
-    if ((t * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, VH - 26, PAL.amber, 2, 1);
-    text(x, 'M MUTE    N MUSIC    P PAUSE', VW / 2, VH - 10, '#6b5f84', 1, 1);
+    if ((t * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 188, PAL.amber, 2, 1);
   },
 
   overlayResults(x) {
@@ -3161,10 +3131,40 @@ const G = {
     text(x, 'ESC - TITLE', VW / 2, VH - 11, '#6b5f84', 1, 1);
   },
 
+  /* The page frame used to carry a key legend under the canvas. It doesn't
+     any more, so this overlay is the only place the controls are written
+     down — keep them here. */
   overlayPause(x) {
-    x.fillStyle = 'rgba(20,12,28,0.7)'; x.fillRect(0, 0, VW, VH);
-    text(x, 'PAUSED', VW / 2, VH / 2 - 14, PAL.amber, 3, 1);
-    text(x, 'P OR ESC TO RESUME', VW / 2, VH / 2 + 10, PAL.boneDim, 1, 1);
+    x.fillStyle = 'rgba(20,12,28,0.88)'; x.fillRect(0, 0, VW, VH);
+    // solid card, like the results screen: six rows of text over the live
+    // HUD is unreadable on a dim wash alone
+    const w = 222, h = 132, px = (VW - w) / 2 | 0, py = 30;
+    R(x, PAL.ink, px, py, w, h);
+    R(x, '#241a2e', px + 2, py + 2, w - 4, h - 4);
+    x.strokeStyle = PAL.amber; x.lineWidth = 1;
+    x.strokeRect(px + 0.5, py + 0.5, w - 1, h - 1);
+
+    text(x, 'PAUSED', VW / 2, py + 10, PAL.amber, 3, 1);
+    R(x, PAL.red, px + 16, py + 34, w - 32, 1);
+
+    // keys right-aligned to x=198, actions left from x=210: widest pair is
+    // 107px + 83px, so the block spans 91..293 inside a card at 81..303
+    const rows = [
+      ['W A S D  /  ARROWS', 'DRIVE'],
+      ['SHIFT', 'HANDBRAKE'],
+      ['MOUSE', 'AIM THE TOSS'],
+      ['CLICK  /  SPACE', 'THROW THE BAG'],
+      ['M  /  N', 'MUTE  /  MUSIC'],
+      ['P  /  ESC', 'PAUSE'],
+    ];
+    rows.forEach((r, i) => {
+      const y = py + 46 + i * 13;
+      text(x, r[0], 198, y, PAL.bone, 1, 2);
+      text(x, r[1], 210, y, PAL.boneDim, 1);
+    });
+
+    // just under the card, not at VH-20: that lands on the nav panel
+    text(x, 'P OR ESC TO RESUME', VW / 2, py + h + 7, PAL.cyan, 1, 1);
   },
 };
 

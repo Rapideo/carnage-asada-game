@@ -2,60 +2,23 @@
      decoded as Latin-1 when the file is opened directly. Entity = ASCII bytes. -->
 <title>Taco Shop &mdash; Carnage Asada</title>
 <style>
-  :root{
-    --void:#120d1a;
-    --bezel:#1b1425;
-    --bezel-2:#241a30;
-    --line:#3a2c48;
-    --bone:#f2e9d0;
-    --dim:#8d829c;
-    --amber:#ffb01f;
-    --red:#e8452c;
-    --cyan:#3fb8b0;
-    --jade:#1fa37e;
-    --gold:#fbc63f;
-  }
   *{box-sizing:border-box;}
   html,body{height:100%;}
   body{
     margin:0;
-    background:
-      radial-gradient(120% 90% at 50% 0%, #2a1b32 0%, rgba(18,13,26,0) 62%),
-      var(--void);
-    color:var(--bone);
-    font-family:ui-monospace,"Cascadia Mono","Segoe UI Mono",Menlo,Consolas,"Liberation Mono",monospace;
-    font-size:12px;
-    display:flex;
-    flex-direction:column;
+    background:#120d1a;
     overflow:hidden;
+    display:flex;
   }
 
-  header{
-    display:flex;align-items:baseline;justify-content:space-between;gap:16px;
-    padding:8px 18px 7px;
-    border-bottom:1px solid var(--line);
-    flex:0 0 auto;
-  }
-  .mark{
-    font-weight:700;letter-spacing:.34em;text-transform:uppercase;
-    font-size:13px;color:var(--gold);
-  }
-  .mark b{color:var(--jade);font-weight:700;}
-  .sub{letter-spacing:.22em;text-transform:uppercase;color:var(--dim);font-size:10px;}
-
+  /* No page chrome by design — the canvas is the whole product. #stage is
+     kept because 90_main.js measures it to size the canvas; removing it
+     would silently fall back to window.innerWidth. */
   #stage{
     flex:1 1 auto;min-height:0;
     display:flex;align-items:center;justify-content:center;
-    padding:14px;
   }
-  .bezel{
-    padding:10px;
-    background:linear-gradient(180deg,var(--bezel-2),var(--bezel));
-    border:1px solid var(--line);
-    border-radius:4px;
-    box-shadow:0 0 0 1px rgba(251,198,63,.16), 0 18px 60px -18px rgba(0,0,0,.9);
-    line-height:0;
-  }
+
   canvas{
     display:block;
     image-rendering:pixelated;
@@ -64,59 +27,12 @@
     cursor:crosshair;
     outline:none;
   }
-  canvas:focus-visible{box-shadow:0 0 0 2px var(--cyan);}
-
-  footer{
-    flex:0 0 auto;
-    border-top:1px solid var(--line);
-    padding:7px 18px 8px;
-    display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;
-  }
-  .ctl{display:flex;align-items:center;gap:7px;}
-  .ctl span{color:var(--dim);text-transform:uppercase;letter-spacing:.1em;font-size:10px;}
-  kbd{
-    display:inline-block;
-    padding:2px 6px;
-    border:1px solid var(--line);
-    border-bottom-width:2px;
-    border-radius:3px;
-    background:var(--bezel-2);
-    color:var(--bone);
-    font:inherit;font-size:10px;
-    letter-spacing:.06em;
-  }
-  .rule{flex:1 1 auto;}
-  .tip{color:var(--cyan);text-transform:uppercase;letter-spacing:.12em;font-size:10px;}
-
-  @media (max-width:720px){
-    header{padding:10px 12px 8px;}
-    footer{padding:8px 12px 10px;gap:6px 12px;}
-    .ctl:nth-child(n+5){display:none;}
-  }
+  canvas:focus-visible{box-shadow:0 0 0 2px #3fb8b0;}
 </style>
 
-<header>
-  <div class="mark"><b>Taco</b> Shop</div>
-  <div class="sub">Carnage Asada &middot; Sunday night delivery shift</div>
-</header>
-
 <div id="stage">
-  <div class="bezel">
-    <canvas id="screen" width="384" height="216" tabindex="0" aria-label="Taco Shop: Carnage Asada, a top-down taco delivery arcade game"></canvas>
-  </div>
+  <canvas id="screen" width="384" height="216" tabindex="0" aria-label="Taco Shop: Carnage Asada, a top-down taco delivery arcade game"></canvas>
 </div>
-
-<footer>
-  <div class="ctl"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>Drive</span></div>
-  <div class="ctl"><kbd>Shift</kbd><span>Handbrake</span></div>
-  <div class="ctl"><kbd>Mouse</kbd><span>Aim</span></div>
-  <div class="ctl"><kbd>Click</kbd><kbd>Space</kbd><span>Toss</span></div>
-  <div class="ctl"><kbd>P</kbd><span>Pause</span></div>
-  <div class="ctl"><kbd>M</kbd><span>Mute</span></div>
-  <div class="ctl"><kbd>N</kbd><span>Music</span></div>
-  <div class="rule"></div>
-  <div class="tip">The tip shrinks every second you take</div>
-</footer>
 
 <script>
 /*__GAME__*/
