@@ -80,7 +80,7 @@ const SPILL = ['#7a4a2a', '#c9542f', '#5aa14c', '#e0b055', '#d8b98a'];
 const Art = {
   tile: {}, house: [], bldg: [], tree: [], prop: {},
   car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [],
-  badge: null, wordmark: null, shield: null,
+  badge: null, wordmark: null, seal: null,
 
   build(rng) {
     this.buildTiles(rng);
@@ -476,41 +476,70 @@ const Art = {
     }
     this.taqueria = this.mkTaqueria(makeRng(4242));
     this.badge = this.mkBadge();
-    this.shield = this.mkShield();
+    this.seal = this.mkSeal();
     // same display face as the badge, at scale 2 => 206px wide
     this.wordmark = this.mkLogoText('CARNAGE ASADA', 2, PAL.gold, 2);
   },
 
-  /* ---------- Hays P.D. shield, for the attract screen ----
-     Built from per-row half-widths rather than a glyph table: straight
-     shoulders, then a quadratic taper to the point. Three passes, each inset
-     from the last, give the ink silhouette / gold rim / jade field. */
-  mkShield() {
-    const W = 44, H = 50, cx = W / 2, BASE = 19, SHOULDER = 28;
-    const t = mkCanvas(W, H), x = t.x;
+  /* ---------- the seal, for the attract card --------------
+     Rasterised per pixel rather than assembled from rects: the scalloped
+     starburst and the lettering ring are both functions of angle, which a
+     span-based build cannot express cleanly. At 100px the ring lettering is
+     far below legibility, so it is drawn as tick marks — the eye reads
+     "text around a seal" from the rhythm alone, which is the honest way to
+     render sub-pixel type. */
+  mkSeal() {
+    const S = 100, c = S / 2, RAYS = 30;
+    const t = mkCanvas(S, S), x = t.x;
+    const NAVY = '#151a3e', NAVY2 = '#242d60', BONE = '#e6e2d2', STRIPE = '#c0342c';
 
-    const half = [];
-    for (let y = 0; y < H; y++) {
-      if (y < 3) half.push(BASE - (3 - y) * 3);              // clipped top corners
-      else if (y < SHOULDER) half.push(BASE);                // straight sides
-      else {
-        const k = (y - SHOULDER) / (H - 1 - SHOULDER);
-        half.push(Math.max(1, Math.round(BASE * (1 - k * k))));
+    for (let py = 0; py < S; py++) {
+      for (let px = 0; px < S; px++) {
+        const dx = px - c + 0.5, dy = py - c + 0.5;
+        const d = hyp(dx, dy);
+        if (d > 48) continue;
+        const a = Math.atan2(dy, dx);
+        const spike = 40 + 8 * Math.sqrt(Math.max(0, Math.cos(a * RAYS)));
+        let col = null;
+        if (d > 37 && d <= spike)      col = d > 40 ? PAL.goldLo : PAL.gold;   // starburst
+        else if (d > 34 && d <= 37)    col = NAVY;                             // keyline
+        else if (d > 25 && d <= 34) {                                          // lettering ring
+          col = NAVY2;
+          if (d > 27 && d < 32 && Math.cos(a * 44) > 0.45) col = BONE;
+        } else if (d <= 25)            col = NAVY;
+        if (col) R(x, col, px, py, 1, 1);
       }
     }
-    const band = (inset, col) => {
-      for (let y = 0; y < H; y++) {
-        const h = half[y] - inset;
-        if (h > 0 && y >= inset && y < H - inset) R(x, col, cx - h, y, h * 2, 1);
-      }
-    };
-    band(0, PAL.ink);
-    band(2, PAL.gold);
-    band(5, PAL.jade);
 
-    text(x, 'HAYS', cx, 13, PAL.gold, 1, 1);
-    text(x, 'P.D.', cx, 23, PAL.gold, 1, 1);
-    R(x, PAL.gold, cx - 1, 8, 2, 2);                          // star at the top
+    /* laurel arcs flanking the emblem */
+    for (let i = 0; i < 40; i++) {
+      const a = PI / 2 + (i / 39 - 0.5) * 2.3;
+      for (const side of [-1, 1]) {
+        const r = 21 + (i % 2);
+        R(x, i % 3 ? PAL.gold : PAL.goldLo,
+          c + Math.cos(a) * r * side + (side < 0 ? 0 : 0), c + Math.sin(a) * r, 1, 2);
+      }
+    }
+
+    /* central shield: navy chief over vertical stripes, tapering to a point */
+    const SW = 16, SH = 21, top = c - 11;
+    for (let i = 0; i < SH; i++) {
+      const k = i < 13 ? 1 : 1 - Math.pow((i - 13) / (SH - 13), 1.5);
+      const hw = Math.max(1, Math.round((SW / 2) * k));
+      R(x, PAL.ink, c - hw - 1, top + i, hw * 2 + 2, 1);
+      if (i < 6) {
+        R(x, '#2c3a86', c - hw, top + i, hw * 2, 1);                  // chief
+        if (i === 2 || i === 3) for (let s = -1; s <= 1; s++) R(x, PAL.gold, c + s * 5, top + i, 1, 1);
+      } else {
+        for (let sx = -hw; sx < hw; sx++)
+          R(x, ((sx + 16) >> 1) % 2 ? BONE : STRIPE, c + sx, top + i, 1, 1);
+      }
+    }
+
+    /* scroll under the emblem */
+    R(x, PAL.ink, c - 15, c + 13, 30, 5);
+    R(x, PAL.gold, c - 14, c + 14, 28, 3);
+    for (let i = -12; i < 12; i += 3) R(x, PAL.goldLo, c + i, c + 15, 1, 1);
     return t.c;
   },
 

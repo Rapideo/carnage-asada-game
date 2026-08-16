@@ -1,0 +1,11 @@
+{
+  "_comment": "Copy for the attract-mode public-service card. build.mjs INLINES this at build time - it is not fetched at runtime, because the shipped artifact must stay a single self-contained file (the CSP blocks external requests, and fetch() on a file:// page is blocked by CORS). Edit here, then run: node build.mjs",
+  "_charset": "The 5x7 bitmap font covers uppercase A-Z, 0-9, space, and . , : ; ! ? $ + - / % # ( ) [ ] * = < > ' \" _ & @ ^ ~ - build.mjs fails the build on anything else, naming the offending characters. Watch for curly quotes from pasted text. Copy is drawn uppercase whatever you type.",
+  "_widths": "slogan draws at scale 2 (12px per character) and must fit 384px, so keep it under 32 characters. attribution and credit draw at scale 1 (6px per character), under 63 characters.",
+
+  "slogan": "\"WINNERS DON'T USE DRUGS\"",
+  "attribution": [
+    "WILLIAM S. SESSIONS , DIRECTOR, FBI"
+  ],
+  "credit": "CREDIT: 0"
+}

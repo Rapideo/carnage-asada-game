@@ -5,7 +5,7 @@ but speed wrecks your aim and attracts the police. The sat-nav is not on your si
 
 **Zero dependencies**: no framework, no libraries, no image, font, or audio files. The city, every sprite,
 the shop badge, the graffiti title, the bitmap font, and all the audio are generated procedurally at boot.
-The whole game is one self-contained ~140 KB HTML file.
+The whole game is one self-contained ~143 KB HTML file.
 
 **Play:** open `taco-shop.html`. There is no page chrome — the canvas fills the window.
 
@@ -47,7 +47,11 @@ node test/headless.mjs   # test suite — runs the real game logic against a stu
 ```
 
 `src/*.js` are plain scripts concatenated in filename order, so the numeric prefix is the load order.
-`taco-shop.html` and `index.html` are generated — edit `src/` and `shell.html`, then rebuild.
+`taco-shop.html`, `index.html` and `src/05_content.js` are generated — edit `src/`, `shell.html` and
+`content/`, then rebuild.
+
+Copy for the attract card lives in `content/winners.json` and is inlined at build time, so the shipped file
+stays self-contained. The build refuses any character the bitmap font cannot draw.
 
 ## Docs
 

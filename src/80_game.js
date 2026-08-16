@@ -15,6 +15,7 @@ const THROW_CD = 0.34;
 
 /* attract rotation, cabinet-style: title -> winners -> demo -> title */
 const ATTRACT_TITLE = 30, ATTRACT_WINNERS = 15, ATTRACT_DEMO = 90;
+const WINNERS_BLUE = '#1f1fa8';
 
 const G = {
   state: 'boot', time: 0, shift: 0, earned: 0,
@@ -668,19 +669,25 @@ const G = {
   /* The page frame used to carry a key legend under the canvas. It doesn't
      any more, so this overlay is the only place the controls are written
      down — keep them here. */
-  /* The cabinet anti-drug card, in this city's own jurisdiction rather than
-     a real agency's. Deliberately a flat field with no world behind it. */
+  /* The cabinet public-service card, following the period original: flat blue
+     field, seal above, slogan in quotes, attribution beneath, credit counter
+     bottom right. All copy comes from content/winners.json, inlined at build
+     time — see build.mjs. The blue is the one place the game's palette gives
+     way to the reference, because that field IS the memory of these screens;
+     everything on top of it uses the game's own gold and bone. */
   overlayWinners(x) {
-    R(x, PAL.ink, 0, 0, VW, VH);
-    const sh = Art.shield;
-    x.drawImage(sh, ((VW - sh.width) / 2) | 0, 46);
+    R(x, WINNERS_BLUE, 0, 0, VW, VH);
 
-    text(x, "WINNERS DON'T USE DRUGS", VW / 2 + 1, 115, PAL.ink2, 2, 1);
-    text(x, "WINNERS DON'T USE DRUGS", VW / 2, 114, PAL.bone, 2, 1);
+    x.drawImage(Art.seal, ((VW - Art.seal.width) / 2) | 0, 12);
 
-    R(x, PAL.gold, VW / 2 - 68, 138, 136, 1);
-    text(x, 'CHIEF OF POLICE', VW / 2, 148, PAL.boneDim, 1, 1);
-    text(x, 'HAYS POLICE DEPARTMENT', VW / 2, 160, PAL.boneDim, 1, 1);
+    // drop shadow first, as the original's CRT bloom did the same job
+    text(x, CONTENT.slogan, VW / 2 + 1, 135, '#12126a', 2, 1);
+    text(x, CONTENT.slogan, VW / 2, 134, PAL.gold, 2, 1);
+
+    const lines = [].concat(CONTENT.attribution);
+    lines.forEach((s, i) => text(x, s, VW / 2, 156 + i * 11, PAL.gold, 1, 1));
+
+    text(x, CONTENT.credit, VW - 8, VH - 12, PAL.bone, 1, 2);
   },
 
   overlayDemo(x) {

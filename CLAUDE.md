@@ -21,8 +21,21 @@ node test/headless.mjs   # full test suite; exits non-zero on failure
 There is no lint step, no test framework, and no watch mode. `build.mjs` must be re-run before
 `taco-shop.html` reflects source edits; `index.html` loads `src/*.js` directly so it does not.
 
-There is no `package.json` — nothing to install. `taco-shop.html` and `index.html` are **generated**; edit
-`src/` and `shell.html` and rebuild rather than editing them directly.
+There is no `package.json` — nothing to install. `taco-shop.html`, `index.html` and **`src/05_content.js`**
+are generated; edit `src/`, `shell.html` and `content/` and rebuild rather than editing them directly.
+
+## Authored copy (`content/*.json`)
+
+Player-facing copy for the attract card lives in `content/winners.json`. It is **inlined by `build.mjs`,
+never fetched at runtime** — the artifact runs under a CSP that blocks external requests, and `fetch()` on
+a `file://` page is blocked by CORS, so a runtime load would blank the screen exactly where it matters.
+`build.mjs` emits `src/05_content.js` (a generated `const CONTENT`), which the bundle and the dev page both
+pick up with no second code path.
+
+The build **fails loudly** rather than shipping broken text: it rejects any character the 5×7 font cannot
+draw, naming the offenders (curly quotes pasted from a document are the usual culprit), and rejects a
+missing field. If you add copy elsewhere, put it here and widen the validation rather than hard-coding
+strings in `80_game.js`.
 
 ## Related docs
 
@@ -58,6 +71,7 @@ There is no `package.json` — nothing to install. `taco-shop.html` and `index.h
 | module | responsibility |
 |---|---|
 | `00_core` | screen/world constants, `PAL`, RNG, `classify()`, `mkCanvas`/`R` helpers, `Input` |
+| `05_content` | **generated** — `CONTENT`, inlined from `content/winners.json` by `build.mjs` |
 | `10_font` | hand-authored 5×7 glyph table; `text()`, `textOut()`, `money()`, `clockStr()` |
 | `20_audio` | `Audio5`: WebAudio SFX, engine voice, siren, and the 4-bar chip loop scheduler |
 | `30_art` | `Art.build()` — bakes every sprite/tile once at boot; `rotFrames`/`drawRot`; `shade()`, `disc()`, `keyline()`; `LOGO` display face + `logoText()`/`mkLogoText()` |
@@ -196,6 +210,14 @@ click from `winners`/`demo` returns to the title. The demo reuses the play simul
 physics, same traffic, same scoring — with `Demo.drive()` swapped in for `Player.control()` and a flag
 disabling pause and the tick sound. `G.aimPoint()` has a demo branch so throws aim at the porch.
 
+The winners card is a faithful recreation of the period cabinet screen — flat blue field, seal, slogan in
+quotes, attribution, credit counter. The blue is the one place the game's palette gives way to the
+reference, because that field *is* the memory of these screens; everything on top of it uses the game's own
+gold and bone, and the CRT post pass supplies the scanlines the originals had. `Art.mkSeal()` rasterises
+per pixel rather than assembling rects: the scalloped starburst and the lettering ring are both functions
+of angle. At 100px the ring lettering is far below legibility, so it is drawn as tick marks — the eye reads
+"text around a seal" from the rhythm, which is the honest way to render sub-pixel type.
+
 Two things the demo driver must keep doing, both learned by watching it fail:
 
 - **Steer at the house's `curb`, never at `Nav.goal`.** The goal is the porch, which sits in the front
@@ -269,6 +291,6 @@ There is no per-test filter — it is one sequential script with labelled sectio
 
 ## Publishing
 
-`taco-shop.html` is the shippable artifact: one self-contained file, ~140 KB. It must stay free of external
+`taco-shop.html` is the shippable artifact: one self-contained file, ~143 KB. It must stay free of external
 requests. `?seed=<int>` on the URL regenerates the city deterministically (mulberry32); the default seed is
 in `90_main.js`.
