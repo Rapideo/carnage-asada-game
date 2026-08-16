@@ -75,12 +75,14 @@ const Hud = {
     text(x, clockStr(G.shift), VW - 7, 5, low && (G.time * 4 | 0) % 2 ? PAL.bad : PAL.bone, 2, 2);
     text(x, 'PAID', px0, 23, PAL.boneDim, 1);
     text(x, money(G.earned), VW - 7, 20, PAL.good, 2, 2);
-    // heat
-    text(x, 'HEAT', px0, 37, PAL.boneDim, 1);
-    R(x, '#1b1425', px0 + 26, 36, 90, 5);
+    // Hays PD attention. "HAYS PD" is 41px at scale 1 where "HEAT" was 23, so
+    // the meter starts 18px further right and is shortened by the same amount
+    // — its right edge stays put, and the 3px label gap is preserved.
+    text(x, 'HAYS PD', px0, 37, PAL.boneDim, 1);
+    R(x, '#1b1425', px0 + 44, 36, 72, 5);
     const hf = clamp(G.heat / G.heatMax, 0, 1);
-    R(x, hf > 0.75 ? PAL.bad : hf > 0.4 ? '#e07a1f' : '#5b6a8a', px0 + 27, 37, Math.round(88 * hf), 3);
-    if (G.cop) textOut(x, 'IN PURSUIT', px0 + 26, 36, PAL.bad, 1);
+    R(x, hf > 0.75 ? PAL.bad : hf > 0.4 ? '#e07a1f' : '#5b6a8a', px0 + 45, 37, Math.round(70 * hf), 3);
+    if (G.cop) textOut(x, 'IN PURSUIT', px0 + 44, 36, PAL.bad, 1);
 
     /* ---------- combo ---------- */
     if (G.combo > 1.001) {

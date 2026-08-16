@@ -2360,12 +2360,14 @@ const Hud = {
     text(x, clockStr(G.shift), VW - 7, 5, low && (G.time * 4 | 0) % 2 ? PAL.bad : PAL.bone, 2, 2);
     text(x, 'PAID', px0, 23, PAL.boneDim, 1);
     text(x, money(G.earned), VW - 7, 20, PAL.good, 2, 2);
-    // heat
-    text(x, 'HEAT', px0, 37, PAL.boneDim, 1);
-    R(x, '#1b1425', px0 + 26, 36, 90, 5);
+    // Hays PD attention. "HAYS PD" is 41px at scale 1 where "HEAT" was 23, so
+    // the meter starts 18px further right and is shortened by the same amount
+    // — its right edge stays put, and the 3px label gap is preserved.
+    text(x, 'HAYS PD', px0, 37, PAL.boneDim, 1);
+    R(x, '#1b1425', px0 + 44, 36, 72, 5);
     const hf = clamp(G.heat / G.heatMax, 0, 1);
-    R(x, hf > 0.75 ? PAL.bad : hf > 0.4 ? '#e07a1f' : '#5b6a8a', px0 + 27, 37, Math.round(88 * hf), 3);
-    if (G.cop) textOut(x, 'IN PURSUIT', px0 + 26, 36, PAL.bad, 1);
+    R(x, hf > 0.75 ? PAL.bad : hf > 0.4 ? '#e07a1f' : '#5b6a8a', px0 + 45, 37, Math.round(70 * hf), 3);
+    if (G.cop) textOut(x, 'IN PURSUIT', px0 + 44, 36, PAL.bad, 1);
 
     /* ---------- combo ---------- */
     if (G.combo > 1.001) {
@@ -2681,7 +2683,9 @@ const G = {
 
   tryThrow() {
     if (this.throwCd > 0 || this.bag <= 0 || this.player.spinT > 0) {
-      if (this.bag <= 0) { this.say('OUT OF TACOS - BACK TO THE SHOP', PAL.bad); Audio5.sfx('recalc'); }
+      // keep this under 31 chars: the banner box is textW(str,2)+16 and the
+      // screen is only 384px, so a longer string hangs off both edges
+      if (this.bag <= 0) { this.say('OUT OF TACOS - BACK TO SHOP', PAL.bad); Audio5.sfx('recalc'); }
       return;
     }
     const p = this.player, a = this.aimPoint();
@@ -2771,7 +2775,7 @@ const G = {
     for (let i = 0; i < 30 && City.isSolid(x, y); i++) { x = clamp(p.x + rand(-260, 260), 40, WW - 40); y = clamp(p.y + rand(-260, 260), 40, WH - 40); }
     this.cop = new Cop(x, y, Math.atan2(p.y - y, p.x - x));
     this.copT = 26;
-    this.say('HEAT! LOSE THE COP', PAL.bad);
+    this.say("HAYS PD! LOSE 'EM!", PAL.bad);
     Audio5.sirenOn();
   },
   dropCop() { this.cop = null; this.heat = Math.min(this.heat, 45); Audio5.sirenOff(); },

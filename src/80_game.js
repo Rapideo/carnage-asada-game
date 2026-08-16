@@ -148,7 +148,9 @@ const G = {
 
   tryThrow() {
     if (this.throwCd > 0 || this.bag <= 0 || this.player.spinT > 0) {
-      if (this.bag <= 0) { this.say('OUT OF TACOS - BACK TO THE SHOP', PAL.bad); Audio5.sfx('recalc'); }
+      // keep this under 31 chars: the banner box is textW(str,2)+16 and the
+      // screen is only 384px, so a longer string hangs off both edges
+      if (this.bag <= 0) { this.say('OUT OF TACOS - BACK TO SHOP', PAL.bad); Audio5.sfx('recalc'); }
       return;
     }
     const p = this.player, a = this.aimPoint();
@@ -238,7 +240,7 @@ const G = {
     for (let i = 0; i < 30 && City.isSolid(x, y); i++) { x = clamp(p.x + rand(-260, 260), 40, WW - 40); y = clamp(p.y + rand(-260, 260), 40, WH - 40); }
     this.cop = new Cop(x, y, Math.atan2(p.y - y, p.x - x));
     this.copT = 26;
-    this.say('HEAT! LOSE THE COP', PAL.bad);
+    this.say("HAYS PD! LOSE 'EM!", PAL.bad);
     Audio5.sirenOn();
   },
   dropCop() { this.cop = null; this.heat = Math.min(this.heat, 45); Audio5.sirenOff(); },
