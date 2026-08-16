@@ -671,7 +671,7 @@ const SPILL = ['#7a4a2a', '#c9542f', '#5aa14c', '#e0b055', '#d8b98a'];
 const Art = {
   tile: {}, house: [], bldg: [], tree: [], prop: {},
   car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [],
-  badge: null, wordmark: null,
+  badge: null, wordmark: null, shield: null,
 
   build(rng) {
     this.buildTiles(rng);
@@ -1067,8 +1067,42 @@ const Art = {
     }
     this.taqueria = this.mkTaqueria(makeRng(4242));
     this.badge = this.mkBadge();
+    this.shield = this.mkShield();
     // same display face as the badge, at scale 2 => 206px wide
     this.wordmark = this.mkLogoText('CARNAGE ASADA', 2, PAL.gold, 2);
+  },
+
+  /* ---------- Hays P.D. shield, for the attract screen ----
+     Built from per-row half-widths rather than a glyph table: straight
+     shoulders, then a quadratic taper to the point. Three passes, each inset
+     from the last, give the ink silhouette / gold rim / jade field. */
+  mkShield() {
+    const W = 44, H = 50, cx = W / 2, BASE = 19, SHOULDER = 28;
+    const t = mkCanvas(W, H), x = t.x;
+
+    const half = [];
+    for (let y = 0; y < H; y++) {
+      if (y < 3) half.push(BASE - (3 - y) * 3);              // clipped top corners
+      else if (y < SHOULDER) half.push(BASE);                // straight sides
+      else {
+        const k = (y - SHOULDER) / (H - 1 - SHOULDER);
+        half.push(Math.max(1, Math.round(BASE * (1 - k * k))));
+      }
+    }
+    const band = (inset, col) => {
+      for (let y = 0; y < H; y++) {
+        const h = half[y] - inset;
+        if (h > 0 && y >= inset && y < H - inset) R(x, col, cx - h, y, h * 2, 1);
+      }
+    };
+    band(0, PAL.ink);
+    band(2, PAL.gold);
+    band(5, PAL.jade);
+
+    text(x, 'HAYS', cx, 13, PAL.gold, 1, 1);
+    text(x, 'P.D.', cx, 23, PAL.gold, 1, 1);
+    R(x, PAL.gold, cx - 1, 8, 2, 2);                          // star at the top
+    return t.c;
   },
 
   /* ---------- title wordmark ------------------------------
@@ -1700,6 +1734,33 @@ function carBlocked(x, y, ang) {
   return false;
 }
 
+const UNWEDGE_DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1],
+                      [0.7, 0.7], [-0.7, 0.7], [0.7, -0.7], [-0.7, -0.7]];
+/**
+ * Depenetration. carBlocked() is tested at the DESTINATION, so once a body is
+ * already overlapping geometry every nearby destination overlaps too —
+ * including the ones that would free it. Both axis moves are rejected, speed
+ * is killed every frame, and steering is speed-gated, so the car can neither
+ * drive nor turn out: it is stuck permanently, not merely awkwardly. Nudge it
+ * toward whichever direction has clear space.
+ */
+function unwedge(e, dt) {
+  if (!carBlocked(e.x, e.y, e.ang)) return false;
+  const step = 90 * dt;
+  // widening search: a deep corner has nothing clear close by, and giving up
+  // at one radius leaves exactly those cases permanently stuck
+  for (const r of [12, 22, 34]) {
+    for (let i = 0; i < UNWEDGE_DIRS.length; i++) {
+      const dx = UNWEDGE_DIRS[i][0], dy = UNWEDGE_DIRS[i][1];
+      if (!carBlocked(e.x + dx * r, e.y + dy * r, e.ang)) {
+        e.x += dx * step; e.y += dy * step;
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /* ---------------- the player ------------------------------ */
 class Player {
   constructor(x, y, ang) {
@@ -1757,6 +1818,7 @@ class Player {
     this.vy = fy * vf + fx * vl;
 
     /* move with axis separation */
+    unwedge(this, dt);
     let bump = 0;
     const nx = this.x + this.vx * dt;
     if (!carBlocked(nx, this.y, this.ang)) this.x = nx;
@@ -2522,6 +2584,121 @@ function triArrow(x, cx, cy, a, r, col, outline) {
 }
 
 
+/* ===== 75_demo.js ===== */
+/* ============================================================
+   DEMO  --  the attract-mode driver: the game plays itself
+   ============================================================ */
+'use strict';
+
+/* Nothing here is scripted or faked. It sets the same throttle/steer/hb
+   fields Player.control() would, so the demo car runs the real physics, the
+   real collision response and the real traffic. Steering and the obstacle
+   probe deliberately mirror Cop.update — that logic already works against
+   this city, and a second hand-tuned version would only drift from it.
+
+   Note Player.update treats `throttle` as a SIGN, not a magnitude, so easing
+   off is throttle 0 (coast) rather than a fraction. */
+const Demo = {
+  wedgeT: 0, esteer: 1, throwCd: 0,
+
+  reset(p) { this.wedgeT = 0; this.esteer = 1; this.throwCd = 0; },
+
+  drive(dt, G) {
+    const p = G.player;
+    if (p.spinT > 0) { p.throttle = 0; p.steer = 0; p.hb = false; return; }
+    if (!Nav.goal) { p.throttle = 0; p.steer = 0; p.hb = false; return; }
+
+    /* ---- pick a target a car can actually occupy ----
+       Never Nav.goal on arrival: that is the porch, which sits in the front
+       yard. Steering at it drives the car off the road and wedges it on the
+       house, a bush or a hydrant. Houses carry a `curb` point — the spot on
+       the street outside — which is where a player stops to throw. */
+    let tx, ty;
+    if (Nav.route.length && !Nav.arriving) {
+      const n = Nav.route[0];
+      tx = City.nodeX(n[0]); ty = City.nodeY(n[1]);
+    } else if (G.needPickup) {
+      tx = City.shop.dock.x; ty = City.shop.dock.y;
+    } else if (G.order) {
+      tx = G.order.house.curb.x; ty = G.order.house.curb.y;
+    } else {
+      tx = Nav.goal.x; ty = Nav.goal.y;
+    }
+    // Off the street, getting back on it beats making progress. This must use
+    // classify(), NOT surfaceAt(): parking lots and shop aprons are surfaced
+    // S_ROAD, so a surface test lets the car cut across lots full of solid
+    // parked cars. Suspended near the target, since the shop's own dock is on
+    // an apron rather than a street.
+    const onStreet = (wx, wy) => {
+      const c = classify((wx / TS) | 0, (wy / TS) | 0);
+      return c === T_ROAD || c === T_INTER;
+    };
+    if (hyp(tx - p.x, ty - p.y) > 70 && !onStreet(p.x, p.y)) {
+      tx = City.nodeX(City.nearNodeX(p.x));
+      ty = City.nodeY(City.nearNodeY(p.y));
+    }
+    let want = Math.atan2(ty - p.y, tx - p.x);
+
+    /* ---- crude obstacle probe, same shape as the cop's ---- */
+    // Lookahead scales with speed — a fixed 34px is only 0.3s of warning at
+    // cruise, which is not enough to steer around a hydrant before clipping
+    // it. The two splayed feelers catch corners the centre ray misses.
+    const probe = (a, d) => City.isSolid(p.x + Math.cos(a) * d, p.y + Math.sin(a) * d);
+    const look = 22 + p.speed * 0.28;
+    if (probe(p.ang, look) || probe(p.ang + 0.25, look * 0.8) || probe(p.ang - 0.25, look * 0.8)) {
+      const l = probe(p.ang - 0.7, 30), r = probe(p.ang + 0.7, 30);
+      want = p.ang + (l && !r ? 0.9 : r && !l ? -0.9 : 1.2);
+    }
+
+    const err = angDiff(p.ang, want);
+    p.steer = clamp(err * 2.2, -1, 1);
+    p.hb = false;
+
+    // Coast through hard turns and on the approach — throw spread scales with
+    // speed, so arriving slowly is what lands the tosses. The speed floor is
+    // essential, not a refinement: Player.update scales steering by speed, so
+    // a stopped car cannot turn. Cut the throttle while pointed the wrong way
+    // and it coasts to a halt, unable to steer, stuck for good. The floor also
+    // means it never fully stops at the kerb, so it can always drive away.
+    // Cruise between a floor and a cap rather than slowing at the target.
+    // Slowing near the kerb made it orbit the point at walking pace and drift
+    // into the yard; a real delivery driver throws on the move. The cap keeps
+    // throw spread (speed/MAXSPD * 22) under ~14px against a 28px porch.
+    p.throttle = p.speed < 34 ? 1
+               : (Math.abs(err) > 1.2 || p.speed > 115) ? 0 : 1;
+
+    /* ---- toss once the porch is in range ---- */
+    this.throwCd -= dt;
+    if (G.order && !G.needPickup) {
+      const r = G.order.house.porch;
+      const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+      G.demoAim = { x: cx, y: cy };          // the reticle tracks the porch
+      if (this.throwCd <= 0 && G.bag > 0 && hyp(cx - p.x, cy - p.y) < MAXTHROW * 0.8) {
+        G.tryThrow();
+        this.throwCd = 1.4;
+      }
+    }
+
+    /* ---- wedge recovery ----
+       A car under power that is not moving is jammed against geometry, and it
+       cannot steer out because steering needs speed. Back out first; if that
+       fails too, put it back on a road. In a city this full of props there is
+       always a corner reversing cannot escape, so the hard reset has to exist. */
+    // decay rather than reset: a wedged car jiggles, and a hard reset on any
+    // single fast frame let it oscillate below the threshold indefinitely
+    if (p.throttle > 0 && p.speed < 20) this.wedgeT += dt;
+    else this.wedgeT = Math.max(0, this.wedgeT - dt * 0.5);
+    if (this.wedgeT > 1.2) { p.throttle = -1; p.steer = this.esteer; }
+    if (this.wedgeT > 2.5) {
+      p.x = City.nodeX(City.nearNodeX(p.x));
+      p.y = City.nodeY(City.nearNodeY(p.y));
+      p.vx = p.vy = 0;
+      this.wedgeT = 0; this.esteer = -this.esteer;
+    }
+  },
+};
+
+
 /* ===== 80_game.js ===== */
 /* ============================================================
    TACO SHOP: CARNAGE ASADA  --  game loop, shift structure, render pipeline
@@ -2538,6 +2715,9 @@ const HEAT_MAX = 100;
 const BAG_MAX = 3;
 const THROW_CD = 0.34;
 
+/* attract rotation, cabinet-style: title -> winners -> demo -> title */
+const ATTRACT_TITLE = 30, ATTRACT_WINNERS = 15, ATTRACT_DEMO = 90;
+
 const G = {
   state: 'boot', time: 0, shift: 0, earned: 0,
   combo: 1, comboPop: 0, heat: 0, heatMax: HEAT_MAX,
@@ -2547,6 +2727,7 @@ const G = {
   order: null, banner: '', bannerT: 0, bannerCol: PAL.bone,
   throwCd: 0, restock: 0, tipPop: 0, infraction: 0,
   stats: null, titleCam: 0, paused: false, flash: 0,
+  attractT: 0, demoAim: null,
   rl: [],
 
   /* ---------------- setup ------------------------------- */
@@ -2561,12 +2742,31 @@ const G = {
   toTitle() {
     this.state = 'title';
     this.titleCam = 0;
+    this.attractT = ATTRACT_TITLE;
+    this.paused = false; this.demoAim = null;
+    Audio5.sirenOff();
     this.player = new Player(City.shop.dock.x, City.shop.dock.y + 70, -PI / 2);
     this.traffic.length = 0; this.peds.length = 0; this.flying.length = 0;
     this.cop = null; Nav.clear(); Fx.clear();
     this.cam.x = clamp(City.shop.x - VW / 2, 0, WW - VW);
     this.cam.y = clamp(City.shop.y - VH / 2, 0, WH - VH);
     this.seedTraffic(26); this.seedPeds(20);
+  },
+
+  toWinners() {
+    this.state = 'winners';
+    this.attractT = ATTRACT_WINNERS;
+  },
+
+  /* the demo is a real shift — same setup, same rules — with Demo at the
+     wheel instead of the player */
+  toDemo() {
+    this.startShift();
+    this.state = 'demo';
+    this.attractT = ATTRACT_DEMO;
+    this.banner = ''; this.bannerT = 0;
+    this.demoAim = null;
+    Demo.reset(this.player);
   },
 
   startShift() {
@@ -2597,7 +2797,9 @@ const G = {
       const h = City.houses[(Math.random() * City.houses.length) | 0];
       if (this.order && this.order.house === h) continue;
       const d = hyp(h.cx - p.x, h.cy - p.y);
-      if (d < 230 || d > 980) continue;
+      // the demo gets nearer addresses: it has 90 seconds to show a delivery
+      // actually completing, and cross-town runs eat the whole window
+      if (d < 230 || d > (this.state === 'demo' ? 560 : 980)) continue;
       const s = Math.random();
       if (s > bestScore) { bestScore = s; best = h; }
     }
@@ -2663,7 +2865,8 @@ const G = {
   aimPoint() {
     const p = this.player;
     let ax, ay;
-    if (Input.hasMouse) { ax = this.cam.x + Input.mx; ay = this.cam.y + Input.my; }
+    if (this.state === 'demo' && this.demoAim) { ax = this.demoAim.x; ay = this.demoAim.y; }
+    else if (Input.hasMouse) { ax = this.cam.x + Input.mx; ay = this.cam.y + Input.my; }
     else { ax = p.x + Math.cos(p.ang) * 84; ay = p.y + Math.sin(p.ang) * 84; }
     const dx = ax - p.x, dy = ay - p.y, d = hyp(dx, dy);
     if (d > MAXTHROW) { ax = p.x + dx / d * MAXTHROW; ay = p.y + dy / d * MAXTHROW; }
@@ -2782,7 +2985,16 @@ const G = {
       this.cam.y = clamp(City.shop.y - VH / 2 + Math.sin(this.titleCam / 41) * r * 0.7, 0, WH - VH);
       this.player.x = this.cam.x + VW / 2; this.player.y = this.cam.y + VH / 2;
       this.simCrowd(dt);
-      if (Input.p('Enter', 'NumpadEnter', 'Space')) { Audio5.sfx('select'); this.startShift(); }
+      if (Input.p('Enter', 'NumpadEnter', 'Space')) { Audio5.sfx('select'); this.startShift(); return; }
+      this.attractT -= dt;
+      if (this.attractT <= 0) this.toWinners();
+      return;
+    }
+
+    if (this.state === 'winners') {
+      this.attractT -= dt;
+      if (Input.anyKey || Input.mhit) { Audio5.sfx('select'); this.toTitle(); return; }
+      if (this.attractT <= 0) this.toDemo();
       return;
     }
 
@@ -2793,16 +3005,24 @@ const G = {
       return;
     }
 
-    /* ---- play ---- */
-    if (Input.p('Escape', 'KeyP')) this.paused = !this.paused;
-    if (this.paused) return;
+    /* ---- play, and the demo which runs the same simulation ---- */
+    const demo = this.state === 'demo';
+    if (demo) {
+      this.attractT -= dt;
+      if (Input.anyKey || Input.mhit) { Audio5.sfx('select'); this.toTitle(); return; }
+      if (this.attractT <= 0) { this.toTitle(); return; }
+    } else {
+      if (Input.p('Escape', 'KeyP')) this.paused = !this.paused;
+      if (this.paused) return;
+    }
 
     if (this.hitstop > 0) { this.hitstop -= dt; dt *= 0.15; }
 
     const wasSec = Math.ceil(this.shift);
     this.shift -= dt;
-    if (this.shift > 0 && this.shift < 6 && Math.ceil(this.shift) !== wasSec) Audio5.sfx('tick');
-    if (this.shift <= 0) { this.endShift(); return; }
+    if (!demo && this.shift > 0 && this.shift < 6 && Math.ceil(this.shift) !== wasSec) Audio5.sfx('tick');
+    // a demo that outlasts the clock returns to the title, it does not post a score
+    if (this.shift <= 0) { if (demo) this.toTitle(); else this.endShift(); return; }
 
     this.bannerT -= dt;
     this.comboPop = Math.max(0, this.comboPop - dt);
@@ -2819,10 +3039,10 @@ const G = {
 
     /* player */
     const p = this.player;
-    p.control(Input);
+    if (demo) Demo.drive(dt, this); else p.control(Input);
     p.update(dt, this);
 
-    if (Input.mhit || Input.p('Space')) this.tryThrow();
+    if (!demo && (Input.mhit || Input.p('Space'))) this.tryThrow();
 
     /* engine audio */
     const sf = clamp(p.speed / MAXSPD, 0, 1);
@@ -2855,8 +3075,12 @@ const G = {
           this.bumpHeat(15);
           this.combo = 1;
         }
+        // Separate the two cars, but never shove the player into geometry:
+        // an unchecked push is how you end up overlapping a building, and an
+        // overlapping car cannot drive or steer its way out.
         const nx2 = (p.x - c.x) / (d || 1), ny2 = (p.y - c.y) / (d || 1);
-        p.x += nx2 * 2; p.y += ny2 * 2;
+        if (!carBlocked(p.x + nx2 * 2, p.y, p.ang)) p.x += nx2 * 2;
+        if (!carBlocked(p.x, p.y + ny2 * 2, p.ang)) p.y += ny2 * 2;
       }
     }
     while (this.traffic.length < 30) { const n = this.traffic.length; this.spawnCar(false); if (this.traffic.length === n) break; }
@@ -2960,6 +3184,9 @@ const G = {
 
   /* ---------------- render ------------------------------- */
   render(x) {
+    // the winners card is a solid field — no world behind it, as on a cabinet
+    if (this.state === 'winners') { this.overlayWinners(x); Post.apply(x); return; }
+
     const sh = this.shake;
     const cx = Math.round(this.cam.x + (sh > 0 ? rand(-sh, sh) : 0));
     const cy = Math.round(this.cam.y + (sh > 0 ? rand(-sh, sh) : 0));
@@ -2968,8 +3195,9 @@ const G = {
     x.fillStyle = PAL.void; x.fillRect(0, 0, VW, VH);
     x.drawImage(City.ground, cx, cy, VW, VH, 0, 0, VW, VH);
 
-    if (this.state === 'play' || this.state === 'results') Nav.drawRoute(x, cam, this.time);
-    if (this.state === 'play') this.drawBeacon(x, cam);
+    const live = this.state === 'play' || this.state === 'demo';
+    if (live || this.state === 'results') Nav.drawRoute(x, cam, this.time);
+    if (live) this.drawBeacon(x, cam);
 
     /* ---- y-sorted sprite pass ---- */
     const rl = this.rl; rl.length = 0;
@@ -2987,11 +3215,12 @@ const G = {
 
     Fx.draw(x, cam);
 
-    if (this.state === 'play') {
+    if (live) {
       this.drawAim(x, cam);
       Hud.draw(x, this);
       if (this.restock > 0) this.drawRestock(x, cam);
-      if (this.paused) this.overlayPause(x);
+      if (this.state === 'play' && this.paused) this.overlayPause(x);
+      if (this.state === 'demo') this.overlayDemo(x);
     }
     if (this.state === 'title')   this.overlayTitle(x);
     if (this.state === 'results') this.overlayResults(x);
@@ -3141,6 +3370,26 @@ const G = {
   /* The page frame used to carry a key legend under the canvas. It doesn't
      any more, so this overlay is the only place the controls are written
      down — keep them here. */
+  /* The cabinet anti-drug card, in this city's own jurisdiction rather than
+     a real agency's. Deliberately a flat field with no world behind it. */
+  overlayWinners(x) {
+    R(x, PAL.ink, 0, 0, VW, VH);
+    const sh = Art.shield;
+    x.drawImage(sh, ((VW - sh.width) / 2) | 0, 46);
+
+    text(x, "WINNERS DON'T USE DRUGS", VW / 2 + 1, 115, PAL.ink2, 2, 1);
+    text(x, "WINNERS DON'T USE DRUGS", VW / 2, 114, PAL.bone, 2, 1);
+
+    R(x, PAL.gold, VW / 2 - 68, 138, 136, 1);
+    text(x, 'CHIEF OF POLICE', VW / 2, 148, PAL.boneDim, 1, 1);
+    text(x, 'HAYS POLICE DEPARTMENT', VW / 2, 160, PAL.boneDim, 1, 1);
+  },
+
+  overlayDemo(x) {
+    if ((this.time * 1.2 | 0) % 2) return;
+    textOut(x, 'ATTRACT MODE  -  PRESS ANY KEY', VW / 2, 52, PAL.amber, 1, 1);
+  },
+
   overlayPause(x) {
     x.fillStyle = 'rgba(20,12,28,0.88)'; x.fillRect(0, 0, VW, VH);
     // solid card, like the results screen: six rows of text over the live
@@ -3280,7 +3529,7 @@ const Post = {
     }
     /* engine voice only while a shift is live */
     if (Audio5.ready) {
-      if (G.state === 'play' && !G.paused) Audio5.engineOn();
+      if ((G.state === 'play' || G.state === 'demo') && !G.paused) Audio5.engineOn();
       else if (Audio5.engine) Audio5.engineOff();
     }
     G.render(ctx);

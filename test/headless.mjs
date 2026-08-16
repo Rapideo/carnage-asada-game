@@ -57,10 +57,12 @@ sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
 // top-level const/let live in the script's lexical scope, not on the global
 // object, so hand them out explicitly from inside the same scope
-vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, solve, textW, MAXTHROW, VW, VH, WW, WH };',
+vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, MAXTHROW,' +
+  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, carBlocked, TS, GW };',
   sandbox, { filename: 'bundle.js' });
 
-const { G, City, Nav, Art, Input, textW, MAXTHROW, VW, VH, WW, WH } = sandbox.__x;
+const { G, City, Nav, Art, Input, textW, MAXTHROW, VW, VH, WW, WH,
+        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, carBlocked, TS, GW } = sandbox.__x;
 sandbox.solve = sandbox.__x.solve;
 
 /* ---------- assertions ---------- */
@@ -122,6 +124,33 @@ const BANNERS = ['CLOCK IN!', 'OUT OF TACOS - BACK TO SHOP', 'THAT IS NOT ' + lo
   'SPLAT!', 'PERFECT TOSS!', 'DELIVERED!', "HAYS PD! LOSE 'EM!", 'PULLED OVER', 'LOST THEM'];
 const tooWide = BANNERS.filter((b) => textW(b, 2) + 16 > VW);
 ok(tooWide.length === 0, `all ${BANNERS.length} banners fit the screen${tooWide.length ? ': ' + tooWide.join(' | ') : ''}`);
+
+/* A car whose body overlaps geometry must always be able to drive out.
+   carBlocked() is tested at the destination, so before unwedge() existed every
+   escape move was rejected too — and steering is speed-gated, so the car could
+   not turn out either. 0 of 37 sites were escapable by ANY input. */
+console.log('\n— collision —');
+const wedgeSites = [];
+for (let ty = 4; ty < 96 && wedgeSites.length < 30; ty++) {
+  for (let tx = 4; tx < 96; tx++) {
+    if (!City.solid[ty * GW + tx]) continue;
+    const wx = tx * TS + 8, wy = (ty + 1) * TS + 6;
+    if (!City.isSolid(wx, wy) && carBlocked(wx, wy, -Math.PI / 2)) { wedgeSites.push({ x: wx, y: wy }); break; }
+  }
+}
+ok(wedgeSites.length > 10, `found ${wedgeSites.length} wedge sites to test`);
+let escaped = 0;
+const stubG = { shake: 0, hitstop: 0, onCrash: () => {} };
+for (const s of wedgeSites) {
+  const p = new Player(s.x, s.y, -Math.PI / 2);
+  p.vx = p.vy = 0;
+  for (let i = 0; i < 900; i++) {              // 15s of rocking free
+    p.throttle = ((i / 30) | 0) % 2 ? 1 : -1; p.steer = 1; p.hb = false;
+    p.update(1 / 60, stubG);
+    if (Math.hypot(p.x - s.x, p.y - s.y) > 40) { escaped++; break; }
+  }
+}
+ok(escaped === wedgeSites.length, `every wedged car can drive out (${escaped}/${wedgeSites.length})`);
 
 console.log('\n— guidance —');
 let routeFail = 0, longest = 0;
@@ -224,6 +253,50 @@ ok(G.order.tip < tip0, `tip decayed ${(tip0 / 100).toFixed(2)} -> ${(G.order.tip
 ok(G.order.tip >= G.order.floor, 'tip never falls through the floor');
 
 /* heat -> cop */
+/* attract rotation: title -> winners -> demo -> title, and the demo drives */
+console.log('\n— attract —');
+const step = (secs) => { for (let i = 0; i < secs * 60; i++) { G.update(1 / 60); G.render(ctx); Input.endFrame(); } };
+
+Input.down = Object.create(null); Input.mhit = false; Input.hasMouse = false;
+G.toTitle();
+ok(G.state === 'title', 'attract starts on the title');
+step(ATTRACT_TITLE + 0.5);
+ok(G.state === 'winners', `title holds ${ATTRACT_TITLE}s then shows the winners card`);
+step(ATTRACT_WINNERS + 0.5);
+ok(G.state === 'demo', `winners holds ${ATTRACT_WINNERS}s then starts the demo`);
+
+/* the demo must actually drive — a car wedged against a wall would still
+   satisfy "no NaN", so track distance covered and watch for drift */
+let far = 0, bad = 0, moved = 0, stall = 0, worstStall = 0;
+let prev = { x: G.player.x, y: G.player.y };
+for (let i = 0; i < 85 * 60; i++) {
+  G.update(1 / 60); G.render(ctx); Input.endFrame();
+  const p = G.player;
+  if (!finite(p.x) || !finite(p.y) || !finite(p.ang) || !finite(p.vx) || !finite(p.vy)) { bad++; break; }
+  if (p.x < 0 || p.x > WW || p.y < 0 || p.y > WH) { far++; break; }
+  const d = Math.hypot(p.x - prev.x, p.y - prev.y);
+  moved += d;
+  if (d < 0.2) { stall += 1 / 60; worstStall = Math.max(worstStall, stall); } else stall = 0;
+  prev = { x: p.x, y: p.y };
+}
+ok(bad === 0, 'no NaN in the demo driver over 85s');
+ok(far === 0, 'demo car stayed inside the world');
+ok(moved > 2500, `demo car actually drove (${Math.round(moved)}px covered)`);
+// net displacement is NOT a useful check here — the demo takes orders all over
+// the map and can legitimately end up near where it started. What must hold is
+// that it never wedges permanently.
+ok(worstStall < 8, `demo never stalled for long (worst ${worstStall.toFixed(1)}s)`);
+ok(G.state === 'demo', 'demo still running before its timer expires');
+step(6);
+ok(G.state === 'title', `demo returns to the title after ${ATTRACT_DEMO}s`);
+
+/* any key from winners or demo goes back to the title */
+G.toWinners();
+Input.anyKey = true;
+G.update(1 / 60);
+ok(G.state === 'title', 'a keypress on the winners card returns to the title');
+Input.anyKey = false; Input.endFrame();
+
 console.log('\n— heat —');
 G.heat = 0; G.cop = null;
 for (let i = 0; i < 40; i++) G.bumpHeat(5);

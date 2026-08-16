@@ -80,7 +80,7 @@ const SPILL = ['#7a4a2a', '#c9542f', '#5aa14c', '#e0b055', '#d8b98a'];
 const Art = {
   tile: {}, house: [], bldg: [], tree: [], prop: {},
   car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [],
-  badge: null, wordmark: null,
+  badge: null, wordmark: null, shield: null,
 
   build(rng) {
     this.buildTiles(rng);
@@ -476,8 +476,42 @@ const Art = {
     }
     this.taqueria = this.mkTaqueria(makeRng(4242));
     this.badge = this.mkBadge();
+    this.shield = this.mkShield();
     // same display face as the badge, at scale 2 => 206px wide
     this.wordmark = this.mkLogoText('CARNAGE ASADA', 2, PAL.gold, 2);
+  },
+
+  /* ---------- Hays P.D. shield, for the attract screen ----
+     Built from per-row half-widths rather than a glyph table: straight
+     shoulders, then a quadratic taper to the point. Three passes, each inset
+     from the last, give the ink silhouette / gold rim / jade field. */
+  mkShield() {
+    const W = 44, H = 50, cx = W / 2, BASE = 19, SHOULDER = 28;
+    const t = mkCanvas(W, H), x = t.x;
+
+    const half = [];
+    for (let y = 0; y < H; y++) {
+      if (y < 3) half.push(BASE - (3 - y) * 3);              // clipped top corners
+      else if (y < SHOULDER) half.push(BASE);                // straight sides
+      else {
+        const k = (y - SHOULDER) / (H - 1 - SHOULDER);
+        half.push(Math.max(1, Math.round(BASE * (1 - k * k))));
+      }
+    }
+    const band = (inset, col) => {
+      for (let y = 0; y < H; y++) {
+        const h = half[y] - inset;
+        if (h > 0 && y >= inset && y < H - inset) R(x, col, cx - h, y, h * 2, 1);
+      }
+    };
+    band(0, PAL.ink);
+    band(2, PAL.gold);
+    band(5, PAL.jade);
+
+    text(x, 'HAYS', cx, 13, PAL.gold, 1, 1);
+    text(x, 'P.D.', cx, 23, PAL.gold, 1, 1);
+    R(x, PAL.gold, cx - 1, 8, 2, 2);                          // star at the top
+    return t.c;
   },
 
   /* ---------- title wordmark ------------------------------

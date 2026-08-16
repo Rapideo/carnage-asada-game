@@ -65,6 +65,7 @@ There is no `package.json` — nothing to install. `taco-shop.html` and `index.h
 | `50_entities` | `Player`, `Traffic`, `Ped`, `Cop`, `Bag`, `Fx`; shared car physics + collision |
 | `60_nav` | `Nav` (TACO-NAV unit) and `solve()` — Dijkstra over the intersection graph |
 | `70_hud` | `Hud.draw()` — order card, tip meter, nav panel, minimap; `navArrow`, `triArrow` |
+| `75_demo` | `Demo.drive()` — the attract-mode driver; sets the same fields `Player.control` does |
 | `80_game` | `G` — state machine, orders/tips/scoring, camera, render pipeline; `Post` |
 | `90_main` | canvas scaling, fixed-step loop, audio unlock, `window.TacoShop` bridge |
 
@@ -174,9 +175,37 @@ breaks the pixel look), and `keyline()` draws an outline of constant pixel width
 `textOut()` offsets its outline *by* the scale, so past about 2× the eight offset copies merge into a solid
 slab instead of a keyline.
 
+### Collision, and why `unwedge()` exists
+
+`carBlocked()` tests the **destination**, so once a car body already overlaps solid geometry every nearby
+destination overlaps too — including the ones that would free it. Both axis moves are rejected, speed is
+killed each frame, and steering is speed-gated (`clamp(spd/46, 0, 1)`), so the car can neither drive nor
+turn out. That state is permanent, not merely awkward: **0 of 37 tested wedge sites were escapable by any
+input** before `unwedge()` existed.
+
+`unwedge()` in `50_entities` depenetrates: if the body is overlapping, it nudges toward the first direction
+with clear space, widening the probe radius so deep corners are not abandoned. `Player.update` calls it
+every frame. Anything that moves a car *without* a `carBlocked` test can recreate the trap — the traffic
+separation push in `80_game` did exactly that, shoving the player inside buildings. The
+`— collision —` test section asserts every wedge site stays escapable.
+
+### Attract mode
+
+`title` (30s) → `winners` (15s) → `demo` (90s) → `title`, driven by one `G.attractT` countdown. Any key or
+click from `winners`/`demo` returns to the title. The demo reuses the play simulation exactly — same
+physics, same traffic, same scoring — with `Demo.drive()` swapped in for `Player.control()` and a flag
+disabling pause and the tick sound. `G.aimPoint()` has a demo branch so throws aim at the porch.
+
+Two things the demo driver must keep doing, both learned by watching it fail:
+
+- **Steer at the house's `curb`, never at `Nav.goal`.** The goal is the porch, which sits in the front
+  yard; steering at it drives the car off the road and into the scenery.
+- **Test streets with `classify()`, not `surfaceAt()`.** Parking lots and shop aprons are surfaced
+  `S_ROAD`, so a surface test lets the demo cut across lots full of solid parked cars.
+
 ### Game state (`G`)
 
-States: `title` → `play` → `results`. One active `order` at a time; `G.needPickup` (bag empty) redirects the
+States: `title` → `winners` → `demo` → `play` → `results`. One active `order` at a time; `G.needPickup` (bag empty) redirects the
 nav to the shop while the order and its decaying tip stay live. Throwing consumes a bag slot immediately, so
 a miss can strand you mid-order — that coupling is intentional.
 
@@ -204,9 +233,10 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. 35 assertions covering city invariants (address
-uniqueness, porch reachability), HUD text widths, 250 solved routes, 9000 fuzzed simulation frames checked
-for NaN and out-of-world drift, the full scoring loop, and heat/cop behaviour.
+every drawing call is a no-op but all logic executes. 47 assertions covering city invariants (address
+uniqueness, porch reachability), HUD text widths, wedge escapability, 250 solved routes, 9000 fuzzed
+simulation frames checked for NaN and out-of-world drift, the attract rotation and 85s of autonomous
+demo driving, the full scoring loop, and heat/cop behaviour.
 
 **The `— hud layout —` section exists because three text-overflow bugs shipped in the order card.** It
 asserts the longest *generated* address still fits, that both restock lines fit, and that every banner box
@@ -228,12 +258,17 @@ The suite uses `Math.random()` (not the seeded RNG) for the fuzz and for order s
 reproducible. When something fails, re-run it several times to tell a real break from a flake — and treat a
 flake as a bug in the harness, not noise to live with.
 
+Assertions about autonomous behaviour must measure the right thing. "Net displacement over 85s" looked
+like a reasonable check that the demo was driving, but the demo takes orders all over the map and can
+legitimately finish near where it started — it failed on working code. Total path length plus a
+*longest-stall* bound is what actually captures "never wedges".
+
 There is no per-test filter — it is one sequential script with labelled sections (`— build —`,
-`— hud layout —`, `— guidance —`, `— simulation —`, `— scoring —`, `— heat —`). To isolate one, edit the
-script.
+`— hud layout —`, `— collision —`, `— guidance —`, `— simulation —`, `— scoring —`, `— attract —`,
+`— heat —`). To isolate one, edit the script.
 
 ## Publishing
 
-`taco-shop.html` is the shippable artifact: one self-contained file, ~130 KB. It must stay free of external
+`taco-shop.html` is the shippable artifact: one self-contained file, ~140 KB. It must stay free of external
 requests. `?seed=<int>` on the URL regenerates the city deterministically (mulberry32); the default seed is
 in `90_main.js`.

@@ -79,7 +79,7 @@
     }
     /* engine voice only while a shift is live */
     if (Audio5.ready) {
-      if (G.state === 'play' && !G.paused) Audio5.engineOn();
+      if ((G.state === 'play' || G.state === 'demo') && !G.paused) Audio5.engineOn();
       else if (Audio5.engine) Audio5.engineOff();
     }
     G.render(ctx);

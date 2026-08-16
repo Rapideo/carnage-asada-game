@@ -317,8 +317,55 @@ The title also dropped its spray treatment entirely and went gold with a black k
 The screen reads as one branded lockup now rather than a clean logo above a rough tag — a deliberate trade
 of contrast for coherence.
 
-### Process note
+### Process note (title screen work)
 
 `taco-shop.html` is generated and nothing rebuilds it automatically. The tests read `src/` directly, so a
 green suite says nothing about the artifact. One fix was reported as done while the shipped file still had
 the old layout, because `node build.mjs` had not been re-run. **Rebuild before asking anyone to look.**
+
+---
+
+## 9. Attract mode, and the bug it exposed
+
+Added a cabinet-style rotation — title 30s, a "winners don't use drugs" card 15s, a 90-second self-playing
+demo — which turned out to be worth far more than the feature itself.
+
+The anti-drug card is attributed to the game's own Hays P.D. rather than reproducing a real agency's seal
+and a real named official. The layout, the slogan and the period feel are the parts that carry the joke;
+the federal branding is not, and faking it would be the one element of the homage that could mislead.
+
+### The demo found a real control bug
+
+The demo driver kept getting wedged against scenery. The obvious reading was that the AI was bad, and the
+first two rounds of work went into the AI — a speed floor so it could steer, kerb targets instead of porch
+targets, `classify()` instead of `surfaceAt()` for street tests. All were genuine bugs. None was the
+important one.
+
+The user then mentioned they had hit the same thing playing by hand. Testing that properly:
+
+> **0 of 37 wedge sites were escapable by any input.** Not hard. Impossible.
+
+`carBlocked()` is evaluated at the *destination*. Once a car body overlaps geometry, every nearby
+destination overlaps too — including the ones that would free it — so both axis moves are rejected and
+speed is zeroed every frame. Steering is gated on speed. The car therefore cannot drive out, cannot turn
+out, and cannot rock out. Forward, reverse and wiggling all fail.
+
+Getting *into* that state was easy, because the traffic separation push moved the player 2px per frame
+with no collision test at all: any car nudging you against a building shoved you inside it.
+
+Two fixes. `unwedge()` depenetrates — if the body is overlapping, nudge toward the first direction with
+clear space, widening the probe radius so deep corners are not abandoned. And the traffic push now tests
+`carBlocked` per axis before moving the player. Result: **37 of 37 escapable**, average 3.1s of rocking.
+
+The lesson is not "write a depenetration step". It is that **an autonomous agent is an excellent fuzzer for
+the systems a human tests politely.** The demo driver hammered geometry thousands of times per run and
+surfaced, in minutes, a permanent-softlock that a person hits occasionally and works around by restarting.
+It is the same argument as §4 — assert the invariants that make the game winnable — arrived at from the
+other direction.
+
+### Assertions about autonomous behaviour need care
+
+The first guard for "the demo actually drives" measured net displacement over 85 seconds. It failed on
+working code: the demo takes orders all over the map and can legitimately end up near where it started.
+Replaced with total path length plus a bound on the *longest stall*, which is the property that actually
+matters — and which the wedge fix is what guarantees.

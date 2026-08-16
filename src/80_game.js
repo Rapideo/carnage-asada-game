@@ -13,6 +13,9 @@ const HEAT_MAX = 100;
 const BAG_MAX = 3;
 const THROW_CD = 0.34;
 
+/* attract rotation, cabinet-style: title -> winners -> demo -> title */
+const ATTRACT_TITLE = 30, ATTRACT_WINNERS = 15, ATTRACT_DEMO = 90;
+
 const G = {
   state: 'boot', time: 0, shift: 0, earned: 0,
   combo: 1, comboPop: 0, heat: 0, heatMax: HEAT_MAX,
@@ -22,6 +25,7 @@ const G = {
   order: null, banner: '', bannerT: 0, bannerCol: PAL.bone,
   throwCd: 0, restock: 0, tipPop: 0, infraction: 0,
   stats: null, titleCam: 0, paused: false, flash: 0,
+  attractT: 0, demoAim: null,
   rl: [],
 
   /* ---------------- setup ------------------------------- */
@@ -36,12 +40,31 @@ const G = {
   toTitle() {
     this.state = 'title';
     this.titleCam = 0;
+    this.attractT = ATTRACT_TITLE;
+    this.paused = false; this.demoAim = null;
+    Audio5.sirenOff();
     this.player = new Player(City.shop.dock.x, City.shop.dock.y + 70, -PI / 2);
     this.traffic.length = 0; this.peds.length = 0; this.flying.length = 0;
     this.cop = null; Nav.clear(); Fx.clear();
     this.cam.x = clamp(City.shop.x - VW / 2, 0, WW - VW);
     this.cam.y = clamp(City.shop.y - VH / 2, 0, WH - VH);
     this.seedTraffic(26); this.seedPeds(20);
+  },
+
+  toWinners() {
+    this.state = 'winners';
+    this.attractT = ATTRACT_WINNERS;
+  },
+
+  /* the demo is a real shift — same setup, same rules — with Demo at the
+     wheel instead of the player */
+  toDemo() {
+    this.startShift();
+    this.state = 'demo';
+    this.attractT = ATTRACT_DEMO;
+    this.banner = ''; this.bannerT = 0;
+    this.demoAim = null;
+    Demo.reset(this.player);
   },
 
   startShift() {
@@ -72,7 +95,9 @@ const G = {
       const h = City.houses[(Math.random() * City.houses.length) | 0];
       if (this.order && this.order.house === h) continue;
       const d = hyp(h.cx - p.x, h.cy - p.y);
-      if (d < 230 || d > 980) continue;
+      // the demo gets nearer addresses: it has 90 seconds to show a delivery
+      // actually completing, and cross-town runs eat the whole window
+      if (d < 230 || d > (this.state === 'demo' ? 560 : 980)) continue;
       const s = Math.random();
       if (s > bestScore) { bestScore = s; best = h; }
     }
@@ -138,7 +163,8 @@ const G = {
   aimPoint() {
     const p = this.player;
     let ax, ay;
-    if (Input.hasMouse) { ax = this.cam.x + Input.mx; ay = this.cam.y + Input.my; }
+    if (this.state === 'demo' && this.demoAim) { ax = this.demoAim.x; ay = this.demoAim.y; }
+    else if (Input.hasMouse) { ax = this.cam.x + Input.mx; ay = this.cam.y + Input.my; }
     else { ax = p.x + Math.cos(p.ang) * 84; ay = p.y + Math.sin(p.ang) * 84; }
     const dx = ax - p.x, dy = ay - p.y, d = hyp(dx, dy);
     if (d > MAXTHROW) { ax = p.x + dx / d * MAXTHROW; ay = p.y + dy / d * MAXTHROW; }
@@ -257,7 +283,16 @@ const G = {
       this.cam.y = clamp(City.shop.y - VH / 2 + Math.sin(this.titleCam / 41) * r * 0.7, 0, WH - VH);
       this.player.x = this.cam.x + VW / 2; this.player.y = this.cam.y + VH / 2;
       this.simCrowd(dt);
-      if (Input.p('Enter', 'NumpadEnter', 'Space')) { Audio5.sfx('select'); this.startShift(); }
+      if (Input.p('Enter', 'NumpadEnter', 'Space')) { Audio5.sfx('select'); this.startShift(); return; }
+      this.attractT -= dt;
+      if (this.attractT <= 0) this.toWinners();
+      return;
+    }
+
+    if (this.state === 'winners') {
+      this.attractT -= dt;
+      if (Input.anyKey || Input.mhit) { Audio5.sfx('select'); this.toTitle(); return; }
+      if (this.attractT <= 0) this.toDemo();
       return;
     }
 
@@ -268,16 +303,24 @@ const G = {
       return;
     }
 
-    /* ---- play ---- */
-    if (Input.p('Escape', 'KeyP')) this.paused = !this.paused;
-    if (this.paused) return;
+    /* ---- play, and the demo which runs the same simulation ---- */
+    const demo = this.state === 'demo';
+    if (demo) {
+      this.attractT -= dt;
+      if (Input.anyKey || Input.mhit) { Audio5.sfx('select'); this.toTitle(); return; }
+      if (this.attractT <= 0) { this.toTitle(); return; }
+    } else {
+      if (Input.p('Escape', 'KeyP')) this.paused = !this.paused;
+      if (this.paused) return;
+    }
 
     if (this.hitstop > 0) { this.hitstop -= dt; dt *= 0.15; }
 
     const wasSec = Math.ceil(this.shift);
     this.shift -= dt;
-    if (this.shift > 0 && this.shift < 6 && Math.ceil(this.shift) !== wasSec) Audio5.sfx('tick');
-    if (this.shift <= 0) { this.endShift(); return; }
+    if (!demo && this.shift > 0 && this.shift < 6 && Math.ceil(this.shift) !== wasSec) Audio5.sfx('tick');
+    // a demo that outlasts the clock returns to the title, it does not post a score
+    if (this.shift <= 0) { if (demo) this.toTitle(); else this.endShift(); return; }
 
     this.bannerT -= dt;
     this.comboPop = Math.max(0, this.comboPop - dt);
@@ -294,10 +337,10 @@ const G = {
 
     /* player */
     const p = this.player;
-    p.control(Input);
+    if (demo) Demo.drive(dt, this); else p.control(Input);
     p.update(dt, this);
 
-    if (Input.mhit || Input.p('Space')) this.tryThrow();
+    if (!demo && (Input.mhit || Input.p('Space'))) this.tryThrow();
 
     /* engine audio */
     const sf = clamp(p.speed / MAXSPD, 0, 1);
@@ -330,8 +373,12 @@ const G = {
           this.bumpHeat(15);
           this.combo = 1;
         }
+        // Separate the two cars, but never shove the player into geometry:
+        // an unchecked push is how you end up overlapping a building, and an
+        // overlapping car cannot drive or steer its way out.
         const nx2 = (p.x - c.x) / (d || 1), ny2 = (p.y - c.y) / (d || 1);
-        p.x += nx2 * 2; p.y += ny2 * 2;
+        if (!carBlocked(p.x + nx2 * 2, p.y, p.ang)) p.x += nx2 * 2;
+        if (!carBlocked(p.x, p.y + ny2 * 2, p.ang)) p.y += ny2 * 2;
       }
     }
     while (this.traffic.length < 30) { const n = this.traffic.length; this.spawnCar(false); if (this.traffic.length === n) break; }
@@ -435,6 +482,9 @@ const G = {
 
   /* ---------------- render ------------------------------- */
   render(x) {
+    // the winners card is a solid field — no world behind it, as on a cabinet
+    if (this.state === 'winners') { this.overlayWinners(x); Post.apply(x); return; }
+
     const sh = this.shake;
     const cx = Math.round(this.cam.x + (sh > 0 ? rand(-sh, sh) : 0));
     const cy = Math.round(this.cam.y + (sh > 0 ? rand(-sh, sh) : 0));
@@ -443,8 +493,9 @@ const G = {
     x.fillStyle = PAL.void; x.fillRect(0, 0, VW, VH);
     x.drawImage(City.ground, cx, cy, VW, VH, 0, 0, VW, VH);
 
-    if (this.state === 'play' || this.state === 'results') Nav.drawRoute(x, cam, this.time);
-    if (this.state === 'play') this.drawBeacon(x, cam);
+    const live = this.state === 'play' || this.state === 'demo';
+    if (live || this.state === 'results') Nav.drawRoute(x, cam, this.time);
+    if (live) this.drawBeacon(x, cam);
 
     /* ---- y-sorted sprite pass ---- */
     const rl = this.rl; rl.length = 0;
@@ -462,11 +513,12 @@ const G = {
 
     Fx.draw(x, cam);
 
-    if (this.state === 'play') {
+    if (live) {
       this.drawAim(x, cam);
       Hud.draw(x, this);
       if (this.restock > 0) this.drawRestock(x, cam);
-      if (this.paused) this.overlayPause(x);
+      if (this.state === 'play' && this.paused) this.overlayPause(x);
+      if (this.state === 'demo') this.overlayDemo(x);
     }
     if (this.state === 'title')   this.overlayTitle(x);
     if (this.state === 'results') this.overlayResults(x);
@@ -616,6 +668,26 @@ const G = {
   /* The page frame used to carry a key legend under the canvas. It doesn't
      any more, so this overlay is the only place the controls are written
      down — keep them here. */
+  /* The cabinet anti-drug card, in this city's own jurisdiction rather than
+     a real agency's. Deliberately a flat field with no world behind it. */
+  overlayWinners(x) {
+    R(x, PAL.ink, 0, 0, VW, VH);
+    const sh = Art.shield;
+    x.drawImage(sh, ((VW - sh.width) / 2) | 0, 46);
+
+    text(x, "WINNERS DON'T USE DRUGS", VW / 2 + 1, 115, PAL.ink2, 2, 1);
+    text(x, "WINNERS DON'T USE DRUGS", VW / 2, 114, PAL.bone, 2, 1);
+
+    R(x, PAL.gold, VW / 2 - 68, 138, 136, 1);
+    text(x, 'CHIEF OF POLICE', VW / 2, 148, PAL.boneDim, 1, 1);
+    text(x, 'HAYS POLICE DEPARTMENT', VW / 2, 160, PAL.boneDim, 1, 1);
+  },
+
+  overlayDemo(x) {
+    if ((this.time * 1.2 | 0) % 2) return;
+    textOut(x, 'ATTRACT MODE  -  PRESS ANY KEY', VW / 2, 52, PAL.amber, 1, 1);
+  },
+
   overlayPause(x) {
     x.fillStyle = 'rgba(20,12,28,0.88)'; x.fillRect(0, 0, VW, VH);
     // solid card, like the results screen: six rows of text over the live

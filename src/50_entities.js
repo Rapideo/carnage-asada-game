@@ -25,6 +25,33 @@ function carBlocked(x, y, ang) {
   return false;
 }
 
+const UNWEDGE_DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1],
+                      [0.7, 0.7], [-0.7, 0.7], [0.7, -0.7], [-0.7, -0.7]];
+/**
+ * Depenetration. carBlocked() is tested at the DESTINATION, so once a body is
+ * already overlapping geometry every nearby destination overlaps too —
+ * including the ones that would free it. Both axis moves are rejected, speed
+ * is killed every frame, and steering is speed-gated, so the car can neither
+ * drive nor turn out: it is stuck permanently, not merely awkwardly. Nudge it
+ * toward whichever direction has clear space.
+ */
+function unwedge(e, dt) {
+  if (!carBlocked(e.x, e.y, e.ang)) return false;
+  const step = 90 * dt;
+  // widening search: a deep corner has nothing clear close by, and giving up
+  // at one radius leaves exactly those cases permanently stuck
+  for (const r of [12, 22, 34]) {
+    for (let i = 0; i < UNWEDGE_DIRS.length; i++) {
+      const dx = UNWEDGE_DIRS[i][0], dy = UNWEDGE_DIRS[i][1];
+      if (!carBlocked(e.x + dx * r, e.y + dy * r, e.ang)) {
+        e.x += dx * step; e.y += dy * step;
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /* ---------------- the player ------------------------------ */
 class Player {
   constructor(x, y, ang) {
@@ -82,6 +109,7 @@ class Player {
     this.vy = fy * vf + fx * vl;
 
     /* move with axis separation */
+    unwedge(this, dt);
     let bump = 0;
     const nx = this.x + this.vx * dt;
     if (!carBlocked(nx, this.y, this.ang)) this.x = nx;

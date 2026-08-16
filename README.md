@@ -5,7 +5,7 @@ but speed wrecks your aim and attracts the police. The sat-nav is not on your si
 
 **Zero dependencies**: no framework, no libraries, no image, font, or audio files. The city, every sprite,
 the shop badge, the graffiti title, the bitmap font, and all the audio are generated procedurally at boot.
-The whole game is one self-contained ~130 KB HTML file.
+The whole game is one self-contained ~140 KB HTML file.
 
 **Play:** open `taco-shop.html`. There is no page chrome — the canvas fills the window.
 
@@ -32,6 +32,9 @@ to the shop while the tip keeps draining.
   falls apart into `RECALCULATING` the moment you cut across someone's lawn.
 - **Heat.** Clip pedestrians or drive on the pavement and a siren comes looking for you.
 - Each delivery buys more time on the shift clock. Bank as much as you can before it runs out.
+
+Leave it alone and it runs a cabinet-style attract loop — title, a public-service card, then 90 seconds of
+the game playing itself. Any key returns to the title.
 
 `?seed=<number>` on the URL generates a different city, deterministically.
 
