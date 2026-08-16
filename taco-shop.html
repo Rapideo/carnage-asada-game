@@ -614,26 +614,17 @@ const WALLS = [
    letterform character: every stroke is 1 cell, so sprayed bitmap text reads
    as the game font wearing drips. These have weight, angled terminals and
    tapering strokes. Title art only — the game font is untouched. */
-const GRAF_W = 9, GRAF_H = 11;
+const GRAF_W = 7, GRAF_H = 9;
 const GRAF_SRC = {
-  'A': '...###...,...###...,..##.##..,..##.##..,.##...##.,.##...##.,' +
-       '.#######.,.#######.,##.....##,##.....##,##.....##',
-  'C': '..#####..,.#######.,###...###,###......,###......,###......,' +
-       '###......,###......,###...###,.#######.,..#####..',
-  'D': '######...,#######..,###..###.,###...###,###...###,###...###,' +
-       '###...###,###...###,###..###.,#######..,######...',
-  'E': '#########,#########,###......,###......,#######..,#######..,' +
-       '###......,###......,###......,#########,#########',
-  'G': '..#####..,.#######.,###...###,###......,###......,###..####,' +
-       '###..####,###...###,###...###,.#######.,..#####..',
-  'N': '##.....##,###....##,####...##,#####..##,##.###.##,##..#####,' +
-       '##...####,##....###,##.....##,##.....##,##.....##',
-  'R': '#######..,########.,###...###,###...###,###...###,########.,' +
-       '#######..,###.##...,###..##..,###...##.,###....##',
-  'S': '.#######.,#########,###...###,###......,####.....,.#######.,' +
-       '.....####,......###,###...###,#########,.#######.',
-  ' ': '.........,.........,.........,.........,.........,.........,' +
-       '.........,.........,.........,.........,.........',
+  'A': '..###..,..###..,.##.##.,.##.##.,##...##,#######,#######,##...##,##...##',
+  'C': '.#####.,##...##,##.....,##.....,##.....,##.....,##.....,##...##,.#####.',
+  'D': '#####..,##..##.,##...##,##...##,##...##,##...##,##...##,##..##.,#####..',
+  'E': '#######,#######,##.....,##.....,#####..,#####..,##.....,#######,#######',
+  'G': '.#####.,##...##,##.....,##.....,##..###,##...##,##...##,##...##,.#####.',
+  'N': '##...##,###..##,####.##,##.####,##..###,##...##,##...##,##...##,##...##',
+  'R': '#####..,##..##.,##...##,##..##.,#####..,##.##..,##..##.,##...##,##...##',
+  'S': '.#####.,##...##,##.....,###....,.#####.,....###,.....##,##...##,.#####.',
+  ' ': '.......,.......,.......,.......,.......,.......,.......,.......,.......',
 };
 const GRAF = Object.create(null);
 for (const ch in GRAF_SRC) {
@@ -1055,10 +1046,9 @@ const Art = {
   },
 
   /* ---------- sprayed wordmark ----------------------------
-     The bitmap font is far too clean to read as spray paint, so the shape is
-     rebuilt from the glyph table in three passes: mist, then drips, then a
-     solid core last so the letterforms stay legible. Baked once at boot from
-     a seeded rng, so it is deterministic and costs nothing per frame. */
+     Two passes: a mist halo, then the solid core last so the letterforms
+     stay crisp. Baked once at boot from a seeded rng, so it is deterministic
+     and costs nothing per frame. */
   mkSprayText(str, s, col, seed) {
     const r = makeRng(seed);
 
@@ -1070,14 +1060,8 @@ const Art = {
       if (g) for (let b = 0; b < g.length; b += 2) cells.push([gx + g[b], g[b + 1]]);
       gx += GRAF_W + 1;
     }
-    // lowest lit cell per column — drips may only start here. "Nothing
-    // directly below" is not enough: that includes the crossbar of A and the
-    // waist of S, so runs poured straight down through the strokes beneath
-    // and turned the word to mush.
-    const lowest = new Map();
-    for (const [a, b] of cells) lowest.set(a, Math.max(lowest.has(a) ? lowest.get(a) : -1, b));
-
-    const PAD = 10, TAIL = 24;
+    // TAIL only has to clear the mist now that there are no drips
+    const PAD = 10, TAIL = 8;
     const t = mkCanvas(grafW(str, s) + PAD * 2, GRAF_H * s + PAD + TAIL);
     const x = t.x;
     const px = (a) => PAD + a * s, py = (b) => PAD + b * s;
@@ -1087,7 +1071,7 @@ const Art = {
     // counters, so a wider halo floods the holes in A/G/R and the whole
     // wordmark turns to mush. Mist is DARKER than the core, not lighter —
     // thinly-sprayed paint over a dark ground reads dark.
-    const RAD = s * 1.5;
+    const RAD = s * 1.25;   // counters are only 1-3 cells on the 7x9 grid
     const mist = shade(col, -0.12);
     for (const [a, b] of cells) {
       const n = 4 + r.int(4);   // 9x11 glyphs have ~3x the cells of the 5x7 font
@@ -1099,20 +1083,7 @@ const Art = {
     }
     x.globalAlpha = 1;
 
-    // 2. drips, only from cells with nothing beneath them
-    const drip = shade(col, -0.18);
-    const wdt = s;
-    for (const [a, b] of cells) {
-      // 9 columns per letter instead of 5, so the per-column odds drop to
-      // keep roughly the same number of runs across the word
-      if (b !== lowest.get(a) || !r.chance(0.20)) continue;
-      const len = 5 + r.int(10);
-      const dx = px(a) + r.int(s - wdt + 1);
-      R(x, drip, dx, py(b) + s, wdt, len);
-      R(x, drip, dx - 1, py(b) + s + len - 2, wdt + 2, 3);   // heavier tail blob
-    }
-
-    // 3. solid core on top, lightly mottled so it is not a flat fill
+    // 2. solid core on top, lightly mottled so it is not a flat fill
     for (const [a, b] of cells) {
       R(x, col, px(a), py(b), s, s);
       if (r.chance(0.16)) R(x, shade(col, 0.24), px(a), py(b), s, 1);
@@ -1125,31 +1096,33 @@ const Art = {
      jade face, chunky gold wordmark. Plotted with fillRect spans rather than
      arc() so the circle stays hard-edged like everything else on screen. */
   mkBadge() {
-    const S = 90, c = S / 2;
+    const S = 108, c = S / 2;
     const t = mkCanvas(S, S), x = t.x;
 
-    // concentric rings, outside in: die-cut rim, keyline, gap, keyline, face.
-    // Ring widths stay ~3px rather than shrinking with the disc — thinner
-    // than that and they start dropping out at 1x.
-    disc(x, c, c, 44, '#ffffff');
-    disc(x, c, c, 41, PAL.ink);
-    disc(x, c, c, 38, '#ffffff');
-    disc(x, c, c, 36, PAL.ink);
-    disc(x, c, c, 34, PAL.jade);
+    // Concentric rings, outside in: die-cut rim, keyline, gap, keyline, face.
+    // The face is kept at r44 so the 92px wordmark overspills it by only ~2px
+    // a side. Shrinking the face in proportion with the badge pushed that to
+    // 5px, and the letters' keyline then ate the white rings — the badge read
+    // as damaged rather than as letters deliberately breaking the circle.
+    disc(x, c, c, 53, '#ffffff');
+    disc(x, c, c, 51, PAL.ink);
+    disc(x, c, c, 49, '#ffffff');
+    disc(x, c, c, 46, PAL.ink);
+    disc(x, c, c, 44, PAL.jade);
     // soft top-left sheen, the way the printed sticker catches light. Kept
     // small and faint — any more and the face stops reading as the logo's jade
     x.globalAlpha = 0.09;
-    disc(x, c - 13, c - 14, 16, '#ffffff');
+    disc(x, c - 15, c - 17, 19, '#ffffff');
     x.globalAlpha = 1;
 
     // Wordmark. NOT textOut(): that offsets its outline by the glyph scale,
     // so the eight copies merge into a solid black slab past about 2x. The
     // logo wants a constant-width keyline, independent of letter size.
-    // At 69px the words just overspill the 68px face onto the rings — the
-    // real sticker does that too.
-    keyline(x, 'TACO', c, 16, 3, 2, PAL.gold);
-    keyline(x, 'SHOP', c, 43, 3, 2, PAL.gold);
-    keyline(x, 'EST. 1970', c, 70, 1, 1, PAL.gold);
+    // At 92px the words just overspill the 88px face — the real sticker
+    // breaks its circle the same way.
+    keyline(x, 'TACO', c, 19, 4, 2, PAL.gold);
+    keyline(x, 'SHOP', c, 51, 4, 2, PAL.gold);
+    keyline(x, 'EST. 1970', c, 85, 1, 1, PAL.gold);
     return t.c;
   },
 
@@ -3135,9 +3108,9 @@ const G = {
     // badge and sprayed wordmark, both baked once at boot. Controls are not
     // listed here by design — they live in the pause overlay.
     x.drawImage(Art.badge, ((VW - Art.badge.width) / 2) | 0, 14);
-    x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 114);
+    x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 130);
 
-    if ((t * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 188, PAL.amber, 2, 1);
+    if ((t * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 180, PAL.amber, 2, 1);
   },
 
   overlayResults(x) {

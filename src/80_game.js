@@ -571,9 +571,9 @@ const G = {
     // badge and sprayed wordmark, both baked once at boot. Controls are not
     // listed here by design — they live in the pause overlay.
     x.drawImage(Art.badge, ((VW - Art.badge.width) / 2) | 0, 14);
-    x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 114);
+    x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 130);
 
-    if ((t * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 188, PAL.amber, 2, 1);
+    if ((t * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 180, PAL.amber, 2, 1);
   },
 
   overlayResults(x) {

@@ -141,11 +141,17 @@ machine output — don't spend it elsewhere.
 only in `overlayPause`** — the page used to carry a key legend under the canvas and no longer does, so
 that overlay is the single place a player can find them. Don't strip it back to a resume line.
 
-`Art.mkSprayText()` bakes the wordmark at boot from the 5×7 glyph table in three passes — mist, drips,
-solid core last. Two rules make it legible rather than mush, both learned the hard way: mist radius stays
-near 1.5 cells (wider and the halo floods the 1-cell counters in A/G/R), and a drip may only start at the
-**lowest lit cell in its column** — "nothing directly below" also matches the crossbar of A and the waist
-of S, and those runs pour straight down through the strokes beneath.
+`Art.mkSprayText()` bakes the wordmark at boot in two passes — a mist halo, then the solid core last so
+the letterforms stay crisp. It draws from **`GRAF`, a separate hand-authored 7×9 alphabet in `30_art.js`**,
+not the 5×7 game font: every stroke in the game font is one cell wide, so spraying it only ever produced
+"the game font wearing drips". `GRAF` only covers the characters `CARNAGE ASADA` needs.
+
+Keep the mist radius near 1.25 cells. Wider and the halo floods the 1–3 cell counters in A/G/R and the
+word turns to mush — that was the single biggest legibility problem while building it.
+
+Sizing is constrained to whole numbers in both directions: cells are drawn as `s×s` rects, so a fractional
+scale lands on half-pixels and blurs. To resize the wordmark, change the **glyph grid** (7×9 vs 9×11), not
+the scale — the advance ratio gives exact percentages that `s` cannot.
 
 ### Branding
 
