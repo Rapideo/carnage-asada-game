@@ -570,12 +570,10 @@ const G = {
     const t = this.time;
     // badge and sprayed wordmark, both baked once at boot. Controls are not
     // listed here by design — they live in the pause overlay.
-    x.drawImage(Art.badge, ((VW - Art.badge.width) / 2) | 0, 8);
-    x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 124);
+    x.drawImage(Art.badge, ((VW - Art.badge.width) / 2) | 0, 14);
+    x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 114);
 
-    // scale 1, not 2. The bitmap font only scales by whole numbers, so this is
-    // the one step down available — 50% rather than the 40% asked for.
-    if ((t * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 192, PAL.amber, 1, 1);
+    if ((t * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 188, PAL.amber, 2, 1);
   },
 
   overlayResults(x) {

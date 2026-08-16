@@ -609,6 +609,44 @@ const WALLS = [
   ['#e6d9c0', '#c8b89a', '#93836a'],
 ];
 
+/* Graffiti alphabet for the title wordmark — 9x11, hand-authored, and only
+   the characters "CARNAGE ASADA" needs. The 5x7 game font has no room for
+   letterform character: every stroke is 1 cell, so sprayed bitmap text reads
+   as the game font wearing drips. These have weight, angled terminals and
+   tapering strokes. Title art only — the game font is untouched. */
+const GRAF_W = 9, GRAF_H = 11;
+const GRAF_SRC = {
+  'A': '...###...,...###...,..##.##..,..##.##..,.##...##.,.##...##.,' +
+       '.#######.,.#######.,##.....##,##.....##,##.....##',
+  'C': '..#####..,.#######.,###...###,###......,###......,###......,' +
+       '###......,###......,###...###,.#######.,..#####..',
+  'D': '######...,#######..,###..###.,###...###,###...###,###...###,' +
+       '###...###,###...###,###..###.,#######..,######...',
+  'E': '#########,#########,###......,###......,#######..,#######..,' +
+       '###......,###......,###......,#########,#########',
+  'G': '..#####..,.#######.,###...###,###......,###......,###..####,' +
+       '###..####,###...###,###...###,.#######.,..#####..',
+  'N': '##.....##,###....##,####...##,#####..##,##.###.##,##..#####,' +
+       '##...####,##....###,##.....##,##.....##,##.....##',
+  'R': '#######..,########.,###...###,###...###,###...###,########.,' +
+       '#######..,###.##...,###..##..,###...##.,###....##',
+  'S': '.#######.,#########,###...###,###......,####.....,.#######.,' +
+       '.....####,......###,###...###,#########,.#######.',
+  ' ': '.........,.........,.........,.........,.........,.........,' +
+       '.........,.........,.........,.........,.........',
+};
+const GRAF = Object.create(null);
+for (const ch in GRAF_SRC) {
+  const rows = GRAF_SRC[ch].split(','), bits = [];
+  for (let y = 0; y < GRAF_H; y++) {
+    const row = rows[y] || '';
+    for (let gx = 0; gx < GRAF_W; gx++) if (row[gx] === '#') bits.push(gx, y);
+  }
+  GRAF[ch] = bits;
+}
+/** width of a graffiti string in px at a given scale (1 cell letter gap) */
+function grafW(str, s) { return str.length ? (str.length * (GRAF_W + 1) - 1) * s : 0; }
+
 /* kraft paper for the taco bag, and what comes out of it when you miss */
 const BAG_MID = '#a97c4e', BAG_HI = '#c2955f', BAG_LO = '#8a6238', BAG_FOLD = '#946a42';
 const SPILL = ['#7a4a2a', '#c9542f', '#5aa14c', '#e0b055', '#d8b98a'];
@@ -1012,7 +1050,8 @@ const Art = {
     }
     this.taqueria = this.mkTaqueria(makeRng(4242));
     this.badge = this.mkBadge();
-    this.wordmark = this.mkSprayText('CARNAGE ASADA', 3, PAL.red, 77311);
+    // scale 2 on a 9x11 grid ≈ the same cap height as scale 3 on the 5x7 font
+    this.wordmark = this.mkSprayText('CARNAGE ASADA', 2, PAL.red, 77311);
   },
 
   /* ---------- sprayed wordmark ----------------------------
@@ -1023,13 +1062,13 @@ const Art = {
   mkSprayText(str, s, col, seed) {
     const r = makeRng(seed);
 
-    // lit cells in unscaled glyph space, and a lookup to find bottom edges
+    // lit cells in unscaled glyph space, from the graffiti alphabet
     const cells = [];
     let gx = 0;
     for (const ch of String(str).toUpperCase()) {
-      const g = GLYPH[ch];
+      const g = GRAF[ch];
       if (g) for (let b = 0; b < g.length; b += 2) cells.push([gx + g[b], g[b + 1]]);
-      gx += FW + 1;
+      gx += GRAF_W + 1;
     }
     // lowest lit cell per column — drips may only start here. "Nothing
     // directly below" is not enough: that includes the crossbar of A and the
@@ -1039,7 +1078,7 @@ const Art = {
     for (const [a, b] of cells) lowest.set(a, Math.max(lowest.has(a) ? lowest.get(a) : -1, b));
 
     const PAD = 10, TAIL = 24;
-    const t = mkCanvas(textW(str, s) + PAD * 2, FH * s + PAD + TAIL);
+    const t = mkCanvas(grafW(str, s) + PAD * 2, GRAF_H * s + PAD + TAIL);
     const x = t.x;
     const px = (a) => PAD + a * s, py = (b) => PAD + b * s;
 
@@ -1051,7 +1090,7 @@ const Art = {
     const RAD = s * 1.5;
     const mist = shade(col, -0.12);
     for (const [a, b] of cells) {
-      const n = 6 + r.int(5);
+      const n = 4 + r.int(4);   // 9x11 glyphs have ~3x the cells of the 5x7 font
       for (let i = 0; i < n; i++) {
         const ang = r() * TAU, d = Math.sqrt(r()) * RAD;
         x.globalAlpha = 0.06 + 0.20 * (1 - d / RAD);
@@ -1062,9 +1101,11 @@ const Art = {
 
     // 2. drips, only from cells with nothing beneath them
     const drip = shade(col, -0.18);
-    const wdt = Math.max(1, s - 1);
+    const wdt = s;
     for (const [a, b] of cells) {
-      if (b !== lowest.get(a) || !r.chance(0.38)) continue;
+      // 9 columns per letter instead of 5, so the per-column odds drop to
+      // keep roughly the same number of runs across the word
+      if (b !== lowest.get(a) || !r.chance(0.20)) continue;
       const len = 5 + r.int(10);
       const dx = px(a) + r.int(s - wdt + 1);
       R(x, drip, dx, py(b) + s, wdt, len);
@@ -1084,29 +1125,31 @@ const Art = {
      jade face, chunky gold wordmark. Plotted with fillRect spans rather than
      arc() so the circle stays hard-edged like everything else on screen. */
   mkBadge() {
-    const S = 112, c = S / 2;
+    const S = 90, c = S / 2;
     const t = mkCanvas(S, S), x = t.x;
 
-    // concentric rings, outside in: die-cut rim, keyline, gap, keyline, face
-    disc(x, c, c, 55, '#ffffff');
-    disc(x, c, c, 52, PAL.ink);
-    disc(x, c, c, 49, '#ffffff');
-    disc(x, c, c, 46, PAL.ink);
-    disc(x, c, c, 44, PAL.jade);
+    // concentric rings, outside in: die-cut rim, keyline, gap, keyline, face.
+    // Ring widths stay ~3px rather than shrinking with the disc — thinner
+    // than that and they start dropping out at 1x.
+    disc(x, c, c, 44, '#ffffff');
+    disc(x, c, c, 41, PAL.ink);
+    disc(x, c, c, 38, '#ffffff');
+    disc(x, c, c, 36, PAL.ink);
+    disc(x, c, c, 34, PAL.jade);
     // soft top-left sheen, the way the printed sticker catches light. Kept
     // small and faint — any more and the face stops reading as the logo's jade
     x.globalAlpha = 0.09;
-    disc(x, c - 16, c - 18, 20, '#ffffff');
+    disc(x, c - 13, c - 14, 16, '#ffffff');
     x.globalAlpha = 1;
 
     // Wordmark. NOT textOut(): that offsets its outline by the glyph scale,
-    // so at scale 4 the eight copies merge into a solid black slab. The logo
-    // wants a constant-width keyline instead, independent of letter size.
-    // At 92px wide the words overspill the 88px face onto the rings — the
+    // so the eight copies merge into a solid black slab past about 2x. The
+    // logo wants a constant-width keyline, independent of letter size.
+    // At 69px the words just overspill the 68px face onto the rings — the
     // real sticker does that too.
-    keyline(x, 'TACO', c, 18, 4, 2, PAL.gold);
-    keyline(x, 'SHOP', c, 52, 4, 2, PAL.gold);
-    keyline(x, 'EST. 1970', c, 88, 1, 1, PAL.gold);
+    keyline(x, 'TACO', c, 16, 3, 2, PAL.gold);
+    keyline(x, 'SHOP', c, 43, 3, 2, PAL.gold);
+    keyline(x, 'EST. 1970', c, 70, 1, 1, PAL.gold);
     return t.c;
   },
 
@@ -3091,12 +3134,10 @@ const G = {
     const t = this.time;
     // badge and sprayed wordmark, both baked once at boot. Controls are not
     // listed here by design — they live in the pause overlay.
-    x.drawImage(Art.badge, ((VW - Art.badge.width) / 2) | 0, 8);
-    x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 124);
+    x.drawImage(Art.badge, ((VW - Art.badge.width) / 2) | 0, 14);
+    x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 114);
 
-    // scale 1, not 2. The bitmap font only scales by whole numbers, so this is
-    // the one step down available — 50% rather than the 40% asked for.
-    if ((t * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 192, PAL.amber, 1, 1);
+    if ((t * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 188, PAL.amber, 2, 1);
   },
 
   overlayResults(x) {
