@@ -57,10 +57,10 @@ sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
 // top-level const/let live in the script's lexical scope, not on the global
 // object, so hand them out explicitly from inside the same scope
-vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, solve, MAXTHROW, VW, VH, WW, WH };',
+vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, solve, textW, MAXTHROW, VW, VH, WW, WH };',
   sandbox, { filename: 'bundle.js' });
 
-const { G, City, Nav, Art, Input, MAXTHROW, VW, VH, WW, WH } = sandbox.__x;
+const { G, City, Nav, Art, Input, textW, MAXTHROW, VW, VH, WW, WH } = sandbox.__x;
 sandbox.solve = sandbox.__x.solve;
 
 /* ---------- assertions ---------- */
@@ -103,6 +103,25 @@ for (const h of City.houses) {
   if (City.isSolid(cx, cy)) buried++;
 }
 ok(buried === 0, `no porch buried in geometry (${buried} bad)`);
+
+/* HUD text must fit its panels. Three separate overflow bugs have shipped in
+   this card, so the widths are asserted rather than eyeballed. */
+console.log('\n— hud layout —');
+// the card sits at x=3 and is 140 wide, so its right border is at 143; text
+// is inset to x=8. Compare absolute x against absolute x, not against a width.
+const CARD_X0 = 3, CARD_W = 140, TEXT_X = 8, PAD = 3;
+const cardFits = (s) => TEXT_X + textW(s, 1) <= CARD_X0 + CARD_W - PAD;
+const longestAddr = City.houses.reduce((a, h) => (h.addr.length > a.length ? h.addr : a), '');
+ok(cardFits(longestAddr), `longest address fits the order card: "${longestAddr}" (${textW(longestAddr, 1)}px)`);
+ok(cardFits(longestAddr + ' WAITING'),
+   `restock line fits the order card (${textW(longestAddr + ' WAITING', 1)}px)`);
+ok(cardFits('OUT OF TACOS - RESTOCK'), 'restock label fits the order card');
+
+/* banner boxes are textW(str,2)+16 and must fit the 384px screen */
+const BANNERS = ['CLOCK IN!', 'OUT OF TACOS - BACK TO SHOP', 'THAT IS NOT ' + longestAddr.split(' ')[0],
+  'SPLAT!', 'PERFECT TOSS!', 'DELIVERED!', "HAYS PD! LOSE 'EM!", 'PULLED OVER', 'LOST THEM'];
+const tooWide = BANNERS.filter((b) => textW(b, 2) + 16 > VW);
+ok(tooWide.length === 0, `all ${BANNERS.length} banners fit the screen${tooWide.length ? ': ' + tooWide.join(' | ') : ''}`);
 
 console.log('\n— guidance —');
 let routeFail = 0, longest = 0;

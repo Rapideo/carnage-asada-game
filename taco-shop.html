@@ -2333,9 +2333,14 @@ const Hud = {
        decay bar was painted over the bottom 3px of the digits. */
     this.panel(x, 3, 3, 140, 44, '#6b5f84');
     if (o) {
-      text(x, G.needPickup ? 'OUT OF TACOS - RESTOCK AT' : 'DELIVER TO', 8, 7,
+      // Text starts at x=8 in a 140-wide card, so a scale-1 line has ~131px:
+      // 22 characters. The restock lines used to read "OUT OF TACOS - RESTOCK
+      // AT" / "TACO SHOP (<addr> WAITING)" — 149px and up to 203px, both
+      // spilling well past the card. Longest address the generator makes is 13
+      // chars ("408 WALNUT ST"), so "<addr> WAITING" tops out at 125px.
+      text(x, G.needPickup ? 'OUT OF TACOS - RESTOCK' : 'DELIVER TO', 8, 7,
         G.needPickup ? PAL.bad : PAL.boneDim, 1);
-      text(x, G.needPickup ? 'TACO SHOP  (' + o.label + ' WAITING)' : o.label, 8, 15, PAL.bone, 1);
+      text(x, G.needPickup ? o.label + ' WAITING' : o.label, 8, 15, PAL.bone, 1);
       const pop = G.tipPop > 0 ? 1 : 0;
       text(x, money(o.tip), 8, 23, o.tip <= o.floor + 1 ? PAL.bad : PAL.amber, 2);
       text(x, 'TIP', 8 + textW(money(o.tip), 2) + 5, 29, PAL.boneDim, 1);
