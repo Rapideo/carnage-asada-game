@@ -60,7 +60,7 @@ There is no `package.json` — nothing to install. `taco-shop.html` and `index.h
 | `00_core` | screen/world constants, `PAL`, RNG, `classify()`, `mkCanvas`/`R` helpers, `Input` |
 | `10_font` | hand-authored 5×7 glyph table; `text()`, `textOut()`, `money()`, `clockStr()` |
 | `20_audio` | `Audio5`: WebAudio SFX, engine voice, siren, and the 4-bar chip loop scheduler |
-| `30_art` | `Art.build()` — bakes every sprite/tile once at boot; `rotFrames`/`drawRot`; `shade()`, `disc()`, `keyline()` |
+| `30_art` | `Art.build()` — bakes every sprite/tile once at boot; `rotFrames`/`drawRot`; `shade()`, `disc()`, `keyline()`; `GRAF` graffiti alphabet + `mkSprayText()` |
 | `40_city` | `City.gen()` — street grid, addressed houses, baked ground layer, spatial buckets |
 | `50_entities` | `Player`, `Traffic`, `Ped`, `Cop`, `Bag`, `Fx`; shared car physics + collision |
 | `60_nav` | `Nav` (TACO-NAV unit) and `solve()` — Dijkstra over the intersection graph |
@@ -196,9 +196,14 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. It covers city invariants (address uniqueness, porch
-reachability), 250 solved routes, 9000 fuzzed simulation frames checked for NaN and out-of-world drift, the
-full scoring loop, and heat/cop behaviour.
+every drawing call is a no-op but all logic executes. 35 assertions covering city invariants (address
+uniqueness, porch reachability), HUD text widths, 250 solved routes, 9000 fuzzed simulation frames checked
+for NaN and out-of-world drift, the full scoring loop, and heat/cop behaviour.
+
+**The `— hud layout —` section exists because three text-overflow bugs shipped in the order card.** It
+asserts the longest *generated* address still fits, that both restock lines fit, and that every banner box
+fits the 384px screen. Extend it whenever you add HUD copy — the drawing stubs make overflow invisible
+otherwise, and none of these bugs were catchable by any other assertion.
 
 Three things to know when extending it:
 
@@ -216,10 +221,11 @@ reproducible. When something fails, re-run it several times to tell a real break
 flake as a bug in the harness, not noise to live with.
 
 There is no per-test filter — it is one sequential script with labelled sections (`— build —`,
-`— guidance —`, `— simulation —`, `— scoring —`, `— heat —`). To isolate one, edit the script.
+`— hud layout —`, `— guidance —`, `— simulation —`, `— scoring —`, `— heat —`). To isolate one, edit the
+script.
 
 ## Publishing
 
-`taco-shop.html` is the shippable artifact: one self-contained file, ~126 KB. It must stay free of external
+`taco-shop.html` is the shippable artifact: one self-contained file, ~130 KB. It must stay free of external
 requests. `?seed=<int>` on the URL regenerates the city deterministically (mulberry32); the default seed is
 in `90_main.js`.

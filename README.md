@@ -4,10 +4,10 @@ A 16-bit top-down taco delivery arcade game. Drive fast, because the tip shrinks
 but speed wrecks your aim and attracts the police. The sat-nav is not on your side.
 
 **Zero dependencies**: no framework, no libraries, no image, font, or audio files. The city, every sprite,
-the shop badge, the bitmap font, and all the audio are generated procedurally at boot. The whole game is one
-self-contained ~126 KB HTML file.
+the shop badge, the graffiti title, the bitmap font, and all the audio are generated procedurally at boot.
+The whole game is one self-contained ~130 KB HTML file.
 
-**Play:** open `taco-shop.html`.
+**Play:** open `taco-shop.html`. There is no page chrome — the canvas fills the window.
 
 ## Controls
 
@@ -18,6 +18,8 @@ self-contained ~126 KB HTML file.
 | Mouse | Aim the toss |
 | Click / `Space` | Throw the bag |
 | `P` · `M` · `N` | Pause · mute · music |
+
+Press `P` in game for this list — the pause screen is where the controls live.
 
 Land it on the porch to deliver; land it on the doorstep for a **perfect toss** bonus. Miss and the bag
 bursts on the pavement — and it still costs you one from your bag of three. Run out and you're driving back

@@ -202,7 +202,9 @@ What you replace is `40_city`, `50_entities`, `60_nav`, `70_hud`, and the state 
 
 ---
 
-## 6. Final state
+## 6. Final state of the original build
+
+Numbers as they stood at the end of the one-shot session. See §7 and §8 for what changed after.
 
 - **164** addressed houses, ~1,000 static props, 8×8 city blocks, deterministic from a seed (`?seed=`).
 - **3,070** lines of vanilla JS, 10 modules, **zero** dependencies, 124 KB shipped.
@@ -237,3 +239,68 @@ Three things worth recording:
 `SLICE-NAV 2000` became `TACO-NAV 2000`, which is the one piece of the original character that the rename
 touched. The joke structure is unchanged: it is still a rudimentary unit that falls apart into
 `RECALCULATING / RETURN TO ROADWAY` the moment you cut across a lawn.
+
+---
+
+## 8. HUD repairs and the title screen
+
+A pass of small fixes and a title-screen rebuild. Worth recording because of what the bugs had in common.
+
+### Three text-overflow bugs, all in one card
+
+The order card had shipped with the tip readout clipped: `money(o.tip)` draws at scale 2 from y=23,
+occupying y23–36, and the decay bar's background was painted *after* it at y34–38. The bottom 3px of every
+digit was overwritten, so `$14.87` rendered as `$14_87`. The card was 37px tall and its contents needed 38.
+Fixed by taking it to 44 — which also squared it up with the clock card opposite, already 44.
+
+Then the empty-bag lines: `OUT OF TACOS - RESTOCK AT` and `TACO SHOP (<addr> WAITING)` measured 149px and
+203px in a card whose text column is 131px. And a banner, `OUT OF TACOS - BACK TO THE SHOP`, made a 386px
+box on a 384px screen — that one was self-inflicted during the rebrand, where the original
+`BAG EMPTY - BACK TO THE SHOP` had fit at 350px.
+
+**Three of the same bug is a missing assertion, not bad luck.** `test/headless.mjs` now has a
+`— hud layout —` section asserting the longest *generated* address fits, that both restock lines fit, and
+that every banner box fits the screen. The drawing stubs make overflow structurally invisible, so no
+existing assertion could ever have caught these.
+
+Two things that generalise beyond this repo:
+
+- **The first version of that guard was wrong.** It compared an absolute x against a width and failed a
+  string that was genuinely fine. Worth confirming a new guard *rejects the buggy input* before trusting
+  it — a test that cannot fail is not worth having.
+- **Layout bugs can be measured, not eyeballed.** With the browser extension down, the fix was verified by
+  recording every `fillRect` the HUD issues and replaying it into a pixel grid printed as ASCII. That is
+  exact about overlap in a way a screenshot is not, and it needs no browser. It is blind to anything
+  outside the canvas, so it complements eyes rather than replacing them.
+
+### Pixel type does not scale continuously
+
+The title lost its page frame — no header, footer or bezel, the canvas is the whole product — and gained a
+badge and a sprayed `CARNAGE ASADA`. Removing the frame removed the key legend with it, so the controls
+moved into the pause overlay. That is now the only place they are written down.
+
+The recurring lesson was about **type sizing**, and it took three goes to state properly:
+
+1. Spraying the 5×7 game font produced "the game font wearing drips" — every stroke is one cell wide, so
+   there is no letterform to read. Fixed by hand-authoring a separate graffiti alphabet (`GRAF`).
+2. "40% smaller" and "20% smaller" are not available from `scale`. Cells are drawn as `s×s` rects, so only
+   whole numbers stay crisp; the steps are 100% and 50%.
+3. **To resize pixel type by an arbitrary percentage, change the glyph grid, not the scale.** Moving `GRAF`
+   from 9×11 to 7×9 gave an advance ratio of exactly 0.8 — a true −20% with every pixel still square.
+
+And a fourth option that solved the last request outright: when small text looks wrong, check whether the
+problem is *weight* rather than size. `PRESS ENTER` at scale 1 read thin and lost; `textOut()` at scale 1
+thickens the strokes to ~3px with an ink halo and reads as a deliberate prompt at the same footprint.
+
+Two spray details worth keeping, both found on screen and invisible to the tests: mist must be **darker**
+than the core (thin paint over a dark ground reads dark, and lighter mist washed the letters out), and the
+mist radius must stay near 1.25 cells or the halo floods the letter counters. Drips were later removed
+entirely at the user's request, but while they existed the rule was that a run may only start at the lowest
+lit cell in its column — "nothing directly below" also matches the crossbar of A and the waist of S, and
+those runs poured straight down through the strokes beneath.
+
+### Process note
+
+`taco-shop.html` is generated and nothing rebuilds it automatically. The tests read `src/` directly, so a
+green suite says nothing about the artifact. One fix was reported as done while the shipped file still had
+the old layout, because `node build.mjs` had not been re-run. **Rebuild before asking anyone to look.**

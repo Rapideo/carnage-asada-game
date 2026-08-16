@@ -3,6 +3,11 @@
 A practical guide to writing game briefs that produce good games on the first try.
 Derived from what actually worked on **Hot Slice** (see `JOURNAL.md`).
 
+> This guide analyses the *original* pizza-delivery brief, so it refers to Hot Slice and SLICE-NAV
+> throughout. That is deliberate — it is a post-mortem of the brief that was actually written. The game
+> in this repo was later rebranded to **Taco Shop: Carnage Asada** (`JOURNAL.md` §7); none of the analysis
+> below changes.
+
 ---
 
 ## The 30-second version
