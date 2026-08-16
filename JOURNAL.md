@@ -330,9 +330,31 @@ the old layout, because `node build.mjs` had not been re-run. **Rebuild before a
 Added a cabinet-style rotation — title 30s, a "winners don't use drugs" card 15s, a 90-second self-playing
 demo — which turned out to be worth far more than the feature itself.
 
-The anti-drug card is attributed to the game's own Hays P.D. rather than reproducing a real agency's seal
-and a real named official. The layout, the slogan and the period feel are the parts that carry the joke;
-the federal branding is not, and faking it would be the one element of the homage that could mislead.
+The first pass at the anti-drug card invented an in-world Hays P.D. version, because no reference image had
+been supplied and inventing one seemed safer than approximating a real agency's seal from memory. The user
+then supplied the reference and asked for a faithful recreation, which is what shipped. Worth recording as
+a process note rather than a design one: **a placeholder built to avoid a decision is still a placeholder.**
+Asking for the reference up front would have saved building the screen twice.
+
+The seal is rasterised per pixel rather than assembled from rects — the scalloped starburst and the
+lettering ring are both functions of angle. At 100px the ring lettering is far below legibility, so it is
+tick marks: the eye reads "text around a seal" from the rhythm, which is the honest way to render type too
+small to draw. Pretending otherwise produces mush, as the first spray wordmark did.
+
+### Copy belongs in data, not in draw calls
+
+The card's text moved to `content/winners.json`. The interesting part is the constraint: a JSON file
+*fetched at runtime* cannot work here at all. The artifact runs under a CSP that blocks external requests,
+and `fetch()` on a `file://` page is blocked by CORS — so the obvious implementation would blank the screen
+in precisely the two situations that matter, published and double-clicked. `build.mjs` inlines it instead,
+emitting a generated `src/05_content.js` that the bundle and the dev page both pick up, so there is no
+second code path to drift.
+
+The build **fails** on any character the 5×7 font cannot draw, naming the offenders. That guard exists
+because the realistic failure is not exotic: paste a line out of a document and the apostrophe is curly,
+which the font has no glyph for, and the screen ships with a silent gap. All three paths were checked —
+an edit reaching the artifact, a curly quote aborting the build, a missing field aborting the build —
+because a validation nobody has seen fail is not known to work.
 
 ### The demo found a real control bug
 
