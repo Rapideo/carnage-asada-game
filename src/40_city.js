@@ -12,7 +12,7 @@ const NODES = BLOCKS + 1;                       // 9 x 9 intersections
 
 const City = {
   solid: null, surf: null, ground: null, gx: null,
-  statics: [], houses: [], pizzeria: null, parkedTiles: null,
+  statics: [], houses: [], shop: null, parkedTiles: null,
 
   nodeX(n) { return (BORDER + n * SPAN) * TS + TS; },
   nodeY(n) { return (BORDER + n * SPAN) * TS + TS; },
@@ -52,12 +52,12 @@ const City = {
     }
 
     /* ---- 2. block programme ----------------------------- */
-    const PIZZA_BX = 3, PIZZA_BY = 4;
+    const SHOP_BX = 3, SHOP_BY = 4;
     const kinds = [];
     for (let by = 0; by < BLOCKS; by++) {
       kinds[by] = [];
       for (let bx = 0; bx < BLOCKS; bx++) {
-        if (bx === PIZZA_BX && by === PIZZA_BY) { kinds[by][bx] = 'shop'; continue; }
+        if (bx === SHOP_BX && by === SHOP_BY) { kinds[by][bx] = 'shop'; continue; }
         const roll = rng();
         kinds[by][bx] = roll < 0.60 ? 'res' : roll < 0.80 ? 'com' : roll < 0.90 ? 'park' : 'lot';
       }
@@ -392,7 +392,7 @@ const City = {
 
   /* ---------- the shop ------------------------------------ */
   genShop(rng, bx, by) {
-    const p = Art.pizzeria;
+    const p = Art.taqueria;
     const lotX = (BORDER + bx * SPAN + 3) * TS, lotY = (BORDER + by * SPAN + 3) * TS, L = 8 * TS;
     const wx = lotX + ((L - p.w) >> 1), wy = lotY;
     this.markSolid((wx / TS) | 0, (wy / TS) | 0, Math.ceil(p.w / TS), Math.ceil(p.h / TS));
@@ -407,13 +407,13 @@ const City = {
     text(g, 'PICKUP', dockX, dockY - 8, PAL.amber, 1, 1);
     text(g, 'ONLY', dockX, dockY + 2, PAL.amber, 1, 1);
 
-    this.pizzeria = {
+    this.shop = {
       x: wx, y: wy, w: p.w, h: p.h,
       dock: { x: dockX, y: dockY },
       node: [this.nearNodeX(dockX), this.nearNodeY(wy + p.h + 60)],
       curb: { x: dockX, y: (BORDER + (by + 1) * SPAN) * TS + TS },
     };
-    this.pizzeria.node = [this.nearNodeX(this.pizzeria.curb.x), this.nearNodeY(this.pizzeria.curb.y)];
+    this.shop.node = [this.nearNodeX(this.shop.curb.x), this.nearNodeY(this.shop.curb.y)];
 
     // driveway out to the street
     R(g, '#5a5e70', dockX - 20, dockY + 16, 40, (BORDER + (by + 1) * SPAN) * TS - (dockY + 16));

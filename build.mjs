@@ -10,7 +10,7 @@ const shell = readFileSync('shell.html', 'utf8');
 if (!shell.includes('/*__GAME__*/')) throw new Error('shell.html is missing the /*__GAME__*/ marker');
 
 const out = shell.replace('/*__GAME__*/', () => code);
-writeFileSync('hot-slice.html', out);
+writeFileSync('taco-shop.html', out);
 
 // dev page: same shell, but load the modules from disk so edits are instant
 const dev = shell.replace(
@@ -21,4 +21,4 @@ writeFileSync('index.html', '<!doctype html>\n<html lang="en">\n<head>\n<meta ch
   dev.slice(0, dev.indexOf('</style>') + 8) + '\n</head>\n<body>\n' +
   dev.slice(dev.indexOf('</style>') + 8) + '\n</body>\n</html>\n');
 
-console.log(`built hot-slice.html  (${(out.length / 1024).toFixed(1)} kB, ${files.length} modules)`);
+console.log(`built taco-shop.html  (${(out.length / 1024).toFixed(1)} kB, ${files.length} modules)`);

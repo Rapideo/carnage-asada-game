@@ -39,7 +39,7 @@
 
   /* splash while the city bakes */
   ctx.fillStyle = PAL.void; ctx.fillRect(0, 0, VW, VH);
-  text(ctx, 'HOT SLICE', VW / 2, VH / 2 - 22, PAL.red, 4, 1);
+  text(ctx, 'TACO SHOP', VW / 2, VH / 2 - 22, PAL.gold, 4, 1);
   text(ctx, 'PAVING THE STREETS...', VW / 2, VH / 2 + 14, PAL.amber, 1, 1);
   resize();
 
@@ -49,7 +49,7 @@
   setTimeout(() => {
     const t0 = performance.now();
     G.boot(seed);
-    console.log('[hot slice] city built in ' + Math.round(performance.now() - t0) + 'ms, ' +
+    console.log('[taco shop] city built in ' + Math.round(performance.now() - t0) + 'ms, ' +
                 City.statics.length + ' props, ' + City.houses.length + ' addresses');
     resize();
     requestAnimationFrame(frame);
@@ -87,7 +87,7 @@
 
   /* Console bridge. Browsers pause requestAnimationFrame in a hidden tab, so
      this also makes the game steppable when it cannot self-drive. */
-  window.HotSlice = {
+  window.TacoShop = {
     G, City, Nav, Art, Audio5, Input, ctx,
     step(n = 1) {
       for (let i = 0; i < n; i++) { G.update(STEP); handleGlobalKeys(); Input.endFrame(); }

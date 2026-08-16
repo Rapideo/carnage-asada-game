@@ -1,5 +1,5 @@
 /* ============================================================
-   HOT SLICE  --  game loop, shift structure, render pipeline
+   TACO SHOP: CARNAGE ASADA  --  game loop, shift structure, render pipeline
    ============================================================ */
 'use strict';
 
@@ -17,7 +17,7 @@ const G = {
   state: 'boot', time: 0, shift: 0, earned: 0,
   combo: 1, comboPop: 0, heat: 0, heatMax: HEAT_MAX,
   bag: BAG_MAX, bagMax: BAG_MAX, needPickup: false,
-  player: null, traffic: [], peds: [], pizzas: [], cop: null, copT: 0,
+  player: null, traffic: [], peds: [], flying: [], cop: null, copT: 0,
   cam: { x: 0, y: 0 }, shake: 0, hitstop: 0,
   order: null, banner: '', bannerT: 0, bannerCol: PAL.bone,
   throwCd: 0, restock: 0, tipPop: 0, infraction: 0,
@@ -36,11 +36,11 @@ const G = {
   toTitle() {
     this.state = 'title';
     this.titleCam = 0;
-    this.player = new Player(City.pizzeria.dock.x, City.pizzeria.dock.y + 70, -PI / 2);
-    this.traffic.length = 0; this.peds.length = 0; this.pizzas.length = 0;
+    this.player = new Player(City.shop.dock.x, City.shop.dock.y + 70, -PI / 2);
+    this.traffic.length = 0; this.peds.length = 0; this.flying.length = 0;
     this.cop = null; Nav.clear(); Fx.clear();
-    this.cam.x = clamp(City.pizzeria.x - VW / 2, 0, WW - VW);
-    this.cam.y = clamp(City.pizzeria.y - VH / 2, 0, WH - VH);
+    this.cam.x = clamp(City.shop.x - VW / 2, 0, WW - VW);
+    this.cam.y = clamp(City.shop.y - VH / 2, 0, WH - VH);
     this.seedTraffic(26); this.seedPeds(20);
   },
 
@@ -52,8 +52,8 @@ const G = {
     this.cop = null; this.copT = 0; this.shake = 0; this.hitstop = 0;
     this.throwCd = 0; this.restock = 0; this.infraction = 0;
     this.stats = { delivered: 0, perfect: 0, splat: 0, best: 0, peds: 0, tickets: 0 };
-    this.pizzas.length = 0; Fx.clear();
-    const d = City.pizzeria.dock;
+    this.flying.length = 0; Fx.clear();
+    const d = City.shop.dock;
     this.player = new Player(d.x, d.y + 40, PI / 2);
     this.cam.x = clamp(d.x - VW / 2, 0, WW - VW);
     this.cam.y = clamp(d.y - VH / 2, 0, WH - VH);
@@ -87,8 +87,8 @@ const G = {
 
   syncNav() {
     if (this.needPickup) {
-      const z = City.pizzeria;
-      Nav.setGoal({ x: z.dock.x, y: z.dock.y, node: z.node, label: 'HOT SLICE' });
+      const z = City.shop;
+      Nav.setGoal({ x: z.dock.x, y: z.dock.y, node: z.node, label: 'TACO SHOP' });
     } else if (this.order) {
       const h = this.order.house;
       Nav.setGoal({ x: h.porch.x + h.porch.w / 2, y: h.porch.y + h.porch.h / 2, node: h.node, label: h.addr });
@@ -148,13 +148,13 @@ const G = {
 
   tryThrow() {
     if (this.throwCd > 0 || this.bag <= 0 || this.player.spinT > 0) {
-      if (this.bag <= 0) { this.say('BAG EMPTY - BACK TO THE SHOP', PAL.bad); Audio5.sfx('recalc'); }
+      if (this.bag <= 0) { this.say('OUT OF TACOS - BACK TO THE SHOP', PAL.bad); Audio5.sfx('recalc'); }
       return;
     }
     const p = this.player, a = this.aimPoint();
     // accuracy falls off with speed — slowing down is the skill, not a chore
     const spread = clamp(p.speed / MAXSPD, 0, 1) * 22;
-    this.pizzas.push(new Pizza(p.x, p.y, a.x, a.y, spread));
+    this.flying.push(new Bag(p.x, p.y, a.x, a.y, spread));
     this.bag--;
     this.throwCd = THROW_CD;
     if (this.bag === 0) { this.needPickup = true; this.syncNav(); }
@@ -207,7 +207,7 @@ const G = {
 
   miss(z, wrong) {
     Fx.splat(z.x, z.y);
-    Fx.cheese(z.x, z.y);
+    Fx.spill(z.x, z.y);
     Audio5.sfx('splat');
     this.stats.splat++;
     this.earned = Math.max(0, this.earned - REMAKE_FEE);
@@ -251,8 +251,8 @@ const G = {
     if (this.state === 'title') {
       this.titleCam += dt * 26;
       const r = 300;
-      this.cam.x = clamp(City.pizzeria.x - VW / 2 + Math.cos(this.titleCam / 62) * r, 0, WW - VW);
-      this.cam.y = clamp(City.pizzeria.y - VH / 2 + Math.sin(this.titleCam / 41) * r * 0.7, 0, WH - VH);
+      this.cam.x = clamp(City.shop.x - VW / 2 + Math.cos(this.titleCam / 62) * r, 0, WW - VW);
+      this.cam.y = clamp(City.shop.y - VH / 2 + Math.sin(this.titleCam / 41) * r * 0.7, 0, WH - VH);
       this.player.x = this.cam.x + VW / 2; this.player.y = this.cam.y + VH / 2;
       this.simCrowd(dt);
       if (Input.p('Enter', 'NumpadEnter', 'Space')) { Audio5.sfx('select'); this.startShift(); }
@@ -377,15 +377,15 @@ const G = {
       }
     }
 
-    /* pizzas */
-    for (let i = this.pizzas.length - 1; i >= 0; i--) {
-      const z = this.pizzas[i];
+    /* bags in flight */
+    for (let i = this.flying.length - 1; i >= 0; i--) {
+      const z = this.flying[i];
       z.update(dt);
-      if (z.dead) { this.pizzas.splice(i, 1); this.onLand(z); }
+      if (z.dead) { this.flying.splice(i, 1); this.onLand(z); }
     }
 
     /* restock at the shop */
-    const dock = City.pizzeria.dock;
+    const dock = City.shop.dock;
     if (this.needPickup && hyp(p.x - dock.x, p.y - dock.y) < 54 && p.speed < 62) {
       this.restock += dt;
       if (this.restock >= 1.0) {
@@ -393,7 +393,7 @@ const G = {
         this.bag = this.bagMax;
         this.needPickup = false;
         Audio5.sfx('restock');
-        Fx.pop(p.x, p.y - 22, 'BAG LOADED', PAL.amber);
+        Fx.pop(p.x, p.y - 22, 'TACOS LOADED', PAL.amber);
         if (!this.order) this.newOrder(); else this.syncNav();
       }
     } else this.restock = Math.max(0, this.restock - dt * 2);
@@ -428,7 +428,7 @@ const G = {
 
   rank() {
     const e = this.earned;
-    return e < 4000 ? 'TRAINEE' : e < 9000 ? 'DRIVER' : e < 15000 ? 'ACE' : e < 23000 ? 'CRUST LORD' : 'LEGEND OF THE SLICE';
+    return e < 4000 ? 'TRAINEE' : e < 9000 ? 'DRIVER' : e < 15000 ? 'ACE' : e < 23000 ? 'SALSA BARON' : 'LEGEND OF THE ASADA';
   },
 
   /* ---------------- render ------------------------------- */
@@ -451,7 +451,7 @@ const G = {
     for (const c of this.traffic) if (this.nearScreen(c.x, c.y)) rl.push({ sortY: c.y, e: c });
     for (const q of this.peds)    if (this.nearScreen(q.x, q.y)) rl.push({ sortY: q.y, e: q });
     if (this.cop) rl.push({ sortY: this.cop.y, e: this.cop });
-    for (const z of this.pizzas) rl.push({ sortY: z.y, e: z });
+    for (const z of this.flying) rl.push({ sortY: z.y, e: z });
     rl.sort((a, b) => a.sortY - b.sortY);
     for (const it of rl) {
       if (it.e) it.e.draw(x, cam);
@@ -480,7 +480,7 @@ const G = {
   drawBeacon(x, cam) {
     if (!this.order || this.needPickup) {
       if (this.needPickup) {
-        const d = City.pizzeria.dock;
+        const d = City.shop.dock;
         const sx = d.x - cam.x, sy = d.y - cam.y;
         if (sx > -40 && sx < VW + 40 && sy > -40 && sy < VH + 40) {
           const b = Math.sin(this.time * 5) * 3;
@@ -566,29 +566,20 @@ const G = {
   overlayTitle(x) {
     x.fillStyle = 'rgba(20,12,28,0.62)'; x.fillRect(0, 0, VW, VH);
     const t = this.time;
-    // marquee card
-    const cw = 292, ch = 96, cx0 = (VW - cw) / 2 | 0, cy0 = 22;
-    R(x, PAL.ink, cx0, cy0, cw, ch);
-    R(x, '#2a1a24', cx0 + 2, cy0 + 2, cw - 4, ch - 4);
-    x.strokeStyle = PAL.amber; x.lineWidth = 1;
-    x.strokeRect(cx0 + 0.5, cy0 + 0.5, cw - 1, ch - 1);
-    x.strokeStyle = PAL.red;
-    x.strokeRect(cx0 + 4.5, cy0 + 4.5, cw - 9, ch - 9);
+    // the shop badge, baked once at boot
+    const bw = Art.badge.width;
+    x.drawImage(Art.badge, ((VW - bw) / 2) | 0, 2);
 
-    text(x, 'HOT', VW / 2 + 2, cy0 + 12, PAL.ink2, 5, 1);
-    text(x, 'HOT', VW / 2, cy0 + 10, PAL.red, 5, 1);
-    R(x, PAL.red, cx0 + 22, cy0 + 49, cw - 44, 2);
-    text(x, 'SLICE', VW / 2 + 2, cy0 + 58, PAL.ink2, 5, 1);
-    text(x, 'SLICE', VW / 2, cy0 + 56, PAL.amber, 5, 1);
-
-    text(x, 'SUNDAY NIGHT DELIVERY SHIFT', VW / 2, cy0 + ch + 8, PAL.bone, 1, 1);
+    text(x, 'CARNAGE ASADA', VW / 2 + 2, 120, PAL.ink2, 2, 1);
+    text(x, 'CARNAGE ASADA', VW / 2, 118, PAL.red, 2, 1);
+    text(x, 'SUNDAY NIGHT DELIVERY SHIFT', VW / 2, 137, PAL.bone, 1, 1);
 
     const rows = [
       'WASD / ARROWS   DRIVE      SHIFT  HANDBRAKE',
-      'MOUSE AIM  +  CLICK / SPACE   TOSS THE PIZZA',
+      'MOUSE AIM  +  CLICK / SPACE   TOSS THE BAG',
       'THE TIP SHRINKS EVERY SECOND. THE NAV IS DUMB.',
     ];
-    rows.forEach((r, i) => text(x, r, VW / 2, cy0 + ch + 24 + i * 11, i === 2 ? PAL.cyan : PAL.boneDim, 1, 1));
+    rows.forEach((r, i) => text(x, r, VW / 2, 152 + i * 10, i === 2 ? PAL.cyan : PAL.boneDim, 1, 1));
 
     if ((t * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, VH - 26, PAL.amber, 2, 1);
     text(x, 'M MUTE    N MUSIC    P PAUSE', VW / 2, VH - 10, '#6b5f84', 1, 1);
@@ -608,7 +599,7 @@ const G = {
     const rows = [
       ['DELIVERED', s.delivered + ''],
       ['PERFECT TOSSES', s.perfect + ''],
-      ['PIZZAS DROPPED', s.splat + ''],
+      ['ORDERS DROPPED', s.splat + ''],
       ['PEDESTRIANS CLIPPED', s.peds + ''],
       ['TICKETS', s.tickets + ''],
       ['BEST SINGLE TIP', money(s.best)],

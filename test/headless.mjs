@@ -77,7 +77,7 @@ G.boot(20260816);
 console.log(`  city built in ${Date.now() - t0}ms`);
 ok(City.houses.length > 100, `addressed houses: ${City.houses.length}`);
 ok(City.statics.length > 500, `static props: ${City.statics.length}`);
-ok(City.pizzeria && City.pizzeria.dock, 'pizzeria has a pickup dock');
+ok(City.shop && City.shop.dock, 'taqueria has a pickup dock');
 ok(City.buckets.length === City.BC * City.BC, `spatial buckets: ${City.buckets.length}`);
 ok(Art.house.length === 8 && Art.house[0].length === 4, 'house sprites: 8 variants x 4 facings');
 ok(Art.car.length === 8 && Art.car[0].length === 32, 'car rotation frames baked');
@@ -163,10 +163,16 @@ ok(nanFrames === 0, 'no NaN in player state over 9000 frames');
 ok(maxSpeed > 60, `car reaches speed (peak ${maxSpeed.toFixed(0)} px/s)`);
 ok(G.traffic.length > 10, `traffic sustained: ${G.traffic.length} cars`);
 ok(G.peds.length > 10, `pedestrians sustained: ${G.peds.length}`);
-ok(thrown > 100, `${thrown} pizzas thrown without a crash`);
+ok(thrown > 100, `${thrown} taco bags thrown without a crash`);
 
 /* forced end-to-end delivery: teleport onto the porch and toss */
 console.log('\n— scoring —');
+// The fuzz section above leaves driving keys held in Input.down. This section
+// parks the car to test a deliberate stationary toss, so release them first —
+// otherwise the player drives off the porch, crashes, and spins out, and
+// tryThrow() silently no-ops while spinT > 0. That made the two bag/restock
+// assertions below fail on roughly 1 run in 20.
+Input.down = Object.create(null);
 G.startShift();
 const target = G.order.house;
 const before = G.earned, bagBefore = G.bag;
@@ -178,7 +184,7 @@ Input.hasMouse = true;
 Input.mx = target.door.x + target.door.w / 2 - G.cam.x;
 Input.my = target.door.y + target.door.h / 2 - G.cam.y;
 G.tryThrow();
-ok(G.bag === bagBefore - 1, 'throwing consumes a pizza');
+ok(G.bag === bagBefore - 1, 'throwing consumes a bag');
 for (let i = 0; i < 60; i++) G.update(1 / 60);
 ok(G.earned > before, `tip banked: ${(G.earned / 100).toFixed(2)}`);
 ok(G.stats.delivered === 1, 'delivery counted');
@@ -189,7 +195,7 @@ ok(G.order && G.order.house !== target, 'next order issued automatically');
 G.bag = 1; G.tryThrow();
 for (let i = 0; i < 40; i++) G.update(1 / 60);
 ok(G.needPickup === true, 'empty bag flips to restock mode');
-ok(Nav.goal && Math.abs(Nav.goal.x - City.pizzeria.dock.x) < 2, 'nav redirects to the shop');
+ok(Nav.goal && Math.abs(Nav.goal.x - City.shop.dock.x) < 2, 'nav redirects to the shop');
 
 /* tip really does shrink */
 G.bag = 3; G.needPickup = false; G.syncNav();

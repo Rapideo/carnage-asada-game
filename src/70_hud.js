@@ -1,5 +1,5 @@
 /* ============================================================
-   HUD  --  order card, tip meter, SLICE-NAV panel, minimap
+   HUD  --  order card, tip meter, TACO-NAV panel, minimap
    ============================================================ */
 'use strict';
 
@@ -45,9 +45,9 @@ const Hud = {
     /* ---------- order + tip ---------- */
     this.panel(x, 3, 3, 140, 37, '#6b5f84');
     if (o) {
-      text(x, G.needPickup ? 'OUT OF PIZZA - RESTOCK AT' : 'DELIVER TO', 8, 7,
+      text(x, G.needPickup ? 'OUT OF TACOS - RESTOCK AT' : 'DELIVER TO', 8, 7,
         G.needPickup ? PAL.bad : PAL.boneDim, 1);
-      text(x, G.needPickup ? 'HOT SLICE  (' + o.label + ' WAITING)' : o.label, 8, 15, PAL.bone, 1);
+      text(x, G.needPickup ? 'TACO SHOP  (' + o.label + ' WAITING)' : o.label, 8, 15, PAL.bone, 1);
       const pop = G.tipPop > 0 ? 1 : 0;
       text(x, money(o.tip), 8, 23, o.tip <= o.floor + 1 ? PAL.bad : PAL.amber, 2);
       text(x, 'TIP', 8 + textW(money(o.tip), 2) + 5, 29, PAL.boneDim, 1);
@@ -96,7 +96,7 @@ const Hud = {
       for (const n of Nav.route) x.fillRect(w2m(City.nodeX(n[0])) | 0, h2m(City.nodeY(n[1])) | 0, 1, 1);
     }
     // shop
-    R(x, PAL.red, w2m(City.pizzeria.x + 60) - 1, h2m(City.pizzeria.y + 40) - 1, 3, 3);
+    R(x, PAL.red, w2m(City.shop.x + 60) - 1, h2m(City.shop.y + 40) - 1, 3, 3);
     // goal
     if (Nav.goal) {
       const blink = (G.time * 5 | 0) % 2;
@@ -111,19 +111,22 @@ const Hud = {
     x.strokeStyle = '#6b5f84'; x.lineWidth = 1;
     x.strokeRect(mx0 - 1.5, my0 - 1.5, MM + 3, MM + 3);
 
-    /* ---------- SLICE-NAV ---------- */
+    /* ---------- TACO-NAV ---------- */
     this.drawNav(x, G);
 
-    /* ---------- pizza bag ---------- */
+    /* ---------- taco bag ---------- */
     const bx0 = VW - 76, by0 = VH - 20;
-    text(x, 'HOT BAG', bx0, by0 - 9, PAL.boneDim, 1);
+    text(x, 'TACO BAG', bx0, by0 - 9, PAL.boneDim, 1);
     for (let i = 0; i < G.bagMax; i++) {
       const px = bx0 + i * 15, py = by0;
       if (i < G.bag) {
         R(x, PAL.ink, px, py, 13, 13);
-        R(x, '#e8dcc0', px + 1, py + 1, 11, 11);
-        R(x, PAL.red, px + 2, py + 2, 9, 3);
-        R(x, '#cbbc9a', px + 1, py + 8, 11, 3);
+        R(x, BAG_MID, px + 1, py + 1, 11, 11);
+        R(x, BAG_HI, px + 1, py + 1, 11, 1);
+        R(x, BAG_LO, px + 1, py + 3, 11, 1);
+        R(x, BAG_LO, px + 1, py + 10, 11, 2);
+        R(x, PAL.jade, px + 4, py + 5, 5, 4);
+        R(x, PAL.gold, px + 5, py + 6, 3, 1);
       } else {
         R(x, '#2c2338', px, py, 13, 13);
         x.strokeStyle = '#4a4058'; x.strokeRect(px + 0.5, py + 0.5, 12, 12);
@@ -155,7 +158,7 @@ const Hud = {
     x.fillStyle = 'rgba(63,184,176,0.055)';
     for (let i = py + 2; i < py + h - 1; i += 2) x.fillRect(px + 1, i, w - 2, 1);
 
-    text(x, 'SLICE-NAV 2000', px + 4, py + 3, PAL.cyanLo, 1);
+    text(x, 'TACO-NAV 2000', px + 4, py + 3, PAL.cyanLo, 1);
 
     if (!Nav.goal) { text(x, 'STANDBY', px + w / 2, py + 15, PAL.cyanLo, 2, 1); return; }
 
@@ -172,7 +175,7 @@ const Hud = {
     const label = Nav.arriving ? 'ARRIVING' : TURN_NAMES[Nav.turn];
     text(x, label, px + 34, py + 12, PAL.cyan, 1);
     const m = Math.max(0, Math.round(Nav.dist / 8 / 5) * 5);
-    text(x, Nav.arriving ? 'TOSS THE PIZZA' : ('IN ' + m + ' M'), px + 34, py + 22, PAL.cyanLo, 1);
+    text(x, Nav.arriving ? 'TOSS THE BAG' : ('IN ' + m + ' M'), px + 34, py + 22, PAL.cyanLo, 1);
     if (Nav.arriving) {
       const b = (G.time * 6 | 0) % 2;
       R(x, b ? PAL.cyan : PAL.cyanLo, px + w - 6, py + 4, 3, 3);

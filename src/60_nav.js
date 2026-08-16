@@ -1,5 +1,5 @@
 /* ============================================================
-   NAV  --  "SLICE-NAV 2000", a rudimentary guidance unit
+   NAV  --  "TACO-NAV 2000", a rudimentary guidance unit
    ============================================================ */
 'use strict';
 

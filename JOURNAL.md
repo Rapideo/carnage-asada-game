@@ -208,3 +208,32 @@ What you replace is `40_city`, `50_entities`, `60_nav`, `70_hud`, and the state 
 - **3,070** lines of vanilla JS, 10 modules, **zero** dependencies, 124 KB shipped.
 - Headless suite: 30 assertions passing. Bundle verified in-browser, no console errors.
 - Playable: https://claude.ai/code/artifact/b818a61d-e6b2-4d3e-bf72-48c8295deeb8
+
+---
+
+## 7. Rebrand — Taco Shop: Carnage Asada
+
+Everything above is the record of the original build and is left as written. Later, the game was rebranded
+from pizza to tacos: `Hot Slice` → **`Taco Shop: Carnage Asada`**, the thrown pizza box became a brown paper
+bag, and the title screen was rebuilt around a real taqueria's badge logo the user supplied as reference.
+
+No mechanic, constant, or system changed. The tip decay, the bag-of-3 rule, the throw scheme, the nav
+penalties, the city generator, and the render pipeline are all untouched — this was art, strings, and names.
+
+Three things worth recording:
+
+- **The reference image does not ship.** The badge is hand-authored in `Art.mkBadge()` and baked at boot like
+  every other sprite. Embedding the supplied `.webp` would have been faster and would have broken the single
+  property the whole build is designed around. The 5×7 font has no lowercase and no script face, so the
+  logo's cursive "Est. 1970" is rendered blocky — the badge is a 16-bit *reading* of the logo, not a trace.
+- **`textOut()` does not scale.** It offsets its outline by the glyph scale, so at scale 4 the eight offset
+  copies merge into a solid black slab and the jade face vanished behind the wordmark. Fixed with
+  `keyline()`, which takes outline width as a separate argument. This was invisible to the test suite and
+  obvious in the first screenshot — the same "tests catch invariants, eyes catch composition" split as §4.
+- **The brand colours are deliberately quarantined.** Jade reads close to the guidance cyan, so it is barred
+  from the HUD and confined to the badge and the shop's signage. The semantic reservation from §3 —
+  amber money, red danger, cyan machine — survives the rebrand intact.
+
+`SLICE-NAV 2000` became `TACO-NAV 2000`, which is the one piece of the original character that the rename
+touched. The joke structure is unchanged: it is still a rudimentary unit that falls apart into
+`RECALCULATING / RETURN TO ROADWAY` the moment you cut across a lawn.

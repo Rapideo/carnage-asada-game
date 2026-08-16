@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hot Slice</title>
+<!-- shell.html has no <head>, so no <meta charset>: an em dash here would be
+     decoded as Latin-1 when the file is opened directly. Entity = ASCII bytes. -->
+<title>Taco Shop &mdash; Carnage Asada</title>
 <style>
   :root{
     --void:#120d1a;
@@ -15,6 +17,8 @@
     --amber:#ffb01f;
     --red:#e8452c;
     --cyan:#3fb8b0;
+    --jade:#1fa37e;
+    --gold:#fbc63f;
   }
   *{box-sizing:border-box;}
   html,body{height:100%;}
@@ -39,9 +43,9 @@
   }
   .mark{
     font-weight:700;letter-spacing:.34em;text-transform:uppercase;
-    font-size:13px;color:var(--amber);
+    font-size:13px;color:var(--gold);
   }
-  .mark b{color:var(--red);font-weight:700;}
+  .mark b{color:var(--jade);font-weight:700;}
   .sub{letter-spacing:.22em;text-transform:uppercase;color:var(--dim);font-size:10px;}
 
   #stage{
@@ -54,7 +58,7 @@
     background:linear-gradient(180deg,var(--bezel-2),var(--bezel));
     border:1px solid var(--line);
     border-radius:4px;
-    box-shadow:0 0 0 1px rgba(255,176,31,.16), 0 18px 60px -18px rgba(0,0,0,.9);
+    box-shadow:0 0 0 1px rgba(251,198,63,.16), 0 18px 60px -18px rgba(0,0,0,.9);
     line-height:0;
   }
   canvas{
@@ -100,13 +104,13 @@
 
 
 <header>
-  <div class="mark"><b>Hot</b> Slice</div>
-  <div class="sub">Sunday night delivery shift</div>
+  <div class="mark"><b>Taco</b> Shop</div>
+  <div class="sub">Carnage Asada &middot; Sunday night delivery shift</div>
 </header>
 
 <div id="stage">
   <div class="bezel">
-    <canvas id="screen" width="384" height="216" tabindex="0" aria-label="Hot Slice, a top-down pizza delivery arcade game"></canvas>
+    <canvas id="screen" width="384" height="216" tabindex="0" aria-label="Taco Shop: Carnage Asada, a top-down taco delivery arcade game"></canvas>
   </div>
 </div>
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-**Hot Slice** — a 16-bit top-down pizza delivery arcade game (APB + Paperboy). Single-page HTML5 canvas,
+**Taco Shop: Carnage Asada** — a 16-bit top-down taco delivery arcade game (APB + Paperboy). Single-page HTML5 canvas,
 **zero dependencies**: no `package.json`, no `node_modules`, no imports, no CDN, and no external assets.
 Every sprite, the bitmap font, the city, and all audio are generated procedurally at boot. Keep it that way —
 adding a runtime dependency or an asset file breaks the "self-contained single file" property the whole
@@ -13,15 +13,15 @@ build is designed around (the published artifact runs under a CSP that blocks al
 ## Commands
 
 ```bash
-node build.mjs           # bundle src/*.js -> hot-slice.html (ship) + index.html (dev)
+node build.mjs           # bundle src/*.js -> taco-shop.html (ship) + index.html (dev)
 node serve.mjs           # static server on http://localhost:8123 (no-store; edits are live in dev)
 node test/headless.mjs   # full test suite; exits non-zero on failure
 ```
 
 There is no lint step, no test framework, and no watch mode. `build.mjs` must be re-run before
-`hot-slice.html` reflects source edits; `index.html` loads `src/*.js` directly so it does not.
+`taco-shop.html` reflects source edits; `index.html` loads `src/*.js` directly so it does not.
 
-There is no `package.json` — nothing to install. `hot-slice.html` and `index.html` are **generated**; edit
+There is no `package.json` — nothing to install. `taco-shop.html` and `index.html` are **generated**; edit
 `src/` and `shell.html` and rebuild rather than editing them directly.
 
 ## Related docs
@@ -48,19 +48,23 @@ There is no `package.json` — nothing to install. `hot-slice.html` and `index.h
   `<script>`. Page chrome (bezel, header, key legend, CSS) lives there, not in JS.
 - `shell.html` deliberately has no `<!doctype>`/`<html>`/`<body>` — the artifact host wraps it. `build.mjs`
   synthesises those wrappers only for the dev `index.html`.
+- **Because there is no `<head>`, there is no `<meta charset>`.** Any non-ASCII character in *rendered*
+  markup (the `<title>`, header, footer) is decoded as Latin-1 when the file is opened directly and comes
+  out as mojibake. Write those as HTML entities (`&mdash;`, `&middot;`). Non-ASCII inside JS comments is
+  harmless, and the 5×7 font is ASCII-only anyway, so in-game strings cannot hit this.
 
 | module | responsibility |
 |---|---|
 | `00_core` | screen/world constants, `PAL`, RNG, `classify()`, `mkCanvas`/`R` helpers, `Input` |
 | `10_font` | hand-authored 5×7 glyph table; `text()`, `textOut()`, `money()`, `clockStr()` |
 | `20_audio` | `Audio5`: WebAudio SFX, engine voice, siren, and the 4-bar chip loop scheduler |
-| `30_art` | `Art.build()` — bakes every sprite/tile once at boot; `rotFrames`/`drawRot`; `shade()` |
+| `30_art` | `Art.build()` — bakes every sprite/tile once at boot; `rotFrames`/`drawRot`; `shade()`, `disc()`, `keyline()` |
 | `40_city` | `City.gen()` — street grid, addressed houses, baked ground layer, spatial buckets |
-| `50_entities` | `Player`, `Traffic`, `Ped`, `Cop`, `Pizza`, `Fx`; shared car physics + collision |
-| `60_nav` | `Nav` (SLICE-NAV unit) and `solve()` — Dijkstra over the intersection graph |
+| `50_entities` | `Player`, `Traffic`, `Ped`, `Cop`, `Bag`, `Fx`; shared car physics + collision |
+| `60_nav` | `Nav` (TACO-NAV unit) and `solve()` — Dijkstra over the intersection graph |
 | `70_hud` | `Hud.draw()` — order card, tip meter, nav panel, minimap; `navArrow`, `triArrow` |
 | `80_game` | `G` — state machine, orders/tips/scoring, camera, render pipeline; `Post` |
-| `90_main` | canvas scaling, fixed-step loop, audio unlock, `window.HotSlice` bridge |
+| `90_main` | canvas scaling, fixed-step loop, audio unlock, `window.TacoShop` bridge |
 
 ## Architecture
 
@@ -86,7 +90,7 @@ index to world pixels, `nearNodeX/nearNodeY` go back.
 shadows — into one 1632×1632 canvas. The render pass blits it with a single source-rect `drawImage`.
 
 **`City.gx` is that canvas's live context and is mutated during play**: skid marks (`Player.update`) and
-pizza splats (`Fx.splat`) are painted into it permanently. Anything drawn there is not undoable without a
+bag splats (`Fx.splat`) are painted into it permanently. Anything drawn there is not undoable without a
 regen, so never use it for per-frame effects.
 
 **`City.keep` is a keep-clear mask** marking every porch and its walkway to the kerb. Any new prop, tree, or
@@ -129,6 +133,19 @@ the cardinal exit heading against the player's cardinal approach; being off-road
 `RECALCULATING` state. Cyan (`PAL.cyan`) is reserved exclusively for guidance UI so it always reads as
 machine output — don't spend it elsewhere.
 
+### Branding
+
+`PAL.jade`/`PAL.gold` are the shop's badge colours and are **not** part of the in-game semantic set. Jade
+sits close enough to `PAL.cyan` that putting it on the HUD would cost guidance its distinct "machine output"
+read, so it is confined to two places: `Art.badge` (the title screen) and the shop's roof sign and awning in
+`Art.mkTaqueria`. Amber stays money, red stays player/danger.
+
+`Art.mkBadge()` bakes the badge once at boot. Two helpers exist because the normal text path could not draw
+it: `disc()` plots a hard-edged circle as one `fillRect` span per scanline (canvas `arc()` antialiases, which
+breaks the pixel look), and `keyline()` draws an outline of constant pixel width regardless of glyph scale —
+`textOut()` offsets its outline *by* the scale, so past about 2× the eight offset copies merge into a solid
+slab instead of a keyline.
+
 ### Game state (`G`)
 
 States: `title` → `play` → `results`. One active `order` at a time; `G.needPickup` (bag empty) redirects the
@@ -148,9 +165,13 @@ fast-forwards through time the player did not see.
 `Input.p()` reads one-shot presses that `Input.endFrame()` clears — it must be called once per fixed step,
 inside the loop, or presses are consumed at the wrong rate.
 
-`window.HotSlice` exposes `{G, City, Nav, Art, Audio5, Input, ctx, step(n)}`. `step(n)` advances and renders
+`window.TacoShop` exposes `{G, City, Nav, Art, Audio5, Input, ctx, step(n)}`. `step(n)` advances and renders
 manually, which is the only way to drive the game in a backgrounded tab (where rAF is paused) — use it for
-browser verification.
+browser verification. Note `Fx` is **not** on the bridge; to exercise particles or splats from the console,
+trigger them through gameplay (a bag landing off-porch calls `Fx.splat`/`Fx.spill`) rather than directly.
+
+To hold a single frame for inspection while rAF is running, swap `G.update` for a no-op — `G.render` will
+keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 
 ## Testing
 
@@ -159,17 +180,26 @@ every drawing call is a no-op but all logic executes. It covers city invariants 
 reachability), 250 solved routes, 9000 fuzzed simulation frames checked for NaN and out-of-world drift, the
 full scoring loop, and heat/cop behaviour.
 
-Two things to know when extending it:
+Three things to know when extending it:
 
 - Top-level `const`/`let` live in the script's lexical scope and **never appear on the sandbox global**. The
   harness appends a `globalThis.__x = {...}` line to hand bindings out; add any new symbol you need there.
 - It stubs `setTimeout` into a `deferred` array so `90_main`'s boot IIFE does not race the assertions.
+- **Sections share one mutable game and one `Input`, and run in order.** State leaks forward: the fuzz
+  section holds driving keys in `Input.down`, so `— scoring —` must reset it before parking the car, or the
+  player drives off and spins out — and `G.tryThrow()` silently no-ops while `player.spinT > 0`, which made
+  those assertions fail about 1 run in 20. Any new section that sets input or teleports the player should
+  reset what it relies on rather than assume a clean slate.
+
+The suite uses `Math.random()` (not the seeded RNG) for the fuzz and for order selection, so runs are not
+reproducible. When something fails, re-run it several times to tell a real break from a flake — and treat a
+flake as a bug in the harness, not noise to live with.
 
 There is no per-test filter — it is one sequential script with labelled sections (`— build —`,
 `— guidance —`, `— simulation —`, `— scoring —`, `— heat —`). To isolate one, edit the script.
 
 ## Publishing
 
-`hot-slice.html` is the shippable artifact: one self-contained file, ~124 KB. It must stay free of external
+`taco-shop.html` is the shippable artifact: one self-contained file, ~126 KB. It must stay free of external
 requests. `?seed=<int>` on the URL regenerates the city deterministically (mulberry32); the default seed is
 in `90_main.js`.

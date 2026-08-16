@@ -1,4 +1,6 @@
-<title>Hot Slice</title>
+<!-- shell.html has no <head>, so no <meta charset>: an em dash here would be
+     decoded as Latin-1 when the file is opened directly. Entity = ASCII bytes. -->
+<title>Taco Shop &mdash; Carnage Asada</title>
 <style>
   :root{
     --void:#120d1a;
@@ -10,6 +12,8 @@
     --amber:#ffb01f;
     --red:#e8452c;
     --cyan:#3fb8b0;
+    --jade:#1fa37e;
+    --gold:#fbc63f;
   }
   *{box-sizing:border-box;}
   html,body{height:100%;}
@@ -34,9 +38,9 @@
   }
   .mark{
     font-weight:700;letter-spacing:.34em;text-transform:uppercase;
-    font-size:13px;color:var(--amber);
+    font-size:13px;color:var(--gold);
   }
-  .mark b{color:var(--red);font-weight:700;}
+  .mark b{color:var(--jade);font-weight:700;}
   .sub{letter-spacing:.22em;text-transform:uppercase;color:var(--dim);font-size:10px;}
 
   #stage{
@@ -49,7 +53,7 @@
     background:linear-gradient(180deg,var(--bezel-2),var(--bezel));
     border:1px solid var(--line);
     border-radius:4px;
-    box-shadow:0 0 0 1px rgba(255,176,31,.16), 0 18px 60px -18px rgba(0,0,0,.9);
+    box-shadow:0 0 0 1px rgba(251,198,63,.16), 0 18px 60px -18px rgba(0,0,0,.9);
     line-height:0;
   }
   canvas{
@@ -92,13 +96,13 @@
 </style>
 
 <header>
-  <div class="mark"><b>Hot</b> Slice</div>
-  <div class="sub">Sunday night delivery shift</div>
+  <div class="mark"><b>Taco</b> Shop</div>
+  <div class="sub">Carnage Asada &middot; Sunday night delivery shift</div>
 </header>
 
 <div id="stage">
   <div class="bezel">
-    <canvas id="screen" width="384" height="216" tabindex="0" aria-label="Hot Slice, a top-down pizza delivery arcade game"></canvas>
+    <canvas id="screen" width="384" height="216" tabindex="0" aria-label="Taco Shop: Carnage Asada, a top-down taco delivery arcade game"></canvas>
   </div>
 </div>
 
@@ -118,7 +122,7 @@
 
 /* ===== 00_core.js ===== */
 /* ============================================================
-   HOT SLICE  --  core constants, math, rng, input
+   TACO SHOP: CARNAGE ASADA  --  core constants, math, rng, input
    ============================================================ */
 'use strict';
 
@@ -186,6 +190,16 @@ const PAL = {
   amber:   '#ffb01f',
   cyan:    '#3fb8b0',
   cyanLo:  '#2a8079',
+
+  /* brand colours, from the shop's badge. Deliberately NOT part of the
+     in-game semantic set: jade reads too close to cyan, and letting it onto
+     the HUD is what would stop guidance scanning as "machine output".
+     These belong on the title badge and the shop's signage, nowhere else. */
+  jade:    '#1fa37e',
+  jadeHi:  '#2ec394',
+  jadeLo:  '#17795e',
+  gold:    '#fbc63f',
+  goldLo:  '#d19a1c',
   bone:    '#f2e9d0',
   boneDim: '#b6ab92',
   ink:     '#1b1425',
@@ -679,9 +693,14 @@ const WALLS = [
   ['#e6d9c0', '#c8b89a', '#93836a'],
 ];
 
+/* kraft paper for the taco bag, and what comes out of it when you miss */
+const BAG_MID = '#a97c4e', BAG_HI = '#c2955f', BAG_LO = '#8a6238', BAG_FOLD = '#946a42';
+const SPILL = ['#7a4a2a', '#c9542f', '#5aa14c', '#e0b055', '#d8b98a'];
+
 const Art = {
   tile: {}, house: [], bldg: [], tree: [], prop: {},
-  car: [], player: null, cop: null, ped: [], box: null, pizzeria: null, splat: [],
+  car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [],
+  badge: null,
 
   build(rng) {
     this.buildTiles(rng);
@@ -1047,35 +1066,70 @@ const Art = {
     }
   },
 
-  /* ---------- pizza box, splats, pizzeria ----------------- */
+  /* ---------- taco bag, splats, taqueria, badge ----------- */
   buildMisc(rng) {
-    // pizza box, 4 spin frames
-    this.box = [];
+    // brown paper bag of tacos, 4 spin frames
+    this.bag = [];
     for (let f = 0; f < 4; f++) {
       const t = mkCanvas(13, 13), x = t.x;
       x.translate(6.5, 6.5); x.rotate(f / 4 * (PI / 2));
-      R(x, '#15121c', -5, -5, 10, 10);
-      R(x, '#e8dcc0', -4, -4, 8, 8);
-      R(x, '#cbbc9a', -4, 1, 8, 3);
-      R(x, PAL.red, -3, -3, 6, 2);
-      R(x, PAL.amber, -1, 0, 2, 1);
-      this.box.push(t.c);
+      R(x, '#15121c', -5, -5, 10, 10);          // silhouette
+      R(x, BAG_MID, -4, -4, 8, 8);              // kraft paper
+      R(x, BAG_HI,  -4, -4, 8, 1);              // lit top lip
+      R(x, BAG_LO,  -4, -2, 8, 1);              // crimp shadow under the fold
+      R(x, BAG_LO,  -4,  3, 8, 1);              // base shadow
+      for (let i = -4; i < 4; i += 2) R(x, BAG_FOLD, i, -4, 1, 2);   // folded serrations
+      R(x, PAL.jade, -2, 0, 4, 3);              // shop sticker
+      R(x, PAL.gold, -1, 1, 2, 1);
+      this.bag.push(t.c);
     }
-    // splats
+    // spilled-taco splats
     for (let i = 0; i < 4; i++) {
       const r = makeRng(900 + i * 17);
       const t = mkCanvas(20, 18), x = t.x;
       for (let k = 0; k < 60; k++) {
         const a = r() * TAU, d = Math.sqrt(r()) * 8;
-        R(x, r.chance(0.4) ? '#c9542f' : '#e0b055', 10 + Math.cos(a) * d, 9 + Math.sin(a) * d * 0.8, 2, 2);
+        R(x, SPILL[r.int(SPILL.length)], 10 + Math.cos(a) * d, 9 + Math.sin(a) * d * 0.8, 2, 2);
       }
       for (let k = 0; k < 8; k++) R(x, '#c9542f', r.int(20), r.int(18), 1, 1);
       this.splat.push(t.c);
     }
-    this.pizzeria = this.mkPizzeria(makeRng(4242));
+    this.taqueria = this.mkTaqueria(makeRng(4242));
+    this.badge = this.mkBadge();
   },
 
-  mkPizzeria(r) {
+  /* ---------- the shop badge, for the title screen --------
+     A 16-bit reading of the real sticker: white die-cut rim, black keyline,
+     jade face, chunky gold wordmark. Plotted with fillRect spans rather than
+     arc() so the circle stays hard-edged like everything else on screen. */
+  mkBadge() {
+    const S = 112, c = S / 2;
+    const t = mkCanvas(S, S), x = t.x;
+
+    // concentric rings, outside in: die-cut rim, keyline, gap, keyline, face
+    disc(x, c, c, 55, '#ffffff');
+    disc(x, c, c, 52, PAL.ink);
+    disc(x, c, c, 49, '#ffffff');
+    disc(x, c, c, 46, PAL.ink);
+    disc(x, c, c, 44, PAL.jade);
+    // soft top-left sheen, the way the printed sticker catches light. Kept
+    // small and faint — any more and the face stops reading as the logo's jade
+    x.globalAlpha = 0.09;
+    disc(x, c - 16, c - 18, 20, '#ffffff');
+    x.globalAlpha = 1;
+
+    // Wordmark. NOT textOut(): that offsets its outline by the glyph scale,
+    // so at scale 4 the eight copies merge into a solid black slab. The logo
+    // wants a constant-width keyline instead, independent of letter size.
+    // At 92px wide the words overspill the 88px face onto the rings — the
+    // real sticker does that too.
+    keyline(x, 'TACO', c, 18, 4, 2, PAL.gold);
+    keyline(x, 'SHOP', c, 52, 4, 2, PAL.gold);
+    keyline(x, 'EST. 1970', c, 88, 1, 1, PAL.gold);
+    return t.c;
+  },
+
+  mkTaqueria(r) {
     const fw = 128, fh = 96, wallh = 16;
     const t = mkCanvas(fw, fh + wallh), x = t.x;
     const wy = fh;
@@ -1091,7 +1145,7 @@ const Art = {
     R(x, PAL.door, 75, wy + 3, 14, wallh - 4);
     R(x, PAL.amber, 86, wy + 8, 1, 2);
     // striped awning across the front
-    for (let i = 0; i < fw; i += 8) R(x, ((i / 8) | 0) % 2 ? '#f2e9d0' : PAL.red, i, wy - 1, 8, 4);
+    for (let i = 0; i < fw; i += 8) R(x, ((i / 8) | 0) % 2 ? '#f2e9d0' : PAL.jade, i, wy - 1, 8, 4);
     R(x, '#15121c', 0, wy + 3, fw, 1);
 
     // roof
@@ -1100,13 +1154,13 @@ const Art = {
     x.globalAlpha = 0.2; R(x, '#ffffff', 0, 0, fw, 2); R(x, '#ffffff', 0, 0, 2, fh); x.globalAlpha = 1;
     R(x, '#6b2b1e', 0, fh - 2, fw, 2); R(x, '#6b2b1e', fw - 2, 0, 2, fh);
 
-    // rooftop sign board, readable from above
+    // rooftop sign board, readable from above — the badge, seen from a helicopter
     R(x, '#15121c', 14, 22, 100, 34);
-    R(x, '#241a2e', 16, 24, 96, 30);
-    text(x, 'HOT', 64, 28, PAL.amber, 2, 1);
-    text(x, 'SLICE', 64, 42, PAL.red, 2, 1);
-    R(x, PAL.amber, 16, 24, 96, 1);
-    R(x, PAL.amber, 16, 53, 96, 1);
+    R(x, PAL.jade, 16, 24, 96, 30);
+    R(x, '#ffffff', 16, 24, 96, 1);
+    R(x, '#ffffff', 16, 53, 96, 1);
+    text(x, 'TACO', 64, 28, PAL.gold, 2, 1);
+    text(x, 'SHOP', 64, 42, PAL.gold, 2, 1);
     // vents
     for (let i = 0; i < 3; i++) { R(x, '#6b7280', 12 + i * 12, 68, 8, 8); R(x, '#8a919e', 12 + i * 12, 68, 8, 2); }
     R(x, '#6b7280', 96, 64, 18, 14); R(x, '#8a919e', 96, 64, 18, 3);
@@ -1117,6 +1171,26 @@ const Art = {
 };
 
 /* ---- helpers ---------------------------------------------- */
+/** centred text with a black keyline of `k` px, whatever the glyph scale.
+    textOut() ties outline width to scale, which turns to mush past about 2x. */
+function keyline(x, str, cx, cy, s, k, col) {
+  const ox = (cx - textW(str, s) / 2) | 0;
+  for (let dy = -k; dy <= k; dy++)
+    for (let dx = -k; dx <= k; dx++)
+      if (dx || dy) drawRun(x, str, ox + dx, cy + dy, PAL.ink, s);
+  drawRun(x, str, ox, cy, col, s);
+}
+
+/** hard-edged filled circle: one fillRect span per scanline, no antialiasing */
+function disc(x, cx, cy, r, col) {
+  x.fillStyle = col;
+  const r2 = r * r;
+  for (let dy = -r; dy <= r; dy++) {
+    const w = Math.floor(Math.sqrt(Math.max(0, r2 - dy * dy)));
+    if (w > 0) x.fillRect(Math.round(cx - w), Math.round(cy + dy), w * 2, 1);
+  }
+}
+
 function shade(hex, amt) {
   const n = parseInt(hex.slice(1), 16);
   let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
@@ -1163,7 +1237,7 @@ const NODES = BLOCKS + 1;                       // 9 x 9 intersections
 
 const City = {
   solid: null, surf: null, ground: null, gx: null,
-  statics: [], houses: [], pizzeria: null, parkedTiles: null,
+  statics: [], houses: [], shop: null, parkedTiles: null,
 
   nodeX(n) { return (BORDER + n * SPAN) * TS + TS; },
   nodeY(n) { return (BORDER + n * SPAN) * TS + TS; },
@@ -1203,12 +1277,12 @@ const City = {
     }
 
     /* ---- 2. block programme ----------------------------- */
-    const PIZZA_BX = 3, PIZZA_BY = 4;
+    const SHOP_BX = 3, SHOP_BY = 4;
     const kinds = [];
     for (let by = 0; by < BLOCKS; by++) {
       kinds[by] = [];
       for (let bx = 0; bx < BLOCKS; bx++) {
-        if (bx === PIZZA_BX && by === PIZZA_BY) { kinds[by][bx] = 'shop'; continue; }
+        if (bx === SHOP_BX && by === SHOP_BY) { kinds[by][bx] = 'shop'; continue; }
         const roll = rng();
         kinds[by][bx] = roll < 0.60 ? 'res' : roll < 0.80 ? 'com' : roll < 0.90 ? 'park' : 'lot';
       }
@@ -1543,7 +1617,7 @@ const City = {
 
   /* ---------- the shop ------------------------------------ */
   genShop(rng, bx, by) {
-    const p = Art.pizzeria;
+    const p = Art.taqueria;
     const lotX = (BORDER + bx * SPAN + 3) * TS, lotY = (BORDER + by * SPAN + 3) * TS, L = 8 * TS;
     const wx = lotX + ((L - p.w) >> 1), wy = lotY;
     this.markSolid((wx / TS) | 0, (wy / TS) | 0, Math.ceil(p.w / TS), Math.ceil(p.h / TS));
@@ -1558,13 +1632,13 @@ const City = {
     text(g, 'PICKUP', dockX, dockY - 8, PAL.amber, 1, 1);
     text(g, 'ONLY', dockX, dockY + 2, PAL.amber, 1, 1);
 
-    this.pizzeria = {
+    this.shop = {
       x: wx, y: wy, w: p.w, h: p.h,
       dock: { x: dockX, y: dockY },
       node: [this.nearNodeX(dockX), this.nearNodeY(wy + p.h + 60)],
       curb: { x: dockX, y: (BORDER + (by + 1) * SPAN) * TS + TS },
     };
-    this.pizzeria.node = [this.nearNodeX(this.pizzeria.curb.x), this.nearNodeY(this.pizzeria.curb.y)];
+    this.shop.node = [this.nearNodeX(this.shop.curb.x), this.nearNodeY(this.shop.curb.y)];
 
     // driveway out to the street
     R(g, '#5a5e70', dockX - 20, dockY + 16, 40, (BORDER + (by + 1) * SPAN) * TS - (dockY + 16));
@@ -1615,7 +1689,7 @@ const City = {
 
 /* ===== 50_entities.js ===== */
 /* ============================================================
-   ENTITIES  --  player, traffic, pedestrians, cop, pizza, fx
+   ENTITIES  --  player, traffic, pedestrians, cop, taco bag, fx
    ============================================================ */
 'use strict';
 
@@ -1953,11 +2027,11 @@ class Cop {
   }
 }
 
-/* ---------------- pizza projectile ------------------------ */
+/* ---------------- taco bag projectile --------------------- */
 const THROW_T = 0.5, GRAV = 260, Z0 = 5;
 const MAXTHROW = 132;
 
-class Pizza {
+class Bag {
   constructor(x, y, tx, ty, spread) {
     this.x = x; this.y = y; this.z = Z0;
     const dx = tx - x, dy = ty - y;
@@ -1980,7 +2054,7 @@ class Pizza {
     x.fillStyle = '#100c18';
     x.fillRect(sx - 4, sy - 2, 9, 5);
     x.globalAlpha = 1;
-    x.drawImage(Art.box[(this.f | 0) % 4], sx - 6, (sy - this.z - 6) | 0);
+    x.drawImage(Art.bag[(this.f | 0) % 4], sx - 6, (sy - this.z - 6) | 0);
   }
 }
 
@@ -1990,7 +2064,7 @@ const Fx = {
 
   spark(x, y, vx, vy) { this.ps.push({ x, y, z: 3, vx, vy, vz: rand(20, 70), g: 300, life: rand(0.25, 0.5), t: 0, c: Math.random() < 0.5 ? '#ffd76a' : '#ff9a3c', s: 2 }); },
   dust(x, y, c)       { this.ps.push({ x, y, z: 2, vx: rand(-18, 18), vy: rand(-18, 18), vz: rand(8, 26), g: 60, life: rand(0.3, 0.6), t: 0, c, s: 2 }); },
-  cheese(x, y)        { for (let i = 0; i < 12; i++) this.ps.push({ x, y, z: 4, vx: rand(-70, 70), vy: rand(-70, 70), vz: rand(30, 90), g: 320, life: rand(0.35, 0.7), t: 0, c: Math.random() < 0.5 ? '#e0b055' : '#c9542f', s: 2 }); },
+  spill(x, y)         { for (let i = 0; i < 12; i++) this.ps.push({ x, y, z: 4, vx: rand(-70, 70), vy: rand(-70, 70), vz: rand(30, 90), g: 320, life: rand(0.35, 0.7), t: 0, c: SPILL[(Math.random() * SPILL.length) | 0], s: 2 }); },
   cash(x, y)          { for (let i = 0; i < 10; i++) this.ps.push({ x, y, z: 6, vx: rand(-45, 45), vy: rand(-45, 45), vz: rand(50, 110), g: 210, life: rand(0.5, 0.9), t: 0, c: Math.random() < 0.5 ? PAL.good : PAL.amber, s: 2 }); },
   star(x, y)          { for (let i = 0; i < 8; i++) this.ps.push({ x, y, z: 8, vx: rand(-40, 40), vy: rand(-40, 40), vz: rand(20, 60), g: 150, life: 0.5, t: 0, c: PAL.bone, s: 1 }); },
 
@@ -2039,7 +2113,7 @@ function rand(a, b) { return a + Math.random() * (b - a); }
 
 /* ===== 60_nav.js ===== */
 /* ============================================================
-   NAV  --  "SLICE-NAV 2000", a rudimentary guidance unit
+   NAV  --  "TACO-NAV 2000", a rudimentary guidance unit
    ============================================================ */
 'use strict';
 
@@ -2210,7 +2284,7 @@ function solve(start, goal, initDir) {
 
 /* ===== 70_hud.js ===== */
 /* ============================================================
-   HUD  --  order card, tip meter, SLICE-NAV panel, minimap
+   HUD  --  order card, tip meter, TACO-NAV panel, minimap
    ============================================================ */
 'use strict';
 
@@ -2256,9 +2330,9 @@ const Hud = {
     /* ---------- order + tip ---------- */
     this.panel(x, 3, 3, 140, 37, '#6b5f84');
     if (o) {
-      text(x, G.needPickup ? 'OUT OF PIZZA - RESTOCK AT' : 'DELIVER TO', 8, 7,
+      text(x, G.needPickup ? 'OUT OF TACOS - RESTOCK AT' : 'DELIVER TO', 8, 7,
         G.needPickup ? PAL.bad : PAL.boneDim, 1);
-      text(x, G.needPickup ? 'HOT SLICE  (' + o.label + ' WAITING)' : o.label, 8, 15, PAL.bone, 1);
+      text(x, G.needPickup ? 'TACO SHOP  (' + o.label + ' WAITING)' : o.label, 8, 15, PAL.bone, 1);
       const pop = G.tipPop > 0 ? 1 : 0;
       text(x, money(o.tip), 8, 23, o.tip <= o.floor + 1 ? PAL.bad : PAL.amber, 2);
       text(x, 'TIP', 8 + textW(money(o.tip), 2) + 5, 29, PAL.boneDim, 1);
@@ -2307,7 +2381,7 @@ const Hud = {
       for (const n of Nav.route) x.fillRect(w2m(City.nodeX(n[0])) | 0, h2m(City.nodeY(n[1])) | 0, 1, 1);
     }
     // shop
-    R(x, PAL.red, w2m(City.pizzeria.x + 60) - 1, h2m(City.pizzeria.y + 40) - 1, 3, 3);
+    R(x, PAL.red, w2m(City.shop.x + 60) - 1, h2m(City.shop.y + 40) - 1, 3, 3);
     // goal
     if (Nav.goal) {
       const blink = (G.time * 5 | 0) % 2;
@@ -2322,19 +2396,22 @@ const Hud = {
     x.strokeStyle = '#6b5f84'; x.lineWidth = 1;
     x.strokeRect(mx0 - 1.5, my0 - 1.5, MM + 3, MM + 3);
 
-    /* ---------- SLICE-NAV ---------- */
+    /* ---------- TACO-NAV ---------- */
     this.drawNav(x, G);
 
-    /* ---------- pizza bag ---------- */
+    /* ---------- taco bag ---------- */
     const bx0 = VW - 76, by0 = VH - 20;
-    text(x, 'HOT BAG', bx0, by0 - 9, PAL.boneDim, 1);
+    text(x, 'TACO BAG', bx0, by0 - 9, PAL.boneDim, 1);
     for (let i = 0; i < G.bagMax; i++) {
       const px = bx0 + i * 15, py = by0;
       if (i < G.bag) {
         R(x, PAL.ink, px, py, 13, 13);
-        R(x, '#e8dcc0', px + 1, py + 1, 11, 11);
-        R(x, PAL.red, px + 2, py + 2, 9, 3);
-        R(x, '#cbbc9a', px + 1, py + 8, 11, 3);
+        R(x, BAG_MID, px + 1, py + 1, 11, 11);
+        R(x, BAG_HI, px + 1, py + 1, 11, 1);
+        R(x, BAG_LO, px + 1, py + 3, 11, 1);
+        R(x, BAG_LO, px + 1, py + 10, 11, 2);
+        R(x, PAL.jade, px + 4, py + 5, 5, 4);
+        R(x, PAL.gold, px + 5, py + 6, 3, 1);
       } else {
         R(x, '#2c2338', px, py, 13, 13);
         x.strokeStyle = '#4a4058'; x.strokeRect(px + 0.5, py + 0.5, 12, 12);
@@ -2366,7 +2443,7 @@ const Hud = {
     x.fillStyle = 'rgba(63,184,176,0.055)';
     for (let i = py + 2; i < py + h - 1; i += 2) x.fillRect(px + 1, i, w - 2, 1);
 
-    text(x, 'SLICE-NAV 2000', px + 4, py + 3, PAL.cyanLo, 1);
+    text(x, 'TACO-NAV 2000', px + 4, py + 3, PAL.cyanLo, 1);
 
     if (!Nav.goal) { text(x, 'STANDBY', px + w / 2, py + 15, PAL.cyanLo, 2, 1); return; }
 
@@ -2383,7 +2460,7 @@ const Hud = {
     const label = Nav.arriving ? 'ARRIVING' : TURN_NAMES[Nav.turn];
     text(x, label, px + 34, py + 12, PAL.cyan, 1);
     const m = Math.max(0, Math.round(Nav.dist / 8 / 5) * 5);
-    text(x, Nav.arriving ? 'TOSS THE PIZZA' : ('IN ' + m + ' M'), px + 34, py + 22, PAL.cyanLo, 1);
+    text(x, Nav.arriving ? 'TOSS THE BAG' : ('IN ' + m + ' M'), px + 34, py + 22, PAL.cyanLo, 1);
     if (Nav.arriving) {
       const b = (G.time * 6 | 0) % 2;
       R(x, b ? PAL.cyan : PAL.cyanLo, px + w - 6, py + 4, 3, 3);
@@ -2452,7 +2529,7 @@ function triArrow(x, cx, cy, a, r, col, outline) {
 
 /* ===== 80_game.js ===== */
 /* ============================================================
-   HOT SLICE  --  game loop, shift structure, render pipeline
+   TACO SHOP: CARNAGE ASADA  --  game loop, shift structure, render pipeline
    ============================================================ */
 'use strict';
 
@@ -2470,7 +2547,7 @@ const G = {
   state: 'boot', time: 0, shift: 0, earned: 0,
   combo: 1, comboPop: 0, heat: 0, heatMax: HEAT_MAX,
   bag: BAG_MAX, bagMax: BAG_MAX, needPickup: false,
-  player: null, traffic: [], peds: [], pizzas: [], cop: null, copT: 0,
+  player: null, traffic: [], peds: [], flying: [], cop: null, copT: 0,
   cam: { x: 0, y: 0 }, shake: 0, hitstop: 0,
   order: null, banner: '', bannerT: 0, bannerCol: PAL.bone,
   throwCd: 0, restock: 0, tipPop: 0, infraction: 0,
@@ -2489,11 +2566,11 @@ const G = {
   toTitle() {
     this.state = 'title';
     this.titleCam = 0;
-    this.player = new Player(City.pizzeria.dock.x, City.pizzeria.dock.y + 70, -PI / 2);
-    this.traffic.length = 0; this.peds.length = 0; this.pizzas.length = 0;
+    this.player = new Player(City.shop.dock.x, City.shop.dock.y + 70, -PI / 2);
+    this.traffic.length = 0; this.peds.length = 0; this.flying.length = 0;
     this.cop = null; Nav.clear(); Fx.clear();
-    this.cam.x = clamp(City.pizzeria.x - VW / 2, 0, WW - VW);
-    this.cam.y = clamp(City.pizzeria.y - VH / 2, 0, WH - VH);
+    this.cam.x = clamp(City.shop.x - VW / 2, 0, WW - VW);
+    this.cam.y = clamp(City.shop.y - VH / 2, 0, WH - VH);
     this.seedTraffic(26); this.seedPeds(20);
   },
 
@@ -2505,8 +2582,8 @@ const G = {
     this.cop = null; this.copT = 0; this.shake = 0; this.hitstop = 0;
     this.throwCd = 0; this.restock = 0; this.infraction = 0;
     this.stats = { delivered: 0, perfect: 0, splat: 0, best: 0, peds: 0, tickets: 0 };
-    this.pizzas.length = 0; Fx.clear();
-    const d = City.pizzeria.dock;
+    this.flying.length = 0; Fx.clear();
+    const d = City.shop.dock;
     this.player = new Player(d.x, d.y + 40, PI / 2);
     this.cam.x = clamp(d.x - VW / 2, 0, WW - VW);
     this.cam.y = clamp(d.y - VH / 2, 0, WH - VH);
@@ -2540,8 +2617,8 @@ const G = {
 
   syncNav() {
     if (this.needPickup) {
-      const z = City.pizzeria;
-      Nav.setGoal({ x: z.dock.x, y: z.dock.y, node: z.node, label: 'HOT SLICE' });
+      const z = City.shop;
+      Nav.setGoal({ x: z.dock.x, y: z.dock.y, node: z.node, label: 'TACO SHOP' });
     } else if (this.order) {
       const h = this.order.house;
       Nav.setGoal({ x: h.porch.x + h.porch.w / 2, y: h.porch.y + h.porch.h / 2, node: h.node, label: h.addr });
@@ -2601,13 +2678,13 @@ const G = {
 
   tryThrow() {
     if (this.throwCd > 0 || this.bag <= 0 || this.player.spinT > 0) {
-      if (this.bag <= 0) { this.say('BAG EMPTY - BACK TO THE SHOP', PAL.bad); Audio5.sfx('recalc'); }
+      if (this.bag <= 0) { this.say('OUT OF TACOS - BACK TO THE SHOP', PAL.bad); Audio5.sfx('recalc'); }
       return;
     }
     const p = this.player, a = this.aimPoint();
     // accuracy falls off with speed — slowing down is the skill, not a chore
     const spread = clamp(p.speed / MAXSPD, 0, 1) * 22;
-    this.pizzas.push(new Pizza(p.x, p.y, a.x, a.y, spread));
+    this.flying.push(new Bag(p.x, p.y, a.x, a.y, spread));
     this.bag--;
     this.throwCd = THROW_CD;
     if (this.bag === 0) { this.needPickup = true; this.syncNav(); }
@@ -2660,7 +2737,7 @@ const G = {
 
   miss(z, wrong) {
     Fx.splat(z.x, z.y);
-    Fx.cheese(z.x, z.y);
+    Fx.spill(z.x, z.y);
     Audio5.sfx('splat');
     this.stats.splat++;
     this.earned = Math.max(0, this.earned - REMAKE_FEE);
@@ -2704,8 +2781,8 @@ const G = {
     if (this.state === 'title') {
       this.titleCam += dt * 26;
       const r = 300;
-      this.cam.x = clamp(City.pizzeria.x - VW / 2 + Math.cos(this.titleCam / 62) * r, 0, WW - VW);
-      this.cam.y = clamp(City.pizzeria.y - VH / 2 + Math.sin(this.titleCam / 41) * r * 0.7, 0, WH - VH);
+      this.cam.x = clamp(City.shop.x - VW / 2 + Math.cos(this.titleCam / 62) * r, 0, WW - VW);
+      this.cam.y = clamp(City.shop.y - VH / 2 + Math.sin(this.titleCam / 41) * r * 0.7, 0, WH - VH);
       this.player.x = this.cam.x + VW / 2; this.player.y = this.cam.y + VH / 2;
       this.simCrowd(dt);
       if (Input.p('Enter', 'NumpadEnter', 'Space')) { Audio5.sfx('select'); this.startShift(); }
@@ -2830,15 +2907,15 @@ const G = {
       }
     }
 
-    /* pizzas */
-    for (let i = this.pizzas.length - 1; i >= 0; i--) {
-      const z = this.pizzas[i];
+    /* bags in flight */
+    for (let i = this.flying.length - 1; i >= 0; i--) {
+      const z = this.flying[i];
       z.update(dt);
-      if (z.dead) { this.pizzas.splice(i, 1); this.onLand(z); }
+      if (z.dead) { this.flying.splice(i, 1); this.onLand(z); }
     }
 
     /* restock at the shop */
-    const dock = City.pizzeria.dock;
+    const dock = City.shop.dock;
     if (this.needPickup && hyp(p.x - dock.x, p.y - dock.y) < 54 && p.speed < 62) {
       this.restock += dt;
       if (this.restock >= 1.0) {
@@ -2846,7 +2923,7 @@ const G = {
         this.bag = this.bagMax;
         this.needPickup = false;
         Audio5.sfx('restock');
-        Fx.pop(p.x, p.y - 22, 'BAG LOADED', PAL.amber);
+        Fx.pop(p.x, p.y - 22, 'TACOS LOADED', PAL.amber);
         if (!this.order) this.newOrder(); else this.syncNav();
       }
     } else this.restock = Math.max(0, this.restock - dt * 2);
@@ -2881,7 +2958,7 @@ const G = {
 
   rank() {
     const e = this.earned;
-    return e < 4000 ? 'TRAINEE' : e < 9000 ? 'DRIVER' : e < 15000 ? 'ACE' : e < 23000 ? 'CRUST LORD' : 'LEGEND OF THE SLICE';
+    return e < 4000 ? 'TRAINEE' : e < 9000 ? 'DRIVER' : e < 15000 ? 'ACE' : e < 23000 ? 'SALSA BARON' : 'LEGEND OF THE ASADA';
   },
 
   /* ---------------- render ------------------------------- */
@@ -2904,7 +2981,7 @@ const G = {
     for (const c of this.traffic) if (this.nearScreen(c.x, c.y)) rl.push({ sortY: c.y, e: c });
     for (const q of this.peds)    if (this.nearScreen(q.x, q.y)) rl.push({ sortY: q.y, e: q });
     if (this.cop) rl.push({ sortY: this.cop.y, e: this.cop });
-    for (const z of this.pizzas) rl.push({ sortY: z.y, e: z });
+    for (const z of this.flying) rl.push({ sortY: z.y, e: z });
     rl.sort((a, b) => a.sortY - b.sortY);
     for (const it of rl) {
       if (it.e) it.e.draw(x, cam);
@@ -2933,7 +3010,7 @@ const G = {
   drawBeacon(x, cam) {
     if (!this.order || this.needPickup) {
       if (this.needPickup) {
-        const d = City.pizzeria.dock;
+        const d = City.shop.dock;
         const sx = d.x - cam.x, sy = d.y - cam.y;
         if (sx > -40 && sx < VW + 40 && sy > -40 && sy < VH + 40) {
           const b = Math.sin(this.time * 5) * 3;
@@ -3019,29 +3096,20 @@ const G = {
   overlayTitle(x) {
     x.fillStyle = 'rgba(20,12,28,0.62)'; x.fillRect(0, 0, VW, VH);
     const t = this.time;
-    // marquee card
-    const cw = 292, ch = 96, cx0 = (VW - cw) / 2 | 0, cy0 = 22;
-    R(x, PAL.ink, cx0, cy0, cw, ch);
-    R(x, '#2a1a24', cx0 + 2, cy0 + 2, cw - 4, ch - 4);
-    x.strokeStyle = PAL.amber; x.lineWidth = 1;
-    x.strokeRect(cx0 + 0.5, cy0 + 0.5, cw - 1, ch - 1);
-    x.strokeStyle = PAL.red;
-    x.strokeRect(cx0 + 4.5, cy0 + 4.5, cw - 9, ch - 9);
+    // the shop badge, baked once at boot
+    const bw = Art.badge.width;
+    x.drawImage(Art.badge, ((VW - bw) / 2) | 0, 2);
 
-    text(x, 'HOT', VW / 2 + 2, cy0 + 12, PAL.ink2, 5, 1);
-    text(x, 'HOT', VW / 2, cy0 + 10, PAL.red, 5, 1);
-    R(x, PAL.red, cx0 + 22, cy0 + 49, cw - 44, 2);
-    text(x, 'SLICE', VW / 2 + 2, cy0 + 58, PAL.ink2, 5, 1);
-    text(x, 'SLICE', VW / 2, cy0 + 56, PAL.amber, 5, 1);
-
-    text(x, 'SUNDAY NIGHT DELIVERY SHIFT', VW / 2, cy0 + ch + 8, PAL.bone, 1, 1);
+    text(x, 'CARNAGE ASADA', VW / 2 + 2, 120, PAL.ink2, 2, 1);
+    text(x, 'CARNAGE ASADA', VW / 2, 118, PAL.red, 2, 1);
+    text(x, 'SUNDAY NIGHT DELIVERY SHIFT', VW / 2, 137, PAL.bone, 1, 1);
 
     const rows = [
       'WASD / ARROWS   DRIVE      SHIFT  HANDBRAKE',
-      'MOUSE AIM  +  CLICK / SPACE   TOSS THE PIZZA',
+      'MOUSE AIM  +  CLICK / SPACE   TOSS THE BAG',
       'THE TIP SHRINKS EVERY SECOND. THE NAV IS DUMB.',
     ];
-    rows.forEach((r, i) => text(x, r, VW / 2, cy0 + ch + 24 + i * 11, i === 2 ? PAL.cyan : PAL.boneDim, 1, 1));
+    rows.forEach((r, i) => text(x, r, VW / 2, 152 + i * 10, i === 2 ? PAL.cyan : PAL.boneDim, 1, 1));
 
     if ((t * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, VH - 26, PAL.amber, 2, 1);
     text(x, 'M MUTE    N MUSIC    P PAUSE', VW / 2, VH - 10, '#6b5f84', 1, 1);
@@ -3061,7 +3129,7 @@ const G = {
     const rows = [
       ['DELIVERED', s.delivered + ''],
       ['PERFECT TOSSES', s.perfect + ''],
-      ['PIZZAS DROPPED', s.splat + ''],
+      ['ORDERS DROPPED', s.splat + ''],
       ['PEDESTRIANS CLIPPED', s.peds + ''],
       ['TICKETS', s.tickets + ''],
       ['BEST SINGLE TIP', money(s.best)],
@@ -3153,7 +3221,7 @@ const Post = {
 
   /* splash while the city bakes */
   ctx.fillStyle = PAL.void; ctx.fillRect(0, 0, VW, VH);
-  text(ctx, 'HOT SLICE', VW / 2, VH / 2 - 22, PAL.red, 4, 1);
+  text(ctx, 'TACO SHOP', VW / 2, VH / 2 - 22, PAL.gold, 4, 1);
   text(ctx, 'PAVING THE STREETS...', VW / 2, VH / 2 + 14, PAL.amber, 1, 1);
   resize();
 
@@ -3163,7 +3231,7 @@ const Post = {
   setTimeout(() => {
     const t0 = performance.now();
     G.boot(seed);
-    console.log('[hot slice] city built in ' + Math.round(performance.now() - t0) + 'ms, ' +
+    console.log('[taco shop] city built in ' + Math.round(performance.now() - t0) + 'ms, ' +
                 City.statics.length + ' props, ' + City.houses.length + ' addresses');
     resize();
     requestAnimationFrame(frame);
@@ -3201,7 +3269,7 @@ const Post = {
 
   /* Console bridge. Browsers pause requestAnimationFrame in a hidden tab, so
      this also makes the game steppable when it cannot self-drive. */
-  window.HotSlice = {
+  window.TacoShop = {
     G, City, Nav, Art, Audio5, Input, ctx,
     step(n = 1) {
       for (let i = 0; i < n; i++) { G.update(STEP); handleGlobalKeys(); Input.endFrame(); }

@@ -1,13 +1,13 @@
-# Hot Slice
+# Taco Shop — Carnage Asada
 
-A 16-bit top-down pizza delivery arcade game. Drive fast, because the tip shrinks every second you take —
+A 16-bit top-down taco delivery arcade game. Drive fast, because the tip shrinks every second you take —
 but speed wrecks your aim and attracts the police. The sat-nav is not on your side.
 
-Built in one session as a Sunday one-shot challenge. **Zero dependencies**: no framework, no libraries, no
-image, font, or audio files. The city, every sprite, the bitmap font, and all the audio are generated
-procedurally at boot. The whole game is one self-contained ~124 KB HTML file.
+**Zero dependencies**: no framework, no libraries, no image, font, or audio files. The city, every sprite,
+the shop badge, the bitmap font, and all the audio are generated procedurally at boot. The whole game is one
+self-contained ~126 KB HTML file.
 
-**Play:** open `hot-slice.html` — or [play it here](https://claude.ai/code/artifact/b818a61d-e6b2-4d3e-bf72-48c8295deeb8).
+**Play:** open `taco-shop.html`.
 
 ## Controls
 
@@ -16,17 +16,17 @@ procedurally at boot. The whole game is one self-contained ~124 KB HTML file.
 | `W A S D` / arrows | Drive |
 | `Shift` | Handbrake |
 | Mouse | Aim the toss |
-| Click / `Space` | Throw the pizza |
+| Click / `Space` | Throw the bag |
 | `P` · `M` · `N` | Pause · mute · music |
 
-Land it on the porch to deliver; land it on the doorstep for a **perfect toss** bonus. Miss and the pizza
-splatters on the pavement — and it still costs you one from your bag of three. Run out and you're driving
-back to the shop while the tip keeps draining.
+Land it on the porch to deliver; land it on the doorstep for a **perfect toss** bonus. Miss and the bag
+bursts on the pavement — and it still costs you one from your bag of three. Run out and you're driving back
+to the shop while the tip keeps draining.
 
 ## How it plays
 
 - **The tip decays.** $15.00 down to a $2.00 floor at 55¢/sec. It's the loudest thing on screen for a reason.
-- **The SLICE-NAV 2000** gives turn-by-turn directions over a green LCD, paints the route on the tarmac, and
+- **The TACO-NAV 2000** gives turn-by-turn directions over a green LCD, paints the route on the tarmac, and
   falls apart into `RECALCULATING` the moment you cut across someone's lawn.
 - **Heat.** Clip pedestrians or drive on the pavement and a siren comes looking for you.
 - Each delivery buys more time on the shift clock. Bank as much as you can before it runs out.
@@ -36,13 +36,13 @@ back to the shop while the tip keeps draining.
 ## Development
 
 ```bash
-node build.mjs           # bundle src/*.js -> hot-slice.html (ship) + index.html (dev)
+node build.mjs           # bundle src/*.js -> taco-shop.html (ship) + index.html (dev)
 node serve.mjs           # dev server on http://localhost:8123
 node test/headless.mjs   # test suite — runs the real game logic against a stub canvas
 ```
 
 `src/*.js` are plain scripts concatenated in filename order, so the numeric prefix is the load order.
-`hot-slice.html` and `index.html` are generated — edit `src/` and `shell.html`, then rebuild.
+`taco-shop.html` and `index.html` are generated — edit `src/` and `shell.html`, then rebuild.
 
 ## Docs
 

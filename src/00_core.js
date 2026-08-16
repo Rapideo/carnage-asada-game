@@ -1,5 +1,5 @@
 /* ============================================================
-   HOT SLICE  --  core constants, math, rng, input
+   TACO SHOP: CARNAGE ASADA  --  core constants, math, rng, input
    ============================================================ */
 'use strict';
 
@@ -67,6 +67,16 @@ const PAL = {
   amber:   '#ffb01f',
   cyan:    '#3fb8b0',
   cyanLo:  '#2a8079',
+
+  /* brand colours, from the shop's badge. Deliberately NOT part of the
+     in-game semantic set: jade reads too close to cyan, and letting it onto
+     the HUD is what would stop guidance scanning as "machine output".
+     These belong on the title badge and the shop's signage, nowhere else. */
+  jade:    '#1fa37e',
+  jadeHi:  '#2ec394',
+  jadeLo:  '#17795e',
+  gold:    '#fbc63f',
+  goldLo:  '#d19a1c',
   bone:    '#f2e9d0',
   boneDim: '#b6ab92',
   ink:     '#1b1425',

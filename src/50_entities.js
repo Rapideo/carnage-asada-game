@@ -1,5 +1,5 @@
 /* ============================================================
-   ENTITIES  --  player, traffic, pedestrians, cop, pizza, fx
+   ENTITIES  --  player, traffic, pedestrians, cop, taco bag, fx
    ============================================================ */
 'use strict';
 
@@ -337,11 +337,11 @@ class Cop {
   }
 }
 
-/* ---------------- pizza projectile ------------------------ */
+/* ---------------- taco bag projectile --------------------- */
 const THROW_T = 0.5, GRAV = 260, Z0 = 5;
 const MAXTHROW = 132;
 
-class Pizza {
+class Bag {
   constructor(x, y, tx, ty, spread) {
     this.x = x; this.y = y; this.z = Z0;
     const dx = tx - x, dy = ty - y;
@@ -364,7 +364,7 @@ class Pizza {
     x.fillStyle = '#100c18';
     x.fillRect(sx - 4, sy - 2, 9, 5);
     x.globalAlpha = 1;
-    x.drawImage(Art.box[(this.f | 0) % 4], sx - 6, (sy - this.z - 6) | 0);
+    x.drawImage(Art.bag[(this.f | 0) % 4], sx - 6, (sy - this.z - 6) | 0);
   }
 }
 
@@ -374,7 +374,7 @@ const Fx = {
 
   spark(x, y, vx, vy) { this.ps.push({ x, y, z: 3, vx, vy, vz: rand(20, 70), g: 300, life: rand(0.25, 0.5), t: 0, c: Math.random() < 0.5 ? '#ffd76a' : '#ff9a3c', s: 2 }); },
   dust(x, y, c)       { this.ps.push({ x, y, z: 2, vx: rand(-18, 18), vy: rand(-18, 18), vz: rand(8, 26), g: 60, life: rand(0.3, 0.6), t: 0, c, s: 2 }); },
-  cheese(x, y)        { for (let i = 0; i < 12; i++) this.ps.push({ x, y, z: 4, vx: rand(-70, 70), vy: rand(-70, 70), vz: rand(30, 90), g: 320, life: rand(0.35, 0.7), t: 0, c: Math.random() < 0.5 ? '#e0b055' : '#c9542f', s: 2 }); },
+  spill(x, y)         { for (let i = 0; i < 12; i++) this.ps.push({ x, y, z: 4, vx: rand(-70, 70), vy: rand(-70, 70), vz: rand(30, 90), g: 320, life: rand(0.35, 0.7), t: 0, c: SPILL[(Math.random() * SPILL.length) | 0], s: 2 }); },
   cash(x, y)          { for (let i = 0; i < 10; i++) this.ps.push({ x, y, z: 6, vx: rand(-45, 45), vy: rand(-45, 45), vz: rand(50, 110), g: 210, life: rand(0.5, 0.9), t: 0, c: Math.random() < 0.5 ? PAL.good : PAL.amber, s: 2 }); },
   star(x, y)          { for (let i = 0; i < 8; i++) this.ps.push({ x, y, z: 8, vx: rand(-40, 40), vy: rand(-40, 40), vz: rand(20, 60), g: 150, life: 0.5, t: 0, c: PAL.bone, s: 1 }); },
 

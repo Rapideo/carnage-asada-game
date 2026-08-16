@@ -18,9 +18,14 @@ const WALLS = [
   ['#e6d9c0', '#c8b89a', '#93836a'],
 ];
 
+/* kraft paper for the taco bag, and what comes out of it when you miss */
+const BAG_MID = '#a97c4e', BAG_HI = '#c2955f', BAG_LO = '#8a6238', BAG_FOLD = '#946a42';
+const SPILL = ['#7a4a2a', '#c9542f', '#5aa14c', '#e0b055', '#d8b98a'];
+
 const Art = {
   tile: {}, house: [], bldg: [], tree: [], prop: {},
-  car: [], player: null, cop: null, ped: [], box: null, pizzeria: null, splat: [],
+  car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [],
+  badge: null,
 
   build(rng) {
     this.buildTiles(rng);
@@ -386,35 +391,70 @@ const Art = {
     }
   },
 
-  /* ---------- pizza box, splats, pizzeria ----------------- */
+  /* ---------- taco bag, splats, taqueria, badge ----------- */
   buildMisc(rng) {
-    // pizza box, 4 spin frames
-    this.box = [];
+    // brown paper bag of tacos, 4 spin frames
+    this.bag = [];
     for (let f = 0; f < 4; f++) {
       const t = mkCanvas(13, 13), x = t.x;
       x.translate(6.5, 6.5); x.rotate(f / 4 * (PI / 2));
-      R(x, '#15121c', -5, -5, 10, 10);
-      R(x, '#e8dcc0', -4, -4, 8, 8);
-      R(x, '#cbbc9a', -4, 1, 8, 3);
-      R(x, PAL.red, -3, -3, 6, 2);
-      R(x, PAL.amber, -1, 0, 2, 1);
-      this.box.push(t.c);
+      R(x, '#15121c', -5, -5, 10, 10);          // silhouette
+      R(x, BAG_MID, -4, -4, 8, 8);              // kraft paper
+      R(x, BAG_HI,  -4, -4, 8, 1);              // lit top lip
+      R(x, BAG_LO,  -4, -2, 8, 1);              // crimp shadow under the fold
+      R(x, BAG_LO,  -4,  3, 8, 1);              // base shadow
+      for (let i = -4; i < 4; i += 2) R(x, BAG_FOLD, i, -4, 1, 2);   // folded serrations
+      R(x, PAL.jade, -2, 0, 4, 3);              // shop sticker
+      R(x, PAL.gold, -1, 1, 2, 1);
+      this.bag.push(t.c);
     }
-    // splats
+    // spilled-taco splats
     for (let i = 0; i < 4; i++) {
       const r = makeRng(900 + i * 17);
       const t = mkCanvas(20, 18), x = t.x;
       for (let k = 0; k < 60; k++) {
         const a = r() * TAU, d = Math.sqrt(r()) * 8;
-        R(x, r.chance(0.4) ? '#c9542f' : '#e0b055', 10 + Math.cos(a) * d, 9 + Math.sin(a) * d * 0.8, 2, 2);
+        R(x, SPILL[r.int(SPILL.length)], 10 + Math.cos(a) * d, 9 + Math.sin(a) * d * 0.8, 2, 2);
       }
       for (let k = 0; k < 8; k++) R(x, '#c9542f', r.int(20), r.int(18), 1, 1);
       this.splat.push(t.c);
     }
-    this.pizzeria = this.mkPizzeria(makeRng(4242));
+    this.taqueria = this.mkTaqueria(makeRng(4242));
+    this.badge = this.mkBadge();
   },
 
-  mkPizzeria(r) {
+  /* ---------- the shop badge, for the title screen --------
+     A 16-bit reading of the real sticker: white die-cut rim, black keyline,
+     jade face, chunky gold wordmark. Plotted with fillRect spans rather than
+     arc() so the circle stays hard-edged like everything else on screen. */
+  mkBadge() {
+    const S = 112, c = S / 2;
+    const t = mkCanvas(S, S), x = t.x;
+
+    // concentric rings, outside in: die-cut rim, keyline, gap, keyline, face
+    disc(x, c, c, 55, '#ffffff');
+    disc(x, c, c, 52, PAL.ink);
+    disc(x, c, c, 49, '#ffffff');
+    disc(x, c, c, 46, PAL.ink);
+    disc(x, c, c, 44, PAL.jade);
+    // soft top-left sheen, the way the printed sticker catches light. Kept
+    // small and faint — any more and the face stops reading as the logo's jade
+    x.globalAlpha = 0.09;
+    disc(x, c - 16, c - 18, 20, '#ffffff');
+    x.globalAlpha = 1;
+
+    // Wordmark. NOT textOut(): that offsets its outline by the glyph scale,
+    // so at scale 4 the eight copies merge into a solid black slab. The logo
+    // wants a constant-width keyline instead, independent of letter size.
+    // At 92px wide the words overspill the 88px face onto the rings — the
+    // real sticker does that too.
+    keyline(x, 'TACO', c, 18, 4, 2, PAL.gold);
+    keyline(x, 'SHOP', c, 52, 4, 2, PAL.gold);
+    keyline(x, 'EST. 1970', c, 88, 1, 1, PAL.gold);
+    return t.c;
+  },
+
+  mkTaqueria(r) {
     const fw = 128, fh = 96, wallh = 16;
     const t = mkCanvas(fw, fh + wallh), x = t.x;
     const wy = fh;
@@ -430,7 +470,7 @@ const Art = {
     R(x, PAL.door, 75, wy + 3, 14, wallh - 4);
     R(x, PAL.amber, 86, wy + 8, 1, 2);
     // striped awning across the front
-    for (let i = 0; i < fw; i += 8) R(x, ((i / 8) | 0) % 2 ? '#f2e9d0' : PAL.red, i, wy - 1, 8, 4);
+    for (let i = 0; i < fw; i += 8) R(x, ((i / 8) | 0) % 2 ? '#f2e9d0' : PAL.jade, i, wy - 1, 8, 4);
     R(x, '#15121c', 0, wy + 3, fw, 1);
 
     // roof
@@ -439,13 +479,13 @@ const Art = {
     x.globalAlpha = 0.2; R(x, '#ffffff', 0, 0, fw, 2); R(x, '#ffffff', 0, 0, 2, fh); x.globalAlpha = 1;
     R(x, '#6b2b1e', 0, fh - 2, fw, 2); R(x, '#6b2b1e', fw - 2, 0, 2, fh);
 
-    // rooftop sign board, readable from above
+    // rooftop sign board, readable from above — the badge, seen from a helicopter
     R(x, '#15121c', 14, 22, 100, 34);
-    R(x, '#241a2e', 16, 24, 96, 30);
-    text(x, 'HOT', 64, 28, PAL.amber, 2, 1);
-    text(x, 'SLICE', 64, 42, PAL.red, 2, 1);
-    R(x, PAL.amber, 16, 24, 96, 1);
-    R(x, PAL.amber, 16, 53, 96, 1);
+    R(x, PAL.jade, 16, 24, 96, 30);
+    R(x, '#ffffff', 16, 24, 96, 1);
+    R(x, '#ffffff', 16, 53, 96, 1);
+    text(x, 'TACO', 64, 28, PAL.gold, 2, 1);
+    text(x, 'SHOP', 64, 42, PAL.gold, 2, 1);
     // vents
     for (let i = 0; i < 3; i++) { R(x, '#6b7280', 12 + i * 12, 68, 8, 8); R(x, '#8a919e', 12 + i * 12, 68, 8, 2); }
     R(x, '#6b7280', 96, 64, 18, 14); R(x, '#8a919e', 96, 64, 18, 3);
@@ -456,6 +496,26 @@ const Art = {
 };
 
 /* ---- helpers ---------------------------------------------- */
+/** centred text with a black keyline of `k` px, whatever the glyph scale.
+    textOut() ties outline width to scale, which turns to mush past about 2x. */
+function keyline(x, str, cx, cy, s, k, col) {
+  const ox = (cx - textW(str, s) / 2) | 0;
+  for (let dy = -k; dy <= k; dy++)
+    for (let dx = -k; dx <= k; dx++)
+      if (dx || dy) drawRun(x, str, ox + dx, cy + dy, PAL.ink, s);
+  drawRun(x, str, ox, cy, col, s);
+}
+
+/** hard-edged filled circle: one fillRect span per scanline, no antialiasing */
+function disc(x, cx, cy, r, col) {
+  x.fillStyle = col;
+  const r2 = r * r;
+  for (let dy = -r; dy <= r; dy++) {
+    const w = Math.floor(Math.sqrt(Math.max(0, r2 - dy * dy)));
+    if (w > 0) x.fillRect(Math.round(cx - w), Math.round(cy + dy), w * 2, 1);
+  }
+}
+
 function shade(hex, amt) {
   const n = parseInt(hex.slice(1), 16);
   let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
