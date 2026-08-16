@@ -2327,8 +2327,11 @@ const Hud = {
     if (!this.mapImg) this.buildMap();
     const o = G.order;
 
-    /* ---------- order + tip ---------- */
-    this.panel(x, 3, 3, 140, 37, '#6b5f84');
+    /* ---------- order + tip ----------
+       44 tall, matching the clock card opposite. It has to be: the scale-2
+       money readout occupies y23..36, so a 37-tall card left no room and the
+       decay bar was painted over the bottom 3px of the digits. */
+    this.panel(x, 3, 3, 140, 44, '#6b5f84');
     if (o) {
       text(x, G.needPickup ? 'OUT OF TACOS - RESTOCK AT' : 'DELIVER TO', 8, 7,
         G.needPickup ? PAL.bad : PAL.boneDim, 1);
@@ -2339,10 +2342,10 @@ const Hud = {
       if (pop) { x.globalAlpha = 0.5; text(x, money(o.tip), 8, 23, PAL.bone, 2); x.globalAlpha = 1; }
       // decay bar
       const f = clamp((o.tip - o.floor) / (o.max - o.floor), 0, 1);
-      R(x, '#1b1425', 7, 34, 132, 4);
+      R(x, '#1b1425', 7, 39, 132, 4);
       const bw = Math.round(130 * f);
-      R(x, f > 0.5 ? PAL.amber : f > 0.22 ? '#e07a1f' : PAL.bad, 8, 35, bw, 2);
-      for (let i = 8; i < 138; i += 6) R(x, 'rgba(0,0,0,0.35)', i, 35, 1, 2);
+      R(x, f > 0.5 ? PAL.amber : f > 0.22 ? '#e07a1f' : PAL.bad, 8, 40, bw, 2);
+      for (let i = 8; i < 138; i += 6) R(x, 'rgba(0,0,0,0.35)', i, 40, 1, 2);
     } else {
       text(x, 'NO ACTIVE ORDER', 8, 15, PAL.boneDim, 1);
     }
