@@ -33,7 +33,10 @@ _Add playtest findings here._
 Goal: make the city read as the blocks around the real Taco Shop — commercial strip, residential, college —
 rather than a uniform random grid.
 
-> **Status: designed and approved, not yet built.** The full design is
+> **Status: Plan 1 of 3 has landed — the city is Hays.** Real street names, real Hays addressing and
+> the authored zoning table are in, with the shop on its real block. Still to come: Plan 2 (bespoke
+> generators for the five new block kinds, which currently fall back to existing ones) and Plan 3 (the
+> live train). Plans are in `docs/superpowers/plans/`. The full design is
 > [`docs/superpowers/specs/2026-08-21-hays-neighbourhood-design.md`](docs/superpowers/specs/2026-08-21-hays-neighbourhood-design.md),
 > on branch `feature/hays-neighbourhood`. Read it before starting work — it records the decisions
 > *and the alternatives that were rejected*, which is the part that is not recoverable from the code.

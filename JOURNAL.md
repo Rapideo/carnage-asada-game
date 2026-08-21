@@ -391,3 +391,84 @@ The first guard for "the demo actually drives" measured net displacement over 85
 working code: the demo takes orders all over the map and can legitimately end up near where it started.
 Replaced with total path length plus a bound on the *longest stall*, which is the property that actually
 matters — and which the wedge fix is what guarantees.
+
+---
+
+## 10. The city becomes Hays
+
+The brief was to make the playing grid as accurate as possible to the real neighbourhood around the shop:
+real street names, and the real kind of building on each block. Explicitly **not** a change of art direction —
+the late-80s 16-bit look is settled, and accuracy here means *data*, not new drawing vocabulary.
+
+### The survey did the hard part
+
+I expected the street layout to be the expensive half. `ROADMAP.md` warned that a uniform block pitch is
+assumed by six modules, and that anything genuinely irregular is a from-scratch city module.
+
+Measuring OpenStreetMap way geometry and fitting each street to its principal axis settled it in one pass:
+
+- every named street (Main, Fort, Ash, Oak, Pine, Allen, Milner) runs at bearing **~28°**
+- every numbered street (4th through 26th) runs at bearing **~118°**
+
+Exactly 90° apart. Downtown Hays is a **perfect rectilinear grid, rotated 28°** to follow the Union Pacific
+alignment. Rotate the map so Main Street points up and the real town lands on the engine's axis-aligned grid
+with no distortion at all. No diagonals, no curves, no five-way junctions — none of the geometry that would
+have forced the rewrite.
+
+Better still, there is an **exact nine-street window per axis — precisely `BLOCKS + 1`** — centred on the
+shop: Elm to Milner, 4th to 12th. The 8×8 grid did not have to change to hold a real place.
+
+### What was rejected
+
+**Real block proportions.** Hays blocks are about 500ft × 340ft, and the downtown core blocks between 8th and
+12th are roughly half height. Reproducing that needs a per-axis pitch, which breaks all six modules *and*
+leaves a 6-tile block interior that fits two houses instead of four — dragging the address generator and the
+porch layout in with it. Rejected. Recognition comes from names and contents; nobody misses the proportion.
+
+**Deliverable downtown addresses.** Only `res` blocks generate houses, so a faithful map — eight blocks of
+downtown, one whole row of railway — concentrates orders south of the tracks and along the edges. Accepted
+knowingly. The fix, if it plays badly, is a street door for the apartment above the shop, which is what those
+storefronts really have.
+
+### The map is content, not code
+
+`content/hays.json` holds two street arrays, the shop cell and the 8×8 zoning table; `build.mjs` inlines it as
+`HAYS` exactly as `winners.json` becomes `CONTENT`. That was not tidiness. It is what makes a **second time
+period** another file against the same schema rather than another pass through `40_city.js` — the game is
+built for one period now and wants eras later, so nothing hard-codes a year.
+
+Six guards were added and, more importantly, **each was verified to fire** by mutating the file and watching
+the build die: array length, font charset, unknown block kind, exactly one shop cell, shop agreeing with the
+table, and the worst-case generated address fitting the order card.
+
+That last one is the descendant of §8's text-overflow bugs, and it is deliberately at *build* time rather than
+in the test suite. The suite only ever sees one seed — it reported the longest address as `407 W 12TH ST`
+(77px), comfortable. The build computes the true worst case across the whole authored table, `1129 WALNUT ST`,
+whose restock line lands at 131px against a 135px card. Four pixels of headroom that no test run would have
+found. **A guard that samples is not a guard.**
+
+### Addressing came out for free
+
+Numbered streets take a W/E prefix and a hundred-block from the distance to Main; named streets take theirs
+from the numbered street on the block's south edge — which is why City Hall is 1507 Main and the courthouse is
+1204 Fort. Parity of the house offset keeps the two sides of a street on opposite odd/even runs, so the two
+blocks that share a street cannot collide, and all 132 addresses stay unique with no extra bookkeeping.
+
+### `classify()` was never touched
+
+The whole design routes around it. The street grid does not move, so the minimap cannot desync from the
+world — the specific failure `ROADMAP.md` warns about. Confirmed by eye as well as by assertion: the minimap
+shows the shop marker at column 1, row 3, which is where the table puts it.
+
+### Two mistakes worth recording
+
+**Context leaked in from a neighbouring project.** A design question was built on a decades-spanning timeline
+with four named eras — none of which appears anywhere in this repo. It came from Claude's path-keyed project
+memory, written by a different codebase that previously occupied this folder. The tell was available and
+missed: that memory described `npm start` and a `package.json`, in a project that has neither. `CLAUDE.md`
+now carries a Scope section, and the rule it states is the useful part — **when outside context contradicts
+the tree, the tree wins, and the contradiction is a reason to stop and ask.**
+
+**`delete G.update` is not "restore it afterwards."** `CLAUDE.md` says to swap `G.update` for a no-op to hold
+a frame and restore it after. `G` is a plain object literal, so `delete` removed the method outright rather
+than revealing one on a prototype, and the page needed a reload. Keep the reference and reassign it.
