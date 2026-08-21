@@ -12,9 +12,9 @@
    Note Player.update treats `throttle` as a SIGN, not a magnitude, so easing
    off is throttle 0 (coast) rather than a fraction. */
 const Demo = {
-  wedgeT: 0, esteer: 1, throwCd: 0,
+  wedgeT: 0, esteer: 1, throwCd: 0, hold: false,
 
-  reset(p) { this.wedgeT = 0; this.esteer = 1; this.throwCd = 0; },
+  reset(p) { this.wedgeT = 0; this.esteer = 1; this.throwCd = 0; this.hold = false; },
 
   drive(dt, G) {
     const p = G.player;
@@ -79,6 +79,29 @@ const Demo = {
     // throw spread (speed/MAXSPD * 22) under ~14px against a 28px porch.
     p.throttle = p.speed < 34 ? 1
                : (Math.abs(err) > 1.2 || p.speed > 115) ? 0 : 1;
+
+    /* ---- hold at a closed crossing ----
+       The demo plays by the same rules as a player, which includes being
+       allowed to run a gate. It should not: the attract loop showing the car
+       flattened by a train reads as the game being broken, not as a hazard.
+
+       Latched, deliberately. The test that STARTS the hold needs a direction
+       of travel, and a stopped car has none — so unlatched it stops, stops
+       detecting, creeps forward again under the speed floor above, and jitters
+       into the gate instead of waiting behind it. */
+    if (G.crossings) {
+      let near = null;
+      for (const c of G.crossings)
+        if (Math.abs(c.x - p.x) < 34 && Math.abs(c.y - p.y) < 130) { near = c; break; }
+      if (!near || !near.down) this.hold = false;
+      else if (this.hold || (City.railY - p.y) * sign(p.vy || (ty - p.y)) > 24) this.hold = true;
+      if (this.hold) {
+        // brake to a stop, then coast. Never reverse: the road behind is live.
+        p.throttle = p.fwdSpeed > 10 ? -1 : 0;
+        p.steer = 0; p.hb = false;
+        this.wedgeT = 0;                    // waiting is not wedging
+      }
+    }
 
     /* ---- toss once the porch is in range ---- */
     this.throwCd -= dt;

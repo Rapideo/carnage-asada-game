@@ -233,6 +233,23 @@ class Traffic {
       this.honk -= dt;
       if (this.honk <= 0 && pdx < 34 && G.nearScreen(this.x, this.y)) { Audio5.sfx('horn'); this.honk = 2.4; }
     }
+    /* --- a closed crossing ahead --- */
+    // Only north-south traffic meets the corridor. Nothing in the rules stops
+    // a car driving into a moving train, but it looks like a bug, so treat a
+    // lowered gate as a stopped car on the tracks. The 34px floor matters: a
+    // car already between the gates is committed, and braking there would park
+    // it on the rails instead of clearing them.
+    if (this.dir % 2 === 1 && G.crossings) {
+      const toRail = (City.railY - this.y) * DIRV[this.dir][1];
+      if (toRail > 34 && toRail < 150) {
+        for (const c of G.crossings) {
+          if (!c.down || Math.abs(c.x - this.x) > 30) continue;
+          block = Math.min(block, toRail - 30);
+          break;
+        }
+      }
+    }
+
     this.spd = block < 40 ? approach(this.spd, block < 22 ? 0 : 26, 320 * dt)
                           : approach(this.spd, this.want, 90 * dt);
 

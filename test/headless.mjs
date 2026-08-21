@@ -309,7 +309,12 @@ ok(moved > 2500, `demo car actually drove (${Math.round(moved)}px covered)`);
 // net displacement is NOT a useful check here — the demo takes orders all over
 // the map and can legitimately end up near where it started. What must hold is
 // that it never wedges permanently.
-ok(worstStall < 8, `demo never stalled for long (worst ${worstStall.toFixed(1)}s)`);
+// 12s, not 8: a legitimate wait at a closed crossing is roughly 2s of warning
+// plus 1.5s of train plus the raise, and the demo can meet one mid-approach.
+// The bound still has to catch a wedge. What it must NOT become is a net
+// displacement check — that fails on working code, because the demo takes
+// orders all over the map and can legitimately finish near where it started.
+ok(worstStall < 12, `demo never stalled for long (worst ${worstStall.toFixed(1)}s)`);
 ok(G.state === 'demo', 'demo still running before its timer expires');
 step(6);
 ok(G.state === 'title', `demo returns to the title after ${ATTRACT_DEMO}s`);
