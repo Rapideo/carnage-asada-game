@@ -493,6 +493,55 @@ for (let i = 0; i < 120; i++) { G.update(1 / 60); G.render(ctx); Input.endFrame(
 ok(G.crossings.every((c) => c.t === 0 && !c.down),
    'every gate came back up — none stuck closed');
 
+/* THE softlock guard. A wreck that leaves the car on the rails is a repeat-hit
+   loop — unescapable by any input, the same class of defect as the collision
+   wedge that unwedge() exists to prevent. */
+G.trainT = 999; G.train = null;
+const cross = G.crossings[4];
+G.player.x = cross.x; G.player.y = City.railY;
+G.player.vx = G.player.vy = 0; G.player.ang = -Math.PI / 2; G.player.spinT = 0;
+G.bag = 3; G.needPickup = false; G.wreckCd = 0;
+G.train = new Train(1, City.tracks[1]);
+G.train.x = cross.x - 140;
+let wrecked = false;
+for (let i = 0; i < 5 * 60; i++) {
+  G.update(1 / 60); G.render(ctx); Input.endFrame();
+  if (G.banner === 'HIT BY TRAIN') wrecked = true;
+}
+ok(wrecked, 'a car parked on the rails is hit by the train');
+const off = Math.abs(G.player.y - City.railY);
+ok(off > 40, `the wreck threw the car clear of the corridor (${off.toFixed(0)}px off the rails)`);
+ok(!carBlocked(G.player.x, G.player.y, G.player.ang),
+   'and left it somewhere it can actually drive out of');
+ok(G.bag === 0 && G.needPickup, 'the load is lost and the nav sends you back to the shop');
+
+/* One crossing is thin evidence for the feature's whole safety property, so
+   sweep them all — both approach headings, both train directions. Note the
+   banner reset each time: G.say holds a banner for 1.6s, and a sweep that
+   forgets to clear it reads the PREVIOUS case's wreck on frame one and
+   reports every case after the first as a failure to move. */
+let ejFail = 0, ejMin = 1e9;
+for (let ci = 0; ci < G.crossings.length; ci++) {
+  for (const ang of [-Math.PI / 2, Math.PI / 2]) {
+    for (const dir of [1, -1]) {
+      const c = G.crossings[ci];
+      G.trainT = 9999; G.banner = ''; G.bannerT = 0; G.wreckCd = 0;
+      G.player.x = c.x; G.player.y = City.railY; G.player.ang = ang;
+      G.player.vx = G.player.vy = 0; G.player.spinT = 0;
+      G.train = new Train(dir, City.tracks[dir > 0 ? 1 : 0]);
+      G.train.x = dir > 0 ? c.x - 160 : c.x + 160;
+      let hit = false;
+      for (let i = 0; i < 3 * 60 && !hit; i++) { G.update(1 / 60); if (G.banner === 'HIT BY TRAIN') hit = true; }
+      const d = Math.abs(G.player.y - City.railY);
+      ejMin = Math.min(ejMin, d);
+      if (!hit || d <= 40 || City.isSolid(G.player.x, G.player.y)) ejFail++;
+      G.train = null;
+    }
+  }
+}
+ok(ejFail === 0,
+   `all ${G.crossings.length * 4} wreck cases threw the car clear and unstuck (worst ${ejMin}px off the rails)`);
+
 console.log('\n— heat —');
 G.heat = 0; G.cop = null;
 for (let i = 0; i < 40; i++) G.bumpHeat(5);

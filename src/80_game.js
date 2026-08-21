@@ -11,6 +11,7 @@ const PERFECT_BONUS = 500;
 const REMAKE_FEE = 150, PED_FINE = 200, TICKET = 1500;
 const HEAT_MAX = 100;
 const BAG_MAX = 3;
+const RAIL_EJECT = 52;      // px from the corridor centre a wreck throws you
 const THROW_CD = 0.34;
 
 /* attract rotation, cabinet-style: title -> winners -> demo -> title */
@@ -256,6 +257,55 @@ const G = {
 
   onCrash() { this.bumpHeat(7); },
 
+  /* THE most important function in this feature. A wreck that leaves the car
+     on the rails is a repeat-hit loop, which is the same class of defect as
+     the collision wedge: not merely awkward but unescapable by any input.
+     Throwing the car clear is the safety property, not a polish step.
+
+     RAIL_EJECT is derived, not chosen: the ballast band runs y 480-543 either
+     side of railY = 512, and a car body reaches 9px along its long axis, so 52
+     clears the ballast by 11px north and 12px south. */
+  wreck() {
+    const p = this.player;
+    this.wreckCd = 1.5;
+
+    /* Out along the crossing road it was hit on. A wreck can only happen where
+       the corridor is not solid, which is a crossing, which is a north-south
+       street — so both exits are guaranteed roadway. Prefer the side it was
+       already on; fall back to the other; fall back again to the demo's hard
+       reset, which is ugly but always works. */
+    let cx = p.x, nd = 1e9;
+    for (const c of this.crossings) { const d = Math.abs(c.x - p.x); if (d < nd) { nd = d; cx = c.x; } }
+    const first = p.y < City.railY ? -1 : 1;
+    let placed = false;
+    for (const s of [first, -first]) {
+      const ny = City.railY + s * RAIL_EJECT;
+      if (!carBlocked(cx, ny, p.ang)) { p.x = cx; p.y = ny; placed = true; break; }
+    }
+    if (!placed) {
+      p.x = City.nodeX(City.nearNodeX(cx));
+      p.y = City.nodeY(City.nearNodeY(City.railY + first * 200));
+    }
+    p.vx = p.vy = 0;
+    p.spinOut(Math.random() < 0.5 ? -1 : 1);
+    p.spinT = 1.3;                       // longer than a crunch: this is a wreck
+    this.railSide = p.y < City.railY ? -1 : 1;   // do not read the eject as beating the train
+
+    /* the whole load across the ballast, whatever you were carrying */
+    for (let i = 0; i < this.bag; i++) Fx.splat(cx + rand(-30, 30), City.railY + rand(-14, 14));
+    Fx.spill(cx, City.railY);
+    for (let k = 0; k < 22; k++) Fx.spark(p.x, p.y, rand(-140, 140), rand(-140, 140));
+    this.bag = 0;
+    this.needPickup = true;
+    this.syncNav();
+
+    this.shake = 12; this.hitstop = 0.14; this.flash = 0.18;
+    this.combo = 1;
+    this.say('HIT BY TRAIN', PAL.bad);   // 12 chars — well inside the banner box
+    Audio5.sfx('crash'); Audio5.sfx('trainhorn');
+    // No fine. The spec is explicit: a wreck costs time and load, not money.
+  },
+
   bumpHeat(n) {
     this.heat = clamp(this.heat + n, 0, HEAT_MAX);
     this.infraction = 1.2;
@@ -417,6 +467,7 @@ const G = {
     while (this.peds.length < 24) this.spawnPed();
 
     /* the Union Pacific */
+    this.wreckCd -= dt;
     this.trainT -= dt;
     if (!this.train && this.trainT <= 0) {
       const dir = Math.random() < 0.5 ? 1 : -1;
@@ -426,6 +477,7 @@ const G = {
     }
     if (this.train) {
       this.train.update(dt, this);
+      if (this.train.hits(p) && this.wreckCd <= 0) this.wreck();
       if (this.train.dead) this.train = null;
     }
     for (const c of this.crossings) c.update(dt, this);
