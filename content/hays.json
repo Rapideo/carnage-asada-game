@@ -1,0 +1,24 @@
+{
+  "_comment": "The real eight blocks of downtown Hays, Kansas around the Taco Shop at 333 W 8th St. build.mjs INLINES this at build time - it is not fetched at runtime, because the shipped artifact must stay a single self-contained file (the CSP blocks external requests, and fetch() on a file:// page is blocked by CORS). Edit here, then run: node build.mjs",
+  "_axes": "streetsNS are the named north-south streets, west to east; streetsNS[bx] is the street on the WEST edge of block column bx. streetsEW are the numbered east-west streets, north to south; streetsEW[by] is the street on the NORTH edge of block row by. Both are exactly 9 long for an 8x8 block grid. Note this is the opposite of a typical grid: in Hays the NAMED streets run north-south and the NUMBERED ones run east-west.",
+  "_kinds": "res com park lot shop retail civic apts church auto rail. Exactly one cell must be shop, and it must match the shop field. build.mjs rejects anything else, and rejects copy the 5x7 font cannot draw or an address too wide for the order card.",
+
+  "streetsNS": ["ELM ST", "WALNUT ST", "ASH ST", "FORT ST", "MAIN ST",
+                "OAK ST", "PINE ST", "ALLEN ST", "MILNER ST"],
+
+  "streetsEW": ["12TH ST", "11TH ST", "10TH ST", "9TH ST", "8TH ST",
+                "7TH ST", "6TH ST", "5TH ST", "4TH ST"],
+
+  "shop": { "bx": 1, "by": 3 },
+
+  "zoning": [
+    ["res",  "res",    "church", "retail", "retail", "com",  "res",  "res"],
+    ["res",  "res",    "com",    "retail", "retail", "res",  "res",  "res"],
+    ["rail", "rail",   "rail",   "rail",   "rail",   "rail", "rail", "rail"],
+    ["apts", "shop",   "com",    "retail", "retail", "auto", "res",  "auto"],
+    ["res",  "church", "res",    "civic",  "civic",  "com",  "com",  "auto"],
+    ["apts", "res",    "res",    "civic",  "apts",   "res",  "res",  "church"],
+    ["res",  "res",    "res",    "res",    "res",    "res",  "res",  "res"],
+    ["res",  "res",    "res",    "res",    "park",   "res",  "park", "res"]
+  ]
+}
