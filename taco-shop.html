@@ -1665,12 +1665,26 @@ const City = {
       else                curb = { x: (BORDER + (bx + 1) * SPAN) * TS + TS, y: pcy };
       node = [this.nearNodeX(curb.x), this.nearNodeY(curb.y)];
 
-      /* address */
+      /* address — real Hays convention.
+         Fronting a NUMBERED street: a W/E prefix and a hundred-block from the
+         distance to Main. Main-Fort is the 100 block, Fort-Ash the 200, and so
+         on outward in both directions.
+         Fronting a NAMED street: the hundred-block is the numbered street on
+         the south edge of the block, which is how 1507 Main lands between 15th
+         and 16th, and the courthouse at 1204 Fort between 12th and 13th.
+         `odd` keeps the two sides of a street on opposite parities, so the two
+         blocks that share a street cannot collide. */
       const along = (dir === 0 || dir === 2) ? i : j;
-      const cross = (dir === 0 || dir === 2) ? bx : by;
-      const street = (dir === 0) ? HSTREETS[by] : (dir === 2) ? HSTREETS[by + 1]
-                   : (dir === 3) ? VSTREETS[bx] : VSTREETS[bx + 1];
-      const num = cross * 100 + along * 22 + ((dir === 0 || dir === 3) ? 7 : 8);
+      const odd   = (dir === 0 || dir === 3) ? 1 : 0;
+      let street, hundred;
+      if (dir === 0 || dir === 2) {
+        street  = ((bx < 4) ? 'W ' : 'E ') + ((dir === 0) ? HSTREETS[by] : HSTREETS[by + 1]);
+        hundred = ((bx < 4) ? 4 - bx : bx - 3) * 100;
+      } else {
+        street  = (dir === 3) ? VSTREETS[bx] : VSTREETS[bx + 1];
+        hundred = parseInt(HSTREETS[by + 1], 10) * 100;
+      }
+      const num = hundred + along * 22 + 6 + odd;
 
       const house = {
         x: wx, y: wy, w, h, dir, porch, street, num,

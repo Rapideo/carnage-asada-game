@@ -307,6 +307,29 @@ ok(VSTREETS[4] === 'MAIN ST', `Main Street is the 5th north-south street, got "$
 ok(VSTREETS[1] === 'WALNUT ST' && VSTREETS[2] === 'ASH ST',
    'the shop block is bounded by Walnut and Ash');
 
+/* Hays addressing. Which way a block's houses face is a per-block coin flip, so
+   these assert the invariants rather than naming a street that may have no
+   houses this seed. */
+const addrs = City.houses.map((h) => h.addr);
+ok(new Set(addrs).size === addrs.length, `all ${addrs.length} addresses are unique`);
+
+const badPrefix = City.houses.filter((h) => {
+  const numbered = /\d+(ST|ND|RD|TH) ST$/.test(h.street);
+  const prefixed = /^[WE] /.test(h.street);
+  return numbered !== prefixed;
+});
+ok(badPrefix.length === 0,
+   `numbered streets carry a W/E prefix and named streets never do${badPrefix.length ? ': "' + badPrefix[0].addr + '"' : ''}`);
+
+const onNumbered = City.houses.filter((h) => /^[WE] /.test(h.street));
+const onNamed = City.houses.filter((h) => !/^[WE] /.test(h.street));
+ok(onNumbered.length > 0 && onNamed.length > 0,
+   `both axes are addressed (${onNumbered.length} numbered, ${onNamed.length} named)`);
+ok(onNumbered.every((h) => h.num >= 100 && h.num < 500),
+   'numbered-street numbers sit in the 100-400 blocks either side of Main');
+ok(onNamed.every((h) => h.num >= 400 && h.num < 1200),
+   'named-street numbers sit in the 400-1100 blocks, 4th to 12th');
+
 console.log('\n— heat —');
 G.heat = 0; G.cop = null;
 for (let i = 0; i < 40; i++) G.bumpHeat(5);
