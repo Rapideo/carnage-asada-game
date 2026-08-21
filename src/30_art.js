@@ -79,7 +79,7 @@ const SPILL = ['#7a4a2a', '#c9542f', '#5aa14c', '#e0b055', '#d8b98a'];
 
 const Art = {
   tile: {}, house: [], bldg: [], store: [], civic: [], apts: [], church: [], shed: [], tree: [], prop: {},
-  car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [], signal: null,
+  car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [], signal: null, loco: null, boxcar: [],
   badge: null, wordmark: null, seal: null, steeple: null,
 
   build(rng) {
@@ -92,6 +92,7 @@ const Art = {
     this.buildChurches(rng);
     this.buildSheds(rng);
     this.buildRail(makeRng(777));
+    this.buildTrain();
     this.buildNature(rng);
     this.buildProps(rng);
     this.buildVehicles(rng);
@@ -659,6 +660,75 @@ const Art = {
     R(mx, '#e8e4d8', 5, 0, 2, 9);
     R(mx, PAL.red, 1, 8, 3, 3); R(mx, PAL.red, 7, 8, 3, 3);
     this.signal = { c: m.c, w: 3, h: 2, oy: 26 };
+  },
+  /* ---------- rolling stock ------------------------------- */
+  /* Baked facing east and mirrored for west. Every road vehicle gets 16
+     rotFrames; the train only ever runs east-west, so 14 of those would be
+     unused frames of a 58px sprite. The trucks deliberately stick out past
+     the body top and bottom — that overhang is what stops a flat slab from
+     reading as a shipping container lying in a field. */
+  buildTrain() {
+    const H = 16, B0 = 3, BH = 10;          // body rows 3..12, trucks 0..2 and 13..15
+    const flip = (src) => {
+      const t = mkCanvas(src.width, src.height);
+      t.x.imageSmoothingEnabled = false;
+      t.x.translate(src.width, 0); t.x.scale(-1, 1);
+      t.x.drawImage(src, 0, 0);
+      return t.c;
+    };
+    const trucks = (x, len) => {
+      for (const tx of [4, len - 17]) {
+        R(x, '#15121c', tx, 0, 13, 3);
+        R(x, '#3a3644', tx + 1, 1, 11, 1);
+        R(x, '#15121c', tx, H - 3, 13, 3);
+        R(x, '#3a3644', tx + 1, H - 2, 11, 1);
+      }
+    };
+
+    /* Locomotive: cab at the rear, long hood forward, Armour Yellow. The read
+       has to survive at 1x, where the whole unit is 64px: a WIDE dark cab and
+       a NARROW dark hood sitting on a yellow body. The first cut gave the hood
+       8 of the body's 10 rows, which left the yellow as a hairline frame and
+       turned the loco into a pale slab with stripes — a flatcar with a load,
+       not a locomotive. Two rows of yellow either side of the hood is what
+       carries the identity. */
+    const L = 64, lo = mkCanvas(L, H), lx = lo.x;
+    trucks(lx, L);
+    R(lx, '#15121c', 0, B0 - 1, L, BH + 2);
+    R(lx, '#d8a838', 1, B0, L - 2, BH);                  // Armour Yellow
+    R(lx, '#eec457', 1, B0, L - 2, 1);
+    R(lx, '#a97f22', 1, B0 + BH - 1, L - 2, 1);
+    R(lx, '#2f333d', 2, B0, 14, BH);                     // cab, full body height
+    R(lx, '#3d434f', 2, B0, 14, 1);
+    R(lx, PAL.glass, 4, B0 + 2, 5, BH - 4);
+    R(lx, PAL.glassHi, 4, B0 + 2, 5, 1);
+    R(lx, '#5c616b', 19, B0 + 2, 33, BH - 4);            // long hood, narrow
+    R(lx, '#7a808c', 19, B0 + 2, 33, 1);
+    R(lx, '#3e434c', 19, B0 + BH - 3, 33, 1);
+    for (let i = 0; i < 6; i++) R(lx, '#3e434c', 23 + i * 5, B0 + 3, 2, BH - 6);
+    R(lx, '#8d919c', 46, B0 + 1, 6, BH - 2);             // radiator, at the hood front
+    R(lx, '#6a6e78', 47, B0 + 2, 4, BH - 4);
+    R(lx, '#2f333d', L - 6, B0 + 1, 5, BH - 2);          // pilot
+    R(lx, '#fff2c0', L - 4, B0 + 4, 3, 2);               // headlight, inside the silhouette
+    this.loco = [flip(lo.c), lo.c];                      // [0] west-facing, [1] east
+
+    /* three liveries, so a consist does not read as one tile repeated */
+    this.boxcar = [];
+    for (const [body, dark] of [['#8c4030', '#652a20'], ['#767a86', '#565a66'], ['#6b563c', '#4c3d29']]) {
+      const W = 48, bc = mkCanvas(W, H), bx = bc.x;
+      trucks(bx, W);
+      R(bx, '#15121c', 0, B0 - 1, W, BH + 2);
+      R(bx, body, 1, B0, W - 2, BH);
+      R(bx, shade(body, 0.18), 1, B0, W - 2, 1);
+      R(bx, dark, 1, B0 + BH - 1, W - 2, 1);
+      R(bx, dark, 1, B0 + 4, W - 2, 2);                  // door track along the side
+      R(bx, shade(body, -0.32), 20, B0, 9, BH);          // sliding door
+      R(bx, shade(body, 0.10), 20, B0, 1, BH);
+      R(bx, shade(body, 0.10), 28, B0, 1, BH);
+      for (let i = 0; i < 3; i++) R(bx, dark, 6 + i * 4, B0 + 1, 1, BH - 2);
+      for (let i = 0; i < 3; i++) R(bx, dark, 33 + i * 4, B0 + 1, 1, BH - 2);
+      this.boxcar.push([flip(bc.c), bc.c]);
+    }
   },
 
   /* ---------- trees / nature ------------------------------ */

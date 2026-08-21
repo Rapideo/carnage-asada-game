@@ -38,6 +38,7 @@ Read these off the code before starting; every task below depends on them.
 | fact | value | where |
 |---|---|---|
 | corridor centre | `City.railY` = 512 | `genRail`, `40_city.js` |
+| crossbuck mast sprite | 11×28 with `oy` = 26 — its head is 26px **above** its ground anchor | `buildRail`, `30_art.js` |
 | rail tile rows | `ty` 31 and 32 → world y 496–527 | `genRail` |
 | ballast band | `ty` 30–33 → world y 480–543 | `genRail` |
 | track centres | 504 (north) and 520 (south) | derived: rails bake at tile-local y 4 and 10 |
@@ -464,10 +465,13 @@ In `genRail`, replace the whole `addCrossing` function with:
       const cx = (BORDER + col * SPAN) * TS + TS;
       if (this.crossings.some((c) => Math.abs(c.x - cx) < 4)) return;
       // a crossbuck on each approach, diagonally opposed like the real thing.
-      // 30px off the centre line rather than ~20: the gate arms swing at the
-      // mast, and an arm any closer lies across the track the train is on.
+      // 44px off the centre line rather than ~20. The mast sprite is 28 tall
+      // with oy = 26, so its head sits 26px ABOVE the anchor — at +22 the
+      // south crossbuck lands on top of the south track and is drawn straight
+      // through by the train. 44 is the first offset that clears it, and it
+      // puts both masts outside the ballast band rather than in it.
       const s = Art.signal, masts = [];
-      for (const [ox, oy] of [[-24, 30], [22, -30]]) {
+      for (const [ox, oy] of [[-24, 44], [22, -44]]) {
         const px = cx + ox, py = this.railY + oy;
         this.statics.push({ img: s.c, x: px, y: py, oy: s.oy, w: s.w, h: s.h, sortY: py + s.h, noShadow: true });
         masts.push([px + 5, py]);            // the mast centre line, at its base
@@ -616,8 +620,9 @@ ground plane, with flashing lamps and a two-tone bell. The arms swing
 sideways rather than up: a raised arm in a top-down view points at the
 sky and foreshortens to nothing, which reads as a gate that vanished.
 
-The crossbuck masts move from 20px off the centre line to 30, because an
-arm pivoting any closer lies across the track the train is on.
+The crossbuck masts move from ~20px off the centre line to 44. The mast
+sprite's head sits 26px above its anchor, so at +22 the south crossbuck
+lay on the south track and the train drew straight through it.
 
 City.crossings is where the crossings are; G.crossings is what they are
 doing. The gates are drawn, never solid -- you can always run one."

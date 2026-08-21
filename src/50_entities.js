@@ -248,6 +248,70 @@ class Traffic {
   }
 }
 
+/* ---------------- the Union Pacific ----------------------- */
+/* Rail-bound in the same sense Traffic is: fixed y, constant speed, no
+   steering, no interpolation. It is the one hazard in the game that cannot be
+   negotiated with, which is exactly why the crossings matter. */
+const TRAIN_SPD = 250;              // px/s — about 8s to clear the 1632px map
+const LOCO_LEN = 58, CAR_LEN = 48, CAR_GAP = 5;
+const TRAIN_HH = 7;                 // hit-box half-height: the body, not the trucks
+
+class Train {
+  /* dir is +1 east, -1 west. `x` is always the NOSE, whichever way it runs. */
+  constructor(dir, y) {
+    this.dir = dir; this.y = y;
+    this.cars = [];
+    let off = 0;
+    this.cars.push({ len: LOCO_LEN, img: Art.loco[dir > 0 ? 1 : 0], off });
+    off += LOCO_LEN + CAR_GAP;
+    const n = 5 + ((Math.random() * 3) | 0);
+    for (let i = 0; i < n; i++) {
+      const b = Art.boxcar[(Math.random() * Art.boxcar.length) | 0];
+      this.cars.push({ len: CAR_LEN, img: b[dir > 0 ? 1 : 0], off });
+      off += CAR_LEN + CAR_GAP;
+    }
+    this.len = off - CAR_GAP;
+    this.x = dir > 0 ? -20 : WW + 20;
+    this.horn = 0.4;
+    this.dead = false;
+  }
+  get x0() { return this.dir > 0 ? this.x - this.len : this.x; }
+  get x1() { return this.x0 + this.len; }
+
+  /* One box, nose to tail, gaps included. A 5px coupler gap is not a hole a
+     car can be inside, and pretending it is would invite a threaded-the-needle
+     bug on the one hazard that must never be survivable by accident. */
+  hits(e) {
+    const c = Math.cos(e.ang), s = Math.sin(e.ang), x0 = this.x0, x1 = this.x1;
+    for (let i = 0; i < CORNERS.length; i++) {
+      const lx = CORNERS[i][0], ly = CORNERS[i][1];
+      const px = e.x + lx * c - ly * s, py = e.y + lx * s + ly * c;
+      if (px > x0 && px < x1 && py > this.y - TRAIN_HH && py < this.y + TRAIN_HH) return true;
+    }
+    return false;
+  }
+
+  update(dt, G) {
+    this.x += this.dir * TRAIN_SPD * dt;
+    if (this.dir > 0 ? this.x0 > WW + 40 : this.x1 < -40) this.dead = true;
+    this.horn -= dt;
+    if (this.horn <= 0 && G.nearScreen(this.x, this.y)) { Audio5.sfx('trainhorn'); this.horn = 3.4; }
+  }
+
+  draw(x, cam) {
+    for (const c of this.cars) {
+      const nose = this.dir > 0 ? this.x - c.off : this.x + c.off;
+      const left = this.dir > 0 ? nose - c.len : nose;
+      const sx = (left - cam.x) | 0;
+      if (sx > VW + 8 || sx + c.len < -8) continue;
+      const sy = (this.y - cam.y - 8) | 0;
+      x.fillStyle = PAL.shadow;
+      x.fillRect(sx, sy + 5, c.len, 14);
+      x.drawImage(c.img, sx, sy);
+    }
+  }
+}
+
 /* ---------------- pedestrian ------------------------------ */
 class Ped {
   constructor(bx, by, rng) {

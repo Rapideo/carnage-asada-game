@@ -38,7 +38,7 @@ const City = {
     this.solid = new Uint8Array(GW * GH);
     this.surf  = new Uint8Array(GW * GH);
     this.keep  = new Uint8Array(GW * GH);   // porches + walkways: nothing may block these
-    this.statics = []; this.houses = []; this.crossings = [];
+    this.statics = []; this.houses = []; this.crossings = []; this.tracks = null;
 
     const g = mkCanvas(WW, WH);
     this.ground = g.c; this.gx = g.x;
@@ -383,6 +383,12 @@ const City = {
     const g = this.gx;
     const MID = 6;                                    // corridor centre, block-local tiles
     this.railY = (BORDER + by * SPAN + MID) * TS;
+    /* The corridor carries two tracks: each rail tile bakes a pair of rails,
+       and genRail lays two rows of them. A train running down railY would
+       straddle both and read as floating, so it has to pick one. Right-hand
+       running, the same convention Traffic.laneFixed uses for the road:
+       eastbound keeps to the south track. */
+    this.tracks = [this.railY - 8, this.railY + 8];
     const lastCol = bx === BLOCKS - 1;
     const lxMax = lastCol ? SPAN + 1 : SPAN - 1;      // the far kerb carries the ninth crossing
 

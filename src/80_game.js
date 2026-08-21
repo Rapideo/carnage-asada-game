@@ -22,6 +22,7 @@ const G = {
   combo: 1, comboPop: 0, heat: 0, heatMax: HEAT_MAX,
   bag: BAG_MAX, bagMax: BAG_MAX, needPickup: false,
   player: null, traffic: [], peds: [], flying: [], cop: null, copT: 0,
+  train: null, trainT: 0, crossings: [], railSide: 0, wreckCd: 0,
   cam: { x: 0, y: 0 }, shake: 0, hitstop: 0,
   order: null, banner: '', bannerT: 0, bannerCol: PAL.bone,
   throwCd: 0, restock: 0, tipPop: 0, infraction: 0,
@@ -47,6 +48,7 @@ const G = {
     this.player = new Player(City.shop.dock.x, City.shop.dock.y + 70, -PI / 2);
     this.traffic.length = 0; this.peds.length = 0; this.flying.length = 0;
     this.cop = null; Nav.clear(); Fx.clear();
+    this.resetRail();
     this.cam.x = clamp(City.shop.x - VW / 2, 0, WW - VW);
     this.cam.y = clamp(City.shop.y - VH / 2, 0, WH - VH);
     this.seedTraffic(26); this.seedPeds(20);
@@ -77,6 +79,7 @@ const G = {
     this.throwCd = 0; this.restock = 0; this.infraction = 0;
     this.stats = { delivered: 0, perfect: 0, splat: 0, best: 0, peds: 0, tickets: 0 };
     this.flying.length = 0; Fx.clear();
+    this.resetRail();
     const d = City.shop.dock;
     this.player = new Player(d.x, d.y + 40, PI / 2);
     this.cam.x = clamp(d.x - VW / 2, 0, WW - VW);
@@ -272,6 +275,16 @@ const G = {
   },
   dropCop() { this.cop = null; this.heat = Math.min(this.heat, 45); Audio5.sirenOff(); },
 
+  /* City.crossings is WHERE the crossings are, baked once at generation.
+     G.crossings is what they are DOING, and is rebuilt per shift. */
+  resetRail() {
+    this.train = null;
+    this.trainT = rand(10, 22);
+    this.railSide = 0;
+    this.wreckCd = 0;
+    this.crossings = [];          // Task 2 fills this with Crossing instances
+  },
+
   /* ---------------- update ------------------------------- */
   update(dt) {
     this.time += dt;
@@ -403,6 +416,19 @@ const G = {
     }
     while (this.peds.length < 24) this.spawnPed();
 
+    /* the Union Pacific */
+    this.trainT -= dt;
+    if (!this.train && this.trainT <= 0) {
+      const dir = Math.random() < 0.5 ? 1 : -1;
+      // eastbound keeps to the south track — City.tracks is [north, south]
+      this.train = new Train(dir, City.tracks[dir > 0 ? 1 : 0]);
+      this.trainT = rand(22, 40);
+    }
+    if (this.train) {
+      this.train.update(dt, this);
+      if (this.train.dead) this.train = null;
+    }
+
     /* cop */
     if (this.cop) {
       this.cop.update(dt, this);
@@ -505,6 +531,7 @@ const G = {
     for (const c of this.traffic) if (this.nearScreen(c.x, c.y)) rl.push({ sortY: c.y, e: c });
     for (const q of this.peds)    if (this.nearScreen(q.x, q.y)) rl.push({ sortY: q.y, e: q });
     if (this.cop) rl.push({ sortY: this.cop.y, e: this.cop });
+    if (this.train) rl.push({ sortY: this.train.y, e: this.train });
     for (const z of this.flying) rl.push({ sortY: z.y, e: z });
     rl.sort((a, b) => a.sortY - b.sortY);
     for (const it of rl) {

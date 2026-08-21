@@ -75,6 +75,7 @@ const Audio5 = {
       case 'bump':    this.noise(0.1, 0.18, 320, 0.8); break;
       case 'ped':     this.tone(880, 0.1, 'square', 0.16, 300); this.noise(0.14, 0.18, 900, 0.9, 0.05); break;
       case 'horn':    this.tone(440, 0.2, 'square', 0.10); this.tone(554, 0.2, 'square', 0.09); break;
+      case 'trainhorn': this.tone(146, 0.55, 'sawtooth', 0.15); this.tone(196, 0.55, 'sawtooth', 0.12, 0, 0.02); this.tone(233, 0.50, 'sawtooth', 0.09, 0, 0.04); break;
       case 'nav':     this.tone(1568, 0.06, 'square', 0.13); break;
       case 'recalc':  this.tone(392, 0.09, 'square', 0.13); this.tone(330, 0.12, 'square', 0.12, 0, 0.09); break;
       case 'ticket':  [0, 1, 2].forEach((i) => this.tone([392, 330, 262][i], 0.18, 'sawtooth', 0.18, 0, i * 0.1)); break;

@@ -58,11 +58,11 @@ vm.createContext(sandbox);
 // top-level const/let live in the script's lexical scope, not on the global
 // object, so hand them out explicitly from inside the same scope
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, MAXTHROW,' +
-  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, carBlocked, TS, GW, HSTREETS, VSTREETS };',
+  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Train, carBlocked, TS, GW, HSTREETS, VSTREETS };',
   sandbox, { filename: 'bundle.js' });
 
 const { G, City, Nav, Art, Input, textW, MAXTHROW, VW, VH, WW, WH,
-        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, carBlocked, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
+        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Train, carBlocked, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
 sandbox.solve = sandbox.__x.solve;
 
 /* ---------- assertions ---------- */
@@ -444,6 +444,31 @@ if (City.crossings && City.railY) {
   ok(checked > 0 && solid / checked > 0.9,
      `the corridor is solid between crossings (${solid}/${checked} tiles)`);
 }
+
+console.log('\n— rail —');
+/* This section drives a real shift, so reset the input the earlier sections
+   left held. Note it also leaves the game in `play` — which is what finally
+   lets `— heat —` below exercise a live pursuit instead of a title screen. */
+Input.down = Object.create(null); Input.anyKey = false; Input.mhit = false; Input.hasMouse = false;
+G.startShift();
+
+ok(Array.isArray(City.tracks) && City.tracks.length === 2,
+   `two track centre lines in the corridor: ${(City.tracks || []).join(' / ')}`);
+ok(Array.isArray(Art.loco) && Art.loco.length === 2 && Art.boxcar.length > 1,
+   `a locomotive both ways and ${(Art.boxcar || []).length} boxcar liveries`);
+
+/* a train crosses the whole map and despawns, without the scheduler quietly
+   starting a second one underneath the assertion */
+G.trainT = 999;
+G.train = new Train(1, City.tracks[1]);
+ok(G.train.len > 300, `the consist is ${G.train.len}px nose to tail`);
+let ran = 0;
+for (let i = 0; i < 20 * 60 && G.train; i++) {
+  G.update(1 / 60); G.render(ctx); Input.endFrame();
+  if (G.train) { ran++; if (!finite(G.train.x)) break; }
+}
+ok(G.train === null, `the train crossed the map and despawned (${(ran / 60).toFixed(1)}s)`);
+ok(ran > 5 * 60, 'it took several seconds to do it, rather than teleporting');
 
 console.log('\n— heat —');
 G.heat = 0; G.cop = null;
