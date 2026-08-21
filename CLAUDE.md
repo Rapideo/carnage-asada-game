@@ -51,9 +51,15 @@ are generated; edit `src/`, `shell.html` and `content/` and rebuild rather than 
 
 ## Authored copy (`content/*.json`)
 
-Player-facing copy for the attract card lives in `content/winners.json`. It is **inlined by `build.mjs`,
-never fetched at runtime** — the artifact runs under a CSP that blocks external requests, and `fetch()` on
-a `file://` page is blocked by CORS, so a runtime load would blank the screen exactly where it matters.
+Player-facing copy for the attract card lives in `content/winners.json`, and **the city itself lives in
+`content/hays.json`** — the nine street names per axis, the shop's cell, and the 8×8 zoning table. Both are
+**inlined by `build.mjs`, never fetched at runtime** — the artifact runs under a CSP that blocks external
+requests, and `fetch()` on a `file://` page is blocked by CORS, so a runtime load would blank the screen
+exactly where it matters. They become `CONTENT` and `HAYS` in the generated `src/05_content.js`.
+
+Authoring the map as data rather than code is also what keeps a **second time period** cheap: another era is
+another file against the same schema plus a switch on which one loads, not another pass through
+`40_city.js`. Nothing in the city generator hard-codes a year.
 `build.mjs` emits `src/05_content.js` (a generated `const CONTENT`), which the bundle and the dev page both
 pick up with no second code path.
 
@@ -150,6 +156,20 @@ regen, so never use it for per-frame effects.
 **`City.keep` is a keep-clear mask** marking every porch and its walkway to the kerb. Any new prop, tree, or
 scenery placement **must test `City.keep` before marking a tile solid**, or it can bury a delivery target and
 make an address unwinnable. `test/headless.mjs` asserts this ("no porch buried in geometry").
+
+**Use `markSolidSafe()`, not `markSolid()`.** `markSolid` obeys blindly, which is exactly how a generator
+buries a porch; `markSolidSafe` skips `keep` tiles and returns how many it refused, so a generator fighting
+the mask shows up rather than silently winning. Every block generator uses it.
+
+**A generator that marks more solid than it draws will eventually build a trap.** `genAuto`'s first cut put
+two rows of parked cars 26px apart while marking each car 2×2 tiles; neighbouring marks merged into walls
+with a 4px pocket between them, which no input could escape. Keep aisles wider than a car, and keep rows
+flush to a lot line so there is no gap to be caught in. The wedge sweep in `test/headless.mjs` is the guard.
+
+**The block programme comes from `content/hays.json`**, not from a random roll — see the section above.
+Kinds are `res`, `retail`, `civic`, `apts`, `church`, `auto`, `rail`, `com`, `park`, `lot`, `shop`; each has
+a `genX(rng, bx, by)` in `40_city.js` and knows nothing about any other. `lot` is still valid but the Hays
+table does not use it.
 
 ### Render pipeline (`G.render`)
 

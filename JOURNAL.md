@@ -472,3 +472,92 @@ the tree, the tree wins, and the contradiction is a reason to stop and ask.**
 **`delete G.update` is not "restore it afterwards."** `CLAUDE.md` says to swap `G.update` for a no-op to hold
 a frame and restore it after. `G` is a plain object literal, so `delete` removed the method outright rather
 than revealing one on a prototype, and the page needed a reload. Keep the reference and reassign it.
+
+---
+
+## 11. Six block kinds, and what the tests could not see
+
+Plan 1 made the map Hays by name and by zoning, but every new kind rendered through
+an existing generator via a `KIND_FALLBACK` table. Plan 2 replaced all six and emptied the table.
+
+### The kinds, and what each is really made of
+
+| kind | the read |
+|---|---|
+| `retail` | Two storefront runs hard against the north and south lot lines with a service alley between. Bays with party walls, shopfronts and awnings. |
+| `rail` | The Union Pacific: ballast and double track the full width of the map, solid except at nine level crossings. |
+| `civic` | One limestone mass set back behind a paved forecourt, portico on the centreline. |
+| `apts` | Two 2-storey blocks with a shared apron. A taller wall band than anything else on a residential street. |
+| `church` | A pitched nave plus a steeple carrying the largest overhang in the game. |
+| `auto` | A corrugated shed at the back, stock on painted bays out front. |
+
+None of them introduced a new art rule, a new palette entry, or an asset. All six are
+assembled from `mkCanvas`, `R`, `shade` and the roof-above-wall layout `mkBldg` already used.
+
+### Every real defect this pass came from looking, not from testing
+
+The suite stubs every drawing call, so it cannot see a building drawn wrong. Four of the
+five defects below were invisible to it, and were found by rendering a frame and looking:
+
+- **Retail roofs were so deep the shopfront was a thin strip**, the two runs abutted into one
+  slab with no visible alley, and every bay was the same brown. Runs went to 32px so two of
+  them leave a real 48px alley, bays pick their own tone from a brick/limestone/stucco set,
+  and the roofs got AC units, stair bulkheads and vents.
+- **Railway sleepers were drawn as horizontal bands**, parallel to the rails, so they read as
+  extra rail lines — four parallel greys and no track. Sleepers run *across* an east-west
+  corridor and are vertical bars.
+- **Crossing planks were nearly the same brown as the ballast**, so the crossing vanished into
+  the corridor. Where you may cross is the one thing that must be legible.
+- **The church nave was two nearly-identical greys**, so the pitch disappeared into a flat slab
+  from above. It needed a real value split between the slopes plus shingle courses. The
+  steeple also stood directly over the entrance, burying the doors it exists to announce.
+
+The fifth was a genuine softlock and the suite *did* catch it — see below.
+
+### The wedge assertion was wrong, and had been all along
+
+Task 2 failed the wedge sweep at one site. The site turned out to be escapable: reverse-only
+drove out of it in 0.8s, and steer-left in 4.5s. Only the suite's single hard-coded
+strategy — rock the throttle while steering permanently right — stayed inside the 40px
+threshold, circling in place.
+
+The assertion's own comment says sites must be "escapable by ANY input" while trying exactly
+one. **A test that asserts "any" must try more than one.** It now runs four strategies, fails
+only when every one is stuck, and names the trapped tiles.
+
+Why it surfaced here is worth recording, because it looked like the railway caused it and did
+not. `genRail` makes **zero** `rng` calls where the `genParking` fallback it replaced consumed
+many. The shared random stream shifted, every block generated after the corridor got a
+different layout, and one park block went from 21 statics to 20 — the sampler simply landed
+somewhere tighter. **Anything that changes how much randomness a generator consumes reshuffles
+every block after it.**
+
+A sweep of 10 seeds and 313 sites found 0 genuinely trapped and **6 that the old
+single-strategy test would have failed**, spread across five seeds. It had been latently flaky
+since it was written, and since the artifact accepts `?seed=<int>` it would eventually have
+fired on a player's seed.
+
+### One real trap, fixed in the generator
+
+`genAuto`'s first cut put two rows of stock 26px apart while marking each car 2×2 tiles.
+Neighbouring marks merged into walls and left a 4px pocket between the rows — a site no input
+escaped. Fixed where the fault was, in the generator: one row flush to the front lot line with
+an aisle wider than a car behind it. 365 sites across 10 seeds, 0 trapped.
+
+The general lesson is the one `markSolidSafe` also encodes: **a generator that marks more solid
+than it draws will eventually build a trap.** `markSolid` obeys blindly; `markSolidSafe`
+refuses `City.keep` tiles and reports refusals, so a generator fighting the porch mask shows up
+instead of silently winning.
+
+### What was deliberately not done
+
+`apts` blocks are scenery. They were deliverable in Plan 1 only because they fell back to
+`res`, and giving them a real street door drops the delivery pool from 132 addresses to 120.
+Downtown still receives no orders at all. That concentration is the accepted cost of a faithful
+map, and the fix — a door for the apartment above the shop, which those storefronts really
+have — is a follow-up rather than part of this branch.
+
+The north storefront run in each retail block faces the alley rather than the street, because
+`mkBldg`-style sprites have one orientation and only `Art.house` has four. Directional variants
+were judged not worth it: what reads as downtown from directly above is the unbroken street
+wall, not which way an awning points.
