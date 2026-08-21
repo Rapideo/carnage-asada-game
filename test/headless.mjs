@@ -121,7 +121,8 @@ ok(cardFits('OUT OF TACOS - RESTOCK'), 'restock label fits the order card');
 
 /* banner boxes are textW(str,2)+16 and must fit the 384px screen */
 const BANNERS = ['CLOCK IN!', 'OUT OF TACOS - BACK TO SHOP', 'THAT IS NOT ' + longestAddr.split(' ')[0],
-  'SPLAT!', 'PERFECT TOSS!', 'DELIVERED!', "HAYS PD! LOSE 'EM!", 'PULLED OVER', 'LOST THEM'];
+  'SPLAT!', 'PERFECT TOSS!', 'DELIVERED!', "HAYS PD! LOSE 'EM!", 'PULLED OVER', 'LOST THEM',
+  'HIT BY TRAIN', 'THE TRAIN GOT THEM'];
 const tooWide = BANNERS.filter((b) => textW(b, 2) + 16 > VW);
 ok(tooWide.length === 0, `all ${BANNERS.length} banners fit the screen${tooWide.length ? ': ' + tooWide.join(' | ') : ''}`);
 
@@ -541,6 +542,48 @@ for (let ci = 0; ci < G.crossings.length; ci++) {
 }
 ok(ejFail === 0,
    `all ${G.crossings.length * 4} wreck cases threw the car clear and unstuck (worst ${ejMin}px off the rails)`);
+
+/* the cruiser is not exempt — beat the train across and the pursuit eats it */
+G.trainT = 9999; G.train = null; G.wreckCd = 0; G.banner = '';
+/* Park the player well clear. A cop that CATCHES you also despawns and zeroes
+   the heat, via the ticket path — so a lazy `cop === null` here passes with no
+   train involved at all, which is exactly what it did before the banner check
+   was added. Assert the train did it, not merely that the cop went away. */
+G.player.x = cross.x; G.player.y = City.railY + 400;
+G.heat = 0; G.cop = null;
+for (let i = 0; i < 40; i++) G.bumpHeat(5);
+ok(G.cop !== null, 'a cop is on you');
+G.cop.x = cross.x; G.cop.y = City.tracks[1];
+/* Straddle the crossing rather than approach it. A cop accelerates away from
+   where it is put — 285px/s² is 45px in half a second — so an approaching
+   train can legitimately miss one placed by hand, and that flake would read as
+   the rule not working. */
+G.banner = '';
+G.train = new Train(1, City.tracks[1]);
+G.train.x = cross.x + 120;
+for (let i = 0; i < 90 && G.cop; i++) { G.update(1 / 60); G.render(ctx); Input.endFrame(); }
+ok(G.cop === null && G.banner === 'THE TRAIN GOT THEM',
+   `the train took the cruiser (cop ${G.cop ? 'still there' : 'gone'}, banner "${G.banner}")`);
+ok(G.heat === 0, `and the heat reset (${G.heat})`);
+G.train = null;
+
+/* a wrecked cop must not respawn under the train */
+ok(G.onRail(cross.x, City.railY) && !G.onRail(cross.x, City.railY + 200),
+   'the corridor is a refused spawn, the street beyond it is not');
+G.player.x = cross.x; G.player.y = City.railY + 120;
+let onTracks = 0;
+for (let i = 0; i < 200; i++) { G.cop = null; G.spawnCop(); if (G.cop && G.onRail(G.cop.x, G.cop.y)) onTracks++; }
+ok(onTracks === 0, `none of 200 cop spawns landed in the corridor (${onTracks})`);
+G.cop = null; G.heat = 0;
+
+/* running a closed gate is allowed, and it is what costs you */
+G.crossings.forEach((c) => { c.t = 1; c.down = true; });
+G.player.x = cross.x; G.player.y = City.railY - 60;
+G.railSide = -1;
+G.player.y = City.railY + 60;
+G.railCheck();
+ok(G.heat >= 20, `running a closed crossing adds heat (${G.heat})`);
+G.heat = 0; G.cop = null; G.crossings.forEach((c) => { c.t = 0; c.down = false; });
 
 console.log('\n— heat —');
 G.heat = 0; G.cop = null;

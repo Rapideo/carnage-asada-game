@@ -306,6 +306,28 @@ const G = {
     // No fine. The spec is explicit: a wreck costs time and load, not money.
   },
 
+  /* The corridor band, generously sized. Used to keep a cop from being
+     dispatched onto the tracks: a cruiser that materialises under a moving
+     train is wrecked the instant it exists, which reads as a bug rather than
+     as a rule. */
+  onRail(x, y) { return Math.abs(y - City.railY) < 44; },
+
+  /* Running a closed crossing is always allowed — the gates are drawn, not
+     solid. Surviving one is what costs you, because the cops saw you do it. */
+  railCheck() {
+    const p = this.player;
+    const side = p.y < City.railY ? -1 : 1;
+    if (this.railSide === 0) { this.railSide = side; return; }
+    if (side === this.railSide) return;
+    this.railSide = side;
+    let near = null, nd = 1e9;
+    for (const c of this.crossings) { const d = Math.abs(c.x - p.x); if (d < nd) { nd = d; near = c; } }
+    if (near && nd < 40 && near.down) {
+      this.bumpHeat(20);
+      Fx.pop(p.x, p.y - 22, 'BEAT THE TRAIN!', PAL.amber);
+    }
+  },
+
   bumpHeat(n) {
     this.heat = clamp(this.heat + n, 0, HEAT_MAX);
     this.infraction = 1.2;
@@ -317,7 +339,7 @@ const G = {
     const a = Math.random() * TAU;
     let x = p.x + Math.cos(a) * 210, y = p.y + Math.sin(a) * 210;
     x = clamp(x, 40, WW - 40); y = clamp(y, 40, WH - 40);
-    for (let i = 0; i < 30 && City.isSolid(x, y); i++) { x = clamp(p.x + rand(-260, 260), 40, WW - 40); y = clamp(p.y + rand(-260, 260), 40, WH - 40); }
+    for (let i = 0; i < 30 && (City.isSolid(x, y) || this.onRail(x, y)); i++) { x = clamp(p.x + rand(-260, 260), 40, WW - 40); y = clamp(p.y + rand(-260, 260), 40, WH - 40); }
     this.cop = new Cop(x, y, Math.atan2(p.y - y, p.x - x));
     this.copT = 26;
     this.say("HAYS PD! LOSE 'EM!", PAL.bad);
@@ -478,9 +500,22 @@ const G = {
     if (this.train) {
       this.train.update(dt, this);
       if (this.train.hits(p) && this.wreckCd <= 0) this.wreck();
+      /* Beat the train across and the pursuit eats it. That is what turns the
+         tracks from an obstacle into a tactic: a genuine high-risk escape.
+         heat = 0 has to come BEFORE dropCop, which only clamps it to 45. */
+      if (this.cop && this.train.hits(this.cop)) {
+        for (let k = 0; k < 20; k++) Fx.spark(this.cop.x, this.cop.y, rand(-150, 150), rand(-150, 150));
+        Fx.pop(this.cop.x, this.cop.y - 22, 'CRUNCH!', PAL.good);
+        this.shake = Math.max(this.shake, 7);
+        Audio5.sfx('crash');
+        this.say('THE TRAIN GOT THEM', PAL.good);   // 18 chars, a 230px banner
+        this.heat = 0;
+        this.dropCop();
+      }
       if (this.train.dead) this.train = null;
     }
     for (const c of this.crossings) c.update(dt, this);
+    this.railCheck();
 
     /* cop */
     if (this.cop) {
