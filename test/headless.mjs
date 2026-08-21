@@ -346,6 +346,41 @@ const blockOf = (w) => Math.floor((w / TS - BORDERT) / SPANT);
 ok(blockOf(City.shop.x) === 1 && blockOf(City.shop.y) === 3,
    `the shop generates inside block [1,3], got [${blockOf(City.shop.x)},${blockOf(City.shop.y)}]`);
 
+console.log('\n— block kinds —');
+ok(typeof City.markSolidSafe === 'function', 'City.markSolidSafe exists');
+
+/* The invariant: marking a porch tile solid must be refused, not obeyed. */
+let porchTile = -1;
+for (let i = 0; i < City.keep.length; i++) if (City.keep[i]) { porchTile = i; break; }
+ok(porchTile >= 0, 'found a keep tile to test against');
+if (typeof City.markSolidSafe === 'function' && porchTile >= 0) {
+  const wasSolid = City.solid[porchTile];
+  const refused = City.markSolidSafe(porchTile % GW, (porchTile / GW) | 0, 1, 1);
+  ok(refused === 1 && City.solid[porchTile] === wasSolid,
+     `markSolidSafe refuses keep tiles (refused ${refused}, solid unchanged ${City.solid[porchTile] === wasSolid})`);
+}
+
+ok(Array.isArray(Art.store) && Art.store.length > 0, `Art.store has ${(Art.store || []).length} storefront runs`);
+
+/* What separates downtown from the suburbs is not how much is built — four
+   detached houses cover about the same area — but that downtown is an unbroken
+   street wall while houses have gaps between them. So count rows that span the
+   whole lot with no gap. */
+const fullRows = (bx, by) => {
+  let n = 0;
+  for (let ly = 3; ly <= 10; ly++) {
+    let unbroken = true;
+    for (let lx = 3; lx <= 10; lx++)
+      if (!City.solid[(2 + by * 12 + ly) * GW + (2 + bx * 12 + lx)]) { unbroken = false; break; }
+    if (unbroken) n++;
+  }
+  return n;
+};
+const retailRows = fullRows(3, 0);         // Fort-Main x 11th-12th, authored 'retail'
+const resRows = fullRows(0, 6);            // Elm-Walnut x 5th-6th, authored 'res'
+ok(retailRows >= 2, `the retail block forms an unbroken street wall (${retailRows} full-width rows)`);
+ok(resRows === 0, `the residential block does not (${resRows} full-width rows)`);
+
 console.log('\n— heat —');
 G.heat = 0; G.cop = null;
 for (let i = 0; i < 40; i++) G.bumpHeat(5);

@@ -78,7 +78,7 @@ const BAG_MID = '#a97c4e', BAG_HI = '#c2955f', BAG_LO = '#8a6238', BAG_FOLD = '#
 const SPILL = ['#7a4a2a', '#c9542f', '#5aa14c', '#e0b055', '#d8b98a'];
 
 const Art = {
-  tile: {}, house: [], bldg: [], tree: [], prop: {},
+  tile: {}, house: [], bldg: [], store: [], tree: [], prop: {},
   car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [],
   badge: null, wordmark: null, seal: null,
 
@@ -86,6 +86,7 @@ const Art = {
     this.buildTiles(rng);
     this.buildHouses(rng);
     this.buildBldgs(rng);
+    this.buildStores(rng);
     this.buildNature(rng);
     this.buildProps(rng);
     this.buildVehicles(rng);
@@ -236,6 +237,81 @@ const Art = {
       const [w, h] = sizes[i % sizes.length];
       this.bldg.push(this.mkBldg(makeRng(500 + i * 91), w, h, tints[i % tints.length], i));
     }
+  },
+
+  /* ---------- downtown storefront runs -------------------- */
+  buildStores(rng) {
+    /* 32 tall = 2 tiles: the solid mask lines up with the footprint, and two
+       runs leave a proper 48px service alley down the middle of the block
+       rather than abutting into one slab. */
+    for (let i = 0; i < 5; i++) this.store.push(this.mkStorefront(makeRng(900 + i * 77), 128, 32, i));
+  },
+
+  /* A run of storefronts sharing party walls — the downtown street wall. Same
+     roof-above-wall layout as mkBldg, but divided into bays so it reads as
+     several businesses rather than one warehouse, with an awning band at the
+     pavement edge. */
+  mkStorefront(r, fw, fh, idx) {
+    const t = mkCanvas(fw, fh + BWALLH);
+    const x = t.x, wy = fh;
+    const BAY = 20 + r.int(8);
+    /* brick, limestone and painted stucco side by side — Hays main street */
+    const BRICK = ['#a05a48', '#b26b52', '#8f6a58', '#c6b492', '#d6c8a6',
+                   '#96806a', '#7f8a96', '#a89070', '#9c6a62', '#c2a884'];
+    const AWN = [PAL.red, '#8a5fc0', PAL.roofF, PAL.roofE, PAL.roofB, PAL.roofC];
+    let bay = 0;
+
+    for (let bx0 = 0; bx0 < fw; bx0 += BAY, bay++) {
+      const bw = Math.min(BAY, fw - bx0);
+      const tint = BRICK[(idx + bay) % BRICK.length];
+      const dark = shade(tint, -0.34), lite = shade(tint, 0.18);
+
+      /* roof plane per bay, so the party walls read from directly above. Each
+         bay gets its own roof tone — a real main street is brick next to
+         limestone next to painted stucco, never one continuous slab. */
+      const roofTone = shade(tint, -0.12 - r.int(3) * 0.05);
+      R(x, roofTone, bx0, 0, bw, fh);
+      for (let i = 0; i < 30; i++)
+        R(x, r.chance(0.5) ? shade(tint, -0.24) : shade(tint, -0.02), bx0 + r.int(bw), r.int(fh), 1, 1);
+      R(x, lite, bx0, 0, bw, 3);                                 // parapet, street side
+      R(x, dark, bx0, fh - 3, bw, 3);
+      R(x, shade(tint, -0.44), bx0 + bw - 1, 0, 1, fh);          // the party wall
+
+      /* roof kit — an AC unit, a stair bulkhead, a vent stack. Without these a
+         downtown block is a flat brown expanse from above. */
+      if (bw > 14) {
+        const ux = bx0 + 3 + r.int(bw - 12), uy = 5 + r.int(Math.max(1, fh - 13));
+        R(x, '#6b7280', ux, uy, 8, 6); R(x, '#8a919e', ux, uy, 8, 1);
+        R(x, '#4a505c', ux, uy + 5, 8, 1);
+        for (let gv = 2; gv < 6; gv += 2) R(x, '#4a505c', ux + gv, uy + 2, 1, 3);
+      }
+      if (r.chance(0.5) && bw > 12) {
+        const sx = bx0 + 2 + r.int(bw - 10), sy = 4 + r.int(Math.max(1, fh - 12));
+        R(x, shade(tint, -0.5), sx, sy, 6, 7);                   // stair bulkhead
+        R(x, shade(tint, -0.28), sx, sy, 6, 1);
+      }
+      if (r.chance(0.6)) {
+        const vx = bx0 + 4 + r.int(Math.max(1, bw - 8)), vy = 5 + r.int(Math.max(1, fh - 10));
+        R(x, '#3c4250', vx, vy, 3, 3); R(x, '#5d6472', vx, vy, 3, 1);
+      }
+
+      /* shopfront: glass, door, awning */
+      R(x, dark, bx0, wy, bw, BWALLH);
+      R(x, tint, bx0, wy, bw, 1);
+      R(x, PAL.glass, bx0 + 2, wy + 4, bw - 9, 6);
+      R(x, PAL.glassHi, bx0 + 2, wy + 4, bw - 9, 1);
+      if (r.chance(0.45)) R(x, '#f0d68a', bx0 + 3, wy + 5, bw - 11, 4);
+      R(x, PAL.door, bx0 + bw - 6, wy + 3, 4, 8);
+      R(x, PAL.doorHi, bx0 + bw - 6, wy + 3, 4, 1);
+      const aw = AWN[(idx * 2 + bay) % AWN.length];
+      R(x, aw, bx0 + 1, wy + BWALLH - 4, bw - 2, 3);
+      R(x, shade(aw, -0.32), bx0 + 1, wy + BWALLH - 2, bw - 2, 1);
+      R(x, PAL.ink, bx0, wy + BWALLH - 1, bw, 1);
+    }
+
+    x.strokeStyle = 'rgba(20,14,28,0.55)'; x.lineWidth = 1;
+    x.strokeRect(0.5, 0.5, fw - 1, fh + BWALLH - 1);
+    return { c: t.c, w: fw, h: fh, oy: BWALLH };
   },
 
   mkBldg(r, fw, fh, tint, idx) {

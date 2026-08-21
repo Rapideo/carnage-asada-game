@@ -18,7 +18,7 @@ const NODES = BLOCKS + 1;                       // 9 x 9 intersections
    fallbacks are honest rather than arbitrary: the real 9th-10th railway band
    is mostly parking, and apartment blocks really are residential. Emptied one
    entry at a time as each bespoke generator lands. */
-const KIND_FALLBACK = { retail: 'com', civic: 'com', apts: 'res', church: 'com', auto: 'lot', rail: 'lot' };
+const KIND_FALLBACK = { civic: 'com', apts: 'res', church: 'com', auto: 'lot', rail: 'lot' };
 const genKind = (k) => KIND_FALLBACK[k] || k;
 
 const City = {
@@ -98,11 +98,12 @@ const City = {
     /* ---- 6. build each block ----------------------------- */
     for (let by = 0; by < BLOCKS; by++) for (let bx = 0; bx < BLOCKS; bx++) {
       const k = genKind(kinds[by][bx]);
-      if (k === 'res')       this.genResidential(rng, bx, by);
-      else if (k === 'com')  this.genCommercial(rng, bx, by);
-      else if (k === 'park') this.genPark(rng, bx, by);
-      else if (k === 'lot')  this.genParking(rng, bx, by);
-      else if (k === 'shop') this.genShop(rng, bx, by);
+      if (k === 'res')         this.genResidential(rng, bx, by);
+      else if (k === 'retail') this.genRetail(rng, bx, by);
+      else if (k === 'com')    this.genCommercial(rng, bx, by);
+      else if (k === 'park')   this.genPark(rng, bx, by);
+      else if (k === 'lot')    this.genParking(rng, bx, by);
+      else if (k === 'shop')   this.genShop(rng, bx, by);
     }
 
     /* ---- 7. street furniture ----------------------------- */
@@ -225,6 +226,21 @@ const City = {
   markSolid(tx0, ty0, w, h) {
     for (let ty = ty0; ty < ty0 + h; ty++) for (let tx = tx0; tx < tx0 + w; tx++)
       if (tx >= 0 && ty >= 0 && tx < GW && ty < GH) this.solid[ty * GW + tx] = 1;
+  },
+
+  /* markSolid obeys blindly, which is how a generator buries a porch and makes
+     an address unwinnable. Block generators should use this instead: it refuses
+     keep tiles and returns how many it refused, so a generator that is fighting
+     the porch mask shows up rather than silently winning. */
+  markSolidSafe(tx0, ty0, w, h) {
+    let refused = 0;
+    for (let ty = ty0; ty < ty0 + h; ty++) for (let tx = tx0; tx < tx0 + w; tx++) {
+      if (tx < 0 || ty < 0 || tx >= GW || ty >= GH) continue;
+      const i = ty * GW + tx;
+      if (this.keep[i]) { refused++; continue; }
+      this.solid[i] = 1;
+    }
+    return refused;
   },
 
   /* ---------- residential block --------------------------- */
@@ -358,6 +374,36 @@ const City = {
     g.fillStyle = '#c9cede88';
     if (wy - lotY > 20) for (let i = 0; i < 8; i++) g.fillRect(lotX + 6 + i * 15, lotY + 2, 1, 14);
     if (lotY + lotW - (wy + b.h) > 20) for (let i = 0; i < 8; i++) g.fillRect(lotX + 6 + i * 15, lotY + lotW - 16, 1, 14);
+  },
+
+  /* ---------- downtown retail block ----------------------- */
+  /* Built to the lot line north and south, with a service court between. The
+     read that matters from directly above is "no yards, no gaps" — that is what
+     separates downtown from the residential blocks, far more than which way a
+     shopfront happens to face. */
+  genRetail(rng, bx, by) {
+    const lotX = (BORDER + bx * SPAN + 3) * TS, lotY = (BORDER + by * SPAN + 3) * TS, L = 8 * TS;
+    const g = this.gx;
+
+    /* service court behind the runs: asphalt, not lawn */
+    for (let ly = 3; ly <= 10; ly++) for (let lx = 3; lx <= 10; lx++) {
+      const tx = BORDER + bx * SPAN + lx, ty = BORDER + by * SPAN + ly;
+      this.surf[ty * GW + tx] = S_ROAD;
+      g.drawImage(Art.tile.lot[(lx + ly) & 3], tx * TS, ty * TS);
+    }
+
+    /* two runs, hard against the north and south lot lines */
+    for (const side of [0, 1]) {
+      const s = Art.store[rng.int(Art.store.length)];
+      const wx = lotX;
+      const wy = side === 0 ? lotY + TS : lotY + L - s.h;
+      this.markSolidSafe((wx / TS) | 0, (wy / TS) | 0, 8, Math.ceil(s.h / TS));
+      this.statics.push({ img: s.c, x: wx, y: wy, oy: s.oy, w: s.w, h: s.h, sortY: wy + s.h });
+    }
+
+    /* painted bays in the service court */
+    g.fillStyle = '#c9cede55';
+    for (let i = 0; i < 7; i++) g.fillRect(lotX + 8 + i * 17, lotY + L / 2 - 8, 1, 16);
   },
 
   /* ---------- park block ---------------------------------- */
