@@ -58,11 +58,11 @@ vm.createContext(sandbox);
 // top-level const/let live in the script's lexical scope, not on the global
 // object, so hand them out explicitly from inside the same scope
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, MAXTHROW,' +
-  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, carBlocked, TS, GW };',
+  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, carBlocked, TS, GW, HSTREETS, VSTREETS };',
   sandbox, { filename: 'bundle.js' });
 
 const { G, City, Nav, Art, Input, textW, MAXTHROW, VW, VH, WW, WH,
-        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, carBlocked, TS, GW } = sandbox.__x;
+        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, carBlocked, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
 sandbox.solve = sandbox.__x.solve;
 
 /* ---------- assertions ---------- */
@@ -296,6 +296,16 @@ Input.anyKey = true;
 G.update(1 / 60);
 ok(G.state === 'title', 'a keypress on the winners card returns to the title');
 Input.anyKey = false; Input.endFrame();
+
+/* The city is a real place — downtown Hays, KS — authored in content/hays.json.
+   These assertions are pure reads, so they are safe anywhere in the sequence. */
+console.log('\n— hays map —');
+ok(HSTREETS.length === 9 && VSTREETS.length === 9,
+   `9 streets per axis (${HSTREETS.length}, ${VSTREETS.length})`);
+ok(HSTREETS[4] === '8TH ST', `8th Street is the 5th east-west street, got "${HSTREETS[4]}"`);
+ok(VSTREETS[4] === 'MAIN ST', `Main Street is the 5th north-south street, got "${VSTREETS[4]}"`);
+ok(VSTREETS[1] === 'WALNUT ST' && VSTREETS[2] === 'ASH ST',
+   'the shop block is bounded by Walnut and Ash');
 
 console.log('\n— heat —');
 G.heat = 0; G.cop = null;

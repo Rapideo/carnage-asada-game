@@ -1403,10 +1403,14 @@ function drawRot(x, frames, px, py, ang) {
    ============================================================ */
 'use strict';
 
-const HSTREETS = ['MAPLE ST', 'OAK ST', 'PINE ST', 'BIRCH ST', 'CEDAR ST',
-                  'ELM ST', 'WALNUT ST', 'ASPEN ST', 'LAUREL ST'];
-const VSTREETS = ['1ST AVE', '2ND AVE', '3RD AVE', '4TH AVE', '5TH AVE',
-                  '6TH AVE', '7TH AVE', '8TH AVE', '9TH AVE'];
+/* Street names come from content/hays.json via build.mjs. Note the axes: in
+   Hays the NAMED streets run north-south (Main, Fort, Ash) and the NUMBERED
+   ones run east-west (8th, 9th) -- the opposite of the placeholder grid this
+   replaced. Indexing is unchanged: HSTREETS[by] is the east-west street on the
+   NORTH edge of block row by, VSTREETS[bx] the north-south street on the WEST
+   edge of block column bx. */
+const HSTREETS = HAYS.streetsEW;
+const VSTREETS = HAYS.streetsNS;
 
 const NODES = BLOCKS + 1;                       // 9 x 9 intersections
 
