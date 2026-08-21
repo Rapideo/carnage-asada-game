@@ -18,7 +18,7 @@ const NODES = BLOCKS + 1;                       // 9 x 9 intersections
    fallbacks are honest rather than arbitrary: the real 9th-10th railway band
    is mostly parking, and apartment blocks really are residential. Emptied one
    entry at a time as each bespoke generator lands. */
-const KIND_FALLBACK = { civic: 'com', apts: 'res', church: 'com', auto: 'lot', rail: 'lot' };
+const KIND_FALLBACK = { civic: 'com', apts: 'res', church: 'com', auto: 'lot' };
 const genKind = (k) => KIND_FALLBACK[k] || k;
 
 const City = {
@@ -45,7 +45,7 @@ const City = {
     this.solid = new Uint8Array(GW * GH);
     this.surf  = new Uint8Array(GW * GH);
     this.keep  = new Uint8Array(GW * GH);   // porches + walkways: nothing may block these
-    this.statics = []; this.houses = [];
+    this.statics = []; this.houses = []; this.crossings = [];
 
     const g = mkCanvas(WW, WH);
     this.ground = g.c; this.gx = g.x;
@@ -100,6 +100,7 @@ const City = {
       const k = genKind(kinds[by][bx]);
       if (k === 'res')         this.genResidential(rng, bx, by);
       else if (k === 'retail') this.genRetail(rng, bx, by);
+      else if (k === 'rail')   this.genRail(rng, bx, by);
       else if (k === 'com')    this.genCommercial(rng, bx, by);
       else if (k === 'park')   this.genPark(rng, bx, by);
       else if (k === 'lot')    this.genParking(rng, bx, by);
@@ -374,6 +375,48 @@ const City = {
     g.fillStyle = '#c9cede88';
     if (wy - lotY > 20) for (let i = 0; i < 8; i++) g.fillRect(lotX + 6 + i * 15, lotY + 2, 1, 14);
     if (lotY + lotW - (wy + b.h) > 20) for (let i = 0; i < 8; i++) g.fillRect(lotX + 6 + i * 15, lotY + lotW - 16, 1, 14);
+  },
+
+  /* ---------- the Union Pacific corridor ------------------ */
+  /* Runs the full width of the map through this block row, solid along its
+     whole length except where the nine north-south streets cross it. That is
+     what makes the tracks a barrier rather than scenery: you cross where Hays
+     lets you cross. Ballast bakes into the ground once and never changes. */
+  genRail(rng, bx, by) {
+    const g = this.gx;
+    const MID = 6;                                    // corridor centre, block-local tiles
+    this.railY = (BORDER + by * SPAN + MID) * TS;
+    const lastCol = bx === BLOCKS - 1;
+    const lxMax = lastCol ? SPAN + 1 : SPAN - 1;      // the far kerb carries the ninth crossing
+
+    for (let ly = MID - 2; ly <= MID + 1; ly++) {
+      const ty = BORDER + by * SPAN + ly;
+      for (let lx = 0; lx <= lxMax; lx++) {
+        const tx = BORDER + bx * SPAN + lx;
+        if (tx < BORDER || tx >= GW - BORDER) continue;
+        const onRoad = (lx % SPAN) < 2;
+        const isRail = ly === MID - 1 || ly === MID;
+        const set = onRoad ? (isRail ? Art.tile.plank : Art.tile.road)
+                           : (isRail ? Art.tile.rail : Art.tile.ballast);
+        g.drawImage(set[(lx + ly) & 3], tx * TS, ty * TS);
+        this.surf[ty * GW + tx] = onRoad ? S_ROAD : S_GRASS;
+        if (!onRoad) this.markSolidSafe(tx, ty, 1, 1);
+      }
+    }
+
+    const addCrossing = (col) => {
+      const cx = (BORDER + col * SPAN) * TS + TS;
+      if (this.crossings.some((c) => Math.abs(c.x - cx) < 4)) return;
+      this.crossings.push({ x: cx, y: this.railY });
+      // a crossbuck on each approach, diagonally opposed like the real thing
+      const s = Art.signal;
+      for (const [ox, oy] of [[-24, 22], [22, -20]]) {
+        const px = cx + ox, py = this.railY + oy;
+        this.statics.push({ img: s.c, x: px, y: py, oy: s.oy, w: s.w, h: s.h, sortY: py + s.h, noShadow: true });
+      }
+    };
+    addCrossing(bx);
+    if (lastCol) addCrossing(bx + 1);
   },
 
   /* ---------- downtown retail block ----------------------- */

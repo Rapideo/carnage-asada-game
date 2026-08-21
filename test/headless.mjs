@@ -139,18 +139,41 @@ for (let ty = 4; ty < 96 && wedgeSites.length < 30; ty++) {
   }
 }
 ok(wedgeSites.length > 10, `found ${wedgeSites.length} wedge sites to test`);
+
+/* "Escapable by ANY input" is the claim, so this has to TRY more than one input.
+   It used to rock the throttle while steering permanently right, which reports a
+   false failure at any site where that particular circle happens to stay inside
+   40px. One such site — a tight spot between a park pond and its trees — failed
+   this assertion while reverse-only drove out of it in 0.8s, and cost a full
+   investigation before the test was corrected rather than the game. A site is a
+   softlock only when EVERY strategy fails, so keep more than one here. */
+const ESCAPES = [
+  ['rock, steer right', (p, i) => { p.throttle = ((i / 30) | 0) % 2 ? 1 : -1; p.steer = 1; }],
+  ['rock, steer left',  (p, i) => { p.throttle = ((i / 30) | 0) % 2 ? 1 : -1; p.steer = -1; }],
+  ['reverse out',       (p) => { p.throttle = -1; p.steer = 0; }],
+  ['rock, no steer',    (p, i) => { p.throttle = ((i / 30) | 0) % 2 ? 1 : -1; p.steer = 0; }],
+];
 let escaped = 0;
+const trapped = [];
 const stubG = { shake: 0, hitstop: 0, onCrash: () => {} };
 for (const s of wedgeSites) {
-  const p = new Player(s.x, s.y, -Math.PI / 2);
-  p.vx = p.vy = 0;
-  for (let i = 0; i < 900; i++) {              // 15s of rocking free
-    p.throttle = ((i / 30) | 0) % 2 ? 1 : -1; p.steer = 1; p.hb = false;
-    p.update(1 / 60, stubG);
-    if (Math.hypot(p.x - s.x, p.y - s.y) > 40) { escaped++; break; }
+  let out = false;
+  for (const [, drive] of ESCAPES) {
+    const p = new Player(s.x, s.y, -Math.PI / 2);
+    p.vx = p.vy = 0;
+    for (let i = 0; i < 900 && !out; i++) {     // 15s per strategy
+      drive(p, i); p.hb = false;
+      p.update(1 / 60, stubG);
+      if (Math.hypot(p.x - s.x, p.y - s.y) > 40) out = true;
+    }
+    if (out) break;
   }
+  if (out) escaped++;
+  else trapped.push(`(${(s.x / TS) | 0},${(s.y / TS) | 0})`);
 }
-ok(escaped === wedgeSites.length, `every wedged car can drive out (${escaped}/${wedgeSites.length})`);
+ok(escaped === wedgeSites.length,
+   `every wedged car can drive out (${escaped}/${wedgeSites.length})` +
+   (trapped.length ? ` — trapped at tile ${trapped.join(' ')}` : ''));
 
 console.log('\n— guidance —');
 let routeFail = 0, longest = 0;
@@ -380,6 +403,24 @@ const retailRows = fullRows(3, 0);         // Fort-Main x 11th-12th, authored 'r
 const resRows = fullRows(0, 6);            // Elm-Walnut x 5th-6th, authored 'res'
 ok(retailRows >= 2, `the retail block forms an unbroken street wall (${retailRows} full-width rows)`);
 ok(resRows === 0, `the residential block does not (${resRows} full-width rows)`);
+
+/* The Union Pacific corridor: a real barrier, crossed only where Hays lets you. */
+ok(Array.isArray(City.crossings) && City.crossings.length === 9,
+   `nine level crossings, one per north-south street (got ${(City.crossings || []).length})`);
+ok(typeof City.railY === 'number' && City.railY > 0, `City.railY is the corridor centre (${City.railY})`);
+if (City.crossings && City.railY) {
+  ok(City.crossings.every((c) => !City.isSolid(c.x, City.railY)), 'every crossing is drivable');
+  const railTy = (City.railY / TS) | 0;
+  let solid = 0, checked = 0;
+  for (let tx = 3; tx < GW - 3; tx++) {
+    const wx = tx * TS + 8;
+    if (City.crossings.some((c) => Math.abs(c.x - wx) < 26)) continue;   // skip the crossings
+    checked++;
+    if (City.solid[railTy * GW + tx]) solid++;
+  }
+  ok(checked > 0 && solid / checked > 0.9,
+     `the corridor is solid between crossings (${solid}/${checked} tiles)`);
+}
 
 console.log('\n— heat —');
 G.heat = 0; G.cop = null;

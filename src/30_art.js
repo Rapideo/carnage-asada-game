@@ -79,7 +79,7 @@ const SPILL = ['#7a4a2a', '#c9542f', '#5aa14c', '#e0b055', '#d8b98a'];
 
 const Art = {
   tile: {}, house: [], bldg: [], store: [], tree: [], prop: {},
-  car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [],
+  car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [], signal: null,
   badge: null, wordmark: null, seal: null,
 
   build(rng) {
@@ -87,6 +87,7 @@ const Art = {
     this.buildHouses(rng);
     this.buildBldgs(rng);
     this.buildStores(rng);
+    this.buildRail(makeRng(777));
     this.buildNature(rng);
     this.buildProps(rng);
     this.buildVehicles(rng);
@@ -362,6 +363,57 @@ const Art = {
     x.strokeStyle = 'rgba(20,14,28,0.55)'; x.lineWidth = 1;
     x.strokeRect(0.5, 0.5, fw - 1, fh + BWALLH - 1);
     return { c: t.c, w: fw, h: fh, oy: BWALLH };
+  },
+
+  /* ---------- the Union Pacific --------------------------- */
+  /* Ballast, rail and crossing planks, baked as 16px tiles so the corridor
+     blits with the rest of the ground and costs nothing per frame. */
+  buildRail(rng) {
+    const gravel = (x, base, lo, hi, n) => {
+      R(x, base, 0, 0, TS, TS);
+      for (let i = 0; i < n; i++) R(x, rng.chance(0.5) ? hi : lo, rng.int(TS), rng.int(TS), 1, 1);
+    };
+    /* The corridor runs east-west, so the sleepers run ACROSS it — vertical
+       bars. Drawing them as horizontal bands made them read as extra rails,
+       which is what four parallel lines looked like the first time. */
+    const rails = (x) => {
+      for (let i = 1; i < TS; i += 5) {
+        R(x, '#4a3f33', i, 2, 3, 12);
+        R(x, '#5c4e3f', i, 2, 3, 1);
+      }
+      R(x, '#7d848f', 0, 4, TS, 2); R(x, '#c8ced8', 0, 4, TS, 1);   // north rail
+      R(x, '#7d848f', 0, 10, TS, 2); R(x, '#c8ced8', 0, 10, TS, 1); // south rail
+    };
+
+    const ballast = mkCanvas(TS, TS);
+    gravel(ballast.x, '#6a6152', '#565042', '#7d7462', 44);
+    this.tile.ballast = [ballast.c, ballast.c, ballast.c, ballast.c];
+
+    const rail = mkCanvas(TS, TS);
+    gravel(rail.x, '#6a6152', '#565042', '#7d7462', 26);
+    rails(rail.x);
+    this.tile.rail = [rail.c, rail.c, rail.c, rail.c];
+
+    /* Crossing planks have to read lighter and warmer than the ballast, or the
+       crossing disappears into the corridor and there is nothing telling the
+       player where they may cross. */
+    const plank = mkCanvas(TS, TS), p = plank.x;
+    R(p, '#8a7050', 0, 0, TS, TS);
+    for (let i = 0; i < 5; i++) R(p, i & 1 ? '#9c8060' : '#7b6244', 0, i * 4, TS, 3);
+    for (let i = 0; i < 10; i++) R(p, '#6d573c', rng.int(TS), rng.int(TS), 1, 1);
+    R(p, '#7d848f', 0, 4, TS, 2); R(p, '#c8ced8', 0, 4, TS, 1);
+    R(p, '#7d848f', 0, 10, TS, 2); R(p, '#c8ced8', 0, 10, TS, 1);
+    this.tile.plank = [plank.c, plank.c, plank.c, plank.c];
+
+    /* crossbuck on a mast — the footprint is the mast base, the crossbuck is
+       all overhang, which is what oy is for */
+    const m = mkCanvas(11, 28), mx = m.x;
+    R(mx, '#3c4250', 5, 12, 2, 16);                 // mast
+    R(mx, '#2c313c', 5, 26, 3, 2);                  // base
+    R(mx, '#e8e4d8', 1, 3, 9, 2);                   // crossbuck
+    R(mx, '#e8e4d8', 5, 0, 2, 9);
+    R(mx, PAL.red, 1, 8, 3, 3); R(mx, PAL.red, 7, 8, 3, 3);
+    this.signal = { c: m.c, w: 3, h: 2, oy: 26 };
   },
 
   /* ---------- trees / nature ------------------------------ */
