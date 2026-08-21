@@ -410,13 +410,19 @@ const City = {
     const addCrossing = (col) => {
       const cx = (BORDER + col * SPAN) * TS + TS;
       if (this.crossings.some((c) => Math.abs(c.x - cx) < 4)) return;
-      this.crossings.push({ x: cx, y: this.railY });
-      // a crossbuck on each approach, diagonally opposed like the real thing
-      const s = Art.signal;
-      for (const [ox, oy] of [[-24, 22], [22, -20]]) {
+      /* A crossbuck on each approach, diagonally opposed like the real thing,
+         44px off the centre line rather than ~20. The mast sprite is 28 tall
+         with oy = 26, so its head sits 26px ABOVE the anchor: at +22 the south
+         crossbuck landed on the south track and the train drew straight
+         through it. 44 is the first offset that clears the rails, and it puts
+         both masts outside the ballast band rather than in it. */
+      const s = Art.signal, masts = [];
+      for (const [ox, oy] of [[-24, 44], [22, -44]]) {
         const px = cx + ox, py = this.railY + oy;
         this.statics.push({ img: s.c, x: px, y: py, oy: s.oy, w: s.w, h: s.h, sortY: py + s.h, noShadow: true });
+        masts.push([px + 5, py]);            // the mast centre line, at its base
       }
+      this.crossings.push({ x: cx, y: this.railY, masts });
     };
     addCrossing(bx);
     if (lastCol) addCrossing(bx + 1);

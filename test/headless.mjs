@@ -58,11 +58,11 @@ vm.createContext(sandbox);
 // top-level const/let live in the script's lexical scope, not on the global
 // object, so hand them out explicitly from inside the same scope
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, MAXTHROW,' +
-  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Train, carBlocked, TS, GW, HSTREETS, VSTREETS };',
+  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Train, Crossing, carBlocked, TS, GW, HSTREETS, VSTREETS };',
   sandbox, { filename: 'bundle.js' });
 
 const { G, City, Nav, Art, Input, textW, MAXTHROW, VW, VH, WW, WH,
-        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Train, carBlocked, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
+        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Train, Crossing, carBlocked, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
 sandbox.solve = sandbox.__x.solve;
 
 /* ---------- assertions ---------- */
@@ -469,6 +469,29 @@ for (let i = 0; i < 20 * 60 && G.train; i++) {
 }
 ok(G.train === null, `the train crossed the map and despawned (${(ran / 60).toFixed(1)}s)`);
 ok(ran > 5 * 60, 'it took several seconds to do it, rather than teleporting');
+
+ok(G.crossings.length === City.crossings.length,
+   `${G.crossings.length} live crossings built from the ${City.crossings.length} in the city`);
+ok(City.crossings.every((c) => Array.isArray(c.masts) && c.masts.length === 2),
+   'every crossing carries two gate pivots');
+/* The mast sprite's head sits 26px above its anchor. A pivot any nearer than
+   ~42 puts that head on the south track, where the train draws straight
+   through it — which is exactly what the first render showed. */
+ok(City.crossings.every((c) => c.masts.every((m) => Math.abs(m[1] - City.railY) > 40)),
+   'both gate pivots stand clear of the tracks');
+
+/* gates go down for a train and come back up after it */
+G.trainT = 999;
+G.train = new Train(1, City.tracks[1]);
+let sawDown = false;
+for (let i = 0; i < 20 * 60 && G.train; i++) {
+  G.update(1 / 60); G.render(ctx); Input.endFrame();
+  if (G.crossings.some((c) => c.down)) sawDown = true;
+}
+ok(sawDown, 'gates went down as the train passed');
+for (let i = 0; i < 120; i++) { G.update(1 / 60); G.render(ctx); Input.endFrame(); }
+ok(G.crossings.every((c) => c.t === 0 && !c.down),
+   'every gate came back up — none stuck closed');
 
 console.log('\n— heat —');
 G.heat = 0; G.cop = null;

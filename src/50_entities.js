@@ -312,6 +312,83 @@ class Train {
   }
 }
 
+/* ---------------- level crossing -------------------------- */
+/* The gates are DRAWN, never solid. You can always run one, which is the
+   gamble the whole corridor is built around; what running one costs you is
+   handled in 80_game. This class only knows how to watch a train and swing
+   two arms. */
+const GATE_LOWER = 0.7;     // seconds, up to down
+const GATE_WARN  = 520;     // px of approach before the arms start moving
+const GATE_CLEAR = 40;      // px past the tail before they lift
+const BELL_T     = 0.55;
+
+class Crossing {
+  constructor(c) {
+    this.x = c.x; this.y = c.y; this.masts = c.masts;
+    this.t = 0; this.down = false; this.bell = 0; this.lamp = 0;
+  }
+
+  update(dt, G) {
+    const tr = G.train;
+    let want = false;
+    if (tr) {
+      // how far the crossing is AHEAD of the nose, along the way it is going
+      const ahead = tr.dir > 0 ? this.x - tr.x1 : tr.x0 - this.x;
+      want = ahead < GATE_WARN && ahead > -(tr.len + GATE_CLEAR);
+    }
+    this.t = clamp(this.t + (want ? dt : -dt) / GATE_LOWER, 0, 1);
+    this.down = this.t > 0.55;
+    this.lamp += dt;
+    this.bell -= dt;
+    if (!want) this.bell = 0;
+    else if (this.bell <= 0 && G.nearScreen(this.x, this.y)) { Audio5.sfx('bell'); this.bell = BELL_T; }
+  }
+
+  /* The arm swings in the GROUND plane, not up and down. A raised arm in a
+     top-down view points at the sky and foreshortens to nothing, so animating
+     it vertically reads as a gate that vanished; swinging it from
+     parallel-with-the-track to across-the-road is what every top-down game
+     does, and what a player reads instantly. */
+  drawArm(x, cam, m, a0, a1) {
+    const a = a0 + (a1 - a0) * this.t;
+    x.save();
+    x.translate((m[0] - cam.x) | 0, (m[1] - cam.y) | 0);
+    x.rotate(a);
+    for (let i = 0; i < 5; i++) {                 // 4 + 5*6 = 34px, across the road
+      x.fillStyle = i & 1 ? '#e8e4d8' : PAL.red;
+      x.fillRect(4 + i * 6, -1, 6, 3);
+    }
+    x.fillStyle = '#3c4250'; x.fillRect(-2, -2, 6, 5);
+    x.restore();
+  }
+
+  /* The crossbuck's two red lamps are baked into the static, so the flashing
+     pair is drawn over them rather than animated in place. */
+  drawLamps(x, cam, m) {
+    if (this.t <= 0) return;
+    const on = ((this.lamp * 3) | 0) & 1;
+    const ly = (m[1] - 18 - cam.y) | 0;
+    x.fillStyle = on ? '#ff6a52' : '#5a1a12';
+    x.fillRect((m[0] - 4 - cam.x) | 0, ly, 3, 3);
+    x.fillStyle = on ? '#5a1a12' : '#ff6a52';
+    x.fillRect((m[0] + 2 - cam.x) | 0, ly, 3, 3);
+  }
+
+  draw(x, cam) {
+    /* Raised is parallel to the TRACK, folded back away from the road — not
+       parallel to the road. Pointing an arm along the road puts a raised gate
+       lying in the carriageway, and on the north mast it draws the striped
+       arm straight up through its own crossbuck. Each mast stands just
+       outside its kerb, so "away from the road" is west for the south mast
+       and east for the north one; each swings the way that keeps it clear of
+       the rails mid-sweep. */
+    this.drawArm(x, cam, this.masts[0], PI, 0);
+    this.drawArm(x, cam, this.masts[1], 0, -PI);
+    this.drawLamps(x, cam, this.masts[0]);
+    this.drawLamps(x, cam, this.masts[1]);
+  }
+}
+
 /* ---------------- pedestrian ------------------------------ */
 class Ped {
   constructor(bx, by, rng) {

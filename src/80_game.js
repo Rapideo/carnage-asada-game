@@ -282,7 +282,7 @@ const G = {
     this.trainT = rand(10, 22);
     this.railSide = 0;
     this.wreckCd = 0;
-    this.crossings = [];          // Task 2 fills this with Crossing instances
+    this.crossings = City.crossings.map((c) => new Crossing(c));
   },
 
   /* ---------------- update ------------------------------- */
@@ -428,6 +428,7 @@ const G = {
       this.train.update(dt, this);
       if (this.train.dead) this.train = null;
     }
+    for (const c of this.crossings) c.update(dt, this);
 
     /* cop */
     if (this.cop) {
@@ -532,6 +533,8 @@ const G = {
     for (const q of this.peds)    if (this.nearScreen(q.x, q.y)) rl.push({ sortY: q.y, e: q });
     if (this.cop) rl.push({ sortY: this.cop.y, e: this.cop });
     if (this.train) rl.push({ sortY: this.train.y, e: this.train });
+    for (const c of this.crossings)
+      if (this.nearScreen(c.x, c.y)) rl.push({ sortY: c.y + 44, e: c });
     for (const z of this.flying) rl.push({ sortY: z.y, e: z });
     rl.sort((a, b) => a.sortY - b.sortY);
     for (const it of rl) {
