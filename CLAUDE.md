@@ -10,6 +10,31 @@ Every sprite, the bitmap font, the city, and all audio are generated procedurall
 adding a runtime dependency or an asset file breaks the "self-contained single file" property the whole
 build is designed around (the published artifact runs under a CSP that blocks all external hosts).
 
+## Scope — this repo is the whole context
+
+Everything needed to work on this game is in this repository. **Do not import context from
+outside it** — other repos, sibling folders, design documents, or path-keyed Claude project
+memory — unless the user explicitly points you at it in the conversation.
+
+Not a style preference; it has already caused a real failure. On 2026-08-21 a design question
+was put to the user built on a decades-spanning timeline, four named eras and 13 chapters.
+None of that appears anywhere in this repo. It came from memory written by a **different
+codebase that previously occupied this folder path**, loaded automatically at session start
+because Claude Code keys its state to the folder path rather than to the repo. The user had
+deliberately not provided any of it, and was keeping the project clean on purpose.
+
+The tell was there and was missed: that memory described `npm start`, a `package.json` and an
+npm dependency — in a project that has none of those. **When outside context contradicts the
+tree, the tree wins, and the contradiction is a reason to stop and ask, not to reconcile the
+two into a theory.**
+
+The exception is an explicit pointer. "Look at Google Maps data for the Taco Shop in Hays" put
+that research in scope, and what came back was written into `content/` and a spec — into the
+repo, where it survives. Durable facts belong here rather than in project memory for exactly
+that reason: this file travels with the repository, and memory does not.
+
+If something seems to be missing, ask. Do not go looking for it.
+
 ## Commands
 
 ```bash

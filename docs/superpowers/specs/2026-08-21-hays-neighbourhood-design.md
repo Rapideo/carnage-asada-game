@@ -135,6 +135,13 @@ broken map:
 Guard 5 is the one that matters. Three text-overflow bugs have already shipped in the order card,
 and the width limit was a comment before it was a guard the last time — *a note is not a guard.*
 
+**One period now, more later.** This builds a single time period. Expanding into multiple
+eras is wanted eventually and is explicitly not this branch. Authoring the map as JSON rather
+than as code is what makes that later pass cheap: another era is another file against the same
+schema plus a switch on which one loads, not another trip through `40_city.js`. So **nothing in
+this design hard-codes a year**, and the 2026 tenant names in §3 are shape references for what
+kind of building to draw — they never reach signage.
+
 ## 5. Addressing
 
 Real Hays convention, which the block grid yields for free.
@@ -289,6 +296,7 @@ share one mutable game and one `Input`, and run in order.
 
 ## 12. Out of scope
 
-Tier 3 irregular block spacing. Tier 4 true geometry. Deliverable downtown addresses. Seasonal
+Multiple eras -- wanted eventually, deliberately not now; see §4. Tier 3 irregular block
+spacing. Tier 4 true geometry. Deliverable downtown addresses. Seasonal
 hazards, NPC barks, the high-score table, and everything else on the punch list. Big Creek and the
 Fort Hays State campus, both of which sit outside the nine-street window.
