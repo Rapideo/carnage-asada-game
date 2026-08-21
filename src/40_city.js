@@ -18,7 +18,7 @@ const NODES = BLOCKS + 1;                       // 9 x 9 intersections
    fallbacks are honest rather than arbitrary: the real 9th-10th railway band
    is mostly parking, and apartment blocks really are residential. Emptied one
    entry at a time as each bespoke generator lands. */
-const KIND_FALLBACK = { civic: 'com', apts: 'res', church: 'com', auto: 'lot' };
+const KIND_FALLBACK = { apts: 'res', church: 'com', auto: 'lot' };
 const genKind = (k) => KIND_FALLBACK[k] || k;
 
 const City = {
@@ -101,6 +101,7 @@ const City = {
       if (k === 'res')         this.genResidential(rng, bx, by);
       else if (k === 'retail') this.genRetail(rng, bx, by);
       else if (k === 'rail')   this.genRail(rng, bx, by);
+      else if (k === 'civic')  this.genCivic(rng, bx, by);
       else if (k === 'com')    this.genCommercial(rng, bx, by);
       else if (k === 'park')   this.genPark(rng, bx, by);
       else if (k === 'lot')    this.genParking(rng, bx, by);
@@ -417,6 +418,35 @@ const City = {
     };
     addCrossing(bx);
     if (lastCol) addCrossing(bx + 1);
+  },
+
+  /* ---------- civic block --------------------------------- */
+  /* Post office, bank, county offices. Set back behind a paved forecourt
+     rather than built to the pavement: downtown crowds the street, civic
+     buildings stand off it, and that setback is the whole read. */
+  genCivic(rng, bx, by) {
+    const g = this.gx;
+    const lotX = (BORDER + bx * SPAN + 3) * TS, lotY = (BORDER + by * SPAN + 3) * TS, L = 8 * TS;
+    const b = Art.civic[rng.int(Art.civic.length)];
+    const wx = lotX + ((L - b.w) >> 1), wy = lotY + TS;
+
+    this.markSolidSafe((wx / TS) | 0, (wy / TS) | 0, Math.ceil(b.w / TS), Math.ceil(b.h / TS));
+    this.statics.push({ img: b.c, x: wx, y: wy, oy: b.oy, w: b.w, h: b.h, sortY: wy + b.h });
+
+    /* paved forecourt between the steps and the pavement */
+    for (let ty = ((wy + b.h) / TS) | 0; ty < ((lotY + L) / TS) | 0; ty++)
+      for (let tx = (lotX / TS) | 0; tx < ((lotX + L) / TS) | 0; tx++) {
+        this.surf[ty * GW + tx] = S_WALK;
+        g.drawImage(Art.tile.walk[(tx + ty) & 3], tx * TS, ty * TS);
+      }
+
+    /* a tree either side of the forecourt */
+    for (const sx of [lotX + 8, lotX + L - 28]) {
+      const t = Art.tree[rng.int(Art.tree.length)];
+      const py = wy + b.h + 8;
+      this.markSolidSafe((sx / TS) | 0, (py / TS) | 0, 1, 1);
+      this.statics.push({ img: t.c, x: sx, y: py, oy: t.oy, w: t.w, h: t.h, sortY: py + t.h });
+    }
   },
 
   /* ---------- downtown retail block ----------------------- */

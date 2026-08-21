@@ -78,7 +78,7 @@ const BAG_MID = '#a97c4e', BAG_HI = '#c2955f', BAG_LO = '#8a6238', BAG_FOLD = '#
 const SPILL = ['#7a4a2a', '#c9542f', '#5aa14c', '#e0b055', '#d8b98a'];
 
 const Art = {
-  tile: {}, house: [], bldg: [], store: [], tree: [], prop: {},
+  tile: {}, house: [], bldg: [], store: [], civic: [], tree: [], prop: {},
   car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [], signal: null,
   badge: null, wordmark: null, seal: null,
 
@@ -87,6 +87,7 @@ const Art = {
     this.buildHouses(rng);
     this.buildBldgs(rng);
     this.buildStores(rng);
+    this.buildCivics(rng);
     this.buildRail(makeRng(777));
     this.buildNature(rng);
     this.buildProps(rng);
@@ -363,6 +364,64 @@ const Art = {
     x.strokeStyle = 'rgba(20,14,28,0.55)'; x.lineWidth = 1;
     x.strokeRect(0.5, 0.5, fw - 1, fh + BWALLH - 1);
     return { c: t.c, w: fw, h: fh, oy: BWALLH };
+  },
+
+  /* ---------- civic buildings ----------------------------- */
+  buildCivics(rng) {
+    for (let i = 0; i < 3; i++) this.civic.push(this.mkCivic(makeRng(1300 + i * 53), 96, 64, i));
+  },
+
+  /* Post office, bank, county offices. Hays is a limestone town and PAL.wallLt
+     already is one, so these read as civic by massing and symmetry rather than
+     by any new colour: one block, set back, a portico on the centreline, and a
+     cornice instead of a shop sign. */
+  mkCivic(r, fw, fh, idx) {
+    const t = mkCanvas(fw, fh + BWALLH + 6);
+    const x = t.x, wy = fh, WH2 = BWALLH + 6;
+    const stone = ['#cfc6ac', '#c6bda3', '#d4cbb2'][idx % 3];
+    const dark = shade(stone, -0.34), lite = shade(stone, 0.16);
+
+    /* roof: flat, with a raised centre lantern on the axis */
+    R(x, shade(stone, -0.14), 0, 0, fw, fh);
+    for (let i = 0; i < 60; i++)
+      R(x, r.chance(0.5) ? shade(stone, -0.2) : shade(stone, -0.06), r.int(fw), r.int(fh), 1, 1);
+    R(x, lite, 0, 0, fw, 4); R(x, lite, 0, 0, 4, fh);
+    R(x, dark, 0, fh - 4, fw, 4); R(x, dark, fw - 4, 0, 4, fh);
+    const lw = 30, lh = 18, lx = (fw - lw) >> 1, ly = (fh - lh) >> 1;
+    R(x, shade(stone, -0.05), lx, ly, lw, lh);
+    R(x, lite, lx, ly, lw, 2);
+    R(x, dark, lx, ly + lh - 2, lw, 2);
+    R(x, PAL.glass, lx + 4, ly + 4, lw - 8, lh - 8);
+    R(x, PAL.glassHi, lx + 4, ly + 4, lw - 8, 1);
+
+    /* wall: tall windows, symmetrical, with a portico on the centreline */
+    R(x, shade(stone, -0.26), 0, wy, fw, WH2);
+    R(x, stone, 0, wy, fw, 2);
+    const mid = fw >> 1;
+    for (let i = 8; i < fw - 10; i += 13) {
+      if (Math.abs(i + 4 - mid) < 20) continue;                 // leave the portico clear
+      R(x, PAL.glass, i, wy + 4, 7, 10);
+      R(x, PAL.glassHi, i, wy + 4, 7, 1);
+      R(x, dark, i - 1, wy + 3, 9, 1);
+    }
+    /* portico: pediment, four columns, doors, steps */
+    R(x, stone, mid - 22, wy + 1, 44, 4);
+    R(x, lite, mid - 22, wy + 1, 44, 1);
+    for (let c = 0; c < 4; c++) {
+      const cxp = mid - 18 + c * 11;
+      R(x, stone, cxp, wy + 5, 4, WH2 - 8);
+      R(x, lite, cxp, wy + 5, 1, WH2 - 8);
+      R(x, dark, cxp + 3, wy + 5, 1, WH2 - 8);
+    }
+    R(x, PAL.door, mid - 7, wy + 8, 14, WH2 - 11);
+    R(x, PAL.doorHi, mid - 7, wy + 8, 14, 1);
+    R(x, '#b9b09a', mid - 26, wy + WH2 - 3, 52, 3);             // steps
+    R(x, '#a49b86', mid - 26, wy + WH2 - 1, 52, 1);
+    R(x, PAL.ink, 0, wy + WH2 - 1, fw, 1);
+
+    x.strokeStyle = 'rgba(20,14,28,0.55)'; x.lineWidth = 1;
+    x.strokeRect(0.5, 0.5, fw - 1, fh + WH2 - 1);
+    return { c: t.c, w: fw, h: fh, oy: WH2 };
   },
 
   /* ---------- the Union Pacific --------------------------- */

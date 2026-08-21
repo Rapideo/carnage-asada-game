@@ -404,6 +404,17 @@ const resRows = fullRows(0, 6);            // Elm-Walnut x 5th-6th, authored 're
 ok(retailRows >= 2, `the retail block forms an unbroken street wall (${retailRows} full-width rows)`);
 ok(resRows === 0, `the residential block does not (${resRows} full-width rows)`);
 
+/* Civic buildings stand back behind a forecourt — the opposite of retail, which
+   builds to the pavement. The setback is the read, so assert it. */
+ok(Art.civic.length > 0, `Art.civic has ${Art.civic.length} massings`);
+const rowSolid = (bx, by, ly) => {
+  let n = 0;
+  for (let lx = 3; lx <= 10; lx++) if (City.solid[(2 + by * 12 + ly) * GW + (2 + bx * 12 + lx)]) n++;
+  return n;
+};
+ok(rowSolid(3, 4, 10) === 0 && rowSolid(3, 4, 5) > 0,
+   `the Post Office block stands back behind a forecourt (front row ${rowSolid(3, 4, 10)} solid, middle row ${rowSolid(3, 4, 5)})`);
+
 /* The Union Pacific corridor: a real barrier, crossed only where Hays lets you. */
 ok(Array.isArray(City.crossings) && City.crossings.length === 9,
    `nine level crossings, one per north-south street (got ${(City.crossings || []).length})`);
