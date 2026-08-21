@@ -14,13 +14,6 @@ const VSTREETS = HAYS.streetsNS;
 
 const NODES = BLOCKS + 1;                       // 9 x 9 intersections
 
-/* Kinds with no generator yet render through the closest existing one. The
-   fallbacks are honest rather than arbitrary: the real 9th-10th railway band
-   is mostly parking, and apartment blocks really are residential. Emptied one
-   entry at a time as each bespoke generator lands. */
-const KIND_FALLBACK = { apts: 'res', church: 'com', auto: 'lot' };
-const genKind = (k) => KIND_FALLBACK[k] || k;
-
 const City = {
   solid: null, surf: null, ground: null, gx: null,
   statics: [], houses: [], shop: null, parkedTiles: null,
@@ -71,7 +64,7 @@ const City = {
 
     /* ---- 3. paint block ground surfaces ------------------ */
     for (let by = 0; by < BLOCKS; by++) for (let bx = 0; bx < BLOCKS; bx++) {
-      const k = genKind(kinds[by][bx]);
+      const k = kinds[by][bx];
       if (k === 'com' || k === 'lot' || k === 'shop') {
         for (let ly = 1; ly <= 8; ly++) for (let lx = 1; lx <= 8; lx++) {
           const tx = BORDER + bx * SPAN + 2 + lx, ty = BORDER + by * SPAN + 2 + ly;
@@ -97,11 +90,14 @@ const City = {
 
     /* ---- 6. build each block ----------------------------- */
     for (let by = 0; by < BLOCKS; by++) for (let bx = 0; bx < BLOCKS; bx++) {
-      const k = genKind(kinds[by][bx]);
+      const k = kinds[by][bx];
       if (k === 'res')         this.genResidential(rng, bx, by);
       else if (k === 'retail') this.genRetail(rng, bx, by);
       else if (k === 'rail')   this.genRail(rng, bx, by);
       else if (k === 'civic')  this.genCivic(rng, bx, by);
+      else if (k === 'apts')   this.genApts(rng, bx, by);
+      else if (k === 'church') this.genChurch(rng, bx, by);
+      else if (k === 'auto')   this.genAuto(rng, bx, by);
       else if (k === 'com')    this.genCommercial(rng, bx, by);
       else if (k === 'park')   this.genPark(rng, bx, by);
       else if (k === 'lot')    this.genParking(rng, bx, by);
@@ -418,6 +414,109 @@ const City = {
     };
     addCrossing(bx);
     if (lastCol) addCrossing(bx + 1);
+  },
+
+  /* ---------- auto / industrial block --------------------- */
+  /* A shed at the back and rows of stock out front — which is what a car lot
+     and a metal works both look like from above. The parked cars are the same
+     statics genParking uses; no new art needed for them. */
+  genAuto(rng, bx, by) {
+    const g = this.gx;
+    const lotX = (BORDER + bx * SPAN + 3) * TS, lotY = (BORDER + by * SPAN + 3) * TS, L = 8 * TS;
+
+    /* asphalt across the whole lot */
+    for (let ly = 3; ly <= 10; ly++) for (let lx = 3; lx <= 10; lx++) {
+      const tx = BORDER + bx * SPAN + lx, ty = BORDER + by * SPAN + ly;
+      this.surf[ty * GW + tx] = S_ROAD;
+      g.drawImage(Art.tile.lot[(lx + ly) & 3], tx * TS, ty * TS);
+    }
+
+    /* shed hard against the back line */
+    const s = Art.shed[rng.int(Art.shed.length)];
+    const wx = lotX + ((L - s.w) >> 1), wy = lotY + TS;
+    this.markSolidSafe((wx / TS) | 0, (wy / TS) | 0, Math.ceil(s.w / TS), Math.ceil(s.h / TS));
+    this.statics.push({ img: s.c, x: wx, y: wy, oy: s.oy, w: s.w, h: s.h, sortY: wy + s.h });
+
+    /* ONE row of stock, flush to the front lot line, with a wide aisle behind.
+       Two rows 26px apart left a 4px pocket between them, and because each car
+       marks 2x2 tiles the neighbouring marks merged into walls either side of
+       it — a genuine trap the wedge sweep caught. Keep the aisle wider than a
+       car and keep the row flush, so there is no gap to be caught in. */
+    const ry = lotY + L - 32;
+    g.fillStyle = '#c9cedeaa';
+    for (let i = 0; i <= 6; i++) g.fillRect(lotX + 6 + i * 18, ry, 1, 22);
+    for (let i = 0; i < 6; i++) {
+      if (!rng.chance(0.72)) continue;
+      const fr = Art.car[rng.int(Art.car.length)];
+      const px = lotX + 8 + i * 18;
+      this.statics.push({ img: fr[ROT / 4], x: px - 2, y: ry, oy: 4, w: 18, h: 22, sortY: ry + 22, isCar: true, fw: fr.size });
+      this.markSolidSafe((px / TS) | 0, (ry / TS) | 0, 2, 2);
+    }
+  },
+
+  /* ---------- church block -------------------------------- */
+  /* Nave set in a lawn, steeple at the street end. The steeple is placed as a
+     separate static so its huge overhang sorts against the nave correctly. */
+  genChurch(rng, bx, by) {
+    const g = this.gx;
+    const lotX = (BORDER + bx * SPAN + 3) * TS, lotY = (BORDER + by * SPAN + 3) * TS, L = 8 * TS;
+    const c = Art.church[rng.int(Art.church.length)];
+    const wx = lotX + ((L - c.w) >> 1), wy = lotY + TS;
+
+    this.markSolidSafe((wx / TS) | 0, (wy / TS) | 0, Math.ceil(c.w / TS), Math.ceil(c.h / TS));
+    this.statics.push({ img: c.c, x: wx, y: wy, oy: c.oy, w: c.w, h: c.h, sortY: wy + c.h });
+
+    /* Steeple at the south-WEST corner, clear of the centre door. Its overhang
+       is the largest in the game, so anything it stands in front of is hidden —
+       putting it over the entrance buried the doors it is meant to announce. */
+    const s = Art.steeple;
+    const sx = wx - 10, sy = wy + c.h - 2;
+    this.markSolidSafe((sx / TS) | 0, (sy / TS) | 0, 2, 1);
+    this.statics.push({ img: s.c, x: sx, y: sy, oy: s.oy, w: s.w, h: s.h, sortY: sy + s.h });
+
+    /* path from the door to the pavement */
+    const px = wx + (c.w >> 1);
+    R(g, '#c2b697', px - 6, wy + c.h, 12, lotY + L - (wy + c.h));
+
+    /* a tree at each front corner */
+    for (const tx0 of [lotX + 4, lotX + L - 26]) {
+      const t = Art.tree[rng.int(Art.tree.length)];
+      const py = lotY + L - 30;
+      this.markSolidSafe((tx0 / TS) | 0, (py / TS) | 0, 1, 1);
+      this.statics.push({ img: t.c, x: tx0, y: py, oy: t.oy, w: t.w, h: t.h, sortY: py + t.h });
+    }
+  },
+
+  /* ---------- apartment block ----------------------------- */
+  /* Two blocks of flats with a shared apron behind. Deliberately NOT
+     deliverable: every address in the game comes from genResidential, and
+     giving these a second address path is a follow-up, not this branch. */
+  genApts(rng, bx, by) {
+    const g = this.gx;
+    const lotX = (BORDER + bx * SPAN + 3) * TS, lotY = (BORDER + by * SPAN + 3) * TS, L = 8 * TS;
+
+    /* apron across the back half */
+    for (let ly = 3; ly <= 10; ly++) for (let lx = 3; lx <= 10; lx++) {
+      const tx = BORDER + bx * SPAN + lx, ty = BORDER + by * SPAN + ly;
+      if (ly > 7) continue;
+      this.surf[ty * GW + tx] = S_ROAD;
+      g.drawImage(Art.tile.lot[(lx + ly) & 3], tx * TS, ty * TS);
+    }
+
+    /* two blocks facing the street, a gap between them */
+    for (const ox of [0, 4 * TS]) {
+      const b = Art.apts[rng.int(Art.apts.length)];
+      const wx = lotX + ox, wy = lotY + L - b.h;
+      this.markSolidSafe((wx / TS) | 0, (wy / TS) | 0, Math.ceil(b.w / TS), Math.ceil(b.h / TS));
+      this.statics.push({ img: b.c, x: wx, y: wy, oy: b.oy, w: b.w, h: b.h, sortY: wy + b.h });
+    }
+
+    /* bins and a bench on the apron */
+    for (let i = 0; i < 3; i++) {
+      const pr = Art.prop[rng.chance(0.5) ? 'trash' : 'bench'];
+      const px = lotX + 8 + rng.int(L - 24), py = lotY + 10 + rng.int(40);
+      this.statics.push({ img: pr.c, x: px, y: py, oy: pr.oy, w: pr.w, h: pr.h, sortY: py + pr.h, noShadow: true });
+    }
   },
 
   /* ---------- civic block --------------------------------- */

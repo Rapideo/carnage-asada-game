@@ -78,9 +78,9 @@ const BAG_MID = '#a97c4e', BAG_HI = '#c2955f', BAG_LO = '#8a6238', BAG_FOLD = '#
 const SPILL = ['#7a4a2a', '#c9542f', '#5aa14c', '#e0b055', '#d8b98a'];
 
 const Art = {
-  tile: {}, house: [], bldg: [], store: [], civic: [], tree: [], prop: {},
+  tile: {}, house: [], bldg: [], store: [], civic: [], apts: [], church: [], shed: [], tree: [], prop: {},
   car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [], signal: null,
-  badge: null, wordmark: null, seal: null,
+  badge: null, wordmark: null, seal: null, steeple: null,
 
   build(rng) {
     this.buildTiles(rng);
@@ -88,6 +88,9 @@ const Art = {
     this.buildBldgs(rng);
     this.buildStores(rng);
     this.buildCivics(rng);
+    this.buildApts(rng);
+    this.buildChurches(rng);
+    this.buildSheds(rng);
     this.buildRail(makeRng(777));
     this.buildNature(rng);
     this.buildProps(rng);
@@ -364,6 +367,189 @@ const Art = {
     x.strokeStyle = 'rgba(20,14,28,0.55)'; x.lineWidth = 1;
     x.strokeRect(0.5, 0.5, fw - 1, fh + BWALLH - 1);
     return { c: t.c, w: fw, h: fh, oy: BWALLH };
+  },
+
+  /* ---------- sheds and workshops ------------------------- */
+  buildSheds(rng) {
+    for (let i = 0; i < 3; i++) this.shed.push(this.mkShed(makeRng(1900 + i * 37), 96, 40, i));
+  },
+
+  /* Low corrugated shed with roller doors — the back of a car lot or a metal
+     works. Wide, shallow and ribbed, which is the opposite proportion to
+     everything else on the map and reads as industrial for that reason. */
+  mkShed(r, fw, fh, idx) {
+    const t = mkCanvas(fw, fh + BWALLH);
+    const x = t.x, wy = fh;
+    const metal = ['#7f8a96', '#86907f', '#8a8f9e'][idx % 3];
+    const dark = shade(metal, -0.32), lite = shade(metal, 0.2);
+
+    /* corrugated roof: ribs run the long way */
+    R(x, shade(metal, -0.12), 0, 0, fw, fh);
+    for (let i = 0; i < fh; i += 3) R(x, i % 6 ? shade(metal, -0.2) : shade(metal, -0.02), 0, i, fw, 1);
+    R(x, lite, 0, 0, fw, 2);
+    R(x, dark, 0, fh - 2, fw, 2);
+    R(x, dark, fw - 2, 0, 2, fh);
+    for (let i = 0; i < 2; i++) {                      // roof vents
+      const ux = 10 + r.int(fw - 30);
+      R(x, '#5d6472', ux, 6 + r.int(fh - 18), 12, 5);
+      R(x, '#8a919e', ux, 6 + r.int(1) + (fh >> 2), 12, 1);
+    }
+
+    /* wall: roller doors and a sign band */
+    R(x, dark, 0, wy, fw, BWALLH);
+    R(x, metal, 0, wy, fw, 1);
+    for (let d = 0; d < 3; d++) {
+      const dx0 = 6 + d * 30;
+      R(x, shade(metal, -0.44), dx0, wy + 3, 22, BWALLH - 4);
+      for (let i = 1; i < BWALLH - 5; i += 2) R(x, shade(metal, -0.28), dx0, wy + 3 + i, 22, 1);
+      R(x, lite, dx0, wy + 2, 22, 1);
+    }
+    R(x, [PAL.red, PAL.amber, PAL.roofF][idx % 3], 2, wy + BWALLH - 4, fw - 4, 3);
+    R(x, PAL.ink, 0, wy + BWALLH - 1, fw, 1);
+
+    x.strokeStyle = 'rgba(20,14,28,0.55)'; x.lineWidth = 1;
+    x.strokeRect(0.5, 0.5, fw - 1, fh + BWALLH - 1);
+    return { c: t.c, w: fw, h: fh, oy: BWALLH };
+  },
+
+  /* ---------- churches ------------------------------------ */
+  buildChurches(rng) {
+    for (let i = 0; i < 2; i++) this.church.push(this.mkChurch(makeRng(1700 + i * 41), 64, 80, i));
+    this.steeple = this.mkSteeple(makeRng(1799));
+  },
+
+  /* A nave with a pitched roof. The ridge runs north-south, so from directly
+     above it reads as two slopes either side of a bright ridge line — the only
+     pitched roof at this size in the game, which is most of the recognition. */
+  mkChurch(r, fw, fh, idx) {
+    const t = mkCanvas(fw, fh + BWALLH);
+    const x = t.x, wy = fh;
+    const roof = [PAL.roofD, PAL.roofB][idx % 2];
+    const stone = ['#c4bca6', '#bdb49e'][idx % 2];
+    const dark = shade(stone, -0.32);
+
+    /* Two slopes with a real value split between them, and shingle courses
+       across each. Flat fills of nearly the same tone read as one grey slab
+       from above and the pitch disappears, which is the whole silhouette. */
+    const mid = fw >> 1;
+    R(x, shade(roof, -0.40), 0, 0, mid, fh);              // west slope, in shade
+    R(x, shade(roof, 0.10), mid, 0, fw - mid, fh);        // east slope, lit
+    for (let cy = 2; cy < fh - 3; cy += 4) {
+      R(x, shade(roof, -0.50), 0, cy, mid, 1);
+      R(x, shade(roof, -0.02), mid, cy, fw - mid, 1);
+    }
+    for (let i = 0; i < 50; i++) {
+      const px = r.int(fw);
+      R(x, r.chance(0.5) ? shade(roof, px < mid ? -0.46 : 0.0)
+                         : shade(roof, px < mid ? -0.34 : 0.16), px, r.int(fh), 1, 1);
+    }
+    R(x, shade(roof, 0.30), mid - 1, 0, 1, fh);           // ridge, one pixel
+    R(x, shade(roof, -0.52), 0, 0, 1, fh);
+    R(x, shade(roof, -0.52), fw - 1, 0, 1, fh);
+    R(x, dark, 0, fh - 3, fw, 3);                         // eaves
+
+    /* wall: tall arched windows either side of a double door */
+    R(x, shade(stone, -0.22), 0, wy, fw, BWALLH);
+    R(x, stone, 0, wy, fw, 1);
+    for (let i = 5; i < fw - 8; i += 13) {
+      if (Math.abs(i + 3 - mid) < 9) continue;
+      R(x, '#4a6a8a', i, wy + 4, 6, 8);
+      R(x, '#7fa0c0', i, wy + 4, 6, 1);
+      R(x, '#c98a3a', i + 2, wy + 6, 2, 4);               // stained glass
+    }
+    R(x, PAL.door, mid - 7, wy + 4, 14, BWALLH - 5);
+    R(x, PAL.doorHi, mid - 7, wy + 4, 14, 1);
+    R(x, dark, mid, wy + 4, 1, BWALLH - 5);
+    R(x, PAL.ink, 0, wy + BWALLH - 1, fw, 1);
+
+    x.strokeStyle = 'rgba(20,14,28,0.55)'; x.lineWidth = 1;
+    x.strokeRect(0.5, 0.5, fw - 1, fh + BWALLH - 1);
+    return { c: t.c, w: fw, h: fh, oy: BWALLH };
+  },
+
+  /* The steeple is the whole silhouette: a small footprint carrying a very
+     large oy. Nothing else in the game overhangs this far, which is exactly
+     what the fake-height trick is for. */
+  mkSteeple(r) {
+    const FW = 22, FH = 20, OY = 46;
+    const t = mkCanvas(FW, FH + OY);
+    const x = t.x;
+    const stone = '#cfc6ae', dark = shade(stone, -0.34), lite = shade(stone, 0.18);
+
+    /* seen from above: a pyramid roof, four slopes to a point */
+    for (let i = 0; i < FH / 2; i++) {
+      const k = i / (FH / 2);
+      R(x, shade('#6d6558', -0.3 + k * 0.5), i, i, FW - i * 2, FH - i * 2);
+    }
+    R(x, '#e8e4d8', (FW >> 1) - 1, 1, 2, 7);              // the cross, catching light
+    R(x, '#e8e4d8', (FW >> 1) - 3, 3, 6, 2);
+
+    /* the tower face below */
+    R(x, shade(stone, -0.24), 0, FH, FW, OY);
+    R(x, stone, 0, FH, FW, 2);
+    R(x, lite, 0, FH, 2, OY);
+    R(x, dark, FW - 2, FH, 2, OY);
+    // belfry louvres
+    R(x, '#3a3444', 5, FH + 6, 12, 13);
+    for (let i = 0; i < 5; i++) R(x, '#6b6478', 5, FH + 7 + i * 3, 12, 1);
+    // clock face
+    R(x, '#e8e4d8', 7, FH + 24, 8, 8);
+    R(x, '#3a3444', 10, FH + 26, 1, 4);
+    R(x, '#3a3444', 10, FH + 29, 3, 1);
+    R(x, dark, 0, FH + OY - 1, FW, 1);
+
+    x.strokeStyle = 'rgba(20,14,28,0.55)'; x.lineWidth = 1;
+    x.strokeRect(0.5, 0.5, FW - 1, FH + OY - 1);
+    return { c: t.c, w: FW, h: FH, oy: OY };
+  },
+
+  /* ---------- apartment blocks ---------------------------- */
+  buildApts(rng) {
+    for (let i = 0; i < 4; i++) this.apts.push(this.mkApts(makeRng(1500 + i * 61), 64, 48, i));
+  },
+
+  /* Two storeys, which is the whole read: a taller wall band than anything
+     else on a residential street, with two rows of windows stacked in it and
+     one shared street door. */
+  mkApts(r, fw, fh, idx) {
+    const AW = 22;                                  // 2-storey wall band
+    const t = mkCanvas(fw, fh + AW);
+    const x = t.x, wy = fh;
+    const brick = ['#9c6a58', '#8a7466', '#a67c62', '#7f6e64'][idx % 4];
+    const dark = shade(brick, -0.32), lite = shade(brick, 0.16);
+
+    /* flat roof with kit */
+    R(x, shade(brick, -0.16), 0, 0, fw, fh);
+    for (let i = 0; i < 40; i++)
+      R(x, r.chance(0.5) ? shade(brick, -0.24) : shade(brick, -0.06), r.int(fw), r.int(fh), 1, 1);
+    R(x, lite, 0, 0, fw, 3); R(x, dark, 0, fh - 3, fw, 3);
+    R(x, lite, 0, 0, 3, fh); R(x, dark, fw - 3, 0, 3, fh);
+    for (let i = 0; i < 2; i++) {
+      const ux = 6 + r.int(fw - 20), uy = 6 + r.int(fh - 16);
+      R(x, '#6b7280', ux, uy, 9, 7); R(x, '#8a919e', ux, uy, 9, 1);
+    }
+    R(x, shade(brick, -0.42), (fw >> 1) - 5, fh - 14, 10, 10);   // stair head
+
+    /* wall: two window rows and a door */
+    R(x, dark, 0, wy, fw, AW);
+    R(x, brick, 0, wy, fw, 1);
+    for (let row = 0; row < 2; row++) {
+      const ry = wy + 3 + row * 9;
+      for (let i = 5; i < fw - 8; i += 12) {
+        if (row === 1 && Math.abs(i - (fw >> 1)) < 8) continue;   // door sits here
+        R(x, PAL.glass, i, ry, 7, 6);
+        R(x, PAL.glassHi, i, ry, 7, 1);
+        if (r.chance(0.35)) R(x, '#f0d68a', i + 1, ry + 1, 5, 4);
+      }
+    }
+    R(x, PAL.door, (fw >> 1) - 5, wy + AW - 10, 10, 9);
+    R(x, PAL.doorHi, (fw >> 1) - 5, wy + AW - 10, 10, 1);
+    R(x, lite, (fw >> 1) - 7, wy + AW - 12, 14, 2);              // door hood
+    R(x, PAL.ink, 0, wy + AW - 1, fw, 1);
+
+    x.strokeStyle = 'rgba(20,14,28,0.55)'; x.lineWidth = 1;
+    x.strokeRect(0.5, 0.5, fw - 1, fh + AW - 1);
+    return { c: t.c, w: fw, h: fh, oy: AW };
   },
 
   /* ---------- civic buildings ----------------------------- */

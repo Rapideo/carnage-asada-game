@@ -404,6 +404,18 @@ const resRows = fullRows(0, 6);            // Elm-Walnut x 5th-6th, authored 're
 ok(retailRows >= 2, `the retail block forms an unbroken street wall (${retailRows} full-width rows)`);
 ok(resRows === 0, `the residential block does not (${resRows} full-width rows)`);
 
+/* Apartment blocks are scenery, not delivery targets — every address in the game
+   comes from genResidential, and giving these a second address path is a
+   follow-up rather than this branch. Assert it so the decision is visible. */
+ok(Art.apts.length > 0, `Art.apts has ${Art.apts.length} blocks of flats`);
+const inLot = (h, bx, by) =>
+  h.x >= (2 + bx * 12 + 3) * TS && h.x < (2 + bx * 12 + 11) * TS &&
+  h.y >= (2 + by * 12 + 3) * TS && h.y < (2 + by * 12 + 11) * TS;
+const aptsWithAddresses = [[0, 3], [0, 5], [4, 5]]
+  .filter(([bx, by]) => City.houses.some((h) => inLot(h, bx, by)));
+ok(aptsWithAddresses.length === 0,
+   `apartment blocks generate no delivery addresses${aptsWithAddresses.length ? ' — ' + JSON.stringify(aptsWithAddresses) : ''}`);
+
 /* Civic buildings stand back behind a forecourt — the opposite of retail, which
    builds to the pavement. The setback is the read, so assert it. */
 ok(Art.civic.length > 0, `Art.civic has ${Art.civic.length} massings`);
