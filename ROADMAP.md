@@ -33,6 +33,12 @@ _Add playtest findings here._
 Goal: make the city read as the blocks around the real Taco Shop — commercial strip, residential, college —
 rather than a uniform random grid.
 
+> **Status: designed and approved, not yet built.** The full design is
+> [`docs/superpowers/specs/2026-08-21-hays-neighbourhood-design.md`](docs/superpowers/specs/2026-08-21-hays-neighbourhood-design.md),
+> on branch `feature/hays-neighbourhood`. Read it before starting work — it records the decisions
+> *and the alternatives that were rejected*, which is the part that is not recoverable from the code.
+> The sections below remain accurate as background on why the job costs what it costs.
+
 ### Why the two halves cost very different amounts
 
 Building *types* are separable. Street *layout* is not: the uniform grid is an assumption baked into six
@@ -48,7 +54,8 @@ modules, not merely how the city is drawn.
 | `Demo` (`75_demo`) | street test goes through `classify()` |
 
 `classify()` is the single source of truth. Anything that changes the street layout **without** going
-through it will desync the minimap from the world.
+through it will desync the minimap from the world. The approved design does not touch `classify()` at all,
+which is how it sidesteps this entire class of bug.
 
 ### Tier 1 — zoning and street names · *free, ~15 lines*
 
@@ -79,23 +86,26 @@ Worth doing only if the real layout has proportions that jump out at you.
 Diagonals, curves, five-way junctions, streets that don't span the map. Breaks the nav graph's grid
 indexing and the traffic rail system outright. A from-scratch city module.
 
-### Recommendation
+### What the survey settled
 
-**Tiers 1 + 2 get roughly 80% of the recognition for 20% of the effort**, because a neighbourhood reads
-from *what is on each block* and *what the streets are called* far more than from exact block dimensions.
+The city is **downtown Hays, Kansas**: Elm Street to Milner Street, 4th Street to 12th Street, with the
+shop at its real address, **333 W 8th St**.
 
-### What's needed to start
-
-An 8×8 zoning grid and the street names. Letters are enough:
-
-```
-        1st    2nd    3rd    4th   ...
-Maple    R      C      C      P
-Oak      R      S      C      C          S = the shop
-Pine     R      R      U      U          U = college / campus
-Birch    R      R      U      L          P = park   L = parking
-...
-```
+- **Tiers 1 + 2 are the scope. Tiers 3 and 4 are rejected.** Measured street bearings show downtown Hays
+  is a *perfect rectilinear grid rotated 28°* to the Union Pacific alignment — no diagonals, no curves, no
+  five-way junctions. Rotating the map so Main Street points up lands it on the existing axis-aligned grid
+  with no distortion, so the Tier 4 rewrite never becomes necessary.
+- **There is an exact nine-street window per axis — precisely `BLOCKS + 1` — centred on the shop.** The
+  8×8 block grid did not need to change to hold the real neighbourhood.
+- **Square blocks are kept.** Real blocks are ~500ft × 340ft, but a per-axis pitch breaks all six modules
+  above *and* halves the houses per block, dragging the address generator and porch layout in with it.
+  Recognition comes from names and contents, not proportion.
+- **The zoning grid and street names now live in `content/hays.json`**, validated at build time, rather
+  than hard-coded — the same path `winners.json` already uses.
+- **New scope the tiers did not anticipate:** the Union Pacific line runs the full width of the map
+  between 9th and 10th, which is why that whole band is parking lots and Union Pacific Park in reality. It
+  ships with a live train, level crossings whose gates are drawn but not solid, and a wreck if you lose the
+  gamble. The cruiser is not exempt, so the crossing doubles as an escape from a pursuit.
 
 ### The invariant to design around
 

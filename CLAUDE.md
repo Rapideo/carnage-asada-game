@@ -47,6 +47,10 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 - `ROADMAP.md` — the open punch list, and the tiered plan for reshaping the city into the real
   neighbourhood. **Read before touching the street grid**: it records which six modules assume a uniform
   block pitch, and which tiers are safe versus which are a rewrite.
+- `docs/superpowers/specs/2026-08-21-hays-neighbourhood-design.md` — the approved design for turning the
+  city into the real downtown Hays, and for the Union Pacific line through it. Not yet built. **Read with
+  `ROADMAP.md` before touching `40_city.js` or the street grid**: it records the rejected alternatives,
+  which is the part the code will never show you.
 - `README.md` — what the game is, controls, and the development commands.
 
 - `JOURNAL.md` — the original brief, why each design call was made (including rejected alternatives), the
