@@ -330,6 +330,22 @@ ok(onNumbered.every((h) => h.num >= 100 && h.num < 500),
 ok(onNamed.every((h) => h.num >= 400 && h.num < 1200),
    'named-street numbers sit in the 400-1100 blocks, 4th to 12th');
 
+/* The block programme is the authored table, not a random roll. */
+const K = City.kinds || [];
+ok(K.length === 8 && K.every((r) => Array.isArray(r) && r.length === 8),
+   'City.kinds is the 8x8 authored table');
+ok((K[3] || [])[1] === 'shop', `the shop block is Walnut-Ash x 8th-9th, got "${(K[3] || [])[1]}"`);
+ok((K[0] || [])[3] === 'retail' && (K[0] || [])[4] === 'retail',
+   'the Fort/Main retail spine runs through 11th-12th');
+ok((K[2] || []).length === 8 && K[2].every((k) => k === 'rail'),
+   'the whole 9th-10th row is the railway corridor');
+
+/* And the shop must physically generate inside the block the table names. */
+const SPANT = 12, BORDERT = 2;
+const blockOf = (w) => Math.floor((w / TS - BORDERT) / SPANT);
+ok(blockOf(City.shop.x) === 1 && blockOf(City.shop.y) === 3,
+   `the shop generates inside block [1,3], got [${blockOf(City.shop.x)},${blockOf(City.shop.y)}]`);
+
 console.log('\n— heat —');
 G.heat = 0; G.cop = null;
 for (let i = 0; i < 40; i++) G.bumpHeat(5);

@@ -1414,6 +1414,13 @@ const VSTREETS = HAYS.streetsNS;
 
 const NODES = BLOCKS + 1;                       // 9 x 9 intersections
 
+/* Kinds with no generator yet render through the closest existing one. The
+   fallbacks are honest rather than arbitrary: the real 9th-10th railway band
+   is mostly parking, and apartment blocks really are residential. Emptied one
+   entry at a time as each bespoke generator lands. */
+const KIND_FALLBACK = { retail: 'com', civic: 'com', apts: 'res', church: 'com', auto: 'lot', rail: 'lot' };
+const genKind = (k) => KIND_FALLBACK[k] || k;
+
 const City = {
   solid: null, surf: null, ground: null, gx: null,
   statics: [], houses: [], shop: null, parkedTiles: null,
@@ -1456,20 +1463,15 @@ const City = {
     }
 
     /* ---- 2. block programme ----------------------------- */
-    const SHOP_BX = 3, SHOP_BY = 4;
-    const kinds = [];
-    for (let by = 0; by < BLOCKS; by++) {
-      kinds[by] = [];
-      for (let bx = 0; bx < BLOCKS; bx++) {
-        if (bx === SHOP_BX && by === SHOP_BY) { kinds[by][bx] = 'shop'; continue; }
-        const roll = rng();
-        kinds[by][bx] = roll < 0.60 ? 'res' : roll < 0.80 ? 'com' : roll < 0.90 ? 'park' : 'lot';
-      }
-    }
+    /* Hand-authored in content/hays.json, not rolled: this is a real place.
+       build.mjs has already checked the table is 8x8, that every kind is known,
+       and that exactly one cell is the shop. */
+    const kinds = HAYS.zoning.map((row) => row.slice());
+    this.kinds = kinds;
 
     /* ---- 3. paint block ground surfaces ------------------ */
     for (let by = 0; by < BLOCKS; by++) for (let bx = 0; bx < BLOCKS; bx++) {
-      const k = kinds[by][bx];
+      const k = genKind(kinds[by][bx]);
       if (k === 'com' || k === 'lot' || k === 'shop') {
         for (let ly = 1; ly <= 8; ly++) for (let lx = 1; lx <= 8; lx++) {
           const tx = BORDER + bx * SPAN + 2 + lx, ty = BORDER + by * SPAN + 2 + ly;
@@ -1495,7 +1497,7 @@ const City = {
 
     /* ---- 6. build each block ----------------------------- */
     for (let by = 0; by < BLOCKS; by++) for (let bx = 0; bx < BLOCKS; bx++) {
-      const k = kinds[by][bx];
+      const k = genKind(kinds[by][bx]);
       if (k === 'res')       this.genResidential(rng, bx, by);
       else if (k === 'com')  this.genCommercial(rng, bx, by);
       else if (k === 'park') this.genPark(rng, bx, by);
