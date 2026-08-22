@@ -9,33 +9,92 @@ Checkboxes render as a live task list on GitHub:
 
 ## Punch list
 
-Everything below is known and unclaimed — add to it freely. The neighbourhood pass this list once
-blocked has since landed in full; what remains here is the leftovers plus what building it turned up.
+The single list. Merged 2026-08-21 from this file and the standalone
+`TACO SHOP - CARNAGE ASADA - Punch List.md` of 16 August, which is now retired — two lists that
+disagreed is how the Hays items sat open for days after they had shipped. Everything below is known
+and unclaimed; add to it freely. Status was verified against the code at merge time, not assumed.
 
-- [ ] **Canvas renders at 1× between ~768–900px window width.** The scale rule at `90_main.js:21` snaps to a
-      crisp 1:1 below 2×, so on a narrow window the game sits small in the middle of a large black field.
-      Deliberate and pre-existing, but far more noticeable now the page frame is gone. Fix is to let that
-      band fit like every other size, at the cost of slightly uneven pixels.
-- [ ] **Demo driver clips kerbs.** It recovers every time since the collision fix, but it visibly drives
-      worse than a person and triggers `RETURN TO ROADWAY` more than it should. Path-following rather than
-      steer-straight-at-the-target would fix it properly.
-- [ ] **Attract timings may want tuning.** Currently title 30s / winners 15s / demo 90s
-      (`ATTRACT_*` at the top of `80_game.js`). 90 seconds is a long watch; judge after a full cycle.
-- [ ] **Default branch is `master`, not `main`.** GitHub took what the repo had. One command to change if
-      it matters: `git branch -m master main && git push -u origin main`.
+### Bugs
+
 - [ ] **A pursuing cop wedges about a third of the time.** Measured 19 of 60 dispatches never covered
       40px in ten seconds. `Cop.update` does not call `unwedge()` the way `Player.update` does, so a
-      cruiser that drives into geometry is stuck permanently -- the exact defect `unwedge()` exists to
-      prevent. Pre-existing and **not** a railway problem: 17 of those 19 jammed 166-272px away from the
-      corridor, in ordinary city geometry. Surfaced while widening `— heat —` during Plan 3 and left
-      alone as out of scope. Likely a one-line fix.
-- [ ] **Downtown has no deliverable addresses.** Only `res` blocks generate houses, so orders concentrate
-      south of the tracks and the tightest driving in the game -- the Fort/Main retail spine -- carries
-      traffic and hazard but no targets. §7 of the spec names the fix: a street door for the flat above
-      the shop, giving `retail` and `apts` blocks an address. Deferred to avoid a second address path.
+      cruiser that drives into geometry is stuck permanently — the exact defect `unwedge()` exists to
+      prevent. Not a railway problem: 17 of those 19 jammed 166–272px away from the corridor, in
+      ordinary city geometry. Likely a one-line fix.
+- [ ] **Banner text is flush with the bottom of its box.** `70_hud.js:154` draws the box at y=60,
+      height 20; `:156` draws the text at y=66, and the 5×7 font at scale 2 is 14px tall, so the last
+      glyph row lands on the border stroke. `text()` takes `py` as the top, not the centre. Moving the
+      text to y=63 centres it with 3px either side. Affects every `say()` banner — PERFECT TOSS!,
+      LOST THEM, PULLED OVER, HIT BY TRAIN.
+- [ ] **Canvas renders at 1× between ~768–900px window width.** The scale rule at `90_main.js:21`
+      snaps to a crisp 1:1 below 2×, so on a narrow window the game sits small in a large black field.
+      Deliberate and pre-existing, but far more noticeable now the page frame is gone. Fix is to let
+      that band fit like every other size, at the cost of slightly uneven pixels.
+- [ ] **Demo driver clips kerbs.** It recovers every time since the collision fix, but it drives
+      visibly worse than a person and triggers `RETURN TO ROADWAY` more than it should. Path-following
+      rather than steer-straight-at-the-target would fix it properly.
+
+### HUD and presentation
+
+- [ ] **Drop the "TACO-NAV 2000" header** and shrink the directions box to fit (`70_hud.js:124`).
+- [ ] **Relabel "TACO BAG" as "DELIVERIES"** (`70_hud.js:129`).
+- [ ] **Put the display face on the shop building.** `Art.mkTaqueria` still sets its sign in the 5×7
+      game font via `text()` (`30_art.js:1062`); the hand-authored `LOGO` face and `mkLogoText()` now
+      exist and are what the badge and title use. Worth checking whether a building reference image
+      should influence the design while it is open.
+- [ ] **Title sequence.** Hold "CARNAGE ASADA" for ~3s, then fade it in with a rumble in the style of
+      the gameplay collision shake. `overlayTitle` is currently badge + wordmark + blinking prompt and
+      has no timed sequence at all.
+- [ ] **Attract timings may want tuning.** Currently title 30s / winners 15s / demo 90s
+      (`ATTRACT_*` at the top of `80_game.js`). 90 seconds is a long watch.
+
+### Features
+
+- [ ] **Score and high-score screen.** There is no persistence of any kind — no `localStorage`,
+      nothing. Improvement currently shows only as one of five rank strings, which is coarse for a
+      game whose skill curve turns on shaving seconds off a delivery. Self-contained: one new state,
+      no engine risk.
+- [ ] **Rework throwing.** Auto-aim, or aim-after-click, or something else — the current scheme is
+      mouse position or facing direction. Note the design tension: throw spread scales with speed
+      (`speed / MAXSPD * 22` px against a 28px porch), and that trade *is* the game's core skill, so
+      auto-aim changes the feel more than any other item on this list.
+- [ ] **Downtown has no deliverable addresses.** Only `res` blocks generate houses, so orders
+      concentrate south of the tracks and the tightest driving in the game — the Fort/Main retail
+      spine — carries traffic and hazard but no targets. §7 of the spec names the fix: a street door
+      for the flat above the shop, giving `retail` and `apts` blocks an address.
+- [ ] **Border zones.** Replace the current grey/sea margin with proper N/E/S/W edge zones. The
+      border is still the 2-tile `T_SEA` ring from the original generator.
 - [ ] **A second time period.** `content/hays.json` exists in the shape it does to make this cheap:
-      another era is another file against the same schema plus a switch on which one loads, not another
-      pass through `40_city.js`. Nothing in the city generator hard-codes a year. See §4 of the spec.
+      another era is another file against the same schema plus a switch on which one loads, not
+      another pass through `40_city.js`. Nothing in the city generator hard-codes a year. See §4 of
+      the spec.
+- [ ] **Seasonal hazards.**
+- [ ] **NPC feedback — APB-style character dialogue.**
+
+### Housekeeping
+
+- [ ] **Default branch is `master`, not `main`.** GitHub took what the repo had. One command if it
+      matters: `git branch -m master main && git push -u origin main`.
+- [ ] **Line endings churn the built artifact.** `core.autocrlf=true` means a fresh checkout hands
+      `build.mjs` CRLF sources, so a rebuild produces a byte-different `taco-shop.html` with identical
+      content (189 KB vs 193 KB). A `.gitattributes` with `* text=auto eol=lf` would pin it.
+
+### Open questions
+
+These need a decision before they can become work.
+
+- [ ] **Difficulty progression.** Grid expansion? A faster timer? Something else? Note the shift
+      clock is already a survival curve — 110s to start, +9s per delivery, +12s for a perfect toss —
+      so difficulty may be more about tightening that ratio than adding systems.
+- [ ] **What happens when Hays PD catches you?** Currently a $15 ticket, a spin-out and heat reset.
+- [ ] **How should the player car read as *the* car?** Turning it white is the starting idea.
+- [ ] **Gamepad / Xbox controller support**, and whether an on-screen control overlay comes with it.
+
+### Landed, for the record
+
+Closed by the neighbourhood pass and no longer carried: the Hays street data, the block-kind zoning,
+and the display-face resize (the 9×11 → 7×9 glyph-grid change in `JOURNAL.md`, which is what made an
+exact percentage possible — cells are square `s×s` rects, so `scale` alone cannot do it).
 
 _Add playtest findings here._
 
