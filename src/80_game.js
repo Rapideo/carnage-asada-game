@@ -21,6 +21,7 @@ const THROW_CD = 0.34;
 const ATTRACT_TITLE = ATTRACT.title.seconds;
 const ATTRACT_WINNERS = ATTRACT.winners.seconds;
 const ATTRACT_DEMO = ATTRACT.demo.seconds;
+const ATTRACT_SCORES = ATTRACT.scores.seconds;
 const TITLE_HOLD = ATTRACT.title.wordmarkHold;   // badge alone, before the slam
 const TITLE_FADE = 0.22;                         // and how fast it lands
 const WINNERS_BLUE = '#1f1fa8';
@@ -36,6 +37,7 @@ const G = {
   throwCd: 0, restock: 0, tipPop: 0, infraction: 0,
   stats: null, titleCam: 0, titleT: 0, titleSlam: false, paused: false, flash: 0,
   attractT: 0, demoAim: null,
+  scoresFromShift: false, scoreIdx: -1, attractFlip: false,
   rl: [],
 
   /* ---------------- setup ------------------------------- */
@@ -44,6 +46,7 @@ const G = {
     Art.build(makeRng(seed ^ 0x5eed));
     City.gen(rng);
     Hud.buildMap();
+    Scores.load();       // before any overlay can draw the board
     this.toTitle();
   },
 
@@ -67,6 +70,15 @@ const G = {
   toWinners() {
     this.state = 'winners';
     this.attractT = ATTRACT_WINNERS;
+  },
+
+  /* The board serves twice: an attract screen on a timer, and the post-shift
+     screen waiting for input. One flag tells them apart. */
+  toScores(fromShift) {
+    this.state = 'scores';
+    this.scoresFromShift = !!fromShift;
+    this.attractT = ATTRACT_SCORES;
+    if (!fromShift) this.scoreIdx = -1;
   },
 
   /* the demo is a real shift — same setup, same rules — with Demo at the
@@ -390,7 +402,13 @@ const G = {
       this.simCrowd(dt);
       if (Input.p('Enter', 'NumpadEnter', 'Space')) { Audio5.sfx('select'); this.startShift(); return; }
       this.attractT -= dt;
-      if (this.attractT <= 0) this.toWinners();
+      /* The middle slot alternates rather than adding a fourth screen: a
+         dedicated slot would grow the cycle from 135s to ~147s, and 90s of
+         demo is already the long part of the watch. */
+      if (this.attractT <= 0) {
+        this.attractFlip = !this.attractFlip;
+        if (this.attractFlip) this.toWinners(); else this.toScores(false);
+      }
       return;
     }
 
@@ -398,6 +416,20 @@ const G = {
       this.attractT -= dt;
       if (Input.anyKey || Input.mhit) { Audio5.sfx('select'); this.toTitle(); return; }
       if (this.attractT <= 0) this.toDemo();
+      return;
+    }
+
+    if (this.state === 'scores') {
+      if (this.scoresFromShift) {
+        // the same keys results already uses, so there is no second set to learn
+        if (Input.p('Enter', 'NumpadEnter', 'KeyR')) { Audio5.sfx('select'); this.startShift(); return; }
+        if (Input.p('Escape')) { Audio5.sfx('select'); this.toTitle(); return; }
+      } else {
+        this.attractT -= dt;
+        if (Input.anyKey || Input.mhit) { Audio5.sfx('select'); this.toTitle(); return; }
+        if (this.attractT <= 0) { this.toDemo(); return; }
+      }
+      this.simCrowd(dt);
       return;
     }
 
@@ -658,6 +690,7 @@ const G = {
       if (this.state === 'demo') this.overlayDemo(x);
     }
     if (this.state === 'title')   this.overlayTitle(x);
+    if (this.state === 'scores')  this.overlayScores(x);
     if (this.state === 'results') this.overlayResults(x);
 
     if (this.flash > 0) {
@@ -810,6 +843,41 @@ const G = {
 
     if ((this.time * 2 | 0) % 2) text(x, 'ENTER - RUN IT BACK', VW / 2, VH - 22, PAL.bone, 1, 1);
     text(x, 'ESC - TITLE', VW / 2, VH - 11, '#6b5f84', 1, 1);
+  },
+
+  /* Ten rows on a 12px pitch. The rank title is derived from the score rather
+     than stored, so retuning rank() reflows the whole board. */
+  overlayScores(x) {
+    x.fillStyle = 'rgba(20,12,28,0.78)'; x.fillRect(0, 0, VW, VH);
+    const w = 300, px = (VW - w) / 2 | 0, py = 6, h = 178;
+    R(x, PAL.ink, px, py, w, h);
+    R(x, '#241a2e', px + 2, py + 2, w - 4, h - 4);
+    x.strokeStyle = PAL.amber; x.strokeRect(px + 0.5, py + 0.5, w - 1, h - 1);
+
+    text(x, 'HIGH SCORES', VW / 2, 12, PAL.amber, 2, 1);
+    R(x, PAL.amber, px + 16, 32, w - 32, 1);
+
+    for (let i = 0; i < Scores.board.length; i++) {
+      const e = Scores.board[i], y = 38 + i * 12;
+      const mine = i === this.scoreIdx;
+      // the placing row blinks so the player can find themselves at a glance
+      const on = !mine || (this.time * 3 | 0) % 2 === 0;
+      const col = mine ? (on ? PAL.amber : PAL.bone) : PAL.bone;
+      text(x, (i + 1) + '', 75, y, mine ? col : PAL.boneDim, 1, 2);
+      text(x, e.ini, 93, y, col, 1);
+      text(x, money(e.cents), 193, y, col, 1, 2);
+      text(x, this.rank.call({ earned: e.cents }), 208, y, mine ? col : PAL.boneDim, 1);
+    }
+
+    /* Prompts sit INSIDE the panel. Rows end at y=152 and the panel at 184;
+       leaving that gap empty and stranding the prompts below the border read
+       as an unfinished screen rather than a designed one. */
+    if (this.scoresFromShift) {
+      if ((this.time * 2 | 0) % 2) text(x, 'ENTER - RUN IT BACK', VW / 2, 162, PAL.bone, 1, 1);
+      text(x, 'ESC - TITLE', VW / 2, 173, '#6b5f84', 1, 1);
+    } else {
+      text(x, 'BEAT THE BOARD', VW / 2, 167, PAL.boneDim, 1, 1);
+    }
   },
 
   /* The page frame used to carry a key legend under the canvas. It doesn't

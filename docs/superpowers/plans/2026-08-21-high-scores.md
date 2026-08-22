@@ -512,9 +512,19 @@ Add immediately after the whole `if (this.state === 'winners') { ... }` block:
     }
 ```
 
-- [ ] **Step 6: Draw it**
+- [ ] **Step 6: Draw it, and load the board at boot**
 
-In `render()`, beside the other overlay dispatches — find `if (this.state === 'results') this.overlayResults(x);` and add above it:
+`overlayScores` reads `Scores.board`, so the board has to exist before any
+overlay can draw it. In `G.boot(seed)`, after `Hud.buildMap();`:
+
+```js
+    Scores.load();       // before any overlay can draw the board
+```
+
+The headless tests call `Scores.load()` themselves, so this gap is invisible to
+the suite and shows up only in the browser as a board with a header and no rows.
+
+Then in `render()`, beside the other overlay dispatches — find `if (this.state === 'results') this.overlayResults(x);` and add above it:
 
 ```js
     if (this.state === 'scores')  this.overlayScores(x);
@@ -898,14 +908,6 @@ with:
 ```
 
 The results box spans y 24–178, so the new line at y=184 clears it and the two prompts below it.
-
-- [ ] **Step 6: Load the board at boot**
-
-In `G.boot(seed)`, after `Hud.buildMap();`:
-
-```js
-    Scores.load();
-```
 
 - [ ] **Step 7: Run the tests five times**
 

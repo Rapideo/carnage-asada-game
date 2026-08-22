@@ -146,7 +146,7 @@ const SCORES = {
       "cents": 9600
     },
     {
-      "ini": "ACE",
+      "ini": "JAX",
       "cents": 7250
     },
     {

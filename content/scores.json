@@ -6,7 +6,7 @@
 
   "board": [
     { "ini": "MJS", "cents": 9600 },
-    { "ini": "ACE", "cents": 7250 },
+    { "ini": "JAX", "cents": 7250 },
     { "ini": "RED", "cents": 5840 },
     { "ini": "TAC", "cents": 4610 },
     { "ini": "UPX", "cents": 3990 },

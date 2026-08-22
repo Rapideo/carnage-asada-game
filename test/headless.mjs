@@ -58,11 +58,11 @@ vm.createContext(sandbox);
 // top-level const/let live in the script's lexical scope, not on the global
 // object, so hand them out explicitly from inside the same scope
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, MAXTHROW,' +
-  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, TS, GW, HSTREETS, VSTREETS };',
+  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, TS, GW, HSTREETS, VSTREETS };',
   sandbox, { filename: 'bundle.js' });
 
 const { G, City, Nav, Art, Input, textW, MAXTHROW, VW, VH, WW, WH,
-        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
+        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
 sandbox.solve = sandbox.__x.solve;
 
 /* ---------- assertions ---------- */
@@ -688,6 +688,40 @@ ok(!Scores.valid([{ ini: 'TOOLONG', cents: 10 }]), 'bad initials are rejected');
 ok(!Scores.valid([{ ini: 'ABC', cents: 1.5 }]), 'non-integer cents are rejected');
 ok(!Scores.valid('not a board'), 'a non-array is rejected');
 ok(!Scores.valid([]), 'an empty array is rejected');
+
+/* the board is an attract screen, alternating with the winners card */
+Input.down = Object.create(null); Input.anyKey = false; Input.mhit = false; Input.hasMouse = false;
+G.toTitle();
+const seq = [];
+for (let cycle = 0; cycle < 4 && seq.length < 3; cycle++) {
+  for (let i = 0; i < (ATTRACT_TITLE + 0.5) * 60; i++) { G.update(1 / 60); Input.endFrame(); }
+  seq.push(G.state);
+  G.toTitle();
+}
+ok(seq.length === 3 && seq[0] !== seq[1] && seq[1] !== seq[2],
+   `the attract middle slot alternates: ${seq.join(' -> ')}`);
+ok(seq.includes('scores') && seq.includes('winners'), 'and it shows both the board and the winners card');
+
+/* the widest row the board can ever draw must fit the screen */
+const RANK_X = 208, WIDEST_RANK = 'LEGEND OF THE ASADA';
+ok(RANK_X + textW(WIDEST_RANK, 1) <= VW - 8,
+   `the widest rank title fits the board row (ends at ${RANK_X + textW(WIDEST_RANK, 1)} of ${VW})`);
+ok(G.rank.call({ earned: 999999 }) === WIDEST_RANK, 'and it really is the widest title rank() can return');
+
+/* the board renders in both of its two lives without throwing */
+G.toScores(false);
+ok(G.state === 'scores' && !G.scoresFromShift, 'the attract board is on a timer');
+G.render(ctx);
+G.toScores(true); G.scoreIdx = 3;
+ok(G.scoresFromShift, 'the post-shift board waits for input');
+G.render(ctx);
+
+/* Hand — heat — below a LIVE game. The sections share one mutable game and run
+   in order, and — heat — asserts the state it ran in precisely so this cannot
+   rot: leaving the title here silently downgrades it to a pursuit that never
+   moves, which is what it used to be before — rail — existed. */
+Input.down = Object.create(null);
+G.startShift();
 
 console.log('\n— heat —');
 G.heat = 0; G.cop = null;
