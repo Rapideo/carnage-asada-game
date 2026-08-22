@@ -649,11 +649,27 @@ const City = {
     this.statics.push({ img: p.c, x: wx, y: wy, oy: p.oy, w: p.w, h: p.h, sortY: wy + p.h });
 
     const g = this.gx;
-    // apron with a bold painted pickup bay
     const dockX = wx + p.w / 2, dockY = wy + p.h + 24;
-    R(g, PAL.amber, dockX - 30, dockY - 16, 60, 32);
-    R(g, '#3a3040', dockX - 27, dockY - 13, 54, 26);
-    for (let i = 0; i < 60; i += 8) R(g, PAL.amber, dockX - 30 + i, dockY - 16, 4, 3);
+
+    /* The apron and the driveway are declared as rectangles once and then used
+       twice -- to paint, and to pave. They used to be two separate sets of
+       numbers: the paint was here and the `surf` array was never touched at
+       all, so the ground was drawn as tarmac while the data underneath it
+       still said sidewalk. Nothing on screen showed it, because the picture
+       was right; it surfaced as the car crawling on and off the dock at
+       SURF_MUL[S_WALK] = 0.60 -- 60% of top speed AND acceleration -- which
+       reads as bad handling rather than as a bug. This is the one place in the
+       game the player is required to leave the road, and every restock trip
+       crosses it twice, so it was the most-driven wrong tile in the city.
+       Keep the paint and the pave reading from the same rect. */
+    const apron = { x: dockX - 30, y: dockY - 16, w: 60, h: 32 };
+    const drive = { x: dockX - 20, y: dockY + 16, w: 40,
+                    h: (BORDER + (by + 1) * SPAN) * TS - (dockY + 16) };
+
+    // apron with a bold painted pickup bay
+    R(g, PAL.amber, apron.x, apron.y, apron.w, apron.h);
+    R(g, '#3a3040', apron.x + 3, apron.y + 3, apron.w - 6, apron.h - 6);
+    for (let i = 0; i < apron.w; i += 8) R(g, PAL.amber, apron.x + i, apron.y, 4, 3);
     text(g, 'PICKUP', dockX, dockY - 8, PAL.amber, 1, 1);
     text(g, 'ONLY', dockX, dockY + 2, PAL.amber, 1, 1);
 
@@ -666,7 +682,20 @@ const City = {
     this.shop.node = [this.nearNodeX(this.shop.curb.x), this.nearNodeY(this.shop.curb.y)];
 
     // driveway out to the street
-    R(g, '#5a5e70', dockX - 20, dockY + 16, 40, (BORDER + (by + 1) * SPAN) * TS - (dockY + 16));
+    R(g, '#5a5e70', drive.x, drive.y, drive.w, drive.h);
+
+    /* Pave what we just painted: every tile the apron or the driveway touches
+       is drivable road, and is reserved in `keep` so no later generator can
+       put a tree or a prop in the one loading bay in the game. genFurniture
+       runs after every block generator and only tests `keep`. */
+    for (const r of [apron, drive]) {
+      for (let ty = (r.y / TS) | 0; ty <= ((r.y + r.h - 1) / TS) | 0; ty++)
+        for (let tx = (r.x / TS) | 0; tx <= ((r.x + r.w - 1) / TS) | 0; tx++) {
+          if (tx < 0 || ty < 0 || tx >= GW || ty >= GW) continue;
+          this.surf[ty * GW + tx] = S_ROAD;
+          this.keep[ty * GW + tx] = 1;
+        }
+    }
   },
 
   /* ---------- street furniture along sidewalks ------------ */

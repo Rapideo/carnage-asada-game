@@ -58,11 +58,11 @@ vm.createContext(sandbox);
 // top-level const/let live in the script's lexical scope, not on the global
 // object, so hand them out explicitly from inside the same scope
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, money, MAXTHROW,' +
-  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS };',
+  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, SURF_MUL };',
   sandbox, { filename: 'bundle.js' });
 
 const { G, City, Nav, Art, Input, textW, money, MAXTHROW, VW, VH, WW, WH,
-        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
+        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, SURF_MUL } = sandbox.__x;
 sandbox.solve = sandbox.__x.solve;
 
 /* ---------- assertions ---------- */
@@ -504,6 +504,45 @@ if (City.crossings && City.railY) {
   }
   ok(checked > 0 && solid / checked > 0.9,
      `the corridor is solid between crossings (${solid}/${checked} tiles)`);
+}
+
+console.log('\n— shop apron —');
+/* The dock is the one place in the game the player MUST leave the road, and
+   every restock trip both ends and starts here. genShop paints an apron and a
+   driveway onto the ground canvas; if it does not also write S_ROAD into
+   `surf`, the paint and the data disagree and the car crosses a 16px band of
+   sidewalk at SURF_MUL[S_WALK] = 0.60 -- 60% of both top speed and
+   acceleration -- twice per delivery. That is invisible on screen, because the
+   driveway is drawn correctly; it shows up only as the car crawling off the
+   dock, which reads as bad handling rather than as a bug. */
+{
+  const shop = City.shop;
+  ok(!!shop && !!shop.dock && !!shop.curb, 'the shop has a dock and a kerb');
+
+  /* walk the driveway from the kerb to the dock, sampling every 4px */
+  const x0 = shop.curb.x, y0 = shop.curb.y, x1 = shop.dock.x, y1 = shop.dock.y;
+  const steps = Math.ceil(Math.hypot(x1 - x0, y1 - y0) / 4);
+  const offRoad = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps, sx = x0 + (x1 - x0) * t, sy = y0 + (y1 - y0) * t;
+    const su = City.surfaceAt(sx, sy);
+    if (su !== S_ROAD)
+      offRoad.push(Math.round(sy) + ':' + (su === S_WALK ? 'WALK' : su === S_GRASS ? 'GRASS' : su));
+  }
+  ok(offRoad.length === 0,
+     'the drive from the kerb to the dock is road the whole way' +
+     (offRoad.length ? ' (' + offRoad.length + ' samples are not: ' + offRoad.slice(0, 4).join(', ') + ')' : ''));
+
+  /* and the bay itself, across its full painted width */
+  let bad = 0, tot = 0;
+  for (let dx = -28; dx <= 28; dx += 4) for (let dy = -14; dy <= 14; dy += 4) {
+    tot++;
+    if (City.surfaceAt(shop.dock.x + dx, shop.dock.y + dy) !== S_ROAD) bad++;
+  }
+  ok(bad === 0, 'the whole pickup bay is road surface (' + bad + '/' + tot + ' off-road)');
+
+  /* nothing may ever bury the one dock in the game */
+  ok(!City.isSolid(shop.dock.x, shop.dock.y), 'the dock itself is not solid');
 }
 
 console.log('\n— rail —');

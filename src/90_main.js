@@ -15,11 +15,16 @@
     const availW = wrap.clientWidth || window.innerWidth;
     const availH = wrap.clientHeight || window.innerHeight;
     // Integer scaling keeps pixels perfectly square, but a window only a few
-    // px short of the next step throws away a third of the picture. Above 2x
-    // the unevenness of a fractional step is imperceptible, so take the fit.
+    // px short of the next step throws away a third of the picture, so take
+    // the fit instead and accept that some rows land on 2 device px.
+    //
+    // There used to be a `raw >= 1 ? 1` branch snapping the whole 1x-2x band
+    // to a crisp 1:1. It is gone deliberately: #stage fills the viewport, so
+    // raw is min(W/384, H/216) and *height* falls in that band constantly --
+    // an 800x400 window measures 1.85 and painted a 384x216 canvas into the
+    // middle of it. Uneven pixels beat a picture at a quarter of the size.
     const raw = Math.min(availW / VW, availH / VH);
-    scale = raw >= 2 ? Math.floor(raw * 20) / 20   // fit; unevenness invisible this dense
-          : raw >= 1 ? 1                           // crisp 1:1 on small viewports
+    scale = raw >= 1 ? Math.floor(raw * 20) / 20   // fit to the stage in 0.05 steps
           : raw;                                   // below 1:1, fit rather than overflow
     canvas.style.width = (VW * scale) + 'px';
     canvas.style.height = (VH * scale) + 'px';

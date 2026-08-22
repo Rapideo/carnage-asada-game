@@ -176,6 +176,16 @@ two rows of parked cars 26px apart while marking each car 2×2 tiles; neighbouri
 with a 4px pocket between them, which no input could escape. Keep aisles wider than a car, and keep rows
 flush to a lot line so there is no gap to be caught in. The wedge sweep in `test/headless.mjs` is the guard.
 
+**And a generator that draws more road than it marks will build a slow spot.** The mirror image, and
+harder to catch: `genShop` painted the pickup apron and its driveway onto the ground canvas without
+writing `S_ROAD` into `surf`, so the kerb band under the driveway stayed `S_WALK`. Nothing looked
+wrong — the picture was correct — but `SURF_MUL[S_WALK]` = 0.60 took 40% off both top speed and
+acceleration every time the player entered or left the dock, which is twice per delivery, and it was
+read as bad car handling for months. **`surf` is data and the ground canvas is paint; changing one
+never changes the other.** Declare the rectangle once and use it for both, the way `genShop` now
+does. `— shop apron —` in `test/headless.mjs` is the guard, and it tests the drive from the kerb to
+the dock rather than any single tile.
+
 **The block programme comes from `content/hays.json`**, not from a random roll — see the section above.
 Kinds are `res`, `retail`, `civic`, `apts`, `church`, `auto`, `rail`, `com`, `park`, `lot`, `shop`; each has
 a `genX(rng, bx, by)` in `40_city.js` and knows nothing about any other. `lot` is still valid but the Hays
@@ -397,7 +407,7 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. 158 assertions covering city invariants (address
+every drawing call is a no-op but all logic executes. 162 assertions covering city invariants (address
 uniqueness, porch reachability), HUD text widths, wedge escapability, 250 solved routes, 9000 fuzzed
 simulation frames checked for NaN and out-of-world drift, the attract rotation and 85s of autonomous
 demo driving, the full scoring loop, heat/cop behaviour, and the railway.
@@ -445,8 +455,8 @@ steers itself.
 
 There is no per-test filter — it is one sequential script with labelled sections (`— build —`,
 `— hud layout —`, `— collision —`, `— guidance —`, `— simulation —`, `— scoring —`, `— attract —`,
-`— hays map —`, `— block kinds —`, `— rail —`, `— high scores —`, `— heat —`). To isolate one,
-edit the script.
+`— hays map —`, `— block kinds —`, `— shop apron —`, `— rail —`, `— high scores —`, `— heat —`).
+To isolate one, edit the script.
 
 ## Publishing
 

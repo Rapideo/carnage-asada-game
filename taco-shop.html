@@ -2567,11 +2567,27 @@ const City = {
     this.statics.push({ img: p.c, x: wx, y: wy, oy: p.oy, w: p.w, h: p.h, sortY: wy + p.h });
 
     const g = this.gx;
-    // apron with a bold painted pickup bay
     const dockX = wx + p.w / 2, dockY = wy + p.h + 24;
-    R(g, PAL.amber, dockX - 30, dockY - 16, 60, 32);
-    R(g, '#3a3040', dockX - 27, dockY - 13, 54, 26);
-    for (let i = 0; i < 60; i += 8) R(g, PAL.amber, dockX - 30 + i, dockY - 16, 4, 3);
+
+    /* The apron and the driveway are declared as rectangles once and then used
+       twice -- to paint, and to pave. They used to be two separate sets of
+       numbers: the paint was here and the `surf` array was never touched at
+       all, so the ground was drawn as tarmac while the data underneath it
+       still said sidewalk. Nothing on screen showed it, because the picture
+       was right; it surfaced as the car crawling on and off the dock at
+       SURF_MUL[S_WALK] = 0.60 -- 60% of top speed AND acceleration -- which
+       reads as bad handling rather than as a bug. This is the one place in the
+       game the player is required to leave the road, and every restock trip
+       crosses it twice, so it was the most-driven wrong tile in the city.
+       Keep the paint and the pave reading from the same rect. */
+    const apron = { x: dockX - 30, y: dockY - 16, w: 60, h: 32 };
+    const drive = { x: dockX - 20, y: dockY + 16, w: 40,
+                    h: (BORDER + (by + 1) * SPAN) * TS - (dockY + 16) };
+
+    // apron with a bold painted pickup bay
+    R(g, PAL.amber, apron.x, apron.y, apron.w, apron.h);
+    R(g, '#3a3040', apron.x + 3, apron.y + 3, apron.w - 6, apron.h - 6);
+    for (let i = 0; i < apron.w; i += 8) R(g, PAL.amber, apron.x + i, apron.y, 4, 3);
     text(g, 'PICKUP', dockX, dockY - 8, PAL.amber, 1, 1);
     text(g, 'ONLY', dockX, dockY + 2, PAL.amber, 1, 1);
 
@@ -2584,7 +2600,20 @@ const City = {
     this.shop.node = [this.nearNodeX(this.shop.curb.x), this.nearNodeY(this.shop.curb.y)];
 
     // driveway out to the street
-    R(g, '#5a5e70', dockX - 20, dockY + 16, 40, (BORDER + (by + 1) * SPAN) * TS - (dockY + 16));
+    R(g, '#5a5e70', drive.x, drive.y, drive.w, drive.h);
+
+    /* Pave what we just painted: every tile the apron or the driveway touches
+       is drivable road, and is reserved in `keep` so no later generator can
+       put a tree or a prop in the one loading bay in the game. genFurniture
+       runs after every block generator and only tests `keep`. */
+    for (const r of [apron, drive]) {
+      for (let ty = (r.y / TS) | 0; ty <= ((r.y + r.h - 1) / TS) | 0; ty++)
+        for (let tx = (r.x / TS) | 0; tx <= ((r.x + r.w - 1) / TS) | 0; tx++) {
+          if (tx < 0 || ty < 0 || tx >= GW || ty >= GW) continue;
+          this.surf[ty * GW + tx] = S_ROAD;
+          this.keep[ty * GW + tx] = 1;
+        }
+    }
   },
 
   /* ---------- street furniture along sidewalks ------------ */
@@ -4987,11 +5016,16 @@ const Post = {
     const availW = wrap.clientWidth || window.innerWidth;
     const availH = wrap.clientHeight || window.innerHeight;
     // Integer scaling keeps pixels perfectly square, but a window only a few
-    // px short of the next step throws away a third of the picture. Above 2x
-    // the unevenness of a fractional step is imperceptible, so take the fit.
+    // px short of the next step throws away a third of the picture, so take
+    // the fit instead and accept that some rows land on 2 device px.
+    //
+    // There used to be a `raw >= 1 ? 1` branch snapping the whole 1x-2x band
+    // to a crisp 1:1. It is gone deliberately: #stage fills the viewport, so
+    // raw is min(W/384, H/216) and *height* falls in that band constantly --
+    // an 800x400 window measures 1.85 and painted a 384x216 canvas into the
+    // middle of it. Uneven pixels beat a picture at a quarter of the size.
     const raw = Math.min(availW / VW, availH / VH);
-    scale = raw >= 2 ? Math.floor(raw * 20) / 20   // fit; unevenness invisible this dense
-          : raw >= 1 ? 1                           // crisp 1:1 on small viewports
+    scale = raw >= 1 ? Math.floor(raw * 20) / 20   // fit to the stage in 0.05 steps
           : raw;                                   // below 1:1, fit rather than overflow
     canvas.style.width = (VW * scale) + 'px';
     canvas.style.height = (VH * scale) + 'px';

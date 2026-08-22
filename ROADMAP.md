@@ -16,14 +16,13 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
 
 ### Bugs
 
-- [ ] **The shop apron is the easiest place in the city to get stuck.** Measured in play: 25 seconds
-      lost crawling and re-wedging within ~60px of the dock, and separately ~$10 of decaying tip lost
-      wedged on a warehouse corner nearby. Reversing always freed it — this is not a softlock — but it
-      is the most cluttered ground in the game and it sits exactly where every restock trip ends.
-- [ ] **Canvas renders at 1× between ~768–900px window width.** The scale rule at `90_main.js:21`
-      snaps to a crisp 1:1 below 2×, so on a narrow window the game sits small in a large black field.
-      Deliberate and pre-existing, but far more noticeable now the page frame is gone. Fix is to let
-      that band fit like every other size, at the cost of slightly uneven pixels.
+- [ ] **The shop apron is still tight, though it is no longer slow.** The original report was 25
+      seconds lost *crawling and re-wedging* within ~60px of the dock. **The crawling half is fixed**
+      (see below) — it was a data bug, not handling. What remains is geometry: the apron is a 32px-deep
+      pocket between the shop's solid south wall and the kerb, so a fast approach still noses into the
+      building and needs a reverse. `unwedge()` frees it every time, so this is awkward rather than a
+      softlock. Re-measure before changing it — the speed fix alone may have been most of the problem,
+      since a car that crosses the kerb at 176 instead of 106 arrives with more control, not less.
 - [ ] **Demo driver clips kerbs.** It recovers every time since the collision fix, but it drives
       visibly worse than a person and triggers `RETURN TO ROADWAY` more than it should. Path-following
       rather than steer-straight-at-the-target would fix it properly.
@@ -61,9 +60,6 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
 
 - [ ] **Default branch is `master`, not `main`.** GitHub took what the repo had. One command if it
       matters: `git branch -m master main && git push -u origin main`.
-- [ ] **Line endings churn the built artifact.** `core.autocrlf=true` means a fresh checkout hands
-      `build.mjs` CRLF sources, so a rebuild produces a byte-different `taco-shop.html` with identical
-      content (189 KB vs 193 KB). A `.gitattributes` with `* text=auto eol=lf` would pin it.
 
 ### Open questions
 
@@ -97,6 +93,35 @@ These need a decision before they can become work.
 - [ ] **Gamepad / Xbox controller support**, and whether an on-screen control overlay comes with it.
 
 ### Landed, for the record
+
+Closed 2026-08-22: **the shop apron crawl**. `genShop` painted the apron and the driveway onto the
+ground canvas but never wrote `S_ROAD` into `surf`, so the tarmac you can see was still sidewalk in
+the data. Crossing it cost `SURF_MUL[S_WALK]` = 0.60 — **60% of top speed and 60% of acceleration** —
+across the 16px kerb band, twice per delivery, at the one spot in the game the player is *required*
+to leave the road. Measured on the fixed build, the exit from the dock to the street now holds 176
+the whole way where it used to drop to 106. The apron and driveway are now declared as rectangles
+once and used twice, to paint *and* to pave, so the picture and the data cannot drift apart again;
+both are also reserved in `keep`, because `genFurniture` runs after every block generator and tests
+nothing else. Guarded by the new `— shop apron —` section in `test/headless.mjs`.
+
+The general lesson is the inverse of the one already in `CLAUDE.md`. That file warns that *a
+generator which marks more solid than it draws will eventually build a trap*; this was a generator
+that **drew more road than it marked**, and the failure mode is the mirror image — invisible on
+screen, because the picture was right, and blamed on car handling for months.
+
+Closed 2026-08-22: **the 1× scaling band**. `90_main.js` snapped everything between 1× and 2× to a
+crisp 1:1, and because `#stage` fills the viewport the governing term is `min(W/384, H/216)` — so
+*height* put ordinary windows in that band constantly. Measured: an 800×400 stage rendered the canvas
+at 384×216 and threw away **52% of the width**; 760×430 threw away 49%; 700×390, 45%. The band now
+fits like every other size. At and above 2× the output is byte-identical — a 900×470 stage gives
+826×464 under both rules — so the change is confined to exactly the broken range.
+
+Closed 2026-08-22: **line-ending churn**. `.gitattributes` pins `* text=auto eol=lf` (with `*.webp
+binary`), the working tree was converted, and `core.autocrlf` is off locally so the two rules stop
+disagreeing. `node build.mjs` twice in a row now produces byte-identical output. The 25 files this
+touched carried no content change — the blobs were already LF; it was the *working tree* that was
+mixed, which is the half that matters, because `build.mjs` reads the working tree.
+
 
 Closed by the neighbourhood pass and no longer carried: the Hays street data, the block-kind zoning,
 and the display-face resize (the 9×11 → 7×9 glyph-grid change in `JOURNAL.md`, which is what made an

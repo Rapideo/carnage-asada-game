@@ -1,0 +1,11 @@
+# Pin line endings so a rebuild is byte-identical on every machine.
+#
+# core.autocrlf=true handed build.mjs CRLF sources on a fresh Windows checkout,
+# so `node build.mjs` produced a taco-shop.html that differed from the committed
+# one in every line ending and nothing else -- 189 KB against 193 KB, identical
+# content, a diff nobody could read. eol=lf pins the *working tree*, not just
+# the blob, which is the half that matters: build.mjs reads the working tree.
+* text=auto eol=lf
+
+# Images are never text; say so rather than trusting auto-detection.
+*.webp binary
