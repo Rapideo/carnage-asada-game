@@ -11,13 +11,11 @@ this prompt as the source, not a pointer. If something seems missing, ask.
 
 THIS IS NOT A JUST MINI-GAME. This is the other half of the game play. Players will alternate between working in the Taco Shop kitchen, and driving deliveries. 
 
-
-
 ## Global Adjustments
 
 A few things will need to change game-wide to allow of the merging of both of these types of game play. 
 
-
+## CONTROL MECHANICS
 
 ## TIME PROGRESSION and LEVELS
 
@@ -28,8 +26,6 @@ A few things will need to change game-wide to allow of the merging of both of th
 ## PLAY EXTENSIONS
 
 ## DIFFICULTY PROGRESSION
-
-
 
 ## Part 1 — The Build (the mechanic, as it worked)
 

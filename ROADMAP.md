@@ -23,9 +23,37 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
       building and needs a reverse. `unwedge()` frees it every time, so this is awkward rather than a
       softlock. Re-measure before changing it — the speed fix alone may have been most of the problem,
       since a car that crosses the kerb at 176 instead of 106 arrives with more control, not less.
-- [ ] **Demo driver clips kerbs.** It recovers every time since the collision fix, but it drives
-      visibly worse than a person and triggers `RETURN TO ROADWAY` more than it should. Path-following
-      rather than steer-straight-at-the-target would fix it properly.
+- [ ] **Demo driver clips kerbs.** **Built on branch `demo-path-following`, not yet merged and
+      NOT YET WATCHED.** Every number below is from the headless harness; nobody has sat and looked
+      at the attract loop, which is the one check that matters for a screen whose entire job is to
+      be looked at. See `docs/resume-demo-path-following.md`.
+
+      The diagnosis was only half what this entry assumed. Measured over 20 minutes of attract
+      mode, the old driver spent **34.9% of its frames steering at a point behind the car** and
+      **27.2% steering at one less than 24px away**, where `atan2` swings wildly and
+      `clamp(err * 2.2)` saturates the wheel. `Nav.recompute` retires the head node when the car
+      is closer to the *second* node than the two nodes are to each other — on a straight that
+      fires 12px past the node, but on a **turn** the second node is perpendicular and a full
+      `PITCH` away wherever the car is, so the head node is never retired at all.
+
+      Path-following alone would not have fixed it, and retirement alone made it **worse**
+      (32.0% off the tarmac against 25.7%, grass time from 2.9% to 8.3%) because the node you
+      advance to is around a corner and driving straight at it crosses the block. Paired 20-minute
+      runs, old against new:
+
+      | | old | new |
+      |---|---|---|
+      | off the tarmac | 26.4% | **23.1%** |
+      | excursions | 461 (one per 2.6s) | **305** (one per 3.9s) |
+      | worst single excursion | 5.7s | **3.7s** |
+      | on grass | 4.7% | **3.3%** |
+      | steering at a point under 24px away | 27.2% | **3.6%** |
+      | mean offset from the lane centre | 10.0px | **6.4px** |
+      | frames more than 12px off lane centre | 36.7% | **20.6%** |
+      | delivered / earned | 42 / $134.79 | **60 / $640.09** |
+
+      The earnings gap is far wider than the delivery gap because the tip decays at 55c/s: the old
+      driver was arriving late on almost everything.
 
 ### HUD and presentation
 
