@@ -36,10 +36,6 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
 
 ### Features
 
-- [ ] **Score and high-score screen.** There is no persistence of any kind — no `localStorage`,
-      nothing. Improvement currently shows only as one of five rank strings, which is coarse for a
-      game whose skill curve turns on shaving seconds off a delivery. Self-contained: one new state,
-      no engine risk.
 - [ ] **Rework throwing.** Auto-aim, or aim-after-click, or something else — the current scheme is
       mouse position or facing direction. Note the design tension: throw spread scales with speed
       (`speed / MAXSPD * 22` px against a 28px porch), and that trade *is* the game's core skill, so
@@ -89,6 +85,14 @@ These need a decision before they can become work.
 Closed by the neighbourhood pass and no longer carried: the Hays street data, the block-kind zoning,
 and the display-face resize (the 9×11 → 7×9 glyph-grid change in `JOURNAL.md`, which is what made an
 exact percentage possible — cells are square `s×s` rects, so `scale` alone cannot do it).
+
+Closed 2026-08-21: **scoring and the high-score board**. The score is the money — `G.earned` in
+cents — because it already integrates speed, accuracy, consistency and restraint; a second points
+number would only compete with it. Ten places, persisted in guarded `localStorage` with the factory
+board authored in `content/scores.json`. Initials go in on a cabinet wheel, arrows only. The attract
+middle slot alternates between the winners card and the board rather than growing a fourth screen,
+so the cycle stays 135s. A shift that misses is told what it missed by. Spec and plan are in
+`docs/superpowers/`.
 
 Closed 2026-08-21: **the wedging cop**. `Cop.update` now calls `unwedge()`, the way `Player.update`
 always has. It was a one-line fix as predicted, and the measurements bracket it: 0 of 12 synthetic wedge

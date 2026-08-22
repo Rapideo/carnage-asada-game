@@ -51,12 +51,12 @@ are generated; edit `src/`, `shell.html` and `content/` and rebuild rather than 
 
 ## Authored copy (`content/*.json`)
 
-Player-facing copy for the attract card lives in `content/winners.json`, **the attract rotation's
-durations in `content/attract.json`** (title / winners / demo, plus the title's own `wordmarkHold`), and
+Player-facing copy for the attract card lives in `content/winners.json`, **the factory high-score
+board in `content/scores.json`**, **the attract rotation's durations in `content/attract.json`** (title / winners / demo, plus the title's own `wordmarkHold`), and
 **the city itself lives in `content/hays.json`** — the nine street names per axis, the shop's cell, and the 8×8 zoning table. Both are
 **inlined by `build.mjs`, never fetched at runtime** — the artifact runs under a CSP that blocks external
 requests, and `fetch()` on a `file://` page is blocked by CORS, so a runtime load would blank the screen
-exactly where it matters. They become `CONTENT`, `ATTRACT` and `HAYS` in the generated `src/05_content.js`.
+exactly where it matters. They become `CONTENT`, `ATTRACT`, `SCORES` and `HAYS` in the generated `src/05_content.js`.
 
 Authoring the map as data rather than code is also what keeps a **second time period** cheap: another era is
 another file against the same schema plus a switch on which one loads, not another pass through
@@ -124,6 +124,7 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 | `60_nav` | `Nav` (TACO-NAV unit) and `solve()` — Dijkstra over the intersection graph |
 | `70_hud` | `Hud.draw()` — order card, tip meter, nav panel, minimap; `navArrow`, `triArrow` |
 | `75_demo` | `Demo.drive()` — the attract-mode driver; sets the same fields `Player.control` does |
+| `78_scores` | `Scores` — the high-score board: factory content, guarded `localStorage`, qualification, insertion. Model only, never draws. |
 | `80_game` | `G` — state machine, orders/tips/scoring, camera, render pipeline; `Post` |
 | `90_main` | canvas scaling, fixed-step loop, audio unlock, `window.TacoShop` bridge |
 
@@ -224,6 +225,38 @@ the ballast runs y 480-543 either side of `railY` 512, and a car body reaches 9p
 **A wreck that leaves the car on the rails is a repeat-hit loop**, the same class of defect as the collision
 wedge: unescapable by any input rather than merely awkward. `test/headless.mjs` sweeps all nine crossings
 against both approach headings and both train directions and asserts every one lands clear and unblocked.
+
+### Scores
+
+The score **is** the money — `G.earned`, integer cents. There is no second number, because `earned`
+already integrates speed (the tip decay), accuracy (the perfect bonus), consistency (the combo) and
+restraint (the fines).
+
+A board entry stores `{ ini, cents }` and nothing else. **The rank title is derived at draw time**
+through `G.rank()`, so retuning the rank thresholds reflows the whole board instead of leaving stale
+titles baked into storage. `overlayScores` does that with `this.rank.call({ earned: e.cents })`,
+which works only because `rank()` reads nothing but `this.earned` — **if it ever reads another field
+the board breaks**, and the call site will not tell you.
+
+**Every `localStorage` access in `78_scores.js` is wrapped, and that is load-bearing rather than
+defensive habit.** Chrome treats a `file://` page as an opaque origin and *throws* `SecurityError` on
+touch — and `taco-shop.html` is meant to be opened exactly that way. An unguarded read would blank
+the game on its main distribution path. The headless harness has no `localStorage` at all, so the
+suite exercises the fallback by default and never the happy path; the happy path has to be checked in
+a browser on a real origin. Anything stored that fails to parse, or parses to the wrong shape, is
+**discarded** in favour of the factory board rather than repaired.
+
+`Scores.load()` is called from `G.boot()` **before anything can draw**. The tests call it themselves,
+so forgetting it is invisible to the suite and shows up only as a board with a header and no rows.
+
+The attract middle slot **alternates** between the winners card and the board, so the rotation stays
+135s rather than growing a fourth screen. `G.attractFlip` is the whole mechanism.
+
+Initials entry is **arrows only** — up/down cycle, left/right move, Enter confirms — which is the one
+input scheme the rest of the game uses and the only one a gamepad maps to. A keyboard player's
+instinct is to type; the on-screen prompt is the entire mitigation, so don't trim it. A 30-second
+**idle** timeout (reset on every keypress) confirms `AAA` rather than letting an abandoned cabinet
+block the attract loop behind it.
 
 ### Guidance (`Nav`)
 
@@ -356,7 +389,7 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. 108 assertions covering city invariants (address
+every drawing call is a no-op but all logic executes. 158 assertions covering city invariants (address
 uniqueness, porch reachability), HUD text widths, wedge escapability, 250 solved routes, 9000 fuzzed
 simulation frames checked for NaN and out-of-world drift, the attract rotation and 85s of autonomous
 demo driving, the full scoring loop, heat/cop behaviour, and the railway.
@@ -404,10 +437,11 @@ steers itself.
 
 There is no per-test filter — it is one sequential script with labelled sections (`— build —`,
 `— hud layout —`, `— collision —`, `— guidance —`, `— simulation —`, `— scoring —`, `— attract —`,
-`— hays map —`, `— block kinds —`, `— rail —`, `— heat —`). To isolate one, edit the script.
+`— hays map —`, `— block kinds —`, `— rail —`, `— high scores —`, `— heat —`). To isolate one,
+edit the script.
 
 ## Publishing
 
-`taco-shop.html` is the shippable artifact: one self-contained file, ~189 KB. It must stay free of external
+`taco-shop.html` is the shippable artifact: one self-contained file, ~203 KB. It must stay free of external
 requests. `?seed=<int>` on the URL regenerates the city deterministically (mulberry32); the default seed is
 in `90_main.js`.

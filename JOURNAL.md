@@ -760,3 +760,92 @@ The plan documents in `docs/superpowers/plans/` still have every step unticked, 
 that landed a week ago. That is the convention here, not an oversight: the plans are the record of
 *how a thing was built and why*, and live status lives in `ROADMAP.md`. Ticking 54 boxes in one file
 and leaving the other two untouched would have made the inconsistency worse, not better.
+
+---
+
+## High scores, and settling what the score is
+
+The game had no persistence of any kind, and improvement showed up only as one of five rank strings.
+That is too coarse, and the evidence was already on the table: three shifts played and measured
+earned $20.90, $8.93 and $20.62 through visibly different standards of driving, and the game called
+all three **TRAINEE**. It could not tell you that you had got better, which is the one thing a game
+with a skill curve this steep most needs to do.
+
+### The score was already there
+
+`G.earned` integrates everything a score would want. Speed, through a tip that decays 55¢/s to a
+$2.00 floor. Accuracy, through the $5.00 perfect bonus. Consistency, through a combo up to ×3 that
+any crash or clipped pedestrian resets. Restraint, through the fines. Adding a parallel points
+number would have put two figures on screen competing to be the thing you watch, and would have
+needed its own balancing to say what `earned` already says.
+
+So the score is the money, and the board is denominated in dollars. That is also more distinctive
+than points: an arcade leaderboard reading `$96.00  ACE` is a stranger and better object than one
+reading `9600`.
+
+**The rank title is derived, never stored.** An entry is `{ ini, cents }`. `overlayScores` calls
+`rank.call({ earned: e.cents })` per row, so retuning the thresholds later reflows the entire board
+instead of leaving ten stale titles in `localStorage`. The cost is a coupling invisible at the call
+site — it works only because `rank()` reads nothing but `this.earned` — so that is written down in
+`CLAUDE.md` rather than left to be rediscovered.
+
+### The wrapper around localStorage is not paranoia
+
+Chrome treats a `file://` page as an **opaque origin** and *throws* `SecurityError` when you so much
+as touch `localStorage`. `taco-shop.html` is meant to be opened by double-clicking it; the README
+says so. An unguarded read would not have degraded the board, it would have blanked the game on its
+primary distribution path.
+
+There is a happy accident in the test setup: the headless sandbox has no `localStorage` at all, so
+the suite exercises the fallback by default. That is worth knowing in both directions — it means the
+guard is well covered and the *happy* path is not covered at all, so persistence had to be proved in
+a browser on a real origin. Which it was: place a score, drive the wheel, reload the page, find the
+row still there. Everything before that reload is plumbing.
+
+Anything stored that fails to parse, or parses to the wrong shape, is discarded in favour of the
+factory board rather than repaired. A half-understood board is worse than a known one.
+
+### Two small decisions with reasons
+
+**Ties go below the incumbent.** Matching a score does not displace whoever got there first. It is
+one comparison operator and it is the fair reading.
+
+**The attract slot alternates rather than growing.** Adding a fourth screen — title, winners, board,
+demo — is the more classic cabinet loop, but it would have taken the cycle from 135s to about 147s,
+and 90 seconds of demo is already flagged on the punch list as a long watch. Alternating the middle
+slot keeps the length exactly where it was. `G.attractFlip` is the entire mechanism.
+
+### Arrows only, deliberately
+
+Initials go in on a cabinet wheel: up and down cycle a 27-character alphabet that wraps both ways,
+left and right move between slots, Enter confirms. Typing was rejected even though it is what a
+keyboard player will try first, because it would have introduced a second input scheme to a game
+that otherwise runs entirely on the arrows — and because the wheel is the only scheme a gamepad maps
+to, which is an open item. The on-screen prompt is the whole mitigation for that accepted cost, so
+it says plainly what drives it and should not be trimmed to fit something else in.
+
+The 30-second timeout is **idle**, reset by every keypress, so it fires on an abandoned cabinet
+rather than on someone deliberating over their initials. Without it the entry screen sits forever
+with the attract loop blocked behind it — the failure that would read as the game having hung.
+
+### Three things only looking caught
+
+The suite passed green while the browser showed a board with a header and no rows. `Scores.load()`
+was scheduled for a later task than the overlay that reads the board, and **the tests call `load()`
+themselves**, so nothing in the suite could see the gap. It now happens in `boot()`, before anything
+can draw.
+
+The prompts sat outside the panel. Rows end at y=152 in a panel ending at 184, and leaving that gap
+empty with `ESC - TITLE` stranded below the border read as an unfinished screen rather than a
+designed one. They moved inside.
+
+Second place was `ACE`, one row under `ACE` the rank title. Nothing was wrong with it; it just made
+the eye stumble. It is `JAX` now.
+
+### And one the suite caught, exactly as designed
+
+Adding the new section broke `— heat —`, which failed with `the pursuit ran in a live state (title)`.
+The new section ended with `G.toTitle()`, and the sections share one mutable game and run in order —
+so it had quietly stolen the live state `— heat —` needs. That assertion was added earlier precisely
+so this could not rot silently, and it worked the first time it was tested. The section now hands the
+next one a live shift on purpose.

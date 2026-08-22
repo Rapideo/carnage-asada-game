@@ -8,7 +8,7 @@ The city is a real place: the eight blocks of **downtown Hays, Kansas** around t
 
 **Zero dependencies**: no framework, no libraries, no image, font, or audio files. The city, every sprite,
 the shop badge, the graffiti title, the bitmap font, and all the audio are generated procedurally at boot.
-The whole game is one self-contained ~189 KB HTML file.
+The whole game is one self-contained ~203 KB HTML file.
 
 **Play:** open `taco-shop.html`. There is no page chrome — the canvas fills the window.
 
@@ -39,6 +39,9 @@ to the shop while the tip keeps draining.
   run one — you just have to be right. Get it wrong and the train takes your whole load and throws the car
   clear of the rails. The cruiser is not exempt, which makes the crossing a genuine escape.
 - Each delivery buys more time on the shift clock. Bank as much as you can before it runs out.
+- **The board.** Take-home pay is the score. Beat the tenth place and you sign it with three initials
+  on a cabinet wheel — arrows, not typing. It survives a reload, and it shows up in the attract loop
+  every other cycle so you know what you are chasing.
 
 Leave it alone and it runs a cabinet-style attract loop — title, a public-service card, then 90 seconds of
 the game playing itself. Any key returns to the title.
@@ -58,8 +61,9 @@ node test/headless.mjs   # test suite — runs the real game logic against a stu
 `taco-shop.html`, `index.html` and `src/05_content.js` are generated — edit `src/`, `shell.html` and
 `content/`, then rebuild.
 
-Authored copy lives in `content/`: the attract card in `winners.json`, and the city itself — street names,
-the shop's cell and the 8×8 zoning table — in `hays.json`. Both are inlined at build time, so the shipped
+Authored copy lives in `content/`: the attract card in `winners.json`, the attract rotation's timings in
+`attract.json`, the factory high-score board in `scores.json`, and the city itself — street names, the
+shop's cell and the 8×8 zoning table — in `hays.json`. Both are inlined at build time, so the shipped
 file stays self-contained. The build refuses any character the bitmap font cannot draw, a street list of the
 wrong length, an unknown block kind, or an address too wide for the order card.
 
