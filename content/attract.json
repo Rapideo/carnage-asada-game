@@ -13,6 +13,10 @@
     "seconds": 15
   },
 
+  "scores": {
+    "seconds": 15
+  },
+
   "demo": {
     "seconds": 90
   }

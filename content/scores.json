@@ -1,0 +1,19 @@
+{
+  "_comment": "The factory high-score board, as a cabinet ships with. build.mjs INLINES this at build time - it is not fetched at runtime, because the shipped artifact must stay a single self-contained file (the CSP blocks external requests, and fetch() on a file:// page is blocked by CORS). Edit here, then run: node build.mjs",
+  "_rules": "Exactly 10 entries, sorted descending by cents. ini is exactly 3 characters drawable by the 5x7 font. cents is a non-negative integer - the game stores all money in cents, so 4610 is $46.10. build.mjs rejects anything else.",
+  "_ranks": "The rank title beside each row is DERIVED from cents at draw time, not stored, so retuning G.rank() reflows the whole board. Thresholds today: under $40 TRAINEE, under $90 DRIVER, under $150 ACE, under $230 SALSA BARON, above that LEGEND OF THE ASADA.",
+  "_tuning": "Tenth place is the number a shift has to beat, and it is the single dial that decides how often placing feels achievable. $6.40 is deliberately low: three measured playtest shifts earned $20.90, $8.93 and $20.62, so a real run places immediately and learns the mechanic. Raise it once players are routinely clearing the whole board.",
+
+  "board": [
+    { "ini": "MJS", "cents": 9600 },
+    { "ini": "ACE", "cents": 7250 },
+    { "ini": "RED", "cents": 5840 },
+    { "ini": "TAC", "cents": 4610 },
+    { "ini": "UPX", "cents": 3990 },
+    { "ini": "HAY", "cents": 3120 },
+    { "ini": "ELM", "cents": 2450 },
+    { "ini": "FRT", "cents": 1880 },
+    { "ini": "BOB", "cents": 1240 },
+    { "ini": "KAS", "cents": 640 }
+  ]
+}

@@ -58,11 +58,11 @@ vm.createContext(sandbox);
 // top-level const/let live in the script's lexical scope, not on the global
 // object, so hand them out explicitly from inside the same scope
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, MAXTHROW,' +
-  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, TS, GW, HSTREETS, VSTREETS };',
+  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, TS, GW, HSTREETS, VSTREETS };',
   sandbox, { filename: 'bundle.js' });
 
 const { G, City, Nav, Art, Input, textW, MAXTHROW, VW, VH, WW, WH,
-        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
+        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
 sandbox.solve = sandbox.__x.solve;
 
 /* ---------- assertions ---------- */
@@ -644,6 +644,50 @@ G.player.y = City.railY + 60;
 G.railCheck();
 ok(G.heat >= 20, `running a closed crossing adds heat (${G.heat})`);
 G.heat = 0; G.cop = null; G.crossings.forEach((c) => { c.t = 0; c.down = false; });
+
+console.log('\n— high scores —');
+/* The harness sandbox has no localStorage at all, which is most of the
+   file:// case for free: Scores must fall back to the factory board without
+   raising, because an unguarded read blanks the game on the exact path the
+   artifact is meant to be opened by. */
+ok(typeof localStorage === 'undefined', 'the sandbox has no localStorage, so the fallback path is the one under test');
+const board0 = Scores.load();
+ok(board0.length === SCORE_MAX, `the factory board loads ${SCORE_MAX} places (got ${board0.length})`);
+ok(board0.every((e, i) => i === 0 || board0[i - 1].cents >= e.cents), 'the factory board is sorted descending');
+ok(board0.every((e) => e.ini.length === INI_LEN), 'every set of initials is 3 characters');
+ok(Scores.save() === false, 'saving without storage reports failure rather than throwing');
+
+/* qualification, at the boundary rather than in the middle */
+const tenth = Scores.lowest();
+ok(Scores.qualifies(tenth + 1), `one cent above tenth place qualifies (${tenth + 1} > ${tenth})`);
+ok(!Scores.qualifies(tenth), 'matching tenth place does NOT qualify');
+ok(!Scores.qualifies(tenth - 1), 'one cent below tenth place does not qualify');
+ok(!Scores.qualifies(0), 'a shift that took nothing never places');
+
+/* insertion keeps the invariants */
+const idx = Scores.insert('ZZZ', tenth + 1);
+ok(idx === SCORE_MAX - 1, `a barely-qualifying score lands last (index ${idx})`);
+ok(Scores.board.length === SCORE_MAX, `the board is still capped at ${SCORE_MAX}`);
+ok(Scores.board[SCORE_MAX - 1].ini === 'ZZZ', 'and it is actually on the board');
+const topIdx = Scores.insert('AAA', Scores.board[0].cents + 100);
+ok(topIdx === 0, 'a new best lands first');
+ok(Scores.board.every((e, i) => i === 0 || Scores.board[i - 1].cents >= e.cents), 'the board stays sorted after inserts');
+ok(Scores.board.length === SCORE_MAX, 'and stays capped');
+
+/* ties do not displace the incumbent */
+Scores.load();
+const second = Scores.board[1].cents, wasSecond = Scores.board[1].ini;
+Scores.insert('TIE', second);
+ok(Scores.board[1].ini === wasSecond && Scores.board[2].ini === 'TIE',
+   'a tied score goes below whoever got there first');
+
+/* a corrupt stored board is discarded, not repaired */
+Scores.load();
+ok(Scores.valid([{ ini: 'ABC', cents: 10 }]), 'a well-formed board validates');
+ok(!Scores.valid([{ ini: 'TOOLONG', cents: 10 }]), 'bad initials are rejected');
+ok(!Scores.valid([{ ini: 'ABC', cents: 1.5 }]), 'non-integer cents are rejected');
+ok(!Scores.valid('not a board'), 'a non-array is rejected');
+ok(!Scores.valid([]), 'an empty array is rejected');
 
 console.log('\n— heat —');
 G.heat = 0; G.cop = null;

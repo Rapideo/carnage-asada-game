@@ -131,7 +131,55 @@ const ATTRACT = {
   "winners": {
     "seconds": 15
   },
+  "scores": {
+    "seconds": 15
+  },
   "demo": {
     "seconds": 90
   }
+};
+
+const SCORES = {
+  "board": [
+    {
+      "ini": "MJS",
+      "cents": 9600
+    },
+    {
+      "ini": "ACE",
+      "cents": 7250
+    },
+    {
+      "ini": "RED",
+      "cents": 5840
+    },
+    {
+      "ini": "TAC",
+      "cents": 4610
+    },
+    {
+      "ini": "UPX",
+      "cents": 3990
+    },
+    {
+      "ini": "HAY",
+      "cents": 3120
+    },
+    {
+      "ini": "ELM",
+      "cents": 2450
+    },
+    {
+      "ini": "FRT",
+      "cents": 1880
+    },
+    {
+      "ini": "BOB",
+      "cents": 1240
+    },
+    {
+      "ini": "KAS",
+      "cents": 640
+    }
+  ]
 };
