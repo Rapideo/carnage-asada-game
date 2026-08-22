@@ -72,14 +72,26 @@ These need a decision before they can become work.
 - [ ] **Difficulty progression.** Grid expansion? A faster timer? Something else? Note the shift
       clock is already a survival curve — 110s to start, +9s per delivery, +12s for a perfect toss —
       so difficulty may be more about tightening that ratio than adding systems.
-- [ ] **Is the pedestrian fine doing any work?** $2.00 against a $15.00 delivery is 13%, and a
-      playtest of three shifts says it is not a deterrent: the run that hit **ten** pedestrians
-      out-earned the clean run, because cutting corners buys more time than the fines cost. The
-      intended deterrent is the chain heat → cop → $15 ticket, but across those three shifts **no
-      ticket was ever paid** — the cop was lost every time. So the cheap penalty lands and the
-      expensive one does not. Options: raise the fine, slow heat decay (currently 7/s) so pursuits
-      actually convert, or make the cop harder to shake. Needs a decision on what the intended
-      punishment for reckless driving even is.
+- [ ] **Is the $15 ticket too heavy now the cop can actually catch you?** This question has
+      **reversed** since it was first written, and the reversal is the interesting part.
+
+      The original finding was that reckless driving went unpunished: across three shifts, ten
+      pedestrians were hit and **no ticket was ever paid**, because the cop jammed into geometry
+      before reaching anyone. That was the wedging-cop bug, now fixed — and fixing it turned a
+      cosmetic defect into a live balance change. Pursuits that resolve went from 27 of 60 to 44 of
+      60.
+
+      Re-measured on the fixed build, three more shifts: **$23.61 with no ticket, $0.00 with two, and
+      $7.27 with one.** A $15.00 ticket against a typical $20–25 shift is 60–75% of everything
+      earned, and `earned` floors at zero — so the middle run delivered two perfect tosses and took
+      home nothing at all.
+
+      So the chain now has teeth, and the open question is whether it has too many. The pedestrian
+      fine is no longer the lever: at $2.00 it is a rounding error, but pedestrians feed heat, and
+      heat is what now costs you. Options, in rough order of bluntness: lower `TICKET`, raise the
+      heat decay above 7/s, or make the cop easier to shake once it has ticketed you. Needs a
+      decision about how punishing a bad shift should be, and it should be made by playing rather
+      than by arithmetic.
 - [ ] **What happens when Hays PD catches you?** Currently a $15 ticket, a spin-out and heat reset.
 - [ ] **How should the player car read as *the* car?** Turning it white is the starting idea.
 - [ ] **Gamepad / Xbox controller support**, and whether an on-screen control overlay comes with it.
@@ -132,6 +144,10 @@ Measured over three shifts. Numbers, not impressions; feel is still untested.
 - **Speed beats volume.** Three shifts: a fast run earned $10.31 per delivery against a careful
   run's $6.47, because the tip decays at 55¢/s and arriving late is worth less than arriving at all.
   The clean, cautious shift was the *worst* earner of the three.
+- **A ticket now dominates a shift.** Post-cop-fix measurements: $23.61 / $0.00 / $7.27, differing
+  almost entirely by how many tickets were paid (0 / 2 / 1). Before the fix, three shifts produced
+  zero tickets between them. Any balance reasoning older than commit `26c03b4` was measured on a
+  build where cops could not reach you, and should be re-measured before it is trusted.
 - **The tip floor makes the perfect bonus dominant, and that is a feature.** Once the tip bottoms
   out at $2.00, `PERFECT_BONUS` of $5.00 is 2.5× the whole delivery — so on a late job accuracy is
   the entire payout. Emergent rather than designed. **Don't "fix" it.**
