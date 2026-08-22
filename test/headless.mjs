@@ -58,11 +58,11 @@ vm.createContext(sandbox);
 // top-level const/let live in the script's lexical scope, not on the global
 // object, so hand them out explicitly from inside the same scope
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, MAXTHROW,' +
-  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, TS, GW, HSTREETS, VSTREETS };',
+  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS };',
   sandbox, { filename: 'bundle.js' });
 
 const { G, City, Nav, Art, Input, textW, MAXTHROW, VW, VH, WW, WH,
-        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
+        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
 sandbox.solve = sandbox.__x.solve;
 
 /* ---------- assertions ---------- */
@@ -715,6 +715,53 @@ G.render(ctx);
 G.toScores(true); G.scoreIdx = 3;
 ok(G.scoresFromShift, 'the post-shift board waits for input');
 G.render(ctx);
+
+/* the initials wheel: arrows only, by design — the one input scheme the whole
+   game uses, and the only one a gamepad maps to */
+Scores.load();
+G.earned = Scores.lowest() + 500;
+G.toEntry();
+ok(G.state === 'entry', 'the wheel opens');
+ok(G.entryIni.length === INI_LEN && G.entryIni.every((v) => v === 0), 'all three slots start at A');
+const press = (code) => { Input.hit[code] = true; G.update(1 / 60); Input.endFrame(); };
+press('ArrowUp');                                   // A -> B
+ok(INI_ALPHA[G.entryIni[0]] === 'B', `up cycles forward (${INI_ALPHA[G.entryIni[0]]})`);
+press('ArrowDown'); press('ArrowDown');             // B -> A -> wrap to space
+ok(INI_ALPHA[G.entryIni[0]] === ' ', 'down from A wraps to the end of the alphabet');
+press('ArrowUp');                                   // back to A
+press('ArrowLeft');
+ok(G.entrySlot === 0, 'left on the first slot does nothing');
+press('ArrowRight'); press('ArrowUp');              // slot 1 -> B
+press('ArrowRight'); press('ArrowUp'); press('ArrowUp');   // slot 2 -> C
+ok(G.entrySlot === INI_LEN - 1, 'right walks to the last slot');
+press('ArrowRight');
+ok(G.entrySlot === INI_LEN - 1, 'right on the last slot does nothing');
+const spelled = G.entryIni.map((i) => INI_ALPHA[i]).join('');
+ok(spelled === 'ABC', `the wheel spells what was driven into it (${spelled})`);
+press('Enter');
+ok(G.state === 'scores' && Scores.board.some((e) => e.ini === 'ABC'),
+   'enter on the last slot commits and shows the board');
+ok(G.scoreIdx >= 0, `and the board knows which row to highlight (${G.scoreIdx})`);
+
+/* an abandoned cabinet must not block the attract loop forever */
+Scores.load();
+G.earned = Scores.lowest() + 700;
+G.toEntry();
+ok(G.entryT > 0, 'the wheel arms an idle timeout');
+for (let i = 0; i < (ENTRY_TIMEOUT + 1) * 60 && G.state === 'entry'; i++) { G.update(1 / 60); Input.endFrame(); }
+ok(G.state === 'scores', 'and it confirms itself rather than hanging');
+ok(Scores.board.some((e) => e.ini === 'AAA'), 'defaulting to AAA rather than blanks');
+
+/* the timeout is idle-based: driving the wheel keeps it alive */
+Scores.load();
+G.earned = Scores.lowest() + 900;
+G.toEntry();
+for (let i = 0; i < (ENTRY_TIMEOUT - 2) * 60; i++) { G.update(1 / 60); Input.endFrame(); }
+press('ArrowUp');
+ok(G.state === 'entry' && G.entryT > ENTRY_TIMEOUT - 1,
+   `a keypress rearms the idle timer (${G.entryT.toFixed(1)}s left)`);
+G.render(ctx);
+G.commitEntry();
 
 /* Hand — heat — below a LIVE game. The sections share one mutable game and run
    in order, and — heat — asserts the state it ran in precisely so this cannot

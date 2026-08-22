@@ -3946,6 +3946,7 @@ const ATTRACT_DEMO = ATTRACT.demo.seconds;
 const ATTRACT_SCORES = ATTRACT.scores.seconds;
 const TITLE_HOLD = ATTRACT.title.wordmarkHold;   // badge alone, before the slam
 const TITLE_FADE = 0.22;                         // and how fast it lands
+const ENTRY_TIMEOUT = 30;                        // seconds idle before the wheel confirms itself
 const WINNERS_BLUE = '#1f1fa8';
 
 const G = {
@@ -3960,6 +3961,7 @@ const G = {
   stats: null, titleCam: 0, titleT: 0, titleSlam: false, paused: false, flash: 0,
   attractT: 0, demoAim: null,
   scoresFromShift: false, scoreIdx: -1, attractFlip: false,
+  entryIni: [0, 0, 0], entrySlot: 0, entryT: 0, placed: false,
   rl: [],
 
   /* ---------------- setup ------------------------------- */
@@ -4001,6 +4003,20 @@ const G = {
     this.scoresFromShift = !!fromShift;
     this.attractT = ATTRACT_SCORES;
     if (!fromShift) this.scoreIdx = -1;
+  },
+
+  toEntry() {
+    this.state = 'entry';
+    this.entryIni = [0, 0, 0];        // all slots start at A, so a timeout yields AAA
+    this.entrySlot = 0;
+    this.entryT = ENTRY_TIMEOUT;
+  },
+
+  commitEntry() {
+    const ini = this.entryIni.map((i) => INI_ALPHA[i]).join('');
+    this.scoreIdx = Scores.insert(ini, this.earned);
+    Audio5.sfx('cash');
+    this.toScores(true);
   },
 
   /* the demo is a real shift — same setup, same rules — with Demo at the
@@ -4355,6 +4371,25 @@ const G = {
       return;
     }
 
+    if (this.state === 'entry') {
+      const n = INI_ALPHA.length;
+      let acted = false;
+      if (Input.p('ArrowUp', 'KeyW'))    { this.entryIni[this.entrySlot] = (this.entryIni[this.entrySlot] + 1) % n; acted = true; }
+      if (Input.p('ArrowDown', 'KeyS'))  { this.entryIni[this.entrySlot] = (this.entryIni[this.entrySlot] + n - 1) % n; acted = true; }
+      if (Input.p('ArrowLeft', 'KeyA'))  { if (this.entrySlot > 0) this.entrySlot--; acted = true; }
+      if (Input.p('ArrowRight', 'KeyD')) { if (this.entrySlot < INI_LEN - 1) this.entrySlot++; acted = true; }
+      if (Input.p('Enter', 'NumpadEnter', 'Space')) {
+        if (this.entrySlot < INI_LEN - 1) { this.entrySlot++; acted = true; }
+        else { this.commitEntry(); return; }
+      }
+      // the timeout fires on abandonment, not on someone taking their time
+      if (acted) { this.entryT = ENTRY_TIMEOUT; Audio5.sfx('tick'); }
+      this.entryT -= dt;
+      if (this.entryT <= 0) { this.commitEntry(); return; }
+      this.simCrowd(dt);
+      return;
+    }
+
     if (this.state === 'results') {
       this.simCrowd(dt);
       if (Input.p('Enter', 'NumpadEnter', 'KeyR')) { Audio5.sfx('select'); this.startShift(); }
@@ -4613,6 +4648,7 @@ const G = {
     }
     if (this.state === 'title')   this.overlayTitle(x);
     if (this.state === 'scores')  this.overlayScores(x);
+    if (this.state === 'entry')   this.overlayEntry(x);
     if (this.state === 'results') this.overlayResults(x);
 
     if (this.flash > 0) {
@@ -4800,6 +4836,32 @@ const G = {
     } else {
       text(x, 'BEAT THE BOARD', VW / 2, 167, PAL.boneDim, 1, 1);
     }
+  },
+
+  /* Arrows only, by design. A keyboard player's instinct is to type, so the
+     prompt has to say plainly what drives it — an entry screen a player
+     cannot work out is worse than no board at all. */
+  overlayEntry(x) {
+    x.fillStyle = 'rgba(20,12,28,0.82)'; x.fillRect(0, 0, VW, VH);
+    const w = 240, h = 118, px = (VW - w) / 2 | 0, py = 44;
+    R(x, PAL.ink, px, py, w, h);
+    R(x, '#241a2e', px + 2, py + 2, w - 4, h - 4);
+    x.strokeStyle = PAL.amber; x.strokeRect(px + 0.5, py + 0.5, w - 1, h - 1);
+
+    text(x, 'NEW HIGH SCORE', VW / 2, py + 10, PAL.amber, 2, 1);
+    text(x, money(this.earned) + '  ' + this.rank(), VW / 2, py + 30, PAL.good, 1, 1);
+
+    // three slots, 24px apart, the active one blinking under a caret
+    for (let i = 0; i < INI_LEN; i++) {
+      const cx = VW / 2 + (i - 1) * 24, active = i === this.entrySlot;
+      const on = !active || (this.time * 3 | 0) % 2 === 0;
+      text(x, INI_ALPHA[this.entryIni[i]], cx, py + 48, on ? PAL.bone : PAL.boneDim, 2, 1);
+      R(x, active ? PAL.amber : '#3a2c48', cx - 7, py + 66, 14, 1);
+    }
+
+    text(x, 'UP/DOWN - LETTER', VW / 2, py + 78, PAL.boneDim, 1, 1);
+    text(x, 'LEFT/RIGHT - MOVE', VW / 2, py + 89, PAL.boneDim, 1, 1);
+    text(x, 'ENTER - DONE', VW / 2, py + 100, PAL.bone, 1, 1);
   },
 
   /* The page frame used to carry a key legend under the canvas. It doesn't
