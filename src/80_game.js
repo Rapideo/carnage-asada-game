@@ -14,8 +14,15 @@ const BAG_MAX = 3;
 const RAIL_EJECT = 52;      // px from the corridor centre a wreck throws you
 const THROW_CD = 0.34;
 
-/* attract rotation, cabinet-style: title -> winners -> demo -> title */
-const ATTRACT_TITLE = 30, ATTRACT_WINNERS = 15, ATTRACT_DEMO = 90;
+/* Attract rotation, cabinet-style: title -> winners -> demo -> title. The
+   durations are authored in content/attract.json and inlined as ATTRACT by
+   build.mjs — they are a judgement about pacing, and pacing wants changing
+   after watching a full cycle rather than recompiling a constant. */
+const ATTRACT_TITLE = ATTRACT.title.seconds;
+const ATTRACT_WINNERS = ATTRACT.winners.seconds;
+const ATTRACT_DEMO = ATTRACT.demo.seconds;
+const TITLE_HOLD = ATTRACT.title.wordmarkHold;   // badge alone, before the slam
+const TITLE_FADE = 0.22;                         // and how fast it lands
 const WINNERS_BLUE = '#1f1fa8';
 
 const G = {
@@ -27,7 +34,7 @@ const G = {
   cam: { x: 0, y: 0 }, shake: 0, hitstop: 0,
   order: null, banner: '', bannerT: 0, bannerCol: PAL.bone,
   throwCd: 0, restock: 0, tipPop: 0, infraction: 0,
-  stats: null, titleCam: 0, paused: false, flash: 0,
+  stats: null, titleCam: 0, titleT: 0, titleSlam: false, paused: false, flash: 0,
   attractT: 0, demoAim: null,
   rl: [],
 
@@ -43,6 +50,8 @@ const G = {
   toTitle() {
     this.state = 'title';
     this.titleCam = 0;
+    this.titleT = 0; this.titleSlam = false;
+    this.shake = 0;
     this.attractT = ATTRACT_TITLE;
     this.paused = false; this.demoAim = null;
     Audio5.sirenOff();
@@ -364,6 +373,16 @@ const G = {
 
     if (this.state === 'title') {
       this.titleCam += dt * 26;
+      /* The wordmark is withheld, then slams in. shake has to be decayed HERE
+         as well as in the play branch — this branch returns early, so a rumble
+         started on the title would otherwise never stop. */
+      this.titleT += dt;
+      if (!this.titleSlam && this.titleT >= TITLE_HOLD) {
+        this.titleSlam = true;
+        this.shake = 9;                 // the same rumble a collision gives
+        Audio5.sfx('bump');
+      }
+      this.shake = Math.max(0, this.shake - dt * 22);
       const r = 300;
       this.cam.x = clamp(City.shop.x - VW / 2 + Math.cos(this.titleCam / 62) * r, 0, WW - VW);
       this.cam.y = clamp(City.shop.y - VH / 2 + Math.sin(this.titleCam / 41) * r * 0.7, 0, WH - VH);
@@ -741,12 +760,22 @@ const G = {
     // badge and sprayed wordmark, both baked once at boot. Controls are not
     // listed here by design — they live in the pause overlay.
     x.drawImage(Art.badge, ((VW - Art.badge.width) / 2) | 0, 14);
-    x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 138);
 
-    // textOut, not text: at scale 1 the 1px strokes read thin and lost, but a
-    // 1px ink outline thickens them to ~3px so the prompt still carries. The
-    // dark halo also lifts it off the city scrolling behind.
-    if ((t * 2 | 0) % 2) textOut(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 184, PAL.amber, 1, 1);
+    /* A title that is simply *there* has no beat. Holding back the half that
+       names the game buys one, and the rumble is the same shake a collision
+       gives, so the landing reads as part of the game rather than as a
+       transition effect bolted on top. */
+    const held = this.titleT - TITLE_HOLD;
+    if (held >= 0) {
+      x.globalAlpha = clamp(held / TITLE_FADE, 0, 1);
+      x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 138);
+      x.globalAlpha = 1;
+
+      // textOut, not text: at scale 1 the 1px strokes read thin and lost, but a
+      // 1px ink outline thickens them to ~3px so the prompt still carries. The
+      // dark halo also lifts it off the city scrolling behind.
+      if ((t * 2 | 0) % 2) textOut(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 184, PAL.amber, 1, 1);
+    }
   },
 
   overlayResults(x) {

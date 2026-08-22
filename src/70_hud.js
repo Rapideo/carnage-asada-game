@@ -126,7 +126,7 @@ const Hud = {
 
     /* ---------- taco bag ---------- */
     const bx0 = VW - 76, by0 = VH - 20;
-    text(x, 'TACO BAG', bx0, by0 - 9, PAL.boneDim, 1);
+    text(x, 'DELIVERIES', bx0, by0 - 9, PAL.boneDim, 1);
     for (let i = 0; i < G.bagMax; i++) {
       const px = bx0 + i * 15, py = by0;
       if (i < G.bag) {
@@ -162,7 +162,13 @@ const Hud = {
   },
 
   drawNav(x, G) {
-    const w = 128, h = 34, px = (VW - w) / 2 | 0, py = VH - h - 4;
+    /* No unit name in the box. "TACO-NAV 2000" cost 10 of the panel's 34
+       rows to say something the player reads once and never needs again, and
+       the panel sits over the road you are trying to see. The identity lives
+       in the LCD treatment — cyan on near-black with scan lines — not in a
+       caption. Sized to the longest thing it can ever say: MAKE A U-TURN at
+       77px from px+32, and RETURN TO ROADWAY at 101px centred. */
+    const w = 118, h = 24, px = (VW - w) / 2 | 0, py = VH - h - 4;
     R(x, PAL.ink, px, py, w, h);
     R(x, '#0e1c1c', px + 1, py + 1, w - 2, h - 2);
     x.strokeStyle = PAL.cyanLo; x.lineWidth = 1;
@@ -171,27 +177,25 @@ const Hud = {
     x.fillStyle = 'rgba(63,184,176,0.055)';
     for (let i = py + 2; i < py + h - 1; i += 2) x.fillRect(px + 1, i, w - 2, 1);
 
-    text(x, 'TACO-NAV 2000', px + 4, py + 3, PAL.cyanLo, 1);
-
-    if (!Nav.goal) { text(x, 'STANDBY', px + w / 2, py + 15, PAL.cyanLo, 2, 1); return; }
+    if (!Nav.goal) { text(x, 'STANDBY', px + w / 2, py + 5, PAL.cyanLo, 2, 1); return; }
 
     if (Nav.glitch > 0 || Nav.lost) {
       const flick = (G.time * 9 | 0) % 2;
-      text(x, flick ? 'RECALCULATING' : 'RECALCULATING.', px + w / 2, py + 14, flick ? PAL.cyan : PAL.cyanLo, 1, 1);
-      text(x, Nav.lost ? 'RETURN TO ROADWAY' : 'PLEASE WAIT', px + w / 2, py + 24, PAL.cyanLo, 1, 1);
+      text(x, flick ? 'RECALCULATING' : 'RECALCULATING.', px + w / 2, py + 4, flick ? PAL.cyan : PAL.cyanLo, 1, 1);
+      text(x, Nav.lost ? 'RETURN TO ROADWAY' : 'PLEASE WAIT', px + w / 2, py + 13, PAL.cyanLo, 1, 1);
       return;
     }
 
-    const arrowX = px + 17, arrowY = py + 20;
+    const arrowX = px + 16, arrowY = py + 12;
     navArrow(x, arrowX, arrowY, Nav.arriving ? 4 : Nav.turn, PAL.cyan, G.time);
 
     const label = Nav.arriving ? 'ARRIVING' : TURN_NAMES[Nav.turn];
-    text(x, label, px + 34, py + 12, PAL.cyan, 1);
+    text(x, label, px + 32, py + 4, PAL.cyan, 1);
     const m = Math.max(0, Math.round(Nav.dist / 8 / 5) * 5);
-    text(x, Nav.arriving ? 'TOSS THE BAG' : ('IN ' + m + ' M'), px + 34, py + 22, PAL.cyanLo, 1);
+    text(x, Nav.arriving ? 'TOSS THE BAG' : ('IN ' + m + ' M'), px + 32, py + 13, PAL.cyanLo, 1);
     if (Nav.arriving) {
       const b = (G.time * 6 | 0) % 2;
-      R(x, b ? PAL.cyan : PAL.cyanLo, px + w - 6, py + 4, 3, 3);
+      R(x, b ? PAL.cyan : PAL.cyanLo, px + w - 6, py + 3, 3, 3);
     }
   },
 

@@ -58,11 +58,11 @@ vm.createContext(sandbox);
 // top-level const/let live in the script's lexical scope, not on the global
 // object, so hand them out explicitly from inside the same scope
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, MAXTHROW,' +
-  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Train, Crossing, carBlocked, TS, GW, HSTREETS, VSTREETS };',
+  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, TS, GW, HSTREETS, VSTREETS };',
   sandbox, { filename: 'bundle.js' });
 
 const { G, City, Nav, Art, Input, textW, MAXTHROW, VW, VH, WW, WH,
-        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Train, Crossing, carBlocked, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
+        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
 sandbox.solve = sandbox.__x.solve;
 
 /* ---------- assertions ---------- */
@@ -125,6 +125,33 @@ const BANNERS = ['CLOCK IN!', 'OUT OF TACOS - BACK TO SHOP', 'THAT IS NOT ' + lo
   'HIT BY TRAIN', 'THE TRAIN GOT THEM'];
 const tooWide = BANNERS.filter((b) => textW(b, 2) + 16 > VW);
 ok(tooWide.length === 0, `all ${BANNERS.length} banners fit the screen${tooWide.length ? ': ' + tooWide.join(' | ') : ''}`);
+
+/* The TACO-NAV panel lost its header and was resized around its longest
+   possible content, so it needs a guard for the same reason the order card
+   does. Mirrors drawNav in 70_hud.js — compare absolute x against absolute x. */
+const NAV_W = 118, NAV_H = 24, NAV_X0 = (VW - NAV_W) / 2 | 0, NAV_Y0 = VH - NAV_H - 4;
+const NAV_INSET = NAV_X0 + 32, NAV_PAD = 4;
+const navLeftFits = (str) => NAV_INSET + textW(str, 1) <= NAV_X0 + NAV_W - NAV_PAD;
+const navMidFits = (str, sc) => textW(str, sc) <= NAV_W - NAV_PAD * 2;
+const longestTurn = TURN_NAMES.reduce((a, t) => (t.length > a.length ? t : a), '');
+ok(navLeftFits(longestTurn), `longest turn name fits the nav panel: "${longestTurn}" (${textW(longestTurn, 1)}px)`);
+ok(navLeftFits('TOSS THE BAG'), 'the arriving line fits the nav panel');
+ok(navLeftFits('IN 999 M'), 'the distance line fits the nav panel');
+ok(navMidFits('RETURN TO ROADWAY', 1), `the off-road line fits the nav panel (${textW('RETURN TO ROADWAY', 1)}px in ${NAV_W})`);
+ok(navMidFits('RECALCULATING.', 1), 'the recalculating line fits the nav panel');
+ok(navMidFits('STANDBY', 2), 'STANDBY fits the nav panel at scale 2');
+ok(NAV_Y0 + NAV_H <= VH, `the nav panel fits above the bottom edge (${NAV_Y0 + NAV_H} <= ${VH})`);
+
+/* the bag label sits at VW-76 and runs right; DELIVERIES is 12px wider than
+   the TACO BAG it replaced */
+ok(VW - 76 + textW('DELIVERIES', 1) <= VW, `the deliveries label fits the screen (${textW('DELIVERIES', 1)}px from x=${VW - 76})`);
+
+/* attract timings are authored in content/attract.json now, so assert the
+   game actually reads them rather than a stale constant */
+ok(ATTRACT_TITLE === ATTRACT.title.seconds && ATTRACT_WINNERS === ATTRACT.winners.seconds && ATTRACT_DEMO === ATTRACT.demo.seconds,
+   `attract timings come from content: ${ATTRACT_TITLE}/${ATTRACT_WINNERS}/${ATTRACT_DEMO}s`);
+ok(TITLE_HOLD >= 0 && TITLE_HOLD <= ATTRACT_TITLE - 2,
+   `the wordmark lands with time to spare (hold ${TITLE_HOLD}s of ${ATTRACT_TITLE}s)`);
 
 /* A car whose body overlaps geometry must always be able to drive out.
    carBlocked() is tested at the destination, so before unwedge() existed every

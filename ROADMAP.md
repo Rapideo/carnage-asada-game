@@ -35,13 +35,9 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
 
 ### HUD and presentation
 
-- [ ] **Drop the "TACO-NAV 2000" header** and shrink the directions box to fit (`70_hud.js:124`).
-- [ ] **Relabel "TACO BAG" as "DELIVERIES"** (`70_hud.js:129`).
-- [ ] **Title sequence.** Hold "CARNAGE ASADA" for ~3s, then fade it in with a rumble in the style of
-      the gameplay collision shake. `overlayTitle` is currently badge + wordmark + blinking prompt and
-      has no timed sequence at all.
-- [ ] **Attract timings may want tuning.** Currently title 30s / winners 15s / demo 90s
-      (`ATTRACT_*` at the top of `80_game.js`). 90 seconds is a long watch.
+- [ ] **Judge the attract timings after a full cycle.** Still title 30s / winners 15s / demo 90s, and
+      90 seconds is a long watch. The dials are now in `content/attract.json` rather than constants, so
+      this is a one-line edit and a rebuild — but it is a judgement nobody has made yet.
 
 ### Features
 
@@ -98,6 +94,12 @@ These need a decision before they can become work.
 Closed by the neighbourhood pass and no longer carried: the Hays street data, the block-kind zoning,
 and the display-face resize (the 9×11 → 7×9 glyph-grid change in `JOURNAL.md`, which is what made an
 exact percentage possible — cells are square `s×s` rects, so `scale` alone cannot do it).
+
+Closed 2026-08-21, the HUD pass: **the TACO-NAV header** is gone and the panel shrank from 128×34 to
+118×24, sized to the longest string it can ever hold (`MAKE A U-TURN`, `RETURN TO ROADWAY`) and guarded
+in `— hud layout —`; **TACO BAG is now DELIVERIES**; **the title holds its badge alone for 3 seconds**
+before the wordmark slams in with the collision rumble; and **the attract durations moved into
+`content/attract.json`**, validated at build time like every other authored file.
 
 Closed 2026-08-21: **the clipped banner** — text moved from y=66 to y=63, verified by reading the
 rendered pixels rather than by eye (glyphs now occupy rows 63–76 inside a box spanning 60–79, two

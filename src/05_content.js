@@ -122,3 +122,16 @@ const HAYS = {
     ]
   ]
 };
+
+const ATTRACT = {
+  "title": {
+    "seconds": 30,
+    "wordmarkHold": 3
+  },
+  "winners": {
+    "seconds": 15
+  },
+  "demo": {
+    "seconds": 90
+  }
+};

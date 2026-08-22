@@ -51,11 +51,12 @@ are generated; edit `src/`, `shell.html` and `content/` and rebuild rather than 
 
 ## Authored copy (`content/*.json`)
 
-Player-facing copy for the attract card lives in `content/winners.json`, and **the city itself lives in
-`content/hays.json`** — the nine street names per axis, the shop's cell, and the 8×8 zoning table. Both are
+Player-facing copy for the attract card lives in `content/winners.json`, **the attract rotation's
+durations in `content/attract.json`** (title / winners / demo, plus the title's own `wordmarkHold`), and
+**the city itself lives in `content/hays.json`** — the nine street names per axis, the shop's cell, and the 8×8 zoning table. Both are
 **inlined by `build.mjs`, never fetched at runtime** — the artifact runs under a CSP that blocks external
 requests, and `fetch()` on a `file://` page is blocked by CORS, so a runtime load would blank the screen
-exactly where it matters. They become `CONTENT` and `HAYS` in the generated `src/05_content.js`.
+exactly where it matters. They become `CONTENT`, `ATTRACT` and `HAYS` in the generated `src/05_content.js`.
 
 Authoring the map as data rather than code is also what keeps a **second time period** cheap: another era is
 another file against the same schema plus a switch on which one loads, not another pass through
@@ -235,8 +236,13 @@ machine output — don't spend it elsewhere.
 
 ### Title screen and controls
 
-`overlayTitle` is badge + wordmark + blinking prompt, nothing else. **The controls are documented only in
-`overlayPause`** — the page used to carry a key legend under the canvas and no longer does, so that overlay
+`overlayTitle` is badge, wordmark and blinking prompt, and it has a beat: the badge stands alone for
+`TITLE_HOLD` seconds, then the wordmark fades in over `TITLE_FADE` while `G.shake` kicks — the same
+rumble a collision gives, so the landing reads as part of the game rather than a bolted-on transition.
+The prompt waits for the wordmark. **`shake` has to be decayed in the title branch of `update` as well
+as the play branch**: that branch returns early, so a rumble started there would otherwise never stop.
+
+**The controls are documented only in `overlayPause`** — the page used to carry a key legend under the canvas and no longer does, so that overlay
 is the single place a player can find them. Don't strip it back to a resume line.
 
 ### The display face (`LOGO`)
@@ -347,7 +353,7 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. 97 assertions covering city invariants (address
+every drawing call is a no-op but all logic executes. 107 assertions covering city invariants (address
 uniqueness, porch reachability), HUD text widths, wedge escapability, 250 solved routes, 9000 fuzzed
 simulation frames checked for NaN and out-of-world drift, the attract rotation and 85s of autonomous
 demo driving, the full scoring loop, heat/cop behaviour, and the railway.
