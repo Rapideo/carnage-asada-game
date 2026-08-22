@@ -1054,16 +1054,28 @@ const Art = {
     x.globalAlpha = 0.2; R(x, '#ffffff', 0, 0, fw, 2); R(x, '#ffffff', 0, 0, 2, fh); x.globalAlpha = 1;
     R(x, '#6b2b1e', 0, fh - 2, fw, 2); R(x, '#6b2b1e', fw - 2, 0, 2, fh);
 
-    // rooftop sign board, readable from above — the badge, seen from a helicopter
-    R(x, '#15121c', 14, 22, 100, 34);
-    R(x, PAL.jade, 16, 24, 96, 30);
-    R(x, '#ffffff', 16, 24, 96, 1);
-    R(x, '#ffffff', 16, 53, 96, 1);
-    text(x, 'TACO', 64, 28, PAL.gold, 2, 1);
-    text(x, 'SHOP', 64, 42, PAL.gold, 2, 1);
+    /* Rooftop sign board, readable from above — the badge, seen from a
+       helicopter. Set in the LOGO display face, the same lockup the title
+       screen uses, so the shop on the map and the shop on the title read as
+       one brand rather than two.
+
+       The board had to grow to take it. LOGO is a 7x9 grid against the game
+       font's 5x7, so two lines at scale 2 need 40 rows where the old jade
+       panel had 28 — and scale is not free to fudge, because cells are drawn
+       as square s*s rects and a fractional one lands on half-pixels. The
+       vents move down to make room. */
+    R(x, '#15121c', 14, 14, 100, 50);
+    R(x, PAL.jade, 16, 16, 96, 46);
+    R(x, '#ffffff', 16, 16, 96, 1);
+    R(x, '#ffffff', 16, 61, 96, 1);
+    /* Four rows of jade between the lines. Butted straight together the two
+       keylines touch and the whole lockup fuses into one slab — the O of TACO
+       runs into the H of SHOP. */
+    logoText(x, 'TACO', 64, 18, 2, 1, PAL.gold);   // rows 17-36 with its keyline
+    logoText(x, 'SHOP', 64, 42, 2, 1, PAL.gold);   // rows 41-60
     // vents
-    for (let i = 0; i < 3; i++) { R(x, '#6b7280', 12 + i * 12, 68, 8, 8); R(x, '#8a919e', 12 + i * 12, 68, 8, 2); }
-    R(x, '#6b7280', 96, 64, 18, 14); R(x, '#8a919e', 96, 64, 18, 3);
+    for (let i = 0; i < 3; i++) { R(x, '#6b7280', 12 + i * 12, 70, 8, 8); R(x, '#8a919e', 12 + i * 12, 70, 8, 2); }
+    R(x, '#6b7280', 96, 68, 18, 14); R(x, '#8a919e', 96, 68, 18, 3);
     x.strokeStyle = 'rgba(20,14,28,0.6)'; x.lineWidth = 1;
     x.strokeRect(0.5, 0.5, fw - 1, fh + wallh - 1);
     return { c: t.c, w: fw, h: fh, oy: wallh };

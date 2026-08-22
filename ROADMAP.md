@@ -21,11 +21,6 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
       cruiser that drives into geometry is stuck permanently — the exact defect `unwedge()` exists to
       prevent. Not a railway problem: 17 of those 19 jammed 166–272px away from the corridor, in
       ordinary city geometry. Likely a one-line fix.
-- [ ] **Banner text is flush with the bottom of its box.** `70_hud.js:154` draws the box at y=60,
-      height 20; `:156` draws the text at y=66, and the 5×7 font at scale 2 is 14px tall, so the last
-      glyph row lands on the border stroke. `text()` takes `py` as the top, not the centre. Moving the
-      text to y=63 centres it with 3px either side. Affects every `say()` banner — PERFECT TOSS!,
-      LOST THEM, PULLED OVER, HIT BY TRAIN.
 - [ ] **Canvas renders at 1× between ~768–900px window width.** The scale rule at `90_main.js:21`
       snaps to a crisp 1:1 below 2×, so on a narrow window the game sits small in a large black field.
       Deliberate and pre-existing, but far more noticeable now the page frame is gone. Fix is to let
@@ -38,10 +33,6 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
 
 - [ ] **Drop the "TACO-NAV 2000" header** and shrink the directions box to fit (`70_hud.js:124`).
 - [ ] **Relabel "TACO BAG" as "DELIVERIES"** (`70_hud.js:129`).
-- [ ] **Put the display face on the shop building.** `Art.mkTaqueria` still sets its sign in the 5×7
-      game font via `text()` (`30_art.js:1062`); the hand-authored `LOGO` face and `mkLogoText()` now
-      exist and are what the badge and title use. Worth checking whether a building reference image
-      should influence the design while it is open.
 - [ ] **Title sequence.** Hold "CARNAGE ASADA" for ~3s, then fade it in with a rumble in the style of
       the gameplay collision shake. `overlayTitle` is currently badge + wordmark + blinking prompt and
       has no timed sequence at all.
@@ -95,6 +86,17 @@ These need a decision before they can become work.
 Closed by the neighbourhood pass and no longer carried: the Hays street data, the block-kind zoning,
 and the display-face resize (the 9×11 → 7×9 glyph-grid change in `JOURNAL.md`, which is what made an
 exact percentage possible — cells are square `s×s` rects, so `scale` alone cannot do it).
+
+Closed 2026-08-21: **the clipped banner** — text moved from y=66 to y=63, verified by reading the
+rendered pixels rather than by eye (glyphs now occupy rows 63–76 inside a box spanning 60–79, two
+clear rows of ink either side). And **the display face on the shop building** — `Art.mkTaqueria`
+sets its rooftop sign with `logoText()` at scale 2, gold on jade with a 1px ink keyline, so the shop
+on the map and the badge on the title screen are one lockup. The board grew from 34px tall to 50 to
+take it: `LOGO` is a 7×9 grid against the game font's 5×7, and scale cannot be fudged because cells
+are square `s×s` rects. Four rows of jade sit between the lines — butted together the two keylines
+touch and the O of TACO fuses into the H of SHOP. The real sticker in `reference/assets/` interlocks
+those lines deliberately, but it separates them with outlines that pixel type at this size has no
+room for.
 
 _Add playtest findings here._
 

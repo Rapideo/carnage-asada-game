@@ -153,7 +153,10 @@ const Hud = {
       const w = textW(G.banner, 2) + 16;
       R(x, PAL.ink, (VW - w) / 2 | 0, 60, w, 20);
       x.strokeStyle = G.bannerCol; x.strokeRect(((VW - w) / 2 | 0) + 0.5, 60.5, w - 1, 19);
-      text(x, G.banner, VW / 2, 66, G.bannerCol, 2, 1);
+      // y is the TOP of the run, not its centre: the box is 20 tall from y=60
+      // and the 5x7 font at scale 2 is 14, so y=66 put the final glyph row on
+      // the bottom border stroke. 63 centres it with 3px either side.
+      text(x, G.banner, VW / 2, 63, G.bannerCol, 2, 1);
       x.globalAlpha = 1;
     }
   },
