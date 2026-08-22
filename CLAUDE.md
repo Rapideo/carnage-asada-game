@@ -119,7 +119,7 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 | `20_audio` | `Audio5`: WebAudio SFX, engine voice, siren, and the 4-bar chip loop scheduler |
 | `30_art` | `Art.build()` — bakes every sprite/tile once at boot; `rotFrames`/`drawRot`; `shade()`, `disc()`, `keyline()`; `LOGO` display face + `logoText()`/`mkLogoText()` |
 | `40_city` | `City.gen()` — street grid, addressed houses, baked ground layer, spatial buckets |
-| `50_entities` | `Player`, `Traffic`, `Ped`, `Cop`, `Bag`, `Fx`; shared car physics + collision |
+| `50_entities` | `Player`, `Traffic`, `Train`, `Crossing`, `Ped`, `Cop`, `Bag`, `Fx`; shared car physics + collision |
 | `60_nav` | `Nav` (TACO-NAV unit) and `solve()` — Dijkstra over the intersection graph |
 | `70_hud` | `Hud.draw()` — order card, tip meter, nav panel, minimap; `navArrow`, `triArrow` |
 | `75_demo` | `Demo.drive()` — the attract-mode driver; sets the same fields `Player.control` does |
@@ -197,6 +197,32 @@ Turns exploit a uniform rule: measured from the intersection's origin `A`, the r
 `+8` and the left at `+24` when travelling in a positive direction, and swapped when negative. Both offsets
 land the car exactly on its new lane centre, so a turn is a snap plus a `dir`/`laneNode` update with no
 interpolation. Cars are recycled around the player rather than simulated city-wide.
+
+### The Union Pacific
+
+The corridor is block row `by=2` and carries **two tracks** — `genRail` lays two rail-tile rows and each
+bakes a pair of rails. `City.tracks` is `[northY, southY]` and a train picks by direction: eastbound keeps
+to the south track, the same right-hand convention `Traffic.laneFixed` uses for the road. A train running
+down `City.railY` would straddle both and read as floating.
+
+`City.crossings` is **where** the nine crossings are, baked at generation. `G.crossings` is what they are
+**doing**, rebuilt each shift by `G.resetRail()`. **The gates are drawn, never solid** — you can always run
+one, and that gamble is the whole point of the corridor. Running a closed one and surviving adds heat.
+
+The arms swing in the **ground plane**, from parallel-with-the-track to across-the-road. A raised arm in a
+top-down view points at the sky and foreshortens to nothing, so animating it vertically reads as a gate
+that vanished. Raised must fold back along the *track*, away from the road: folding it along the *road*
+leaves a raised gate lying in the carriageway, and draws the north arm up through its own crossbuck. The
+crossbuck masts sit 44px off the centre line for the same family of reason — the mast sprite's head is 26px
+**above** its ground anchor, so anything nearer puts the crossbuck on the rails.
+
+`G.wreck()` is the most important function in the feature. It ejects the car `RAIL_EJECT` = 52px clear of
+the corridor along the crossing road it was hit on — a wreck can only happen where the corridor is not
+solid, which is a crossing, which is a street, so both exits are known roadway. 52 is derived, not chosen:
+the ballast runs y 480-543 either side of `railY` 512, and a car body reaches 9px along its long axis.
+**A wreck that leaves the car on the rails is a repeat-hit loop**, the same class of defect as the collision
+wedge: unescapable by any input rather than merely awkward. `test/headless.mjs` sweeps all nine crossings
+against both approach headings and both train directions and asserts every one lands clear and unblocked.
 
 ### Guidance (`Nav`)
 
@@ -312,10 +338,15 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. 47 assertions covering city invariants (address
+every drawing call is a no-op but all logic executes. 97 assertions covering city invariants (address
 uniqueness, porch reachability), HUD text widths, wedge escapability, 250 solved routes, 9000 fuzzed
 simulation frames checked for NaN and out-of-world drift, the attract rotation and 85s of autonomous
-demo driving, the full scoring loop, and heat/cop behaviour.
+demo driving, the full scoring loop, heat/cop behaviour, and the railway.
+
+**Sections run in order and share one mutable game, so where a section sits changes what it tests.**
+`— rail —` calls `startShift()`, which is the only reason `— heat —` after it exercises a live pursuit at
+all: before it existed, every section past `— attract —` left the game in `title`, where `update()` returns
+before the cop is ever touched. `— heat —` asserts the state it ran in, so that does not quietly rot.
 
 **The `— hud layout —` section exists because three text-overflow bugs shipped in the order card.** It
 asserts the longest *generated* address still fits, that both restock lines fit, and that every banner box
@@ -344,10 +375,10 @@ legitimately finish near where it started — it failed on working code. Total p
 
 There is no per-test filter — it is one sequential script with labelled sections (`— build —`,
 `— hud layout —`, `— collision —`, `— guidance —`, `— simulation —`, `— scoring —`, `— attract —`,
-`— heat —`). To isolate one, edit the script.
+`— hays map —`, `— block kinds —`, `— rail —`, `— heat —`). To isolate one, edit the script.
 
 ## Publishing
 
-`taco-shop.html` is the shippable artifact: one self-contained file, ~174 KB. It must stay free of external
+`taco-shop.html` is the shippable artifact: one self-contained file, ~189 KB. It must stay free of external
 requests. `?seed=<int>` on the URL regenerates the city deterministically (mulberry32); the default seed is
 in `90_main.js`.

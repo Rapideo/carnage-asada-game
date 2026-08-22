@@ -561,3 +561,142 @@ The north storefront run in each retail block faces the alley rather than the st
 `mkBldg`-style sprites have one orientation and only `Art.house` has four. Directional variants
 were judged not worth it: what reads as downtown from directly above is the unbroken street
 wall, not which way an awning points.
+
+---
+
+## The Union Pacific (Plan 3 of 3)
+
+The corridor was already geometry after Plan 2 — ballast, rails, nine crossings, solid along its
+whole length except where the streets cross it. This put a train on it, gates that lower for it, a
+wreck that cannot trap you, and a cruiser that is not exempt.
+
+### The corridor has two tracks, and that decided the train
+
+`genRail` bakes a two-rail tile and lays two rows of it, so the corridor carries two tracks whose
+centres sit at `railY ± 8` — 504 and 520. That was not noticed while writing the plan. A train
+running down `railY` would have straddled both and read as floating over the gap.
+
+So `City.tracks` exists, and a train picks its track by direction. Eastbound keeps to the south
+rail, which is the same right-hand convention `Traffic.laneFixed` already encodes for the road
+(`dir === 0` takes the `+24` half of its span). Two trains could pass without either being wrong.
+
+`Train` is rail-bound in exactly the sense `Traffic` is: fixed `y`, constant speed, no steering, no
+interpolation. It is the one hazard in the game that cannot be negotiated with, which is what makes
+the crossings matter. `TRAIN_SPD` 250px/s takes it across the 1632px map in about eight seconds and
+past any single point in one and a half.
+
+The consist bakes facing east and mirrors for west. Every road vehicle gets 16 `rotFrames`; a train
+that only ever runs east-west would spend fourteen of them on a 64px sprite nobody ever draws.
+
+### Two numbers only looking could have fixed
+
+The locomotive's first cut gave the grey hood eight of the body's ten rows. On screen that left
+Armour Yellow as a hairline frame and the whole unit read as a flatcar carrying a pale load — a
+grille on wheels, not a locomotive. The fix is proportion, not colour: a wide dark cab and a narrow
+hood with two full rows of yellow either side, and 64px long so it is visibly not a boxcar. The test
+suite could never have caught this; every drawing call is a no-op there.
+
+The crossbuck masts had to move from ~20px off the centre line to 44. The mast sprite is 28 tall
+with `oy` 26, so its head hangs 26px **above** its ground anchor — at +22 the south crossbuck stood
+squarely on the south track and the train drew straight through it. The plan had guessed 30, which
+is still not enough. 44 is the first offset that clears the rails, and it puts both masts outside
+the ballast band rather than in it.
+
+### The gates swing sideways, and which way matters
+
+A gate arm raised in a top-down view points at the sky and foreshortens to nothing, so animating it
+vertically reads as a gate that simply vanished. It swings in the ground plane instead.
+
+The first version swung it from parallel-with-the-road to across-the-road. That is wrong in a way
+that is obvious the moment you look and invisible until then: a raised arm then lies down the middle
+of the carriageway, and on the north mast the striped bar draws straight up through its own
+crossbuck. Raised has to fold back along the **track**, away from the road. Each mast stands just
+outside its kerb, so "away" is west for the south mast and east for the north one, and each swings
+the way that keeps it clear of the rails mid-sweep.
+
+Measured on a live train: the arms start down about two seconds before the nose arrives, hold for
+four, and are back up 0.7s after the tail clears.
+
+### The wreck, and the number that is derived rather than chosen
+
+A wreck that leaves the car on the rails is a repeat-hit loop. That is the same class of defect as
+the collision wedge — not merely awkward but unescapable by any input — so ejecting the car clear is
+the safety property, not a polish step.
+
+`RAIL_EJECT` is 52 because the ballast band runs y 480-543 either side of `railY` 512 and a car body
+reaches 9px along its long axis; 52 clears by 11px north and 12px south. Anything smaller can leave a
+corner inside the geometry.
+
+The ejection direction is safe for a structural reason worth stating: a wreck can only happen where
+the corridor is *not* solid, which is a crossing, which is a north-south street — so both exits are
+known roadway before any test is run.
+
+The plan guarded this with one crossing, which is thin evidence for the feature's whole safety
+property. The suite now sweeps all nine against both approach headings and both train directions:
+36 cases, every one landing at exactly 52px on clear roadway.
+
+That sweep needs `G.banner` cleared between cases. A banner lives 1.6s, so a sweep that forgets reads
+the *previous* case's wreck on frame one, exits immediately, and reports every case after the first
+as a car that never moved. It produced a convincing fifteen-line failure report before the cause was
+spotted. **When a sweep says everything after the first case failed, suspect the sweep.**
+
+### An assertion that passed for the wrong reason
+
+The first cop assertion — that the cruiser is gone after a train crosses it — passed before a single
+line of the cop interaction had been written. A cop that *catches* you also despawns and zeroes the
+heat, via the ticket path, so `cop === null` was true for reasons that had nothing to do with the
+train. It now parks the player 400px clear and asserts the banner reads `THE TRAIN GOT THEM`.
+
+The related trap: a cop accelerates away from wherever it is placed, 285px/s² being 45px in half a
+second, so a train *approaching* a hand-placed cop can legitimately miss. The train straddles the
+crossing at the start of the test instead, which makes the hit deterministic.
+
+The test places the cop by hand, so it cannot answer the question that actually matters: would a
+cruiser ever follow you onto the tracks under its own pathing? Checked separately against the real
+`Cop.update` over ten pursuits across five crossings from both sides — it entered the corridor and
+reached the far side every time. The escape exists in play, not just on paper.
+
+### The demo's wait is latched, and it has to be
+
+The demo plays by the same rules as a player, which includes being allowed to run a gate. It should
+not: the attract loop showing the car flattened by a train reads as the game being broken rather
+than as a hazard.
+
+The test that starts the wait needs a direction of travel, and a stopped car has none. Unlatched, the
+demo stops, stops detecting, creeps forward again under the speed floor in `Demo.drive`, and jitters
+into the gate instead of waiting behind it. Latching it costs one boolean.
+
+Traffic gets the same treatment with a floor rather than a latch: brake for a lowered gate, but only
+from more than 34px out, because a car already between the gates is committed and braking there parks
+it on the rails instead of clearing them.
+
+Both were measured rather than assumed. Traffic queues three deep at 51/72/93px from the rails — the
+gate is at 44 — and across three full train traversals no car ever occupied the train's box. The demo
+latches at 114px out, holds stopped for the whole closure without flapping, and releases the frame
+the gate lifts.
+
+The attract stall bound widens from 8s to 12s for that legitimate wait. Worst observed went from
+0.7-1.0s before the change to 3.6s after, so the bound still has room to catch a real wedge.
+
+### What the section ordering turned out to be doing
+
+`— rail —` calls `startShift()`. That is now the only reason `— heat —`, which runs after it,
+exercises a live pursuit at all: before this branch every section past `— attract —` left the game in
+`title`, where `update()` returns before the cop is ever touched. Ten seconds of "cop pursuit stable"
+were asserting against a cruiser that had never moved.
+
+The sections share one mutable game and run in order, so where a section sits changes what the ones
+after it test. `— heat —` now asserts the state it ran in, so that guarantee does not quietly rot the
+next time something is reordered.
+
+### What was deliberately not done
+
+Widening `— heat —` also surfaced that a pursuing cop wedges about a third of the time — 19 of 60
+dispatches never covered 40px in ten seconds. `Cop.update` never calls `unwedge()` the way
+`Player.update` does, so a cruiser that drives into geometry is stuck for good.
+
+It is not a railway problem: 17 of those 19 jammed between 166 and 272px away from the corridor, in
+ordinary city geometry, and the only cop code this branch touched was `spawnCop` refusing to dispatch
+onto the tracks, which can only reduce corridor cases. So it went on the ROADMAP punch list rather
+than into a train commit, and the assertion that found it was withdrawn rather than loosened until it
+passed. A test weakened to accommodate a bug records nothing; a punch-list line records the bug.

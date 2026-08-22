@@ -9,8 +9,8 @@ Checkboxes render as a live task list on GitHub:
 
 ## Punch list
 
-Small items to clear before starting the neighbourhood work. Everything below is known and unclaimed —
-add to it freely.
+Everything below is known and unclaimed — add to it freely. The neighbourhood pass this list once
+blocked has since landed in full; what remains here is the leftovers plus what building it turned up.
 
 - [ ] **Canvas renders at 1× between ~768–900px window width.** The scale rule at `90_main.js:21` snaps to a
       crisp 1:1 below 2×, so on a narrow window the game sits small in the middle of a large black field.
@@ -23,6 +23,19 @@ add to it freely.
       (`ATTRACT_*` at the top of `80_game.js`). 90 seconds is a long watch; judge after a full cycle.
 - [ ] **Default branch is `master`, not `main`.** GitHub took what the repo had. One command to change if
       it matters: `git branch -m master main && git push -u origin main`.
+- [ ] **A pursuing cop wedges about a third of the time.** Measured 19 of 60 dispatches never covered
+      40px in ten seconds. `Cop.update` does not call `unwedge()` the way `Player.update` does, so a
+      cruiser that drives into geometry is stuck permanently -- the exact defect `unwedge()` exists to
+      prevent. Pre-existing and **not** a railway problem: 17 of those 19 jammed 166-272px away from the
+      corridor, in ordinary city geometry. Surfaced while widening `— heat —` during Plan 3 and left
+      alone as out of scope. Likely a one-line fix.
+- [ ] **Downtown has no deliverable addresses.** Only `res` blocks generate houses, so orders concentrate
+      south of the tracks and the tightest driving in the game -- the Fort/Main retail spine -- carries
+      traffic and hazard but no targets. §7 of the spec names the fix: a street door for the flat above
+      the shop, giving `retail` and `apts` blocks an address. Deferred to avoid a second address path.
+- [ ] **A second time period.** `content/hays.json` exists in the shape it does to make this cheap:
+      another era is another file against the same schema plus a switch on which one loads, not another
+      pass through `40_city.js`. Nothing in the city generator hard-codes a year. See §4 of the spec.
 
 _Add playtest findings here._
 
@@ -33,15 +46,15 @@ _Add playtest findings here._
 Goal: make the city read as the blocks around the real Taco Shop — commercial strip, residential, college —
 rather than a uniform random grid.
 
-> **Status: Plans 1 and 2 have landed.** The city is Hays -- real street names, real Hays
-> addressing, the authored zoning table, and all six block kinds built out, including the Union
-> Pacific corridor as real geometry. `KIND_FALLBACK` is gone. Still to come: Plan 3, the live
-> train with its crossing gates, the wreck and the cop interaction. Plans are in
+> **Status: all three plans have landed.** The city is Hays -- real street names, real Hays
+> addressing, the authored zoning table, and all six block kinds built out. The Union Pacific runs
+> through it: a live train every 22-40s, nine level crossings whose gates lower and lift, a wreck
+> that throws you clear of the corridor, and a cruiser that is not exempt. Plans are in
 > `docs/superpowers/plans/`. The full design is
-> [`docs/superpowers/specs/2026-08-21-hays-neighbourhood-design.md`](docs/superpowers/specs/2026-08-21-hays-neighbourhood-design.md),
-> on branch `feature/hays-neighbourhood`. Read it before starting work — it records the decisions
-> *and the alternatives that were rejected*, which is the part that is not recoverable from the code.
-> The sections below remain accurate as background on why the job costs what it costs.
+> [`docs/superpowers/specs/2026-08-21-hays-neighbourhood-design.md`](docs/superpowers/specs/2026-08-21-hays-neighbourhood-design.md).
+> Read it before starting work on the city -- it records the decisions *and the alternatives that
+> were rejected*, which is the part that is not recoverable from the code. The sections below remain
+> accurate as background on why the job costs what it costs.
 
 ### Why the two halves cost very different amounts
 

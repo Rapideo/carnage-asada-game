@@ -573,6 +573,8 @@ const Audio5 = {
       case 'bump':    this.noise(0.1, 0.18, 320, 0.8); break;
       case 'ped':     this.tone(880, 0.1, 'square', 0.16, 300); this.noise(0.14, 0.18, 900, 0.9, 0.05); break;
       case 'horn':    this.tone(440, 0.2, 'square', 0.10); this.tone(554, 0.2, 'square', 0.09); break;
+      case 'bell':    this.tone(1046, 0.10, 'sine', 0.09); this.tone(1318, 0.12, 'sine', 0.08, 0, 0.09); break;
+      case 'trainhorn': this.tone(146, 0.55, 'sawtooth', 0.15); this.tone(196, 0.55, 'sawtooth', 0.12, 0, 0.02); this.tone(233, 0.50, 'sawtooth', 0.09, 0, 0.04); break;
       case 'nav':     this.tone(1568, 0.06, 'square', 0.13); break;
       case 'recalc':  this.tone(392, 0.09, 'square', 0.13); this.tone(330, 0.12, 'square', 0.12, 0, 0.09); break;
       case 'ticket':  [0, 1, 2].forEach((i) => this.tone([392, 330, 262][i], 0.18, 'sawtooth', 0.18, 0, i * 0.1)); break;
@@ -797,7 +799,7 @@ const SPILL = ['#7a4a2a', '#c9542f', '#5aa14c', '#e0b055', '#d8b98a'];
 
 const Art = {
   tile: {}, house: [], bldg: [], store: [], civic: [], apts: [], church: [], shed: [], tree: [], prop: {},
-  car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [], signal: null,
+  car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [], signal: null, loco: null, boxcar: [],
   badge: null, wordmark: null, seal: null, steeple: null,
 
   build(rng) {
@@ -810,6 +812,7 @@ const Art = {
     this.buildChurches(rng);
     this.buildSheds(rng);
     this.buildRail(makeRng(777));
+    this.buildTrain();
     this.buildNature(rng);
     this.buildProps(rng);
     this.buildVehicles(rng);
@@ -1378,6 +1381,75 @@ const Art = {
     R(mx, PAL.red, 1, 8, 3, 3); R(mx, PAL.red, 7, 8, 3, 3);
     this.signal = { c: m.c, w: 3, h: 2, oy: 26 };
   },
+  /* ---------- rolling stock ------------------------------- */
+  /* Baked facing east and mirrored for west. Every road vehicle gets 16
+     rotFrames; the train only ever runs east-west, so 14 of those would be
+     unused frames of a 58px sprite. The trucks deliberately stick out past
+     the body top and bottom — that overhang is what stops a flat slab from
+     reading as a shipping container lying in a field. */
+  buildTrain() {
+    const H = 16, B0 = 3, BH = 10;          // body rows 3..12, trucks 0..2 and 13..15
+    const flip = (src) => {
+      const t = mkCanvas(src.width, src.height);
+      t.x.imageSmoothingEnabled = false;
+      t.x.translate(src.width, 0); t.x.scale(-1, 1);
+      t.x.drawImage(src, 0, 0);
+      return t.c;
+    };
+    const trucks = (x, len) => {
+      for (const tx of [4, len - 17]) {
+        R(x, '#15121c', tx, 0, 13, 3);
+        R(x, '#3a3644', tx + 1, 1, 11, 1);
+        R(x, '#15121c', tx, H - 3, 13, 3);
+        R(x, '#3a3644', tx + 1, H - 2, 11, 1);
+      }
+    };
+
+    /* Locomotive: cab at the rear, long hood forward, Armour Yellow. The read
+       has to survive at 1x, where the whole unit is 64px: a WIDE dark cab and
+       a NARROW dark hood sitting on a yellow body. The first cut gave the hood
+       8 of the body's 10 rows, which left the yellow as a hairline frame and
+       turned the loco into a pale slab with stripes — a flatcar with a load,
+       not a locomotive. Two rows of yellow either side of the hood is what
+       carries the identity. */
+    const L = 64, lo = mkCanvas(L, H), lx = lo.x;
+    trucks(lx, L);
+    R(lx, '#15121c', 0, B0 - 1, L, BH + 2);
+    R(lx, '#d8a838', 1, B0, L - 2, BH);                  // Armour Yellow
+    R(lx, '#eec457', 1, B0, L - 2, 1);
+    R(lx, '#a97f22', 1, B0 + BH - 1, L - 2, 1);
+    R(lx, '#2f333d', 2, B0, 14, BH);                     // cab, full body height
+    R(lx, '#3d434f', 2, B0, 14, 1);
+    R(lx, PAL.glass, 4, B0 + 2, 5, BH - 4);
+    R(lx, PAL.glassHi, 4, B0 + 2, 5, 1);
+    R(lx, '#5c616b', 19, B0 + 2, 33, BH - 4);            // long hood, narrow
+    R(lx, '#7a808c', 19, B0 + 2, 33, 1);
+    R(lx, '#3e434c', 19, B0 + BH - 3, 33, 1);
+    for (let i = 0; i < 6; i++) R(lx, '#3e434c', 23 + i * 5, B0 + 3, 2, BH - 6);
+    R(lx, '#8d919c', 46, B0 + 1, 6, BH - 2);             // radiator, at the hood front
+    R(lx, '#6a6e78', 47, B0 + 2, 4, BH - 4);
+    R(lx, '#2f333d', L - 6, B0 + 1, 5, BH - 2);          // pilot
+    R(lx, '#fff2c0', L - 4, B0 + 4, 3, 2);               // headlight, inside the silhouette
+    this.loco = [flip(lo.c), lo.c];                      // [0] west-facing, [1] east
+
+    /* three liveries, so a consist does not read as one tile repeated */
+    this.boxcar = [];
+    for (const [body, dark] of [['#8c4030', '#652a20'], ['#767a86', '#565a66'], ['#6b563c', '#4c3d29']]) {
+      const W = 48, bc = mkCanvas(W, H), bx = bc.x;
+      trucks(bx, W);
+      R(bx, '#15121c', 0, B0 - 1, W, BH + 2);
+      R(bx, body, 1, B0, W - 2, BH);
+      R(bx, shade(body, 0.18), 1, B0, W - 2, 1);
+      R(bx, dark, 1, B0 + BH - 1, W - 2, 1);
+      R(bx, dark, 1, B0 + 4, W - 2, 2);                  // door track along the side
+      R(bx, shade(body, -0.32), 20, B0, 9, BH);          // sliding door
+      R(bx, shade(body, 0.10), 20, B0, 1, BH);
+      R(bx, shade(body, 0.10), 28, B0, 1, BH);
+      for (let i = 0; i < 3; i++) R(bx, dark, 6 + i * 4, B0 + 1, 1, BH - 2);
+      for (let i = 0; i < 3; i++) R(bx, dark, 33 + i * 4, B0 + 1, 1, BH - 2);
+      this.boxcar.push([flip(bc.c), bc.c]);
+    }
+  },
 
   /* ---------- trees / nature ------------------------------ */
   buildNature(rng) {
@@ -1811,7 +1883,7 @@ const City = {
     this.solid = new Uint8Array(GW * GH);
     this.surf  = new Uint8Array(GW * GH);
     this.keep  = new Uint8Array(GW * GH);   // porches + walkways: nothing may block these
-    this.statics = []; this.houses = []; this.crossings = [];
+    this.statics = []; this.houses = []; this.crossings = []; this.tracks = null;
 
     const g = mkCanvas(WW, WH);
     this.ground = g.c; this.gx = g.x;
@@ -2156,6 +2228,12 @@ const City = {
     const g = this.gx;
     const MID = 6;                                    // corridor centre, block-local tiles
     this.railY = (BORDER + by * SPAN + MID) * TS;
+    /* The corridor carries two tracks: each rail tile bakes a pair of rails,
+       and genRail lays two rows of them. A train running down railY would
+       straddle both and read as floating, so it has to pick one. Right-hand
+       running, the same convention Traffic.laneFixed uses for the road:
+       eastbound keeps to the south track. */
+    this.tracks = [this.railY - 8, this.railY + 8];
     const lastCol = bx === BLOCKS - 1;
     const lxMax = lastCol ? SPAN + 1 : SPAN - 1;      // the far kerb carries the ninth crossing
 
@@ -2177,13 +2255,19 @@ const City = {
     const addCrossing = (col) => {
       const cx = (BORDER + col * SPAN) * TS + TS;
       if (this.crossings.some((c) => Math.abs(c.x - cx) < 4)) return;
-      this.crossings.push({ x: cx, y: this.railY });
-      // a crossbuck on each approach, diagonally opposed like the real thing
-      const s = Art.signal;
-      for (const [ox, oy] of [[-24, 22], [22, -20]]) {
+      /* A crossbuck on each approach, diagonally opposed like the real thing,
+         44px off the centre line rather than ~20. The mast sprite is 28 tall
+         with oy = 26, so its head sits 26px ABOVE the anchor: at +22 the south
+         crossbuck landed on the south track and the train drew straight
+         through it. 44 is the first offset that clears the rails, and it puts
+         both masts outside the ballast band rather than in it. */
+      const s = Art.signal, masts = [];
+      for (const [ox, oy] of [[-24, 44], [22, -44]]) {
         const px = cx + ox, py = this.railY + oy;
         this.statics.push({ img: s.c, x: px, y: py, oy: s.oy, w: s.w, h: s.h, sortY: py + s.h, noShadow: true });
+        masts.push([px + 5, py]);            // the mast centre line, at its base
       }
+      this.crossings.push({ x: cx, y: this.railY, masts });
     };
     addCrossing(bx);
     if (lastCol) addCrossing(bx + 1);
@@ -2709,6 +2793,23 @@ class Traffic {
       this.honk -= dt;
       if (this.honk <= 0 && pdx < 34 && G.nearScreen(this.x, this.y)) { Audio5.sfx('horn'); this.honk = 2.4; }
     }
+    /* --- a closed crossing ahead --- */
+    // Only north-south traffic meets the corridor. Nothing in the rules stops
+    // a car driving into a moving train, but it looks like a bug, so treat a
+    // lowered gate as a stopped car on the tracks. The 34px floor matters: a
+    // car already between the gates is committed, and braking there would park
+    // it on the rails instead of clearing them.
+    if (this.dir % 2 === 1 && G.crossings) {
+      const toRail = (City.railY - this.y) * DIRV[this.dir][1];
+      if (toRail > 34 && toRail < 150) {
+        for (const c of G.crossings) {
+          if (!c.down || Math.abs(c.x - this.x) > 30) continue;
+          block = Math.min(block, toRail - 30);
+          break;
+        }
+      }
+    }
+
     this.spd = block < 40 ? approach(this.spd, block < 22 ? 0 : 26, 320 * dt)
                           : approach(this.spd, this.want, 90 * dt);
 
@@ -2721,6 +2822,147 @@ class Traffic {
     x.fillStyle = PAL.shadow;
     x.fillRect((sx - 8) | 0, (sy - 3) | 0, 17, 11);
     drawRot(x, this.frames, sx, sy, this.ang);
+  }
+}
+
+/* ---------------- the Union Pacific ----------------------- */
+/* Rail-bound in the same sense Traffic is: fixed y, constant speed, no
+   steering, no interpolation. It is the one hazard in the game that cannot be
+   negotiated with, which is exactly why the crossings matter. */
+const TRAIN_SPD = 250;              // px/s — about 8s to clear the 1632px map
+const LOCO_LEN = 58, CAR_LEN = 48, CAR_GAP = 5;
+const TRAIN_HH = 7;                 // hit-box half-height: the body, not the trucks
+
+class Train {
+  /* dir is +1 east, -1 west. `x` is always the NOSE, whichever way it runs. */
+  constructor(dir, y) {
+    this.dir = dir; this.y = y;
+    this.cars = [];
+    let off = 0;
+    this.cars.push({ len: LOCO_LEN, img: Art.loco[dir > 0 ? 1 : 0], off });
+    off += LOCO_LEN + CAR_GAP;
+    const n = 5 + ((Math.random() * 3) | 0);
+    for (let i = 0; i < n; i++) {
+      const b = Art.boxcar[(Math.random() * Art.boxcar.length) | 0];
+      this.cars.push({ len: CAR_LEN, img: b[dir > 0 ? 1 : 0], off });
+      off += CAR_LEN + CAR_GAP;
+    }
+    this.len = off - CAR_GAP;
+    this.x = dir > 0 ? -20 : WW + 20;
+    this.horn = 0.4;
+    this.dead = false;
+  }
+  get x0() { return this.dir > 0 ? this.x - this.len : this.x; }
+  get x1() { return this.x0 + this.len; }
+
+  /* One box, nose to tail, gaps included. A 5px coupler gap is not a hole a
+     car can be inside, and pretending it is would invite a threaded-the-needle
+     bug on the one hazard that must never be survivable by accident. */
+  hits(e) {
+    const c = Math.cos(e.ang), s = Math.sin(e.ang), x0 = this.x0, x1 = this.x1;
+    for (let i = 0; i < CORNERS.length; i++) {
+      const lx = CORNERS[i][0], ly = CORNERS[i][1];
+      const px = e.x + lx * c - ly * s, py = e.y + lx * s + ly * c;
+      if (px > x0 && px < x1 && py > this.y - TRAIN_HH && py < this.y + TRAIN_HH) return true;
+    }
+    return false;
+  }
+
+  update(dt, G) {
+    this.x += this.dir * TRAIN_SPD * dt;
+    if (this.dir > 0 ? this.x0 > WW + 40 : this.x1 < -40) this.dead = true;
+    this.horn -= dt;
+    if (this.horn <= 0 && G.nearScreen(this.x, this.y)) { Audio5.sfx('trainhorn'); this.horn = 3.4; }
+  }
+
+  draw(x, cam) {
+    for (const c of this.cars) {
+      const nose = this.dir > 0 ? this.x - c.off : this.x + c.off;
+      const left = this.dir > 0 ? nose - c.len : nose;
+      const sx = (left - cam.x) | 0;
+      if (sx > VW + 8 || sx + c.len < -8) continue;
+      const sy = (this.y - cam.y - 8) | 0;
+      x.fillStyle = PAL.shadow;
+      x.fillRect(sx, sy + 5, c.len, 14);
+      x.drawImage(c.img, sx, sy);
+    }
+  }
+}
+
+/* ---------------- level crossing -------------------------- */
+/* The gates are DRAWN, never solid. You can always run one, which is the
+   gamble the whole corridor is built around; what running one costs you is
+   handled in 80_game. This class only knows how to watch a train and swing
+   two arms. */
+const GATE_LOWER = 0.7;     // seconds, up to down
+const GATE_WARN  = 520;     // px of approach before the arms start moving
+const GATE_CLEAR = 40;      // px past the tail before they lift
+const BELL_T     = 0.55;
+
+class Crossing {
+  constructor(c) {
+    this.x = c.x; this.y = c.y; this.masts = c.masts;
+    this.t = 0; this.down = false; this.bell = 0; this.lamp = 0;
+  }
+
+  update(dt, G) {
+    const tr = G.train;
+    let want = false;
+    if (tr) {
+      // how far the crossing is AHEAD of the nose, along the way it is going
+      const ahead = tr.dir > 0 ? this.x - tr.x1 : tr.x0 - this.x;
+      want = ahead < GATE_WARN && ahead > -(tr.len + GATE_CLEAR);
+    }
+    this.t = clamp(this.t + (want ? dt : -dt) / GATE_LOWER, 0, 1);
+    this.down = this.t > 0.55;
+    this.lamp += dt;
+    this.bell -= dt;
+    if (!want) this.bell = 0;
+    else if (this.bell <= 0 && G.nearScreen(this.x, this.y)) { Audio5.sfx('bell'); this.bell = BELL_T; }
+  }
+
+  /* The arm swings in the GROUND plane, not up and down. A raised arm in a
+     top-down view points at the sky and foreshortens to nothing, so animating
+     it vertically reads as a gate that vanished; swinging it from
+     parallel-with-the-track to across-the-road is what every top-down game
+     does, and what a player reads instantly. */
+  drawArm(x, cam, m, a0, a1) {
+    const a = a0 + (a1 - a0) * this.t;
+    x.save();
+    x.translate((m[0] - cam.x) | 0, (m[1] - cam.y) | 0);
+    x.rotate(a);
+    for (let i = 0; i < 5; i++) {                 // 4 + 5*6 = 34px, across the road
+      x.fillStyle = i & 1 ? '#e8e4d8' : PAL.red;
+      x.fillRect(4 + i * 6, -1, 6, 3);
+    }
+    x.fillStyle = '#3c4250'; x.fillRect(-2, -2, 6, 5);
+    x.restore();
+  }
+
+  /* The crossbuck's two red lamps are baked into the static, so the flashing
+     pair is drawn over them rather than animated in place. */
+  drawLamps(x, cam, m) {
+    if (this.t <= 0) return;
+    const on = ((this.lamp * 3) | 0) & 1;
+    const ly = (m[1] - 18 - cam.y) | 0;
+    x.fillStyle = on ? '#ff6a52' : '#5a1a12';
+    x.fillRect((m[0] - 4 - cam.x) | 0, ly, 3, 3);
+    x.fillStyle = on ? '#5a1a12' : '#ff6a52';
+    x.fillRect((m[0] + 2 - cam.x) | 0, ly, 3, 3);
+  }
+
+  draw(x, cam) {
+    /* Raised is parallel to the TRACK, folded back away from the road — not
+       parallel to the road. Pointing an arm along the road puts a raised gate
+       lying in the carriageway, and on the north mast it draws the striped
+       arm straight up through its own crossbuck. Each mast stands just
+       outside its kerb, so "away from the road" is west for the south mast
+       and east for the north one; each swings the way that keeps it clear of
+       the rails mid-sweep. */
+    this.drawArm(x, cam, this.masts[0], PI, 0);
+    this.drawArm(x, cam, this.masts[1], 0, -PI);
+    this.drawLamps(x, cam, this.masts[0]);
+    this.drawLamps(x, cam, this.masts[1]);
   }
 }
 
@@ -3366,9 +3608,9 @@ function triArrow(x, cx, cy, a, r, col, outline) {
    Note Player.update treats `throttle` as a SIGN, not a magnitude, so easing
    off is throttle 0 (coast) rather than a fraction. */
 const Demo = {
-  wedgeT: 0, esteer: 1, throwCd: 0,
+  wedgeT: 0, esteer: 1, throwCd: 0, hold: false,
 
-  reset(p) { this.wedgeT = 0; this.esteer = 1; this.throwCd = 0; },
+  reset(p) { this.wedgeT = 0; this.esteer = 1; this.throwCd = 0; this.hold = false; },
 
   drive(dt, G) {
     const p = G.player;
@@ -3434,6 +3676,29 @@ const Demo = {
     p.throttle = p.speed < 34 ? 1
                : (Math.abs(err) > 1.2 || p.speed > 115) ? 0 : 1;
 
+    /* ---- hold at a closed crossing ----
+       The demo plays by the same rules as a player, which includes being
+       allowed to run a gate. It should not: the attract loop showing the car
+       flattened by a train reads as the game being broken, not as a hazard.
+
+       Latched, deliberately. The test that STARTS the hold needs a direction
+       of travel, and a stopped car has none — so unlatched it stops, stops
+       detecting, creeps forward again under the speed floor above, and jitters
+       into the gate instead of waiting behind it. */
+    if (G.crossings) {
+      let near = null;
+      for (const c of G.crossings)
+        if (Math.abs(c.x - p.x) < 34 && Math.abs(c.y - p.y) < 130) { near = c; break; }
+      if (!near || !near.down) this.hold = false;
+      else if (this.hold || (City.railY - p.y) * sign(p.vy || (ty - p.y)) > 24) this.hold = true;
+      if (this.hold) {
+        // brake to a stop, then coast. Never reverse: the road behind is live.
+        p.throttle = p.fwdSpeed > 10 ? -1 : 0;
+        p.steer = 0; p.hb = false;
+        this.wedgeT = 0;                    // waiting is not wedging
+      }
+    }
+
     /* ---- toss once the porch is in range ---- */
     this.throwCd -= dt;
     if (G.order && !G.needPickup) {
@@ -3480,6 +3745,7 @@ const PERFECT_BONUS = 500;
 const REMAKE_FEE = 150, PED_FINE = 200, TICKET = 1500;
 const HEAT_MAX = 100;
 const BAG_MAX = 3;
+const RAIL_EJECT = 52;      // px from the corridor centre a wreck throws you
 const THROW_CD = 0.34;
 
 /* attract rotation, cabinet-style: title -> winners -> demo -> title */
@@ -3491,6 +3757,7 @@ const G = {
   combo: 1, comboPop: 0, heat: 0, heatMax: HEAT_MAX,
   bag: BAG_MAX, bagMax: BAG_MAX, needPickup: false,
   player: null, traffic: [], peds: [], flying: [], cop: null, copT: 0,
+  train: null, trainT: 0, crossings: [], railSide: 0, wreckCd: 0,
   cam: { x: 0, y: 0 }, shake: 0, hitstop: 0,
   order: null, banner: '', bannerT: 0, bannerCol: PAL.bone,
   throwCd: 0, restock: 0, tipPop: 0, infraction: 0,
@@ -3516,6 +3783,7 @@ const G = {
     this.player = new Player(City.shop.dock.x, City.shop.dock.y + 70, -PI / 2);
     this.traffic.length = 0; this.peds.length = 0; this.flying.length = 0;
     this.cop = null; Nav.clear(); Fx.clear();
+    this.resetRail();
     this.cam.x = clamp(City.shop.x - VW / 2, 0, WW - VW);
     this.cam.y = clamp(City.shop.y - VH / 2, 0, WH - VH);
     this.seedTraffic(26); this.seedPeds(20);
@@ -3546,6 +3814,7 @@ const G = {
     this.throwCd = 0; this.restock = 0; this.infraction = 0;
     this.stats = { delivered: 0, perfect: 0, splat: 0, best: 0, peds: 0, tickets: 0 };
     this.flying.length = 0; Fx.clear();
+    this.resetRail();
     const d = City.shop.dock;
     this.player = new Player(d.x, d.y + 40, PI / 2);
     this.cam.x = clamp(d.x - VW / 2, 0, WW - VW);
@@ -3722,6 +3991,77 @@ const G = {
 
   onCrash() { this.bumpHeat(7); },
 
+  /* THE most important function in this feature. A wreck that leaves the car
+     on the rails is a repeat-hit loop, which is the same class of defect as
+     the collision wedge: not merely awkward but unescapable by any input.
+     Throwing the car clear is the safety property, not a polish step.
+
+     RAIL_EJECT is derived, not chosen: the ballast band runs y 480-543 either
+     side of railY = 512, and a car body reaches 9px along its long axis, so 52
+     clears the ballast by 11px north and 12px south. */
+  wreck() {
+    const p = this.player;
+    this.wreckCd = 1.5;
+
+    /* Out along the crossing road it was hit on. A wreck can only happen where
+       the corridor is not solid, which is a crossing, which is a north-south
+       street — so both exits are guaranteed roadway. Prefer the side it was
+       already on; fall back to the other; fall back again to the demo's hard
+       reset, which is ugly but always works. */
+    let cx = p.x, nd = 1e9;
+    for (const c of this.crossings) { const d = Math.abs(c.x - p.x); if (d < nd) { nd = d; cx = c.x; } }
+    const first = p.y < City.railY ? -1 : 1;
+    let placed = false;
+    for (const s of [first, -first]) {
+      const ny = City.railY + s * RAIL_EJECT;
+      if (!carBlocked(cx, ny, p.ang)) { p.x = cx; p.y = ny; placed = true; break; }
+    }
+    if (!placed) {
+      p.x = City.nodeX(City.nearNodeX(cx));
+      p.y = City.nodeY(City.nearNodeY(City.railY + first * 200));
+    }
+    p.vx = p.vy = 0;
+    p.spinOut(Math.random() < 0.5 ? -1 : 1);
+    p.spinT = 1.3;                       // longer than a crunch: this is a wreck
+    this.railSide = p.y < City.railY ? -1 : 1;   // do not read the eject as beating the train
+
+    /* the whole load across the ballast, whatever you were carrying */
+    for (let i = 0; i < this.bag; i++) Fx.splat(cx + rand(-30, 30), City.railY + rand(-14, 14));
+    Fx.spill(cx, City.railY);
+    for (let k = 0; k < 22; k++) Fx.spark(p.x, p.y, rand(-140, 140), rand(-140, 140));
+    this.bag = 0;
+    this.needPickup = true;
+    this.syncNav();
+
+    this.shake = 12; this.hitstop = 0.14; this.flash = 0.18;
+    this.combo = 1;
+    this.say('HIT BY TRAIN', PAL.bad);   // 12 chars — well inside the banner box
+    Audio5.sfx('crash'); Audio5.sfx('trainhorn');
+    // No fine. The spec is explicit: a wreck costs time and load, not money.
+  },
+
+  /* The corridor band, generously sized. Used to keep a cop from being
+     dispatched onto the tracks: a cruiser that materialises under a moving
+     train is wrecked the instant it exists, which reads as a bug rather than
+     as a rule. */
+  onRail(x, y) { return Math.abs(y - City.railY) < 44; },
+
+  /* Running a closed crossing is always allowed — the gates are drawn, not
+     solid. Surviving one is what costs you, because the cops saw you do it. */
+  railCheck() {
+    const p = this.player;
+    const side = p.y < City.railY ? -1 : 1;
+    if (this.railSide === 0) { this.railSide = side; return; }
+    if (side === this.railSide) return;
+    this.railSide = side;
+    let near = null, nd = 1e9;
+    for (const c of this.crossings) { const d = Math.abs(c.x - p.x); if (d < nd) { nd = d; near = c; } }
+    if (near && nd < 40 && near.down) {
+      this.bumpHeat(20);
+      Fx.pop(p.x, p.y - 22, 'BEAT THE TRAIN!', PAL.amber);
+    }
+  },
+
   bumpHeat(n) {
     this.heat = clamp(this.heat + n, 0, HEAT_MAX);
     this.infraction = 1.2;
@@ -3733,13 +4073,23 @@ const G = {
     const a = Math.random() * TAU;
     let x = p.x + Math.cos(a) * 210, y = p.y + Math.sin(a) * 210;
     x = clamp(x, 40, WW - 40); y = clamp(y, 40, WH - 40);
-    for (let i = 0; i < 30 && City.isSolid(x, y); i++) { x = clamp(p.x + rand(-260, 260), 40, WW - 40); y = clamp(p.y + rand(-260, 260), 40, WH - 40); }
+    for (let i = 0; i < 30 && (City.isSolid(x, y) || this.onRail(x, y)); i++) { x = clamp(p.x + rand(-260, 260), 40, WW - 40); y = clamp(p.y + rand(-260, 260), 40, WH - 40); }
     this.cop = new Cop(x, y, Math.atan2(p.y - y, p.x - x));
     this.copT = 26;
     this.say("HAYS PD! LOSE 'EM!", PAL.bad);
     Audio5.sirenOn();
   },
   dropCop() { this.cop = null; this.heat = Math.min(this.heat, 45); Audio5.sirenOff(); },
+
+  /* City.crossings is WHERE the crossings are, baked once at generation.
+     G.crossings is what they are DOING, and is rebuilt per shift. */
+  resetRail() {
+    this.train = null;
+    this.trainT = rand(10, 22);
+    this.railSide = 0;
+    this.wreckCd = 0;
+    this.crossings = City.crossings.map((c) => new Crossing(c));
+  },
 
   /* ---------------- update ------------------------------- */
   update(dt) {
@@ -3872,6 +4222,35 @@ const G = {
     }
     while (this.peds.length < 24) this.spawnPed();
 
+    /* the Union Pacific */
+    this.wreckCd -= dt;
+    this.trainT -= dt;
+    if (!this.train && this.trainT <= 0) {
+      const dir = Math.random() < 0.5 ? 1 : -1;
+      // eastbound keeps to the south track — City.tracks is [north, south]
+      this.train = new Train(dir, City.tracks[dir > 0 ? 1 : 0]);
+      this.trainT = rand(22, 40);
+    }
+    if (this.train) {
+      this.train.update(dt, this);
+      if (this.train.hits(p) && this.wreckCd <= 0) this.wreck();
+      /* Beat the train across and the pursuit eats it. That is what turns the
+         tracks from an obstacle into a tactic: a genuine high-risk escape.
+         heat = 0 has to come BEFORE dropCop, which only clamps it to 45. */
+      if (this.cop && this.train.hits(this.cop)) {
+        for (let k = 0; k < 20; k++) Fx.spark(this.cop.x, this.cop.y, rand(-150, 150), rand(-150, 150));
+        Fx.pop(this.cop.x, this.cop.y - 22, 'CRUNCH!', PAL.good);
+        this.shake = Math.max(this.shake, 7);
+        Audio5.sfx('crash');
+        this.say('THE TRAIN GOT THEM', PAL.good);   // 18 chars, a 230px banner
+        this.heat = 0;
+        this.dropCop();
+      }
+      if (this.train.dead) this.train = null;
+    }
+    for (const c of this.crossings) c.update(dt, this);
+    this.railCheck();
+
     /* cop */
     if (this.cop) {
       this.cop.update(dt, this);
@@ -3974,6 +4353,9 @@ const G = {
     for (const c of this.traffic) if (this.nearScreen(c.x, c.y)) rl.push({ sortY: c.y, e: c });
     for (const q of this.peds)    if (this.nearScreen(q.x, q.y)) rl.push({ sortY: q.y, e: q });
     if (this.cop) rl.push({ sortY: this.cop.y, e: this.cop });
+    if (this.train) rl.push({ sortY: this.train.y, e: this.train });
+    for (const c of this.crossings)
+      if (this.nearScreen(c.x, c.y)) rl.push({ sortY: c.y + 44, e: c });
     for (const z of this.flying) rl.push({ sortY: z.y, e: z });
     rl.sort((a, b) => a.sortY - b.sortY);
     for (const it of rl) {

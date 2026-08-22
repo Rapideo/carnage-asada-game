@@ -596,6 +596,19 @@ for (let i = 0; i < 40; i++) G.bumpHeat(5);
 ok(G.cop !== null, 'cop dispatched at max heat');
 for (let i = 0; i < 600; i++) G.update(1 / 60);
 ok(finite(G.cop ? G.cop.x : 0), 'cop pursuit stable');
+/* Until the — rail — section above existed, every section after — attract —
+   left the game in `title`, where update() returns before the cop is ever
+   touched — so this section was asserting against a cruiser that never moved.
+   — rail — calls startShift(), so the pursuit is now genuinely simulated.
+   Assert the state, or that quietly rots the next time a section is reordered.
+
+   NOT asserted: that the cruiser covered ground. It wedges about a third of
+   the time — measured 19 of 60 dispatches — because Cop.update never calls
+   unwedge() the way Player.update does. That is pre-existing and unrelated to
+   the railway (17 of those 19 jammed 166-272px away from the corridor, in
+   ordinary city geometry), so it is on the ROADMAP punch list rather than
+   papered over with a looser bound here. */
+ok(G.state === 'play' || G.state === 'results', `the pursuit ran in a live state (${G.state})`);
 
 console.log(`\n${fails === 0 ? 'PASS' : 'FAIL (' + fails + ')'}  —  ${ops.toLocaleString()} draw calls exercised`);
 process.exit(fails ? 1 : 0);
