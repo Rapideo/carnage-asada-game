@@ -50,6 +50,10 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
       another era is another file against the same schema plus a switch on which one loads, not
       another pass through `40_city.js`. Nothing in the city generator hard-codes a year. See §4 of
       the spec.
+- [ ] **A kitchen mini-game to replace restock.** Restock is currently the one dead moment in the
+      game — drive to the dock, hold for a flat 1.0s, three bags appear. The full brief is in
+      `docs/kitchen-minigame-prompt.md`; the mechanic is a rebuild of one from an earlier project,
+      written out in full there so nothing has to be imported from outside this repo.
 - [ ] **Seasonal hazards.**
 - [ ] **NPC feedback — APB-style character dialogue.**
 

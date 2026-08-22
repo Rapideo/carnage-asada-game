@@ -79,12 +79,20 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 - `ROADMAP.md` — the open punch list, and the tiered plan for reshaping the city into the real
   neighbourhood. **Read before touching the street grid**: it records which six modules assume a uniform
   block pitch, and which tiers are safe versus which are a rewrite.
-- `docs/superpowers/specs/2026-08-21-hays-neighbourhood-design.md` — the approved design for turning the
-  city into the real downtown Hays, and for the Union Pacific line through it. Not yet built. **Read with
-  `ROADMAP.md` before touching `40_city.js` or the street grid**: it records the rejected alternatives,
-  which is the part the code will never show you.
+- `docs/superpowers/specs/2026-08-21-hays-neighbourhood-design.md` — the design for the real downtown
+  Hays and the Union Pacific through it. **Built and shipped**, in three plans in
+  `docs/superpowers/plans/`. **Read with `ROADMAP.md` before touching `40_city.js` or the street
+  grid**: it records the rejected alternatives, which is the part the code will never show you —
+  including why square blocks were kept and why Tiers 3 and 4 are not worth their cost.
+- `docs/superpowers/specs/2026-08-21-high-scores-design.md` — the design for scoring and the board.
+  **Built and shipped.** Read it before changing `rank()`, the attract rotation, or anything in
+  `78_scores.js`: it records why the score is the money rather than points, and why the
+  `localStorage` wrapper is not optional.
+- `docs/kitchen-minigame-prompt.md` — a brief from the user for replacing the flat 1-second restock
+  with a kitchen mini-game. **Queued, not started.** It is deliberately written out in full rather
+  than as a pointer to the earlier project it comes from, because this file forbids importing
+  outside context — so the brief *is* the source.
 - `README.md` — what the game is, controls, and the development commands.
-
 - `JOURNAL.md` — the original brief, why each design call was made (including rejected alternatives), the
   bugs that mattered, and the repeatable build order. Read before changing a core mechanic; the reasoning
   behind the tip decay, the throw scheme, and the bag-of-3 rule is not obvious from the code.
