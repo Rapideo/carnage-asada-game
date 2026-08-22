@@ -700,3 +700,63 @@ ordinary city geometry, and the only cop code this branch touched was `spawnCop`
 onto the tracks, which can only reduce corridor cases. So it went on the ROADMAP punch list rather
 than into a train commit, and the assertion that found it was withdrawn rather than loosened until it
 passed. A test weakened to accommodate a bug records nothing; a punch-list line records the bug.
+
+---
+
+## Two punch-list items, and what merging the lists was actually for
+
+### The lists had drifted
+
+There were two: `ROADMAP.md`, kept current, and a standalone punch list authored on 16 August. Two of
+its items — the Hays street data and the block-kind zoning — had shipped days earlier and were still
+sitting there unticked, because nothing ever reconciled the two files.
+
+They are one list now. The part worth keeping is not the merge, it is that **every carried-over item
+was checked against the code instead of assumed**, and that changed three of them:
+
+- the display-face resize was **done** — `JOURNAL.md` already recorded the 9×11 → 7×9 glyph-grid
+  change that made an exact percentage possible;
+- putting the logo on the building was **not** done, which had been guessed either way at various
+  points. `Art.mkTaqueria` was still setting its sign with `text()` in the 5×7 game font;
+- the clipped banner was **real**, and became a diagnosis rather than a description.
+
+A list you have to re-verify before trusting is worth about as much as no list.
+
+### The shop was wearing the wrong typeface
+
+The rooftop sign was set in the 5×7 game font — the *UI* face, one-cell strokes. The `LOGO` display
+face already existed and was already what the title badge and wordmark used, so the shop on the map
+and the shop on the title screen were reading as two different brands.
+
+Moving it over cost more than swapping the call. `LOGO` is a 7×9 grid against the game font's 5×7,
+so two lines at scale 2 need 40 rows where the old jade panel had 28, and the scale is not free to
+split the difference: cells are drawn as square `s×s` rects, so a fractional scale lands on
+half-pixels. The board grew from 34px tall to 50 and the roof vents moved down to clear it.
+
+**The reference and the render disagree on purpose.** The first attempt butted the two lines
+together and the whole lockup fused into one gold slab — the O of `TACO` running into the H of
+`SHOP`. Opening the actual sticker in `reference/assets/` showed it interlocks those lines
+*deliberately*; it just separates the layers with outlines that pixel type 18px tall has no room
+for. Four rows of jade between the lines is the translation. Copy the intent, not the geometry.
+
+### A fourth text-overflow bug, in the axis nobody was checking
+
+`— hud layout —` exists because three text bugs shipped in the order card. It asserts every banner
+box fits the 384px screen. A fourth shipped anyway, straight through it, because **it only measures
+width**.
+
+`text()` takes `py` as the top of the run, not its centre. The banner box spans y=60 to y=79 and the
+5×7 font at scale 2 is 14px tall, so text at y=66 put its final glyph row exactly on the bottom
+border stroke. Every `say()` banner in the game was shaved — PERFECT TOSS!, PULLED OVER, LOST THEM,
+HIT BY TRAIN. The fix is one number: y=63, which centres it with three rows either side.
+
+It was verified by rendering a frame and reading the pixels back with `getImageData`, not by eye —
+glyph rows land at 63–76 inside a box at 60–79. Eyeballing it is how it shipped clipped the first
+time, and at 3.7× browser zoom through a CRT post pass a one-pixel shave is invisible anyway.
+
+### What did not change
+
+The plan documents in `docs/superpowers/plans/` still have every step unticked, including the two
+that landed a week ago. That is the convention here, not an oversight: the plans are the record of
+*how a thing was built and why*, and live status lives in `ROADMAP.md`. Ticking 54 boxes in one file
+and leaving the other two untouched would have made the inconsistency worse, not better.

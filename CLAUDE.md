@@ -242,13 +242,16 @@ is the single place a player can find them. Don't strip it back to a resume line
 ### The display face (`LOGO`)
 
 `LOGO` in `30_art.js` is a hand-authored **7×9** face in the style of the shop's sticker — fat 2-cell
-strokes, clipped corners — covering only the 12 characters `TACO SHOP` and `CARNAGE ASADA` need. Both the
-badge wordmark and the title are drawn from it, which is what makes them read as one lockup. The 5×7 game
-font is separate and untouched; it has one-cell strokes and reads as a scaled-up UI font at display sizes.
+strokes, clipped corners — covering only the 12 characters `TACO SHOP` and `CARNAGE ASADA` need. The badge
+wordmark, the title, **and the shop's rooftop sign** are all drawn from it, which is what makes them read as
+one lockup rather than three. The 5×7 game font is separate and untouched; it has one-cell strokes and reads
+as a scaled-up UI font at display sizes — which is exactly how the rooftop sign read before it was moved
+onto this face.
 
 **The 7×9 grid is load-bearing.** At scale 3 four characters measure 93px, giving the ~2px overspill the
-88px badge face wants; at scale 2 thirteen measure 206px, the title's established width. One grid serves
-both sizes with no resampling — changing `LOGO_W`/`LOGO_H` breaks both at once.
+88px badge face wants; at scale 2 thirteen measure 206px, the title's established width; at scale 2 four
+measure 62px, which fits the shop's 96px sign panel with even margins. One grid serves all three with no
+resampling — changing `LOGO_W`/`LOGO_H` breaks them at once.
 
 `logoText()` draws it with a keyline whose width is in **device px and does not scale with `s`** — the same
 reason `keyline()` exists for the 5×7 font. `mkLogoText()` bakes the title once at boot so the 9-pass
@@ -258,6 +261,12 @@ Sizing is constrained to whole numbers: cells are drawn as `s×s` rects, so a fr
 half-pixels and blurs. To resize display type by an arbitrary percentage, change the **glyph grid**, not
 the scale — the advance ratio gives exact percentages that `s` cannot. `EST. 1970` deliberately stays on
 the 5×7 font: it's small subtext, and the real sticker sets it in a different face anyway.
+
+**Stacked lines need a gap the sticker does not.** `Art.mkTaqueria` puts four rows of jade between `TACO`
+and `SHOP`. Butted together, the two 1px keylines touch and the lockup fuses into one gold slab — the O of
+`TACO` runs into the H of `SHOP`. The real sticker in `reference/assets/` interlocks those lines *on
+purpose*, but it separates the layers with outlines that pixel type 18px tall has no room for. This is the
+general shape of the reference-versus-render tension: copy the intent, not the geometry.
 
 ### Branding
 
@@ -352,6 +361,12 @@ before the cop is ever touched. `— heat —` asserts the state it ran in, so t
 asserts the longest *generated* address still fits, that both restock lines fit, and that every banner box
 fits the 384px screen. Extend it whenever you add HUD copy — the drawing stubs make overflow invisible
 otherwise, and none of these bugs were catchable by any other assertion.
+
+**It measures width only.** A fourth overflow shipped anyway, vertically: `text()` takes `py` as the **top**
+of the run, not its centre, so a 14px line at y=66 in a box spanning y=60–79 put its final glyph row on the
+bottom border stroke. Nothing in the suite could see it. Vertical fit is still checked by rendering a frame
+and reading the pixels back out of the canvas — `getImageData` on the live page, not by eye, because "looks
+about right" is how it shipped clipped in the first place.
 
 Three things to know when extending it:
 
