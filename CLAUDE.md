@@ -83,7 +83,10 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
   Hays and the Union Pacific through it. **Built and shipped**, in three plans in
   `docs/superpowers/plans/`. **Read with `ROADMAP.md` before touching `40_city.js` or the street
   grid**: it records the rejected alternatives, which is the part the code will never show you —
-  including why square blocks were kept and why Tiers 3 and 4 are not worth their cost.
+  including why square blocks were kept and why Tiers 3 and 4 are not worth their cost. **§7 is
+  superseded** and carries a banner saying so: downtown blocks are deliverable now, via the single
+  `addAddress` path. The section is kept because its reasoning is still why the feature has the
+  shape it does.
 - `docs/superpowers/specs/2026-08-21-high-scores-design.md` — the design for scoring and the board.
   **Built and shipped.** Read it before changing `rank()`, the attract rotation, or anything in
   `78_scores.js`: it records why the score is the money rather than points, and why the
@@ -476,6 +479,6 @@ There is no per-test filter — it is one sequential script with labelled sectio
 
 ## Publishing
 
-`taco-shop.html` is the shippable artifact: one self-contained file, ~203 KB. It must stay free of external
+`taco-shop.html` is the shippable artifact: one self-contained file, ~208 KB. It must stay free of external
 requests. `?seed=<int>` on the URL regenerates the city deterministically (mulberry32); the default seed is
 in `90_main.js`.

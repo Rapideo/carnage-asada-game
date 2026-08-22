@@ -849,3 +849,90 @@ The new section ended with `G.toTitle()`, and the sections share one mutable gam
 so it had quietly stolen the live state `— heat —` needs. That assertion was added earlier precisely
 so this could not rot silently, and it worked the first time it was tested. The section now hands the
 next one a live shift on purpose.
+
+## Three punch-list items, and the one that had been hiding as bad handling
+
+Three things came off the list in one pass. Two were what they looked like. The third was not.
+
+**The shop apron was never a clutter problem.** The report said 25 seconds lost "crawling and
+re-wedging" within 60px of the dock, and the obvious reading was that the apron is the most
+cluttered ground in the game. It is, but that was not the cost. `genShop` painted the pickup bay
+and the driveway onto the ground canvas and never wrote `S_ROAD` into `surf`, so the tarmac you
+could see was still *sidewalk* in the data. `SURF_MUL[S_WALK]` is 0.60, and it multiplies both top
+speed and acceleration, so every entry and exit crossed a 16px band at 60% — twice per delivery, at
+the one place in the game the player is required to leave the road. Measured after: the run from
+the dock to the street holds 176 the whole way where it used to drop to 106.
+
+This is the exact mirror of a lesson already in `CLAUDE.md`. That one says *a generator that marks
+more solid than it draws will eventually build a trap* — the `genAuto` parked-car wedge. This is a
+generator that **drew more road than it marked**, and it is the harder of the two to catch, because
+nothing looks wrong. The picture was correct. The only symptom was a car that felt bad to drive, and
+"the car feels bad near the shop" is not a bug report anyone can act on. It sat for months.
+
+The fix is not the `surf` write; it is that the apron and the driveway are now *declared once* as
+rectangles and used twice, to paint and to pave. Two sets of numbers that must agree will eventually
+disagree.
+
+**The canvas scaling had a wrong mental model in it.** The rule snapped everything between 1× and 2×
+to a crisp 1:1, on the theory that the band was for narrow windows where integer pixels matter most.
+But `#stage` fills the viewport, so the governing term is `min(W/384, H/216)` — and *height* drops
+ordinary windows into that band constantly. An 800×400 stage rendered the canvas at 384×216 and
+threw away 52% of the width. The band now fits like every other size; at and above 2× the output is
+byte-identical, which is the useful property: the change is provably confined to what was broken.
+
+**And the line endings.** `core.autocrlf=true` handed `build.mjs` CRLF sources, so a rebuild produced
+a byte-different artifact with identical content. `.gitattributes` pins `eol=lf`. Worth recording
+that the blobs were *already* LF — it was the working tree that was mixed, which is the half that
+matters, because `build.mjs` reads the working tree, not the index. `git status` showing 25 modified
+files with an empty `git diff` is what that disagreement looks like.
+
+## Downtown can take a delivery
+
+Only `res` blocks made addresses, so the Fort/Main retail spine — the tightest driving in the game,
+with the traffic and the rail corridor — carried no delivery targets at all. Section 7 of the
+neighbourhood spec had deferred this, and the recorded reason is the useful part: it was rejected
+"to avoid a second address path on this branch."
+
+So the implementation removed the objection rather than paying it. The address block came out of
+`genResidential` into `City.addAddress`, which takes a building `{x,y,w,h,oy}`, a facing and a
+block, and returns the porch, kerb point, nav node, number, `keep` reservation and ground paint.
+`genResidential`, `genRetail` and `genApts` all call it. There is still exactly one address path,
+which is why the feature is small: **the whole change is one extraction and three call sites.**
+
+The geometry generalised for free, and that is worth understanding rather than just noting. Every
+offset in that path is measured from the building footprint, so a building flush to the lot line —
+which is precisely what a downtown storefront is — puts its porch in the sidewalk ring with no
+special case at all. No new art, no notch cut into the store sprites, no collision changes.
+
+**The target stays 28px downtown, so a street door is a softer throw than a suburban porch.** That
+was a deliberate call rather than an oversight: it is the payoff for driving the spine and crossing
+the tracks. It cannot be farmed, because `newOrder` issues addresses rather than letting the player
+choose. Measured from the shop, 17 of 18 downtown addresses fall inside the order filter's 230–980px
+window against 80 of 120 residential ones, so downtown's effective share is nearer 17% than the 13%
+the raw count suggests.
+
+### The bug no assertion could have caught
+
+Statics draw from `y - oy`, so a north-facing building's fake wall height rises **into its own
+delivery target**. A house has `oy` 9 against a 15px porch and leaves a 6px sliver — that is the look
+the game already shipped, and it reads fine. A store run has `oy` 14 and left **1px**.
+
+Every property that could be asserted was true. The porch existed. It was not solid. It was not
+buried in geometry. Its kerb point was on a real street, its nav node resolved, its address was
+unique and fitted the order card. The suite was green. The target was simply invisible, and it was
+found by rendering the frame and looking at it — the same way the clipped banner was found, and for
+the same reason: **there is a class of defect where the code is correct by every measure except
+whether a human can see the result.**
+
+North porches now set out by `max(0, oy - 9)`, which holds the sliver and leaves every residential
+porch exactly where it was, because only a north wall rises into its own target. The new assertion
+covers *every* north-facing address rather than only the downtown ones, so a taller sprite on any
+future block kind trips it.
+
+### And one the suite caught, exactly as designed
+
+`— block kinds —` failed with `apartment blocks generate no delivery addresses`. That assertion
+existed to make the original deferral visible, and it did its job by breaking the moment the
+decision reversed. It is inverted rather than deleted, and it now asserts that all three apartment
+blocks *do* generate addresses — so the reversal stays recorded at the spot that recorded the
+original call, instead of quietly vanishing from the file.

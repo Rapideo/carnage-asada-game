@@ -8,7 +8,7 @@ The city is a real place: the eight blocks of **downtown Hays, Kansas** around t
 
 **Zero dependencies**: no framework, no libraries, no image, font, or audio files. The city, every sprite,
 the shop badge, the graffiti title, the bitmap font, and all the audio are generated procedurally at boot.
-The whole game is one self-contained ~203 KB HTML file.
+The whole game is one self-contained ~208 KB HTML file.
 
 **Play:** open `taco-shop.html`. There is no page chrome — the canvas fills the window.
 
@@ -34,6 +34,10 @@ to the shop while the tip keeps draining.
 - **The TACO-NAV 2000** gives turn-by-turn directions over a green LCD, paints the route on the tarmac, and
   falls apart into `RECALCULATING` the moment you cut across someone's lawn.
 - **Heat.** Clip pedestrians or drive on the pavement and a siren comes looking for you.
+- **Downtown takes orders too.** The storefronts on the retail spine have flats above them, and they
+  order tacos like anyone else. Those doors open straight onto the pavement rather than sitting back
+  behind a lawn, so the toss is a little kinder — which is the point, given you had to get through
+  the traffic and over the tracks to reach them.
 - **The railway splits the map.** A train runs the Union Pacific corridor every 20–40 seconds and the
   tracks are solid except at nine level crossings. The gates are drawn but never solid, so you can always
   run one — you just have to be right. Get it wrong and the train takes your whole load and throws the car
