@@ -21,6 +21,10 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
       cruiser that drives into geometry is stuck permanently — the exact defect `unwedge()` exists to
       prevent. Not a railway problem: 17 of those 19 jammed 166–272px away from the corridor, in
       ordinary city geometry. Likely a one-line fix.
+- [ ] **The shop apron is the easiest place in the city to get stuck.** Measured in play: 25 seconds
+      lost crawling and re-wedging within ~60px of the dock, and separately ~$10 of decaying tip lost
+      wedged on a warehouse corner nearby. Reversing always freed it — this is not a softlock — but it
+      is the most cluttered ground in the game and it sits exactly where every restock trip ends.
 - [ ] **Canvas renders at 1× between ~768–900px window width.** The scale rule at `90_main.js:21`
       snaps to a crisp 1:1 below 2×, so on a narrow window the game sits small in a large black field.
       Deliberate and pre-existing, but far more noticeable now the page frame is gone. Fix is to let
@@ -77,6 +81,14 @@ These need a decision before they can become work.
 - [ ] **Difficulty progression.** Grid expansion? A faster timer? Something else? Note the shift
       clock is already a survival curve — 110s to start, +9s per delivery, +12s for a perfect toss —
       so difficulty may be more about tightening that ratio than adding systems.
+- [ ] **Is the pedestrian fine doing any work?** $2.00 against a $15.00 delivery is 13%, and a
+      playtest of three shifts says it is not a deterrent: the run that hit **ten** pedestrians
+      out-earned the clean run, because cutting corners buys more time than the fines cost. The
+      intended deterrent is the chain heat → cop → $15 ticket, but across those three shifts **no
+      ticket was ever paid** — the cop was lost every time. So the cheap penalty lands and the
+      expensive one does not. Options: raise the fine, slow heat decay (currently 7/s) so pursuits
+      actually convert, or make the cop harder to shake. Needs a decision on what the intended
+      punishment for reckless driving even is.
 - [ ] **What happens when Hays PD catches you?** Currently a $15 ticket, a spin-out and heat reset.
 - [ ] **How should the player car read as *the* car?** Turning it white is the starting idea.
 - [ ] **Gamepad / Xbox controller support**, and whether an on-screen control overlay comes with it.
@@ -98,7 +110,29 @@ touch and the O of TACO fuses into the H of SHOP. The real sticker in `reference
 those lines deliberately, but it separates them with outlines that pixel type at this size has no
 room for.
 
-_Add playtest findings here._
+### Playtest notes — 2026-08-21
+
+Measured over three shifts. Numbers, not impressions; feel is still untested.
+
+- **Break-even is about 9 seconds per delivery**, and the best measured round trip was 9.4s. A
+  delivery buys `TIME_PER_JOB` = 9s (12s perfect) against a 110s shift, so the game is a survival
+  curve and that margin is razor thin. This looks right — leave it alone unless playtesting says
+  otherwise.
+- **Speed beats volume.** Three shifts: a fast run earned $10.31 per delivery against a careful
+  run's $6.47, because the tip decays at 55¢/s and arriving late is worth less than arriving at all.
+  The clean, cautious shift was the *worst* earner of the three.
+- **The tip floor makes the perfect bonus dominant, and that is a feature.** Once the tip bottoms
+  out at $2.00, `PERFECT_BONUS` of $5.00 is 2.5× the whole delivery — so on a late job accuracy is
+  the entire payout. Emergent rather than designed. **Don't "fix" it.**
+- **Out-of-range throws are a mouse-only mistake.** `aimPoint()` clamps to `MAXTHROW` = 132px and
+  the reticle turns `PAL.good` only on a porch lock, so the feedback is there — but keyboard aim is
+  a fixed 84px ahead of the car and therefore *always* in range. Only a mouse player can waste a bag
+  by throwing short. Worth knowing before anyone reworks throwing (see Features).
+- **The railway plays as designed.** Running a lowered gate charged the +20 heat correctly. The
+  failed attempt failed for the right reason: a traffic car T-boned the run-up at full speed. The
+  approach being a live street is what makes it a gamble rather than a timing puzzle.
+
+_Add further playtest findings here._
 
 ---
 
