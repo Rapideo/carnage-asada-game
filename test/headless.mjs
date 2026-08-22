@@ -57,11 +57,11 @@ sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
 // top-level const/let live in the script's lexical scope, not on the global
 // object, so hand them out explicitly from inside the same scope
-vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, MAXTHROW,' +
+vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, money, MAXTHROW,' +
   ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS };',
   sandbox, { filename: 'bundle.js' });
 
-const { G, City, Nav, Art, Input, textW, MAXTHROW, VW, VH, WW, WH,
+const { G, City, Nav, Art, Input, textW, money, MAXTHROW, VW, VH, WW, WH,
         ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
 sandbox.solve = sandbox.__x.solve;
 
@@ -762,6 +762,42 @@ ok(G.state === 'entry' && G.entryT > ENTRY_TIMEOUT - 1,
    `a keypress rearms the idle timer (${G.entryT.toFixed(1)}s left)`);
 G.render(ctx);
 G.commitEntry();
+
+/* the shift end routes to the wheel only when the score places */
+Scores.load();
+Input.down = Object.create(null);
+G.startShift();
+G.earned = Scores.lowest() + 1000;
+G.shift = 0.01;
+for (let i = 0; i < 5; i++) { G.update(1 / 60); Input.endFrame(); }
+ok(G.state === 'results', 'a finished shift still shows the results card first');
+ok(G.placed === true, 'and knows the score placed');
+Input.hit['Enter'] = true; G.update(1 / 60); Input.endFrame();
+ok(G.state === 'entry', 'enter from a placing result opens the wheel');
+G.toTitle();
+
+Scores.load();
+G.startShift();
+G.earned = 1;                       // beats nothing on a full board
+G.shift = 0.01;
+for (let i = 0; i < 5; i++) { G.update(1 / 60); Input.endFrame(); }
+ok(G.placed === false, 'a non-placing shift knows it did not place');
+G.render(ctx);                      // the BEAT $x line draws without throwing
+Input.hit['Enter'] = true; G.update(1 / 60); Input.endFrame();
+ok(G.state === 'play', 'and enter runs it back as it always did');
+
+/* the results screen names the target, and it has to fit */
+const boardTarget = 'BEAT ' + money(Scores.lowest()) + ' TO MAKE THE BOARD';
+ok(textW(boardTarget, 1) <= VW - 16, `the board target line fits: "${boardTarget}" (${textW(boardTarget, 1)}px)`);
+ok(textW('NEW HIGH SCORE - ENTER TO SIGN', 1) <= VW - 16, 'the placing prompt fits');
+
+/* the demo still never posts a score, however well it drives */
+G.toDemo();
+G.earned = 999999;
+G.shift = 0.01;
+for (let i = 0; i < 5; i++) { G.update(1 / 60); Input.endFrame(); }
+ok(G.state === 'title', 'a demo that outlasts the clock returns to the title');
+ok(!Scores.board.some((e) => e.cents === 999999), 'and never reaches the board');
 
 /* Hand — heat — below a LIVE game. The sections share one mutable game and run
    in order, and — heat — asserts the state it ran in precisely so this cannot

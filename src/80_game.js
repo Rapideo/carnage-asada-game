@@ -470,7 +470,10 @@ const G = {
 
     if (this.state === 'results') {
       this.simCrowd(dt);
-      if (Input.p('Enter', 'NumpadEnter', 'KeyR')) { Audio5.sfx('select'); this.startShift(); }
+      if (Input.p('Enter', 'NumpadEnter', 'KeyR')) {
+        Audio5.sfx('select');
+        if (this.placed) this.toEntry(); else this.startShift();
+      }
       if (Input.p('Escape')) this.toTitle();
       return;
     }
@@ -670,6 +673,9 @@ const G = {
   endShift() {
     this.state = 'results';
     this.shift = 0;
+    // decided once, here, so the results screen and its Enter key agree
+    this.placed = Scores.qualifies(this.earned);
+    this.scoreIdx = -1;
     Audio5.engineOff(); Audio5.sirenOff();
     this.cop = null;
     Nav.clear();
@@ -877,7 +883,14 @@ const G = {
     text(x, money(this.earned), px + w - 16, py + 116, PAL.good, 2, 2);
     text(x, this.rank(), VW / 2, py + 134, PAL.amber, 2, 1);
 
-    if ((this.time * 2 | 0) % 2) text(x, 'ENTER - RUN IT BACK', VW / 2, VH - 22, PAL.bone, 1, 1);
+    /* A leaderboard nobody is chasing is a trophy cabinet. Naming the number
+       that would put you on it is what turns it into a reason to press ENTER. */
+    if (this.placed) {
+      if ((this.time * 2 | 0) % 2) text(x, 'NEW HIGH SCORE - ENTER TO SIGN', VW / 2, VH - 22, PAL.amber, 1, 1);
+    } else {
+      text(x, 'BEAT ' + money(Scores.lowest()) + ' TO MAKE THE BOARD', VW / 2, VH - 32, PAL.boneDim, 1, 1);
+      if ((this.time * 2 | 0) % 2) text(x, 'ENTER - RUN IT BACK', VW / 2, VH - 22, PAL.bone, 1, 1);
+    }
     text(x, 'ESC - TITLE', VW / 2, VH - 11, '#6b5f84', 1, 1);
   },
 
