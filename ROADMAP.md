@@ -84,6 +84,24 @@ These need a decision before they can become work.
       heat decay above 7/s, or make the cop easier to shake once it has ticketed you. Needs a
       decision about how punishing a bad shift should be, and it should be made by playing rather
       than by arithmetic.
+- [ ] **Does downtown play the way it is meant to?** Shipped 2026-08-22 and **not yet played.** The
+      design position was that a downtown door is *deliberately* an easier throw than a suburban
+      porch — the target is the same 28px but sits on the pavement, roughly 24px nearer the kerb than
+      a porch set back in a yard — and that this is the payoff for driving the spine and crossing the
+      tracks. It cannot be farmed, because `newOrder` issues addresses rather than letting the player
+      choose one.
+
+      Two numbers to check it against. Downtown is 18 of 138 addresses, **13%**, against downtown
+      being 14% of the map — so by raw count it is proportional. But measured from the shop, **17 of
+      18** downtown addresses fall inside `newOrder`'s 230–980px window against **80 of 120**
+      residential ones, so the *effective* share is nearer **17%**. That was not designed, it falls
+      out of downtown being close to the shop.
+
+      What to watch for: whether downtown runs feel like a reward or like the easy money that makes
+      the suburbs feel like a chore. If it is the latter the lever is the porch width for
+      `retail`/`apts` in `addAddress`, not the address count — narrowing the downtown target to
+      ~18px was the rejected alternative and is a one-number change if it turns out to be wanted.
+      Decide by playing, not by arithmetic.
 - [ ] **What happens when Hays PD catches you?** Currently a $15 ticket, a spin-out and heat reset.
 - [ ] **How should the player car read as *the* car?** Turning it white is the starting idea.
 - [ ] **Gamepad / Xbox controller support**, and whether an on-screen control overlay comes with it.
