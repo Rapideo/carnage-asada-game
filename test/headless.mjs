@@ -465,17 +465,20 @@ const resRows = fullRows(0, 6);            // Elm-Walnut x 5th-6th, authored 're
 ok(retailRows >= 2, `the retail block forms an unbroken street wall (${retailRows} full-width rows)`);
 ok(resRows === 0, `the residential block does not (${resRows} full-width rows)`);
 
-/* Apartment blocks are scenery, not delivery targets — every address in the game
-   comes from genResidential, and giving these a second address path is a
-   follow-up rather than this branch. Assert it so the decision is visible. */
+/* Apartment blocks used to be scenery: this assertion ran the other way, and
+   said so, because every address came from genResidential and a second address
+   path was not worth that branch. There is no second path -- addAddress serves
+   all three generators -- so the flats are deliverable now, and this asserts the
+   reversal at the same spot so the decision stays visible rather than merely
+   disappearing. Each of the three blocks carries two street doors. */
 ok(Art.apts.length > 0, `Art.apts has ${Art.apts.length} blocks of flats`);
 const inLot = (h, bx, by) =>
   h.x >= (2 + bx * 12 + 3) * TS && h.x < (2 + bx * 12 + 11) * TS &&
   h.y >= (2 + by * 12 + 3) * TS && h.y < (2 + by * 12 + 11) * TS;
 const aptsWithAddresses = [[0, 3], [0, 5], [4, 5]]
   .filter(([bx, by]) => City.houses.some((h) => inLot(h, bx, by)));
-ok(aptsWithAddresses.length === 0,
-   `apartment blocks generate no delivery addresses${aptsWithAddresses.length ? ' — ' + JSON.stringify(aptsWithAddresses) : ''}`);
+ok(aptsWithAddresses.length === 3,
+   `every apartment block now generates delivery addresses (${aptsWithAddresses.length}/3)`);
 
 /* Civic buildings stand back behind a forecourt — the opposite of retail, which
    builds to the pavement. The setback is the read, so assert it. */
@@ -504,6 +507,79 @@ if (City.crossings && City.railY) {
   }
   ok(checked > 0 && solid / checked > 0.9,
      `the corridor is solid between crossings (${solid}/${checked} tiles)`);
+}
+
+console.log('\n— downtown addresses —');
+/* Only `res` blocks used to generate deliverable houses, so orders concentrated
+   south of the tracks and the Fort/Main retail spine -- the tightest driving in
+   the game -- carried traffic and hazard but nothing to deliver to. Section 7 of
+   the neighbourhood spec deferred the fix to avoid a *second* address path; the
+   answer is that there is still only one, extracted out of genResidential and
+   called by the downtown generators too.
+
+   Each house carries the `kind` of the block that made it, which is what lets
+   this section find the downtown ones without duplicating the zoning table. */
+{
+  const downtown = City.houses.filter((h) => h.kind === 'retail' || h.kind === 'apts');
+  const retail = downtown.filter((h) => h.kind === 'retail');
+  const apts   = downtown.filter((h) => h.kind === 'apts');
+
+  /* 6 retail blocks x 2 store runs, 3 apts blocks x 2 buildings */
+  ok(retail.length === 12, 'the six retail blocks carry 12 addresses (got ' + retail.length + ')');
+  ok(apts.length === 6, 'the three apts blocks carry 6 addresses (got ' + apts.length + ')');
+
+  const share = downtown.length / City.houses.length;
+  ok(share > 0.10 && share < 0.16,
+     'downtown takes a share of orders in line with its share of the map (' +
+     (share * 100).toFixed(0) + '%)');
+
+  /* the whole point of the feature: they must be reachable and winnable */
+  let buried = 0, offStreet = 0, noNode = 0;
+  for (const h of downtown) {
+    const pcx = h.porch.x + h.porch.w / 2, pcy = h.porch.y + h.porch.h / 2;
+    if (City.isSolid(pcx, pcy)) buried++;
+    if (City.surfaceAt(h.curb.x, h.curb.y) !== S_ROAD) offStreet++;
+    if (!h.node || h.node[0] == null || h.node[1] == null) noNode++;
+  }
+  ok(buried === 0, 'no downtown porch is buried in geometry (' + buried + ' buried)');
+  ok(offStreet === 0, 'every downtown kerb point is on a real street (' + offStreet + ' off)');
+  ok(noNode === 0, 'every downtown address resolves to a nav node (' + noNode + ' without)');
+
+  /* addresses are the player-facing key: a duplicate makes one unwinnable */
+  const seen = new Map();
+  let dupes = [];
+  for (const h of City.houses) {
+    if (seen.has(h.addr)) dupes.push(h.addr);
+    seen.set(h.addr, h);
+  }
+  ok(dupes.length === 0,
+     'every address in the city is still unique' +
+     (dupes.length ? ' (' + dupes.length + ' clash, e.g. ' + dupes[0] + ')' : ''));
+
+  /* A north-facing porch is the one case where the building's fake wall height
+     rises INTO its own delivery target: statics draw from `y - oy`, so a taller
+     wall eats more of the porch below it. Residential houses have oy 9 against a
+     15px porch and so show a 6px sliver, which is the convention the game
+     shipped with and reads fine. Store runs have oy 14 and showed 1px -- the
+     target was there, hittable, and effectively invisible. Assert the sliver
+     across every north-facing address, not just downtown, so neither a new block
+     kind nor a taller sprite can quietly swallow one again. */
+  let thin = [];
+  for (const h of City.houses) {
+    if (h.dir !== 0) continue;
+    const st = City.statics.find((t) => Math.abs(t.x - h.x) < 2 && Math.abs(t.y - h.y) < 2);
+    if (!st) continue;
+    const visible = (st.y - st.oy) - h.porch.y;
+    if (visible < 6) thin.push(h.kind + ' ' + h.addr + ' (' + visible + 'px)');
+  }
+  ok(thin.length === 0,
+     'every north-facing porch stays visible under its own wall' +
+     (thin.length ? ' (' + thin.length + ' hidden, e.g. ' + thin[0] + ')' : ''));
+
+  /* and the order card has to be able to draw them */
+  let widest = '', ww = 0;
+  for (const h of downtown) { const w = textW(h.addr, 1); if (w > ww) { ww = w; widest = h.addr; } }
+  ok(ww <= 150, 'the longest downtown address fits the order card: "' + widest + '" (' + ww + 'px)');
 }
 
 console.log('\n— shop apron —');

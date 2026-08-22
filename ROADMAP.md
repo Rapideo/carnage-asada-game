@@ -39,10 +39,6 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
       mouse position or facing direction. Note the design tension: throw spread scales with speed
       (`speed / MAXSPD * 22` px against a 28px porch), and that trade *is* the game's core skill, so
       auto-aim changes the feel more than any other item on this list.
-- [ ] **Downtown has no deliverable addresses.** Only `res` blocks generate houses, so orders
-      concentrate south of the tracks and the tightest driving in the game — the Fort/Main retail
-      spine — carries traffic and hazard but no targets. §7 of the spec names the fix: a street door
-      for the flat above the shop, giving `retail` and `apts` blocks an address.
 - [ ] **Border zones.** Replace the current grey/sea margin with proper N/E/S/W edge zones. The
       border is still the 2-tile `T_SEA` ring from the original generator.
 - [ ] **A second time period.** `content/hays.json` exists in the shape it does to make this cheap:
@@ -94,6 +90,34 @@ These need a decision before they can become work.
 
 ### Landed, for the record
 
+Closed 2026-08-22: **downtown deliveries**. The Fort/Main retail spine carried traffic, the rail
+corridor and the tightest driving in the game, and nothing to deliver to; orders concentrated south
+of the tracks because only `res` blocks made addresses. §7 of the spec had deferred the fix to avoid
+a *second address path* — so the fix was to make sure there still isn't one. The address block came
+out of `genResidential` into **`City.addAddress`**, and `genResidential`, `genRetail` and `genApts`
+all call it. 12 retail doors (one flat above each store run) and 6 apartment doors: **18 addresses,
+13% of orders against downtown being 14% of the map.**
+
+Two things worth keeping:
+
+- **The geometry generalised for free, which is what made this small.** Every offset in the address
+  path is measured from the building footprint, so a building flush to the lot line — which is what
+  a downtown storefront is — puts its porch in the sidewalk ring with no special case. No new art,
+  no notch in the store sprites, no collision changes.
+- **The target stays 28px wide downtown, so a street door is a softer throw than a suburban porch.**
+  That is deliberate: it is the payoff for driving the spine and crossing the tracks, and it cannot
+  be farmed because `newOrder` issues addresses rather than letting the player choose. Measured from
+  the shop, 17 of 18 downtown addresses fall inside the order filter's 230–980px window against 80
+  of 120 residential ones, so downtown's *effective* share is nearer 17% than 13%.
+
+**The one real defect was invisible to every test and found by looking at the screen.** Statics draw
+from `y - oy`, so a north-facing building's fake wall height rises into its own porch. A house has
+`oy` 9 against a 15px porch and leaves a 6px sliver — the look the game already shipped. A store run
+has `oy` 14 and left **1px**: the target was there, hittable, and effectively invisible. A north
+porch is now set out by `max(0, oy - 9)` so the sliver holds, which leaves every residential porch
+exactly where it was. `— downtown addresses —` asserts it across *every* north-facing address, not
+just downtown, so neither a new block kind nor a taller sprite can swallow one again.
+
 Closed 2026-08-22: **the shop apron crawl**. `genShop` painted the apron and the driveway onto the
 ground canvas but never wrote `S_ROAD` into `surf`, so the tarmac you can see was still sidewalk in
 the data. Crossing it cost `SURF_MUL[S_WALK]` = 0.60 — **60% of top speed and 60% of acceleration** —
@@ -121,7 +145,6 @@ binary`), the working tree was converted, and `core.autocrlf` is off locally so 
 disagreeing. `node build.mjs` twice in a row now produces byte-identical output. The 25 files this
 touched carried no content change — the blobs were already LF; it was the *working tree* that was
 mixed, which is the half that matters, because `build.mjs` reads the working tree.
-
 
 Closed by the neighbourhood pass and no longer carried: the Hays street data, the block-kind zoning,
 and the display-face resize (the 9×11 → 7×9 glyph-grid change in `JOURNAL.md`, which is what made an

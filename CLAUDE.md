@@ -186,6 +186,22 @@ never changes the other.** Declare the rectangle once and use it for both, the w
 does. `— shop apron —` in `test/headless.mjs` is the guard, and it tests the drive from the kerb to
 the dock rather than any single tile.
 
+**Every deliverable address in the game comes from `City.addAddress`, and there is deliberately only
+one such path.** It takes a building — `{x, y, w, h, oy}` — a facing, and a block, and produces the
+porch, the kerb point, the nav node, the house number, the `keep` reservation and the ground paint.
+`genResidential`, `genRetail` and `genApts` all call it. The single path is the whole reason downtown
+blocks are deliverable at all: §7 of the neighbourhood spec deferred them specifically to avoid a
+*second* address path, so the way to have them was to make sure there was still one.
+
+**A north-facing porch has to clear its own building's fake wall height.** Statics draw from `y - oy`,
+so the wall covers the porch from the top down: a house (`oy` 9) leaves a 6px sliver of a 15px porch,
+which is the look the game shipped with, and a store run (`oy` 14) left 1px — present, hittable, and
+invisible. `addAddress` sets a north porch out by `max(0, oy - 9)` to hold that sliver, which leaves
+every residential porch exactly where it was. No other facing is affected, because only a north wall
+rises into its own target. **No assertion about geometry or reachability could see this** — the porch
+was correct by every measure except whether you could see it. It was found by rendering the frame and
+looking.
+
 **The block programme comes from `content/hays.json`**, not from a random roll — see the section above.
 Kinds are `res`, `retail`, `civic`, `apts`, `church`, `auto`, `rail`, `com`, `park`, `lot`, `shop`; each has
 a `genX(rng, bx, by)` in `40_city.js` and knows nothing about any other. `lot` is still valid but the Hays
@@ -407,7 +423,7 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. 162 assertions covering city invariants (address
+every drawing call is a no-op but all logic executes. 171 assertions covering city invariants (address
 uniqueness, porch reachability), HUD text widths, wedge escapability, 250 solved routes, 9000 fuzzed
 simulation frames checked for NaN and out-of-world drift, the attract rotation and 85s of autonomous
 demo driving, the full scoring loop, heat/cop behaviour, and the railway.
@@ -455,8 +471,8 @@ steers itself.
 
 There is no per-test filter — it is one sequential script with labelled sections (`— build —`,
 `— hud layout —`, `— collision —`, `— guidance —`, `— simulation —`, `— scoring —`, `— attract —`,
-`— hays map —`, `— block kinds —`, `— shop apron —`, `— rail —`, `— high scores —`, `— heat —`).
-To isolate one, edit the script.
+`— hays map —`, `— block kinds —`, `— downtown addresses —`, `— shop apron —`, `— rail —`,
+`— high scores —`, `— heat —`). To isolate one, edit the script.
 
 ## Publishing
 

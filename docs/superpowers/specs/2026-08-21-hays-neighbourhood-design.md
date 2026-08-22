@@ -194,6 +194,13 @@ buried in geometry" — so a violation fails the build rather than shipping.
 
 ## 7. Deliveries stay on residential blocks
 
+> **Superseded 2026-08-22 — downtown blocks are deliverable.** The section below is kept as
+> written because it records why the cost was accepted at the time, and the reasoning is still
+> the reason the feature is shaped the way it is. What changed: the objection was the *second
+> address path*, so the implementation removed the objection instead of paying it. `addAddress`
+> in `40_city.js` is now the single path, and `genResidential`, `genRetail` and `genApts` all
+> come through it. 12 retail doors and 6 apartment doors, ~13% of orders. See `ROADMAP.md`.
+
 Only `res` blocks generate addressable houses. `apts` blocks are scenery; downtown blocks receive
 no orders.
 

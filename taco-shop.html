@@ -2159,6 +2159,111 @@ const City = {
     return refused;
   },
 
+  /* ---------- an address, wherever it is ------------------ */
+  /* Turns a building footprint into a deliverable address: porch, kerb point,
+     nav node, house number, the `keep` reservation and the ground paint.
+
+     This lives here rather than inside genResidential because section 7 of the
+     neighbourhood spec deferred downtown deliveries specifically to avoid a
+     SECOND address path -- so the way to have them is to make sure there is
+     still only one. genResidential, genRetail and genApts all come through
+     here, which is also why a downtown door cannot drift out of step with a
+     suburban porch: there is nothing to keep in step.
+
+     The geometry generalises for free. Every offset below is measured from the
+     footprint, so a building flush to the lot line -- which is what downtown
+     storefronts are -- puts its porch in the sidewalk ring, exactly where a
+     street door belongs, with no special case. The target stays 28px wide
+     everywhere; downtown is nearer the kerb and therefore a softer throw, and
+     that is deliberate, being the payoff for driving the spine and crossing
+     the tracks. `newOrder` issues addresses rather than letting the player
+     pick, so it cannot be farmed.
+
+     `along` positions the number within the block; `odd` keeps the two sides
+     of a street on opposite parities so blocks facing each other never
+     collide.
+
+     `b` is the building: {x, y, w, h, oy}, where `oy` is the fake wall height
+     the sprite draws above its footprint. */
+  addAddress(bx, by, b, dir, along, kind) {
+    const wx = b.x, wy = b.y, w = b.w, h = b.h;
+    let porch, curb;
+    // the porch is the delivery target, so it is sized to stay hittable from
+    // a moving car: wide along the street, one yard-tile deep
+    //
+    // A NORTH-facing porch is the one case where the building's own fake height
+    // rises into its target: statics draw from `y - oy`, so the wall covers the
+    // porch from the top down. A house has oy 9 against a 15px porch and leaves
+    // a 6px sliver, which is the look the game shipped with. A store run has oy
+    // 14 and left 1px -- present, hittable, invisible. So a taller wall pushes
+    // its porch further out to keep that same 6px, and anything oy 9 or under
+    // lands exactly where it always did.
+    const clear0 = Math.max(0, (b.oy || 0) - 9);
+    if (dir === 0)      porch = { x: wx + w / 2 - 14, y: wy - 15 - clear0, w: 28, h: 15 };
+    else if (dir === 2) porch = { x: wx + w / 2 - 14, y: wy + h,  w: 28, h: 15 };
+    else if (dir === 1) porch = { x: wx + w,          y: wy + h / 2 - 14, w: 15, h: 28 };
+    else                porch = { x: wx - 15,         y: wy + h / 2 - 14, w: 15, h: 28 };
+
+    const pcx = porch.x + porch.w / 2, pcy = porch.y + porch.h / 2;
+    if (dir === 0)      curb = { x: pcx, y: (BORDER + by * SPAN) * TS + TS };
+    else if (dir === 2) curb = { x: pcx, y: (BORDER + (by + 1) * SPAN) * TS + TS };
+    else if (dir === 3) curb = { x: (BORDER + bx * SPAN) * TS + TS, y: pcy };
+    else                curb = { x: (BORDER + (bx + 1) * SPAN) * TS + TS, y: pcy };
+    const node = [this.nearNodeX(curb.x), this.nearNodeY(curb.y)];
+
+    /* address — real Hays convention.
+       Fronting a NUMBERED street: a W/E prefix and a hundred-block from the
+       distance to Main. Main-Fort is the 100 block, Fort-Ash the 200, and so
+       on outward in both directions.
+       Fronting a NAMED street: the hundred-block is the numbered street on
+       the south edge of the block, which is how 1507 Main lands between 15th
+       and 16th, and the courthouse at 1204 Fort between 12th and 13th. */
+    const odd = (dir === 0 || dir === 3) ? 1 : 0;
+    let street, hundred;
+    if (dir === 0 || dir === 2) {
+      street  = ((bx < 4) ? 'W ' : 'E ') + ((dir === 0) ? HSTREETS[by] : HSTREETS[by + 1]);
+      hundred = ((bx < 4) ? 4 - bx : bx - 3) * 100;
+    } else {
+      street  = (dir === 3) ? VSTREETS[bx] : VSTREETS[bx + 1];
+      hundred = parseInt(HSTREETS[by + 1], 10) * 100;
+    }
+    const num = hundred + along * 22 + 6 + odd;
+
+    const house = {
+      x: wx, y: wy, w, h, dir, porch, street, num, kind,
+      addr: num + ' ' + street,
+      door: { x: pcx - 6, y: pcy - 5, w: 12, h: 10 },
+      cx: wx + w / 2, cy: wy + h / 2, curb, node,
+    };
+    this.houses.push(house);
+
+    /* reserve the porch and its walkway out to the kerb */
+    const clr = dir === 0 ? { x: porch.x, y: (BORDER + by * SPAN + 2) * TS, w: porch.w, h: porch.y + porch.h - (BORDER + by * SPAN + 2) * TS }
+              : dir === 2 ? { x: porch.x, y: porch.y, w: porch.w, h: (BORDER + (by + 1) * SPAN) * TS - porch.y }
+              : dir === 3 ? { x: (BORDER + bx * SPAN + 2) * TS, y: porch.y, w: porch.x + porch.w - (BORDER + bx * SPAN + 2) * TS, h: porch.h }
+              :             { x: porch.x, y: porch.y, w: (BORDER + (bx + 1) * SPAN) * TS - porch.x, h: porch.h };
+    for (let ty2 = (clr.y / TS) | 0; ty2 <= ((clr.y + clr.h - 1) / TS) | 0; ty2++)
+      for (let tx2 = (clr.x / TS) | 0; tx2 <= ((clr.x + clr.w - 1) / TS) | 0; tx2++)
+        if (tx2 >= 0 && ty2 >= 0 && tx2 < GW && ty2 < GH) this.keep[ty2 * GW + tx2] = 1;
+    house.clear = clr;
+
+    /* ground: porch pad + walkway to the sidewalk */
+    const g = this.gx;
+    R(g, PAL.porch, porch.x, porch.y, porch.w, porch.h);
+    R(g, shade(PAL.porch, -0.22), porch.x, porch.y + porch.h - 1, porch.w, 1);
+    R(g, shade(PAL.porch, 0.15), porch.x, porch.y, porch.w, 1);
+    g.strokeStyle = 'rgba(20,14,28,0.35)'; g.lineWidth = 1;
+    g.strokeRect(porch.x + 0.5, porch.y + 0.5, porch.w - 1, porch.h - 1);
+
+    const pathC = '#c2b697';
+    if (dir === 0)      R(g, pathC, pcx - 5, (BORDER + by * SPAN + 2) * TS, 10, porch.y - (BORDER + by * SPAN + 2) * TS);
+    else if (dir === 2) R(g, pathC, pcx - 5, porch.y + porch.h, 10, (BORDER + (by + 1) * SPAN - 1) * TS + TS - (porch.y + porch.h));
+    else if (dir === 3) R(g, pathC, (BORDER + bx * SPAN + 2) * TS, pcy - 5, porch.x - (BORDER + bx * SPAN + 2) * TS, 10);
+    else                R(g, pathC, porch.x + porch.w, pcy - 5, (BORDER + (bx + 1) * SPAN - 1) * TS + TS - (porch.x + porch.w), 10);
+
+    return house;
+  },
+
   /* ---------- residential block --------------------------- */
   genResidential(rng, bx, by) {
     const ns = rng.chance(0.5);
@@ -2183,75 +2288,10 @@ const City = {
       const spr = Art.house[variant][dir];
       this.statics.push({ img: spr.c, x: wx, y: wy, oy: spr.oy, w, h, sortY: wy + h });
 
-      /* porch, door bullseye, curb point */
-      let porch, curb, node;
-      // the porch is the delivery target, so it is sized to stay hittable from
-      // a moving car: wide along the street, one yard-tile deep
-      if (dir === 0)      porch = { x: wx + w / 2 - 14, y: wy - 15, w: 28, h: 15 };
-      else if (dir === 2) porch = { x: wx + w / 2 - 14, y: wy + h,  w: 28, h: 15 };
-      else if (dir === 1) porch = { x: wx + w,          y: wy + h / 2 - 14, w: 15, h: 28 };
-      else                porch = { x: wx - 15,         y: wy + h / 2 - 14, w: 15, h: 28 };
-
+      const addr = this.addAddress(bx, by, { x: wx, y: wy, w, h, oy: spr.oy }, dir, (dir === 0 || dir === 2) ? i : j, 'res');
+      const porch = addr.porch, curb = addr.curb;
       const pcx = porch.x + porch.w / 2, pcy = porch.y + porch.h / 2;
-      if (dir === 0)      curb = { x: pcx, y: (BORDER + by * SPAN) * TS + TS };
-      else if (dir === 2) curb = { x: pcx, y: (BORDER + (by + 1) * SPAN) * TS + TS };
-      else if (dir === 3) curb = { x: (BORDER + bx * SPAN) * TS + TS, y: pcy };
-      else                curb = { x: (BORDER + (bx + 1) * SPAN) * TS + TS, y: pcy };
-      node = [this.nearNodeX(curb.x), this.nearNodeY(curb.y)];
-
-      /* address — real Hays convention.
-         Fronting a NUMBERED street: a W/E prefix and a hundred-block from the
-         distance to Main. Main-Fort is the 100 block, Fort-Ash the 200, and so
-         on outward in both directions.
-         Fronting a NAMED street: the hundred-block is the numbered street on
-         the south edge of the block, which is how 1507 Main lands between 15th
-         and 16th, and the courthouse at 1204 Fort between 12th and 13th.
-         `odd` keeps the two sides of a street on opposite parities, so the two
-         blocks that share a street cannot collide. */
-      const along = (dir === 0 || dir === 2) ? i : j;
-      const odd   = (dir === 0 || dir === 3) ? 1 : 0;
-      let street, hundred;
-      if (dir === 0 || dir === 2) {
-        street  = ((bx < 4) ? 'W ' : 'E ') + ((dir === 0) ? HSTREETS[by] : HSTREETS[by + 1]);
-        hundred = ((bx < 4) ? 4 - bx : bx - 3) * 100;
-      } else {
-        street  = (dir === 3) ? VSTREETS[bx] : VSTREETS[bx + 1];
-        hundred = parseInt(HSTREETS[by + 1], 10) * 100;
-      }
-      const num = hundred + along * 22 + 6 + odd;
-
-      const house = {
-        x: wx, y: wy, w, h, dir, porch, street, num,
-        addr: num + ' ' + street,
-        door: { x: pcx - 6, y: pcy - 5, w: 12, h: 10 },
-        cx: wx + w / 2, cy: wy + h / 2, curb, node,
-      };
-      this.houses.push(house);
-
-      /* reserve the porch and its walkway out to the kerb */
-      const wOut = 18;
-      const clr = dir === 0 ? { x: porch.x, y: (BORDER + by * SPAN + 2) * TS, w: porch.w, h: porch.y + porch.h - (BORDER + by * SPAN + 2) * TS }
-                : dir === 2 ? { x: porch.x, y: porch.y, w: porch.w, h: (BORDER + (by + 1) * SPAN) * TS - porch.y }
-                : dir === 3 ? { x: (BORDER + bx * SPAN + 2) * TS, y: porch.y, w: porch.x + porch.w - (BORDER + bx * SPAN + 2) * TS, h: porch.h }
-                :             { x: porch.x, y: porch.y, w: (BORDER + (bx + 1) * SPAN) * TS - porch.x, h: porch.h };
-      for (let ty2 = (clr.y / TS) | 0; ty2 <= ((clr.y + clr.h - 1) / TS) | 0; ty2++)
-        for (let tx2 = (clr.x / TS) | 0; tx2 <= ((clr.x + clr.w - 1) / TS) | 0; tx2++)
-          if (tx2 >= 0 && ty2 >= 0 && tx2 < GW && ty2 < GH) this.keep[ty2 * GW + tx2] = 1;
-      house.clear = clr;
-
-      /* ground: porch pad + walkway to the sidewalk */
       const g = this.gx;
-      R(g, PAL.porch, porch.x, porch.y, porch.w, porch.h);
-      R(g, shade(PAL.porch, -0.22), porch.x, porch.y + porch.h - 1, porch.w, 1);
-      R(g, shade(PAL.porch, 0.15), porch.x, porch.y, porch.w, 1);
-      g.strokeStyle = 'rgba(20,14,28,0.35)'; g.lineWidth = 1;
-      g.strokeRect(porch.x + 0.5, porch.y + 0.5, porch.w - 1, porch.h - 1);
-
-      const pathC = '#c2b697';
-      if (dir === 0)      R(g, pathC, pcx - 5, (BORDER + by * SPAN + 2) * TS, 10, porch.y - (BORDER + by * SPAN + 2) * TS);
-      else if (dir === 2) R(g, pathC, pcx - 5, porch.y + porch.h, 10, (BORDER + (by + 1) * SPAN - 1) * TS + TS - (porch.y + porch.h));
-      else if (dir === 3) R(g, pathC, (BORDER + bx * SPAN + 2) * TS, pcy - 5, porch.x - (BORDER + bx * SPAN + 2) * TS, 10);
-      else                R(g, pathC, porch.x + porch.w, pcy - 5, (BORDER + (bx + 1) * SPAN - 1) * TS + TS - (porch.x + porch.w), 10);
 
       /* mailbox at the kerb */
       const mb = Art.prop.mailbox;
@@ -2418,9 +2458,10 @@ const City = {
   },
 
   /* ---------- apartment block ----------------------------- */
-  /* Two blocks of flats with a shared apron behind. Deliberately NOT
-     deliverable: every address in the game comes from genResidential, and
-     giving these a second address path is a follow-up, not this branch. */
+  /* Two blocks of flats with a shared apron behind, each with a street door.
+     These used to be scenery, on the grounds that a second address path was
+     not worth the branch; they are deliverable now because there is no second
+     path -- see addAddress. */
   genApts(rng, bx, by) {
     const g = this.gx;
     const lotX = (BORDER + bx * SPAN + 3) * TS, lotY = (BORDER + by * SPAN + 3) * TS, L = 8 * TS;
@@ -2433,12 +2474,14 @@ const City = {
       g.drawImage(Art.tile.lot[(lx + ly) & 3], tx * TS, ty * TS);
     }
 
-    /* two blocks facing the street, a gap between them */
-    for (const ox of [0, 4 * TS]) {
+    /* Two blocks facing the street, a gap between them. Both front the same
+       south street, so they take along 0 and 1 to keep their numbers apart. */
+    for (let ai = 0; ai < 2; ai++) {
       const b = Art.apts[rng.int(Art.apts.length)];
-      const wx = lotX + ox, wy = lotY + L - b.h;
+      const wx = lotX + ai * 4 * TS, wy = lotY + L - b.h;
       this.markSolidSafe((wx / TS) | 0, (wy / TS) | 0, Math.ceil(b.w / TS), Math.ceil(b.h / TS));
       this.statics.push({ img: b.c, x: wx, y: wy, oy: b.oy, w: b.w, h: b.h, sortY: wy + b.h });
+      this.addAddress(bx, by, { x: wx, y: wy, w: b.w, h: b.h, oy: b.oy }, 2, ai, 'apts');
     }
 
     /* bins and a bench on the apron */
@@ -2494,13 +2537,18 @@ const City = {
       g.drawImage(Art.tile.lot[(lx + ly) & 3], tx * TS, ty * TS);
     }
 
-    /* two runs, hard against the north and south lot lines */
+    /* two runs, hard against the north and south lot lines. Each carries one
+       street door for the flat above it -- which is what a downtown Hays
+       storefront actually has, and what gives the Fort/Main spine somewhere to
+       deliver to. The runs face opposite streets, so both take along=0 and the
+       parity rule keeps their numbers off each other. */
     for (const side of [0, 1]) {
       const s = Art.store[rng.int(Art.store.length)];
       const wx = lotX;
       const wy = side === 0 ? lotY + TS : lotY + L - s.h;
       this.markSolidSafe((wx / TS) | 0, (wy / TS) | 0, 8, Math.ceil(s.h / TS));
       this.statics.push({ img: s.c, x: wx, y: wy, oy: s.oy, w: s.w, h: s.h, sortY: wy + s.h });
+      this.addAddress(bx, by, { x: wx, y: wy, w: s.w, h: s.h, oy: s.oy }, side === 0 ? 0 : 2, 0, 'retail');
     }
 
     /* painted bays in the service court */
