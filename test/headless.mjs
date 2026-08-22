@@ -58,11 +58,11 @@ vm.createContext(sandbox);
 // top-level const/let live in the script's lexical scope, not on the global
 // object, so hand them out explicitly from inside the same scope
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, MAXTHROW,' +
-  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, TS, GW, HSTREETS, VSTREETS };',
+  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, TS, GW, HSTREETS, VSTREETS };',
   sandbox, { filename: 'bundle.js' });
 
 const { G, City, Nav, Art, Input, textW, MAXTHROW, VW, VH, WW, WH,
-        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
+        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, TS, GW, HSTREETS, VSTREETS } = sandbox.__x;
 sandbox.solve = sandbox.__x.solve;
 
 /* ---------- assertions ---------- */
@@ -202,6 +202,34 @@ for (const s of wedgeSites) {
 ok(escaped === wedgeSites.length,
    `every wedged car can drive out (${escaped}/${wedgeSites.length})` +
    (trapped.length ? ` — trapped at tile ${trapped.join(' ')}` : ''));
+
+/* A cruiser drives into geometry exactly the way a player does, but Cop.update
+   never called unwedge(), so a wedged one was stuck for good: 0 of these 12
+   sites were escapable, every one frozen at exactly 0px. Same defect as the
+   player's, same fix.
+
+   Measure PATH, not net displacement. The cop's obstacle probe is crude and it
+   can legitimately circle a tight corner — one site drives 118px to end 38px
+   from where it started. Net displacement calls that stuck; it is not. This is
+   the same wrong-measure trap already recorded for the demo driver. */
+{
+  const keepP = { x: G.player.x, y: G.player.y };
+  const sites = wedgeSites.slice(0, 12);
+  const report = [];
+  let ok2 = 0;
+  for (const site of sites) {
+    G.player.x = Math.min(WW - 40, Math.max(40, site.x + 260));
+    G.player.y = Math.min(WH - 40, Math.max(40, site.y + 260));
+    const c = new Cop(site.x, site.y, -Math.PI / 2);
+    let path = 0, px2 = c.x, py2 = c.y;
+    for (let i = 0; i < 6 * 60; i++) { c.update(1 / 60, G); path += Math.hypot(c.x - px2, c.y - py2); px2 = c.x; py2 = c.y; }
+    const stillIn = carBlocked(c.x, c.y, c.ang);
+    if (path > 30 && !stillIn) ok2++; else report.push(`${Math.round(path)}px${stillIn ? ' STILL BLOCKED' : ''}`);
+  }
+  G.player.x = keepP.x; G.player.y = keepP.y;
+  ok(ok2 === sites.length,
+     `every wedged cop depenetrated and drove away (${ok2}/${sites.length}${report.length ? ': ' + report.join(', ') : ''})`);
+}
 
 console.log('\n— guidance —');
 let routeFail = 0, longest = 0;

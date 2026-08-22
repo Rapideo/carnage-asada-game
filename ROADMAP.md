@@ -16,11 +16,6 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
 
 ### Bugs
 
-- [ ] **A pursuing cop wedges about a third of the time.** Measured 19 of 60 dispatches never covered
-      40px in ten seconds. `Cop.update` does not call `unwedge()` the way `Player.update` does, so a
-      cruiser that drives into geometry is stuck permanently — the exact defect `unwedge()` exists to
-      prevent. Not a railway problem: 17 of those 19 jammed 166–272px away from the corridor, in
-      ordinary city geometry. Likely a one-line fix.
 - [ ] **The shop apron is the easiest place in the city to get stuck.** Measured in play: 25 seconds
       lost crawling and re-wedging within ~60px of the dock, and separately ~$10 of decaying tip lost
       wedged on a warehouse corner nearby. Reversing always freed it — this is not a softlock — but it
@@ -94,6 +89,12 @@ These need a decision before they can become work.
 Closed by the neighbourhood pass and no longer carried: the Hays street data, the block-kind zoning,
 and the display-face resize (the 9×11 → 7×9 glyph-grid change in `JOURNAL.md`, which is what made an
 exact percentage possible — cells are square `s×s` rects, so `scale` alone cannot do it).
+
+Closed 2026-08-21: **the wedging cop**. `Cop.update` now calls `unwedge()`, the way `Player.update`
+always has. It was a one-line fix as predicted, and the measurements bracket it: 0 of 12 synthetic wedge
+sites were escapable before (every cop frozen at exactly 0px), 12 of 12 after; in the field, 19 of 60
+dispatches were stuck before, 0 of 80 after. Pursuits that resolve rather than jam went from 27 of 60 to
+44 of 60 — the cops now actually reach you.
 
 Closed 2026-08-21, the HUD pass: **the TACO-NAV header** is gone and the panel shrank from 128×34 to
 118×24, sized to the longest string it can ever hold (`MAKE A U-TURN`, `RETURN TO ROADWAY`) and guarded

@@ -296,8 +296,11 @@ turn out. That state is permanent, not merely awkward: **0 of 37 tested wedge si
 input** before `unwedge()` existed.
 
 `unwedge()` in `50_entities` depenetrates: if the body is overlapping, it nudges toward the first direction
-with clear space, widening the probe radius so deep corners are not abandoned. `Player.update` calls it
-every frame. Anything that moves a car *without* a `carBlocked` test can recreate the trap — the traffic
+with clear space, widening the probe radius so deep corners are not abandoned. **`Player.update` and
+`Cop.update` both call it every frame** — the cruiser shipped without it for months and was frozen at
+exactly 0px on 12 of 12 test wedge sites, which went unnoticed because a stuck cop still despawns on its
+own timer and so reads as "lost them" rather than as a bug. Anything else that moves a car body needs the
+same call. Anything that moves a car *without* a `carBlocked` test can recreate the trap — the traffic
 separation push in `80_game` did exactly that, shoving the player inside buildings. The
 `— collision —` test section asserts every wedge site stays escapable.
 
@@ -353,7 +356,7 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. 107 assertions covering city invariants (address
+every drawing call is a no-op but all logic executes. 108 assertions covering city invariants (address
 uniqueness, porch reachability), HUD text widths, wedge escapability, 250 solved routes, 9000 fuzzed
 simulation frames checked for NaN and out-of-world drift, the attract rotation and 85s of autonomous
 demo driving, the full scoring loop, heat/cop behaviour, and the railway.
@@ -393,6 +396,11 @@ Assertions about autonomous behaviour must measure the right thing. "Net displac
 like a reasonable check that the demo was driving, but the demo takes orders all over the map and can
 legitimately finish near where it started — it failed on working code. Total path length plus a
 *longest-stall* bound is what actually captures "never wedges".
+
+**This has now bitten twice.** The cop-wedge assertion was first written as net displacement too, and
+called a cruiser stuck that had driven 118px to end 38px from where it started, circling a tight corner
+its crude obstacle probe could not read. Measure path, not displacement, whenever the thing under test
+steers itself.
 
 There is no per-test filter — it is one sequential script with labelled sections (`— build —`,
 `— hud layout —`, `— collision —`, `— guidance —`, `— simulation —`, `— scoring —`, `— attract —`,

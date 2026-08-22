@@ -503,6 +503,15 @@ class Cop {
     vl *= Math.exp(-7.5 * dt);
     this.vx = fx * vf - fy * vl; this.vy = fy * vf + fx * vl;
 
+    /* The cruiser needs this for exactly the reason the player does: carBlocked
+       tests the DESTINATION, so a body already overlapping geometry has every
+       nearby destination blocked too, both axis moves rejected, and steering
+       speed-gated to nothing. Without it a wedged cop is stuck permanently —
+       0 of 12 test sites were escapable, and it is the same defect unwedge()
+       was written for. It went unnoticed because a stuck cop still despawns on
+       its own timer, so it reads as "lost them" rather than as a bug. */
+    unwedge(this, dt);
+
     const nx = this.x + this.vx * dt;
     if (!carBlocked(nx, this.y, this.ang)) this.x = nx; else this.vx *= -0.35;
     const ny = this.y + this.vy * dt;
