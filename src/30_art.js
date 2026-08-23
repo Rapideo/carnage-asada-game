@@ -930,8 +930,14 @@ const Art = {
     this.taqueria = this.mkTaqueria(makeRng(4242));
     this.badge = this.mkBadge();
     this.seal = this.mkSeal();
-    // same display face as the badge, at scale 2 => 206px wide
-    this.wordmark = this.mkLogoText('CARNAGE ASADA', 2, PAL.gold, 2);
+    // Same display face as the badge. Scale 3 => 313px wide on a 384px
+    // screen, 35px of margin each side. Cells are drawn as s*s rects, so
+    // only whole numbers stay crisp: there is no integer step between
+    // this and scale 2's 210px, which is why the title grew by 50% and
+    // not the 40% first asked for. The grow animation in overlayTitle
+    // scales this bitmap, but lands on exactly 1:1 so the resting frame
+    // -- the one on screen for 27 of the title's 30 seconds -- is exact.
+    this.wordmark = this.mkLogoText('CARNAGE ASADA', 3, PAL.gold, 2);
   },
 
   /* ---------- the seal, for the attract card --------------

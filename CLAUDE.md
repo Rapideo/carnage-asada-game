@@ -329,10 +329,28 @@ machine output — don't spend it elsewhere.
 ### Title screen and controls
 
 `overlayTitle` is badge, wordmark and blinking prompt, and it has a beat: the badge stands alone for
-`TITLE_HOLD` seconds, then the wordmark fades in over `TITLE_FADE` while `G.shake` kicks — the same
-rumble a collision gives, so the landing reads as part of the game rather than a bolted-on transition.
-The prompt waits for the wordmark. **`shake` has to be decayed in the title branch of `update` as well
-as the play branch**: that branch returns early, so a rumble started there would otherwise never stop.
+`TITLE_HOLD` seconds (authored in `content/attract.json` as `title.wordmarkHold`), then the wordmark
+**grows** into place over `TITLE_GROW` and `G.shake` kicks as it lands — the same rumble a collision
+gives, so the arrival reads as part of the game rather than a bolted-on transition. The prompt waits
+for the wordmark to *land*, not merely to appear, or it blinks away under a logo still moving.
+
+**The easing accelerates, and that is deliberate.** It is `g * g`, not an ease-out: the wordmark has to
+arrive fast to earn the rumble. A grow that decelerates drifts to a halt and the shake then reads as
+unrelated to it.
+
+**The grow scales the baked bitmap, but lands on exactly 1:1 at whole pixels.** Intermediate frames are
+resampled and slightly uneven, which is fine for 2 seconds of motion and correct for an arcade zoom; the
+resting frame is what a player looks at for 27 of the title's 30 seconds, so it is an unscaled blit.
+
+**`G.shake` displaces the CAMERA, so an overlay drawn at fixed screen coordinates does not move with
+it.** In play that is right — the world shakes under a static HUD. On the title it was exactly backwards:
+the rumble moved only the city, which is dimmed to 38% behind a wash and drifting slowly anyway, while
+the badge and wordmark — the only things the eye is on — sat perfectly still, and the whole beat read as
+nothing happening. `render` now publishes `G.shakeX`/`G.shakeY` (negated, because raising the
+source-rect origin slides the world left) and `overlayTitle` adds them to every draw.
+
+**`shake` has to be decayed in the title branch of `update` as well as the play branch**: that branch
+returns early, so a rumble started there would otherwise never stop.
 
 **The controls are documented only in `overlayPause`** — the page used to carry a key legend under the canvas and no longer does, so that overlay
 is the single place a player can find them. Don't strip it back to a resume line.
@@ -347,7 +365,7 @@ as a scaled-up UI font at display sizes — which is exactly how the rooftop sig
 onto this face.
 
 **The 7×9 grid is load-bearing.** At scale 3 four characters measure 93px, giving the ~2px overspill the
-88px badge face wants; at scale 2 thirteen measure 206px, the title's established width; at scale 2 four
+88px badge face wants; at scale 3 thirteen measure 313px, the title's width; at scale 2 four
 measure 62px, which fits the shop's 96px sign panel with even margins. One grid serves all three with no
 resampling — changing `LOGO_W`/`LOGO_H` breaks them at once.
 

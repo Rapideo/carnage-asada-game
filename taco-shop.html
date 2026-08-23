@@ -357,7 +357,7 @@ const HAYS = {
 const ATTRACT = {
   "title": {
     "seconds": 30,
-    "wordmarkHold": 3
+    "wordmarkHold": 1
   },
   "winners": {
     "seconds": 15
@@ -1711,8 +1711,14 @@ const Art = {
     this.taqueria = this.mkTaqueria(makeRng(4242));
     this.badge = this.mkBadge();
     this.seal = this.mkSeal();
-    // same display face as the badge, at scale 2 => 206px wide
-    this.wordmark = this.mkLogoText('CARNAGE ASADA', 2, PAL.gold, 2);
+    // Same display face as the badge. Scale 3 => 313px wide on a 384px
+    // screen, 35px of margin each side. Cells are drawn as s*s rects, so
+    // only whole numbers stay crisp: there is no integer step between
+    // this and scale 2's 210px, which is why the title grew by 50% and
+    // not the 40% first asked for. The grow animation in overlayTitle
+    // scales this bitmap, but lands on exactly 1:1 so the resting frame
+    // -- the one on screen for 27 of the title's 30 seconds -- is exact.
+    this.wordmark = this.mkLogoText('CARNAGE ASADA', 3, PAL.gold, 2);
   },
 
   /* ---------- the seal, for the attract card --------------
@@ -4258,7 +4264,11 @@ const ATTRACT_WINNERS = ATTRACT.winners.seconds;
 const ATTRACT_DEMO = ATTRACT.demo.seconds;
 const ATTRACT_SCORES = ATTRACT.scores.seconds;
 const TITLE_HOLD = ATTRACT.title.wordmarkHold;   // badge alone, before the slam
-const TITLE_FADE = 0.22;                         // and how fast it lands
+const TITLE_FADE = 0.25;                         // how fast it stops being transparent
+const TITLE_GROW = 2.0;                          // and how long it takes to reach full size
+const TITLE_FROM = 0.28;                         // starting scale of that grow
+const TITLE_Y    = 137;                          // top of the wordmark at rest: centred in
+                                                 // the 62px band between badge and prompt
 const ENTRY_TIMEOUT = 30;                        // seconds idle before the wheel confirms itself
 const WINNERS_BLUE = '#1f1fa8';
 
@@ -4268,7 +4278,7 @@ const G = {
   bag: BAG_MAX, bagMax: BAG_MAX, needPickup: false,
   player: null, traffic: [], peds: [], flying: [], cop: null, copT: 0,
   train: null, trainT: 0, crossings: [], railSide: 0, wreckCd: 0,
-  cam: { x: 0, y: 0 }, shake: 0, hitstop: 0,
+  cam: { x: 0, y: 0 }, shake: 0, shakeX: 0, shakeY: 0, hitstop: 0,
   order: null, banner: '', bannerT: 0, bannerCol: PAL.bone,
   throwCd: 0, restock: 0, tipPop: 0, infraction: 0,
   stats: null, titleCam: 0, titleT: 0, titleSlam: false, paused: false, flash: 0,
@@ -4640,7 +4650,12 @@ const G = {
          as well as in the play branch — this branch returns early, so a rumble
          started on the title would otherwise never stop. */
       this.titleT += dt;
-      if (!this.titleSlam && this.titleT >= TITLE_HOLD) {
+      // The rumble belongs to the LANDING, not the launch. It is the same
+      // shake a collision gives, which is what makes the arrival read as part
+      // of the game rather than a transition effect — so it has to fire when
+      // the wordmark reaches full size, at the end of the grow, not when it
+      // starts creeping up from nothing two seconds earlier.
+      if (!this.titleSlam && this.titleT >= TITLE_HOLD + TITLE_GROW) {
         this.titleSlam = true;
         this.shake = 9;                 // the same rumble a collision gives
         Audio5.sfx('bump');
@@ -4927,9 +4942,19 @@ const G = {
     // the winners card is a solid field — no world behind it, as on a cabinet
     if (this.state === 'winners') { this.overlayWinners(x); Post.apply(x); return; }
 
+    /* `shake` displaces the CAMERA, which moves the world under a HUD that
+       stays put. That is right in play. It is wrong on the title, where the
+       world is dimmed to 38% behind a wash and drifting slowly anyway, and the
+       badge and wordmark — the only things the eye is on — are drawn at fixed
+       screen coordinates and so were the one part of the frame exempt from the
+       rumble. Keep the offset for overlays that want to move with it.
+       Negated, because raising the source-rect origin slides the world LEFT:
+       an overlay must go the other way to shake in the same direction. */
     const sh = this.shake;
-    const cx = Math.round(this.cam.x + (sh > 0 ? rand(-sh, sh) : 0));
-    const cy = Math.round(this.cam.y + (sh > 0 ? rand(-sh, sh) : 0));
+    const jx = sh > 0 ? rand(-sh, sh) : 0, jy = sh > 0 ? rand(-sh, sh) : 0;
+    const cx = Math.round(this.cam.x + jx);
+    const cy = Math.round(this.cam.y + jy);
+    this.shakeX = -Math.round(jx); this.shakeY = -Math.round(jy);
     const cam = { x: cx, y: cy };
 
     x.fillStyle = PAL.void; x.fillRect(0, 0, VW, VH);
@@ -5067,9 +5092,13 @@ const G = {
   overlayTitle(x) {
     x.fillStyle = 'rgba(20,12,28,0.62)'; x.fillRect(0, 0, VW, VH);
     const t = this.time;
+    // The lockup rides the shake. Without this the rumble that fires as the
+    // wordmark lands moves only the dimmed city behind it, and reads as
+    // nothing at all.
+    const jx = this.shakeX, jy = this.shakeY;
     // badge and sprayed wordmark, both baked once at boot. Controls are not
     // listed here by design — they live in the pause overlay.
-    x.drawImage(Art.badge, ((VW - Art.badge.width) / 2) | 0, 14);
+    x.drawImage(Art.badge, (((VW - Art.badge.width) / 2) | 0) + jx, 14 + jy);
 
     /* A title that is simply *there* has no beat. Holding back the half that
        names the game buys one, and the rumble is the same shake a collision
@@ -5077,14 +5106,31 @@ const G = {
        transition effect bolted on top. */
     const held = this.titleT - TITLE_HOLD;
     if (held >= 0) {
+      /* The wordmark grows into place rather than cutting in. Easing is
+         quadratic and ACCELERATING, not decelerating: it has to arrive fast to
+         earn the rumble that fires as it lands. A grow that eases out drifts
+         to a halt and the shake then reads as unrelated. */
+      const g = clamp(held / TITLE_GROW, 0, 1);
+      const sc = TITLE_FROM + (1 - TITLE_FROM) * (g * g);
+      const w = Art.wordmark.w, h = Art.wordmark.h;
+      const cy = TITLE_Y + h / 2;
       x.globalAlpha = clamp(held / TITLE_FADE, 0, 1);
-      x.drawImage(Art.wordmark.c, ((VW - Art.wordmark.w) / 2) | 0, 138);
+      if (g >= 1) {
+        // At rest, blit 1:1 at whole pixels. Anything else resamples a face
+        // whose whole point is hard 3px cells.
+        x.drawImage(Art.wordmark.c, (((VW - w) / 2) | 0) + jx, TITLE_Y + jy);
+      } else {
+        const dw = Math.round(w * sc), dh = Math.round(h * sc);
+        x.drawImage(Art.wordmark.c, Math.round(VW / 2 - dw / 2) + jx, Math.round(cy - dh / 2) + jy, dw, dh);
+      }
       x.globalAlpha = 1;
 
+      // The prompt waits for the wordmark to land, not merely to appear —
+      // otherwise it blinks away underneath a logo that is still moving.
       // textOut, not text: at scale 1 the 1px strokes read thin and lost, but a
       // 1px ink outline thickens them to ~3px so the prompt still carries. The
       // dark halo also lifts it off the city scrolling behind.
-      if ((t * 2 | 0) % 2) textOut(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 184, PAL.amber, 1, 1);
+      if (g >= 1 && (t * 2 | 0) % 2) textOut(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 184, PAL.amber, 1, 1);
     }
   },
 

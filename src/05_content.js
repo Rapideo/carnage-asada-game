@@ -126,7 +126,7 @@ const HAYS = {
 const ATTRACT = {
   "title": {
     "seconds": 30,
-    "wordmarkHold": 3
+    "wordmarkHold": 1
   },
   "winners": {
     "seconds": 15

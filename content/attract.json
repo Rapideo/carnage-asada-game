@@ -5,8 +5,8 @@
 
   "title": {
     "seconds": 30,
-    "_wordmarkHold": "Seconds the badge stands alone before CARNAGE ASADA slams in with a rumble. Must leave at least 2s of the title showing complete, so it cannot exceed seconds - 2.",
-    "wordmarkHold": 3
+    "_wordmarkHold": "Seconds the badge stands alone before CARNAGE ASADA slams in with a rumble. Must leave at least 2s of the title showing complete, so it cannot exceed seconds - 2. The wordmark then GROWS to full size over TITLE_GROW (2s) and the rumble fires as it lands, so the badge is alone for this long and the lockup is complete this long plus two.",
+    "wordmarkHold": 1
   },
 
   "winners": {
