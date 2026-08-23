@@ -1017,10 +1017,11 @@ less. The old driver's excursions were shallow drifts near kerbs and porches, wh
 and prop-free; this one leaves at corners, where block interiors are full of furniture, so each
 excursion goes deeper. That tail is not closed.
 
-### And the thing that has not been done
+### And the thing the numbers could not settle
 
-**Nobody has watched it.** Every number above is from the headless harness. This repo has twice
-shipped defects that were correct by every assertion and wrong on screen — the clipped banner and the
-invisible north-facing store porch — and both were found by rendering a frame and looking. A
-lane-perfect driver may well read as robotic rather than competent, which is a judgement no assertion
-can make. `docs/resume-demo-path-following.md` records which dial to turn if it does.
+Every figure above is from the headless harness, and the open question was whether a lane-perfect
+driver would read as *competent* or as *robotic* — a judgement no assertion can make. This repo has
+twice shipped defects that were correct by every measure and wrong on screen: the clipped banner and
+the invisible north-facing store porch, both found by rendering a frame and looking at it. So the
+branch was held until it had been watched. It was, and it plays; the pursuit lookahead (`rem` in
+`Demo.aim`) is the dial if that judgement ever changes.
