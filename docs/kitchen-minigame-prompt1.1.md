@@ -17,6 +17,31 @@ A few things will need to change game-wide to allow of the merging of both of th
 
 ## CONTROL MECHANICS
 
+I woudl like to make the controls a little more arcade-friendly, and compatible with playing with a joystick. This would require an existing change to the Delivery play; where it would assume the new control scheme:
+
+4-Way Joytick Control - DRIVE MODE
+
+- Up: Forward (Same as Accelerate Button)
+
+- Down: Reverse (Same as Reverse Button)
+
+- Left: Turn Left
+
+- Right : Turn Right
+
+
+There are a total of THREE butons:
+
+- Button 1: Accelerate
+
+- Button 2: Reverse
+
+- Button 3: Aim and Release
+
+HOLDING Button 3 puts the Joysick into Aim Mode; where the joystick no longer moves the car, but instaed allows you to direct the path of the throw, much as the mouse does currently. RELEASING Button 3 tosses the bag.  
+
+
+
 ## TIME PROGRESSION and LEVELS
 
 ## DIALOG MECHANISM
@@ -26,6 +51,10 @@ A few things will need to change game-wide to allow of the merging of both of th
 ## PLAY EXTENSIONS
 
 ## DIFFICULTY PROGRESSION
+
+
+
+## The New Game - The Kitchen
 
 ## Part 1 — The Build (the mechanic, as it worked)
 
