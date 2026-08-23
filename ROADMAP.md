@@ -53,10 +53,6 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
 
 ### HUD and presentation
 
-- [ ] **Judge the attract timings after a full cycle.** Still title 30s / winners 15s / demo 90s, and
-      90 seconds is a long watch. The dials are now in `content/attract.json` rather than constants, so
-      this is a one-line edit and a rebuild — but it is a judgement nobody has made yet.
-
 ### Features
 
 - [ ] **Rework throwing.** Auto-aim, or aim-after-click, or something else — the current scheme is
@@ -142,11 +138,26 @@ These need a decision before they can become work.
       `retail`/`apts` in `addAddress`, not the address count — narrowing the downtown target to
       ~18px was the rejected alternative and is a one-number change if it turns out to be wanted.
       Decide by playing, not by arithmetic.
-- [ ] **What happens when Hays PD catches you?** Currently a $15 ticket, a spin-out and heat reset.
+- [ ] **What happens when Hays PD catches you?** Currently a $10 ticket (was $15 until
+      2026-08-23), a spin-out and heat reset.
 - [ ] **How should the player car read as *the* car?** Turning it white is the starting idea.
 - [ ] **Gamepad / Xbox controller support**, and whether an on-screen control overlay comes with it.
 
 ### Landed, for the record
+
+Closed 2026-08-23: **the attract loop, judged on measurement.** It was title 30s / winners 15s /
+demo 90s, and the entry asked for a judgement nobody had made. Across 24 full demo runs the first
+delivery lands at a median of 14s, the second at 29s, the third at 44s — and the coverage curve is
+flat past 60s: a 60s demo and the 90s one both showed at least one delivery in 96% of runs and two in
+88%, so the last thirty seconds bought nothing at all. Cut to **45s**, which holds 92% and 79%:
+roughly one demo in five now shows a single delivery rather than two, accepted deliberately for a
+snappier cabinet. The title held 30s while its lockup completes at 3s, so 27 of those seconds were a
+static screen; cut to **15s**. Full cycle **135s → 75s**, all of it in `content/attract.json`.
+
+`test/headless.mjs` had an 85-second demo loop hard-coded against the old 90 and would have failed
+outright; it derives the length from `ATTRACT_DEMO` now, so retuning the authored file cannot break
+the suite again.
+
 
 Closed 2026-08-23: **the border is prairie, and the railway runs out through it.** The map edge was a
 2-tile ring of `T_SEA` — water, with a stone sea wall and foam — in a game set in western Kansas.

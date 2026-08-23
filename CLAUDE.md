@@ -591,6 +591,6 @@ There is no per-test filter — it is one sequential script with labelled sectio
 
 ## Publishing
 
-`taco-shop.html` is the shippable artifact: one self-contained file, ~220 KB. It must stay free of external
+`taco-shop.html` is the shippable artifact: one self-contained file, ~232 KB. It must stay free of external
 requests. `?seed=<int>` on the URL regenerates the city deterministically (mulberry32); the default seed is
 in `90_main.js`.
