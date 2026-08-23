@@ -495,7 +495,8 @@ called a cruiser stuck that had driven 118px to end 38px from where it started, 
 its crude obstacle probe could not read. Measure path, not displacement, whenever the thing under test
 steers itself.
 
-There is no per-test filter — it is one sequential script with labelled sections (`— build —`,
+There is no per-test filter — it is one sequential script with labelled sections (`— boot module —`,
+`— build —`,
 `— hud layout —`, `— collision —`, `— guidance —`, `— simulation —`, `— scoring —`, `— attract —`,
 `— hays map —`, `— block kinds —`, `— downtown addresses —`, `— shop apron —`, `— rail —`,
 `— high scores —`, `— heat —`). To isolate one, edit the script.
