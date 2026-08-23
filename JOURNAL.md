@@ -936,3 +936,92 @@ existed to make the original deferral visible, and it did its job by breaking th
 decision reversed. It is inverted rather than deleted, and it now asserts that all three apartment
 blocks *do* generate addresses — so the reversal stays recorded at the spot that recorded the
 original call, instead of quietly vanishing from the file.
+
+## The attract driver learns to follow a lane (2026-08-22)
+
+The punch list said the demo "clips kerbs" and that "path-following rather than
+steer-straight-at-the-target would fix it properly". Half right, and the half it got wrong is the
+interesting part.
+
+Measured first, because the complaint was unquantified. Over 20 minutes of attract mode the old
+driver was off the tarmac 26.4% of the time — but the number that explained it was that **34.9% of
+its frames were spent steering at a point behind the car**, 85px behind on average, and 27.2% at a
+point closer than 24px, where `atan2` swings wildly and `clamp(err * 2.2)` saturates the wheel.
+
+`Nav.recompute` retires the head node when the car is closer to the *second* node than the two nodes
+are to each other. On a straight that fires 12px past the node. On a **turn** the second node is
+perpendicular and a full `PITCH` away wherever the car is, so the head node is never retired — the
+car overshoots the corner it could not make, the node it should have turned at is now behind it, and
+it hauls the wheel over to go back. Corner-cutting and mid-block wandering turned out to be the same
+bug seen at two distances.
+
+### Neither half works alone
+
+Retiring passed nodes on its own made it **worse** — 32.0% off the tarmac against 25.7%, grass time
+from 2.9% to 8.3% — because the node you advance to is around a corner, and driving straight at it
+crosses the block. And path-following alone leaves the retirement bug in place. They are one fix.
+
+### The line that matters
+
+The retirement test. The obvious implementation is "is this waypoint behind my nose", and it is
+catastrophically wrong: **the corner you are about to turn onto sits square to your heading**, so its
+dot product with the nose is negative while the car is doing exactly the right thing. The test throws
+away the very waypoint the car was braking for, the path collapses to the delivery kerb — which can
+be most of the map away and diagonal — and the car drives at it in a straight line. Retirement is
+measured *along the leg the waypoint leads into*, and it also has to confirm the car is laterally
+**on** that leg: distance-along alone means sitting 7px off-centre in a 16px lane reads as 7px "past"
+a corner still 80px up the road.
+
+`test/headless.mjs` carries a comment saying why it deliberately does not assert the nose test.
+Asserting it would demand the bug back.
+
+### Speed is part of the geometry
+
+No aim point can fix a speed the car cannot turn at. Turn radius is
+`v / (TURNRATE * (1 - 0.28 * v / MAXSPD))` — about 37px at speed 100, 24px at 70. Worked against a
+32px carriageway, a **right** turn only stays on the tarmac below roughly 70; left turns have room to
+spare, which is the same asymmetry a real car has. The demo cruised at 115 and only lifted off when
+already 69 degrees off line, so it now coasts under 64px from a corner and brakes under 30px.
+Pure pursuit also cuts a corner by roughly its lookahead, so the lookahead has to stay near the
+turning radius: the first cut used 38-65px against a 32px road and put the car on the pavement at
+every junction, measurably worse than the naive driver it replaced.
+
+### Three hypotheses that were wrong, and how they died
+
+Worth recording because each one was plausible and each cost a measurement.
+
+- **Kerbside furniture.** A proper lane puts the car 8px from the kerb where the old driver sat 16px
+  from both. Sampled every road at every cross-offset: lane centres are `0.00%` blocked, identical to
+  the crown. Not it.
+- **Sharing a lane with traffic.** The obstacle probe only tests `City.isSolid`, which is baked static
+  geometry — it cannot see a traffic car at all, so a lane-disciplined driver should rear-end them.
+  Traffic-ahead frames: 8.5% new against 7.7% old. Unchanged. Not it. (The probe gap is real, just
+  not this.)
+- **The corner governor causing the slowness.** Disabling it left off-tarmac flat and dropped
+  deliveries from ~15 to 9. Not it, and it earns its place.
+
+What it actually was: the recovery aimed at the nearest **junction**, which is up to half a block away
+on *both* axes, so the straight line to it runs diagonally through the middle of a block. A clipped
+kerb became a car grinding across a back garden. Aiming at the nearest **carriageway** instead —
+perpendicular, never more than half a block — was worth most of the remaining gap.
+
+### Where it landed
+
+Paired 20-minute runs. Off the tarmac 26.4% -> 23.1%; excursions 461 -> 305; worst single excursion
+5.7s -> 3.7s; mean offset from the lane centre 10.0px -> 6.4px; frames more than 12px off it
+36.7% -> 20.6%; delivered 42 -> 60; earned $134.79 -> $640.09. The earnings gap is far wider than the
+delivery gap because the tip decays at 55c/s — the old driver was arriving late on almost everything.
+
+It still gets **stuck** more than it used to (hard resets 2 -> 6), even though it leaves the road
+less. The old driver's excursions were shallow drifts near kerbs and porches, which are `keep`-reserved
+and prop-free; this one leaves at corners, where block interiors are full of furniture, so each
+excursion goes deeper. That tail is not closed.
+
+### And the thing the numbers could not settle
+
+Every figure above is from the headless harness, and the open question was whether a lane-perfect
+driver would read as *competent* or as *robotic* — a judgement no assertion can make. This repo has
+twice shipped defects that were correct by every measure and wrong on screen: the clipped banner and
+the invisible north-facing store porch, both found by rendering a frame and looking at it. So the
+branch was held until it had been watched. It was, and it plays; the pursuit lookahead (`rem` in
+`Demo.aim`) is the dial if that judgement ever changes.

@@ -58,11 +58,11 @@ vm.createContext(sandbox);
 // top-level const/let live in the script's lexical scope, not on the global
 // object, so hand them out explicitly from inside the same scope
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, money, MAXTHROW,' +
-  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, SURF_MUL };',
+  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, SURF_MUL, classify, SEG0, PITCH };',
   sandbox, { filename: 'bundle.js' });
 
-const { G, City, Nav, Art, Input, textW, money, MAXTHROW, VW, VH, WW, WH,
-        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, SURF_MUL } = sandbox.__x;
+const { G, City, Nav, Art, Input, Demo, textW, money, MAXTHROW, VW, VH, WW, WH,
+        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, SURF_MUL, classify, SEG0, PITCH } = sandbox.__x;
 sandbox.solve = sandbox.__x.solve;
 
 /* ---------- assertions ---------- */
@@ -348,6 +348,12 @@ ok(G.state === 'demo', `winners holds ${ATTRACT_WINNERS}s then starts the demo`)
    satisfy "no NaN", so track distance covered and watch for drift */
 let far = 0, bad = 0, moved = 0, stall = 0, worstStall = 0;
 let prev = { x: G.player.x, y: G.player.y };
+/* ...and it must drive like a driver, not merely move. The demo follows a
+   polyline of lane centres; these track whether it actually stays on one.
+   All three are fractions over the whole run rather than any single frame,
+   because a demo that clips one kerb is fine and one that lives on the
+   pavement is not. */
+let frames = 0, offTarmac = 0, behind = 0, onTop = 0, laneSum = 0, laneN = 0;
 for (let i = 0; i < 85 * 60; i++) {
   G.update(1 / 60); G.render(ctx); Input.endFrame();
   const p = G.player;
@@ -357,6 +363,31 @@ for (let i = 0; i < 85 * 60; i++) {
   moved += d;
   if (d < 0.2) { stall += 1 / 60; worstStall = Math.max(worstStall, stall); } else stall = 0;
   prev = { x: p.x, y: p.y };
+
+  frames++;
+  const surf = City.surfaceAt(p.x, p.y);
+  if (surf === S_WALK || surf === S_GRASS) offTarmac++;
+  const w = Demo.path && Demo.path.length ? Demo.path[0] : null;
+  if (w) {
+    const dx = w.x - p.x, dy = w.y - p.y;
+    // a steering target behind the nose, or one the car is sitting on, is how
+    // the old driver spent a third of its life; atan2 of a near-zero vector
+    // saturates the wheel
+    if (dx * Math.cos(p.ang) + dy * Math.sin(p.ang) < 0) behind++;
+    if (Math.hypot(dx, dy) < 24) onTop++;
+  }
+  // distance from the centre of the lane the car belongs in. Roads are 32px
+  // wide and Traffic.laneFixed puts the two lane centres at +8 and +24, so a
+  // car driven properly sits near zero. Straights only: a junction has no lane
+  if (classify((p.x / TS) | 0, (p.y / TS) | 0) === 1 && Math.hypot(p.vx, p.vy) > 12) {
+    const ox = p.x - SEG0 - Math.floor((p.x - SEG0) / PITCH) * PITCH;
+    const oy = p.y - SEG0 - Math.floor((p.y - SEG0) / PITCH) * PITCH;
+    const across = ox < 32 ? ox : oy;
+    if (across < 32) {
+      let dir = Math.round(Math.atan2(p.vy, p.vx) / (Math.PI / 2)) % 4; if (dir < 0) dir += 4;
+      laneSum += Math.abs(across - ((dir === 0 || dir === 3) ? 24 : 8)); laneN++;
+    }
+  }
 }
 ok(bad === 0, 'no NaN in the demo driver over 85s');
 ok(far === 0, 'demo car stayed inside the world');
@@ -370,6 +401,38 @@ ok(moved > 2500, `demo car actually drove (${Math.round(moved)}px covered)`);
 // displacement check — that fails on working code, because the demo takes
 // orders all over the map and can legitimately finish near where it started.
 ok(worstStall < 12, `demo never stalled for long (worst ${worstStall.toFixed(1)}s)`);
+
+/* — how well it drives, not just that it does —
+   The driver follows a polyline of lane centres built from Nav.route via
+   Traffic.laneFixed. Before it did, it steered straight at the next
+   intersection CENTRE, which cut every corner and rode the crown of the road;
+   measured over 20 minutes, that spent 34.9% of its frames aiming at a point
+   behind the car and 27.2% aiming at one under 24px away, and sat 10.0px off
+   its lane. These bounds are set well clear of the numbers the lane follower
+   actually turns in, because order selection uses Math.random and an 85s
+   sample is noisy — they are here to catch a regression to the old
+   behaviour, not to pin the tuning. */
+const pctOff = (offTarmac / frames) * 100;
+const pctOnTop = (onTop / frames) * 100;
+const laneOff = laneSum / Math.max(1, laneN);
+// A generous catastrophe guard rather than a tuning pin: an 85s sample ranges
+// 16-26% on a healthy build against the old driver's 26.4%, so this catches a
+// car that has taken up residence on the pavement and not much finer than that.
+ok(pctOff < 34, `demo mostly keeps to the tarmac (off it ${pctOff.toFixed(1)}% of the time)`);
+// These two are the ones that actually discriminate. Old driver: 27.2% and
+// 10.0px. Lane follower: 3-5% and 6-7px. Nothing in between is reachable by
+// accident — a regression to steering at intersection centres moves both at
+// once, because the centre of a junction is neither a lane nor nearby.
+ok(pctOnTop < 14, `demo rarely steers at a point on top of itself (${pctOnTop.toFixed(1)}%)`);
+ok(laneOff < 9, `demo keeps its lane (${laneOff.toFixed(1)}px off centre, road is 32px wide)`);
+// NOT asserted, deliberately: "the steering target is ahead of the nose". It
+// is the obvious check and it is wrong for this design — the corner the car is
+// about to turn ONTO sits square to its heading, so its dot product with the
+// nose is negative while the car is doing exactly the right thing. Retiring
+// waypoints on that test is the bug this driver was written to fix; asserting
+// it would demand the bug back. `behind` is tracked above for diagnosis only.
+void behind;
+
 ok(G.state === 'demo', 'demo still running before its timer expires');
 step(6);
 ok(G.state === 'title', `demo returns to the title after ${ATTRACT_DEMO}s`);

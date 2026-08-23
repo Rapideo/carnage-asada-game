@@ -23,10 +23,6 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
       building and needs a reverse. `unwedge()` frees it every time, so this is awkward rather than a
       softlock. Re-measure before changing it — the speed fix alone may have been most of the problem,
       since a car that crosses the kerb at 176 instead of 106 arrives with more control, not less.
-- [ ] **Demo driver clips kerbs.** It recovers every time since the collision fix, but it drives
-      visibly worse than a person and triggers `RETURN TO ROADWAY` more than it should. Path-following
-      rather than steer-straight-at-the-target would fix it properly.
-
 ### HUD and presentation
 
 - [ ] **Judge the attract timings after a full cycle.** Still title 30s / winners 15s / demo 90s, and
@@ -107,6 +103,70 @@ These need a decision before they can become work.
 - [ ] **Gamepad / Xbox controller support**, and whether an on-screen control overlay comes with it.
 
 ### Landed, for the record
+
+Closed 2026-08-23: **the attract driver follows a lane**. The punch list said it clipped kerbs and
+that path-following would fix it properly. Half right, and the half it got wrong was the useful part.
+
+Measured before touching anything, because the complaint was unquantified. The old driver spent
+**34.9% of its frames steering at a point behind the car** — 85px behind on average, for up to 9
+seconds — and 27.2% steering at one under 24px away, where `atan2` swings wildly and
+`clamp(err * 2.2)` saturates the wheel. `Nav.recompute` retires the head node when the car is closer
+to the *second* node than the two nodes are to each other: on a straight that fires 12px past the
+node, but on a **turn** the second node is perpendicular and a full `PITCH` away wherever the car is,
+so the head node is never retired at all. Corner-cutting and mid-block wandering were the same bug
+seen at two distances.
+
+**Neither half of the fix works alone.** Retiring passed nodes on its own made it *worse* — 32.0% off
+the tarmac against 25.7%, grass time 2.9% to 8.3% — because the node you advance to is around a
+corner and driving straight at it crosses the block.
+
+`Demo.buildPath` now turns `Nav.route` into a polyline of **lane** centres via `Traffic.laneFixed`,
+the same right-hand-traffic rule the traffic obeys; vertices are where consecutive legs' centrelines
+cross, so left and right turns need no special case. `Nav` is untouched, so nothing player-facing
+moved. Paired 20-minute runs:
+
+| | old | new |
+|---|---|---|
+| off the tarmac | 26.4% | **23.1%** |
+| excursions | 461 (one per 2.6s) | **305** (one per 3.9s) |
+| worst single excursion | 5.7s | **3.7s** |
+| on grass | 4.7% | **3.3%** |
+| steering at a point under 24px away | 27.2% | **3.6%** |
+| mean offset from the lane centre | 10.0px | **6.4px** |
+| frames more than 12px off lane centre | 36.7% | **20.6%** |
+| delivered / earned | 42 / $134.79 | **60 / $640.09** |
+
+The earnings gap is far wider than the delivery gap because the tip decays at 55c/s — the old driver
+was arriving late on almost everything. Playtested and confirmed before merge.
+
+Three things worth keeping:
+
+- **The retirement test is the whole feature.** Retiring a waypoint on "is it behind my nose" is the
+  obvious implementation and is catastrophically wrong: the corner you are about to turn *onto* sits
+  square to your heading, so a nose test throws away the very waypoint you were braking for, and the
+  path collapses to the delivery kerb — which can be most of the map away and diagonal.
+  `test/headless.mjs` carries a comment on why it deliberately does **not** assert the nose test.
+  Asserting it would demand the bug back.
+- **Speed is part of the geometry.** No aim point fixes a speed the car cannot turn at. Turn radius is
+  `v / (TURNRATE * (1 - 0.28 * v / MAXSPD))` — ~37px at 100, ~24px at 70 — so against a 32px
+  carriageway a **right** turn only stays on the tarmac below about 70, while left turns have room to
+  spare. Pure pursuit also cuts a corner by roughly its lookahead, so the lookahead has to stay near
+  the turning radius; the first cut used 38-65px and was measurably worse than the naive driver.
+- **Three plausible causes that measurement killed**, recorded so they are not re-run: kerbside
+  furniture (lane centres are 0.00% blocked, identical to the crown of the road); sharing a lane with
+  traffic (traffic-ahead frames 8.5% new against 7.7% old, unchanged); and the corner governor
+  (disabling it left off-tarmac flat and dropped deliveries from ~15 to 9). What it actually was: the
+  off-road recovery aimed at the nearest **junction**, half a block away on *both* axes, so the line
+  to it ran diagonally through the block interior. Aiming at the nearest **carriageway** instead was
+  worth most of the remaining gap.
+
+**Still open, and it is a real tail:** it gets *stuck* more than the old driver did even though it
+leaves the road less — hard wedge resets 2 to 6 per 20 minutes. The old driver's excursions were
+shallow drifts near kerbs and porches, which are `keep`-reserved and prop-free; this one leaves at
+corners, where block interiors are full of furniture, so each excursion goes deeper. Two candidates,
+neither investigated: the obstacle probe tests only `City.isSolid` and so cannot see a traffic car at
+all, and `Demo`'s wedge escape needs `p.speed < 20` to accumulate `wedgeT`, so a car grinding along a
+fence at 21-29 never trips the 2.5s hard reset. The latter is pre-existing.
 
 Closed 2026-08-22: **downtown deliveries**. The Fort/Main retail spine carried traffic, the rail
 corridor and the tightest driving in the game, and nothing to deliver to; orders concentrated south

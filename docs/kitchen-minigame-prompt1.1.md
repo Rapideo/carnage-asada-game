@@ -7,9 +7,25 @@ need is below. The mechanic described in "The Build" comes from an earlier proje
 one grew out of; I've written it out here in full **so you never need to go looking for it**. Treat
 this prompt as the source, not a pointer. If something seems missing, ask.
 
-## What I want
+## What I Want
 
-THIS IS NOT A MINI-GAME. This is the other half of the game play. Players will alternate between working in the Taco Shop kitchen, and driving deliveries. It 
+THIS IS NOT A JUST MINI-GAME. This is the other half of the game play. Players will alternate between working in the Taco Shop kitchen, and driving deliveries. 
+
+## Global Adjustments
+
+A few things will need to change game-wide to allow of the merging of both of these types of game play. 
+
+## CONTROL MECHANICS
+
+## TIME PROGRESSION and LEVELS
+
+## DIALOG MECHANISM
+
+## SCORING
+
+## PLAY EXTENSIONS
+
+## DIFFICULTY PROGRESSION
 
 ## Part 1 — The Build (the mechanic, as it worked)
 
