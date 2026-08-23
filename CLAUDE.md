@@ -291,7 +291,15 @@ a browser on a real origin. Anything stored that fails to parse, or parses to th
 so forgetting it is invisible to the suite and shows up only as a board with a header and no rows.
 
 The attract middle slot **alternates** between the winners card and the board, so the rotation stays
-135s rather than growing a fourth screen. `G.attractFlip` is the whole mechanism.
+75s rather than growing a fourth screen. `G.attractFlip` is the whole mechanism.
+
+**The durations were cut on measurement, 2026-08-23.** Across 24 full demo runs the first delivery lands
+at a median of 14s, the second at 29s, the third at 44s — and the coverage curve is flat past 60s: a 60s
+demo and the old 90s one both show at least one delivery in 96% of runs and two in 88%, so the last 30
+seconds bought nothing. 45s holds one delivery in 92% and two in 79%, trading roughly one demo in five
+showing a single delivery for a snappier cabinet. The title held 30s while its lockup completes at 3s.
+Cycle 135s → 75s. **`test/headless.mjs` derives its demo run length from `ATTRACT_DEMO`** rather than a
+hard-coded 85, so retuning the file does not break the suite.
 
 Initials entry is **arrows only** — up/down cycle, left/right move, Enter confirms — which is the one
 input scheme the rest of the game uses and the only one a gamepad maps to. A keyboard player's
@@ -328,11 +336,19 @@ machine output — don't spend it elsewhere.
 
 ### Title screen and controls
 
-`overlayTitle` is badge, wordmark and blinking prompt, and it has a beat: the badge stands alone for
-`TITLE_HOLD` seconds (authored in `content/attract.json` as `title.wordmarkHold`), then the wordmark
-**grows** into place over `TITLE_GROW` and `G.shake` kicks as it lands — the same rumble a collision
+`overlayTitle` is badge, tag, wordmark and blinking prompt, and it stages in that order: the badge alone,
+then **`IN`** at `TAG_HOLD` (0.5s), then the wordmark from `TITLE_HOLD` (authored in
+`content/attract.json` as `title.wordmarkHold`), **growing** into place over `TITLE_GROW` while
+`G.shake` kicks as it lands — the same rumble a collision
 gives, so the arrival reads as part of the game rather than a bolted-on transition. The prompt waits
 for the wordmark to *land*, not merely to appear, or it blinks away under a logo still moving.
+
+**The `IN` is small subtext, not a third piece of display type.** It links `TACO SHOP` to `CARNAGE ASADA`,
+and it stays on the 5×7 game font at scale 1 rather than the 7×9 display face — the same call as
+`EST. 1970` on the badge, for the same reason. It measures 11×7 and centres in the 15px the badge and
+wordmark leave, with 3px of air either side once the ink outline is counted; scale 2 is 14px tall and
+touches both. `textOut`, not `text`: at scale 1 the 1px strokes read thin and lost without the outline.
+It does not scale with the grow — 7px of type zooming up from 2px is mush for two seconds.
 
 **The easing accelerates, and that is deliberate.** It is `g * g`, not an ease-out: the wordmark has to
 arrive fast to earn the rumble. A grow that decelerates drifts to a halt and the shake then reads as
@@ -416,7 +432,8 @@ separation push in `80_game` did exactly that, shoving the player inside buildin
 
 ### Attract mode
 
-`title` (30s) → `winners` (15s) → `demo` (90s) → `title`, driven by one `G.attractT` countdown. Any key or
+`title` (15s) → `winners` (15s) → `demo` (45s) → `title`, driven by one `G.attractT` countdown — all four
+authored in `content/attract.json`, never hard-coded. Any key or
 click from `winners`/`demo` returns to the title. The demo reuses the play simulation exactly — same
 physics, same traffic, same scoring — with `Demo.drive()` swapped in for `Player.control()` and a flag
 disabling pause and the tick sound. `G.aimPoint()` has a demo branch so throws aim at the porch.

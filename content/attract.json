@@ -1,10 +1,10 @@
 {
   "_comment": "How long each screen of the cabinet attract loop is held, and the title's own beat. build.mjs INLINES this at build time - it is not fetched at runtime, because the shipped artifact must stay a single self-contained file (the CSP blocks external requests, and fetch() on a file:// page is blocked by CORS). Edit here, then run: node build.mjs",
   "_rotation": "The loop is title -> winners -> demo -> title, driven by one countdown. Every duration is in seconds and must be between 3 and 600; build.mjs rejects anything else rather than shipping a screen that flickers past or never advances.",
-  "_tuning": "90s of demo is a long watch and 30s of title is a long wait - these are the dials for judging that after a full cycle, which is the whole reason they live in a file rather than as constants in 80_game.js.",
+  "_tuning": "Judged 2026-08-23 against measurement rather than impression. Across 24 full demo runs the first delivery lands at a median of 14s, the second at 29s and the third at 44s, and the coverage curve is flat past 60s - a 60s demo and a 90s demo both show at least one delivery in 96% of runs and two in 88%, so the last 30s of the old 90 bought nothing. Cut to 45, which holds one delivery in 92% and two in 79%: about one demo in five now shows a single delivery rather than two, accepted deliberately for a snappier cabinet. The title held 30s while its lockup completes at 3s, so 27 of those seconds were a static screen; cut to 15. Full cycle 135s -> 75s.",
 
   "title": {
-    "seconds": 30,
+    "seconds": 15,
     "_wordmarkHold": "Seconds the badge stands alone before CARNAGE ASADA slams in with a rumble. Must leave at least 2s of the title showing complete, so it cannot exceed seconds - 2. The wordmark then GROWS to full size over TITLE_GROW (2s) and the rumble fires as it lands, so the badge is alone for this long and the lockup is complete this long plus two.",
     "wordmarkHold": 1
   },
@@ -18,6 +18,6 @@
   },
 
   "demo": {
-    "seconds": 90
+    "seconds": 45
   }
 }

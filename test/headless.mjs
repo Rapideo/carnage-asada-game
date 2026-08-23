@@ -405,7 +405,11 @@ let prev = { x: G.player.x, y: G.player.y };
    because a demo that clips one kerb is fine and one that lives on the
    pavement is not. */
 let frames = 0, offTarmac = 0, behind = 0, onTop = 0, laneSum = 0, laneN = 0;
-for (let i = 0; i < 85 * 60; i++) {
+// runs to 5s short of whatever the content file says, rather than a
+// hard-coded 85 — the durations are authored in content/attract.json and
+// retuning them there should not break the suite
+const DEMO_RUN = ATTRACT_DEMO - 5;
+for (let i = 0; i < DEMO_RUN * 60; i++) {
   G.update(1 / 60); G.render(ctx); Input.endFrame();
   const p = G.player;
   if (!finite(p.x) || !finite(p.y) || !finite(p.ang) || !finite(p.vx) || !finite(p.vy)) { bad++; break; }
@@ -440,9 +444,9 @@ for (let i = 0; i < 85 * 60; i++) {
     }
   }
 }
-ok(bad === 0, 'no NaN in the demo driver over 85s');
+ok(bad === 0, `no NaN in the demo driver over ${DEMO_RUN}s`);
 ok(far === 0, 'demo car stayed inside the world');
-ok(moved > 2500, `demo car actually drove (${Math.round(moved)}px covered)`);
+ok(moved > 28 * DEMO_RUN, `demo car actually drove (${Math.round(moved)}px in ${DEMO_RUN}s)`);
 // net displacement is NOT a useful check here — the demo takes orders all over
 // the map and can legitimately end up near where it started. What must hold is
 // that it never wedges permanently.
@@ -460,13 +464,13 @@ ok(worstStall < 12, `demo never stalled for long (worst ${worstStall.toFixed(1)}
    measured over 20 minutes, that spent 34.9% of its frames aiming at a point
    behind the car and 27.2% aiming at one under 24px away, and sat 10.0px off
    its lane. These bounds are set well clear of the numbers the lane follower
-   actually turns in, because order selection uses Math.random and an 85s
+   actually turns in, because order selection uses Math.random and a short
    sample is noisy — they are here to catch a regression to the old
    behaviour, not to pin the tuning. */
 const pctOff = (offTarmac / frames) * 100;
 const pctOnTop = (onTop / frames) * 100;
 const laneOff = laneSum / Math.max(1, laneN);
-// Reported, NOT asserted. Off-tarmac fraction over 85s is too noisy to bound:
+// Reported, NOT asserted. Off-tarmac fraction over one demo is too noisy:
 // a healthy build ranges 16-36%, because which orders come up decides how much
 // cornering the sample contains. It was briefly an ok(< 34) and flaked about
 // one run in six, which by this file's own rule is a harness bug rather than
