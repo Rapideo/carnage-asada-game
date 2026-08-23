@@ -147,6 +147,32 @@ These need a decision before they can become work.
 
 ### Landed, for the record
 
+Closed 2026-08-23: **the nav unit stops describing junctions you have already passed.** Found while
+fixing the attract driver and deliberately deferred then, because it is player-facing and the driver
+work was not. `Nav.recompute` seeded its Dijkstra from the *nearest* junction, which can be one the
+car has driven past, and patched that up afterwards by dropping the head node when the car was
+closer to the second node than the two nodes are to each other. That fires 12px past on a straight
+and **never on a turn** — there the second node is perpendicular and a full `PITCH` away wherever
+the car is.
+
+The symptom was on the panel the whole time. Driving straight through a junction the route wanted a
+turn at: **91 of 151 frames had the head node behind the car, and in 89 of them the displayed
+distance was growing** while the instruction still read `TURN LEFT` — never `MAKE A U-TURN`, which
+has been in `TURN_NAMES` all along. After: 21 frames and 15, and the residual is only the 0.4s
+recompute cadence.
+
+Dropping the head node was *not* the fix — on a turn the node after it is perpendicular, so it would
+point somewhere unreachable in a straight line. The seed is now `Nav.aheadNode(p)`, the junction the
+car is heading toward, and Dijkstra does the rest: it routes on around the block, because a U-turn
+costs 1.8 against three turns at 0.45. The demo, which builds its lane polyline from `Nav.route`,
+came out slightly better on every measure (off the tarmac 23.1% to 21.8%, grass 3.3% to 2.5%).
+
+Guarded by a new `— guidance —` assertion that samples just past every junction on both axes and
+both directions. It fails on the old code at **147 of 288** and passes at 0 — the 250-contiguous-
+routes assertion that was already there could never see it, because a contiguous route can still
+start behind you.
+
+
 Closed 2026-08-23: **the attract driver follows a lane**. The punch list said it clipped kerbs and
 that path-following would fix it properly. Half right, and the half it got wrong was the useful part.
 

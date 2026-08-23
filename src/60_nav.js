@@ -61,19 +61,49 @@ const Nav = {
     this.lost = (s === S_GRASS || s === S_WALK);
   },
 
+  /* The junction the car is heading TOWARD, which is not always the nearest
+     one. Seeding the search from the nearest node lets the route start at a
+     junction the car has already driven past, and then every number on the
+     panel describes somewhere behind you: the distance counts UP as you drive,
+     and the instruction names the turn you just missed instead of admitting
+     you missed it.
+
+     This used to be patched afterwards by dropping the head node when the car
+     was closer to the SECOND node than the two nodes are to each other. That
+     works on a straight — it fires 12px past the junction — but on a TURN the
+     second node is perpendicular and a full PITCH away wherever the car is, so
+     it never fired at all. Measured driving straight through a junction the
+     route wanted a turn at: 91 of 151 frames had the head node behind the car,
+     and in 89 of them the panel's distance was growing while it still read
+     TURN LEFT.
+
+     Dropping the head node is not the fix either — on a turn the node after it
+     is perpendicular, so you would be pointed at somewhere you cannot reach in
+     a straight line. Seed the search correctly instead and Dijkstra does the
+     rest: given where the car actually is and which way it is pointing, it
+     will route on around the block, because a U-turn costs 1.8 against three
+     turns at 0.45. Which is what a real unit does when you miss one. */
+  aheadNode(p) {
+    const moving = hyp(p.vx, p.vy) > 22;
+    const hx = moving ? p.vx : Math.cos(p.ang);
+    const hy = moving ? p.vy : Math.sin(p.ang);
+    let nx = City.nearNodeX(p.x), ny = City.nearNodeY(p.y);
+    // step one along whichever axis the car is travelling, but only if the
+    // nearest junction on that axis is already behind it
+    if (Math.abs(hx) >= Math.abs(hy)) {
+      if ((City.nodeX(nx) - p.x) * hx < 0) nx = clamp(nx + (hx > 0 ? 1 : -1), 0, BLOCKS);
+    } else {
+      if ((City.nodeY(ny) - p.y) * hy < 0) ny = clamp(ny + (hy > 0 ? 1 : -1), 0, BLOCKS);
+    }
+    return [nx, ny];
+  },
+
   recompute(p) {
-    const s = [City.nearNodeX(p.x), City.nearNodeY(p.y)];
+    const s = this.aheadNode(p);
     const g = this.goal.node;
     const initDir = cardinal(hyp(p.vx, p.vy) > 22 ? Math.atan2(p.vy, p.vx) : p.ang);
     const path = solve(s, g, initDir);
 
-    // drop the head node if we have already driven past it
-    if (path.length >= 2) {
-      const n0 = path[0], n1 = path[1];
-      const d01 = hyp(City.nodeX(n1[0]) - City.nodeX(n0[0]), City.nodeY(n1[1]) - City.nodeY(n0[1]));
-      const dp1 = hyp(City.nodeX(n1[0]) - p.x, City.nodeY(n1[1]) - p.y);
-      if (dp1 < d01 - 12) path.shift();
-    }
     const key = path.map((n) => n[0] + ',' + n[1]).join('|');
     if (key !== this.lastKey) {
       if (this.lastKey && this.route.length > 1) this.glitch = 0.45;

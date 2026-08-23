@@ -305,7 +305,25 @@ block the attract loop behind it.
 penalties are expressible (straight 0, turn +0.45, U-turn +1.8). This is why routes prefer long straights
 and read like real directions. `Nav.update` recomputes every 0.4s and derives the instruction by comparing
 the cardinal exit heading against the player's cardinal approach; being off-road forces the
-`RECALCULATING` state. Cyan (`PAL.cyan`) is reserved exclusively for guidance UI so it always reads as
+`RECALCULATING` state.
+
+**The search is seeded from `Nav.aheadNode(p)` — the junction the car is heading TOWARD, not the
+nearest one.** That distinction is the whole of a bug that shipped for months. Seeding from the
+nearest junction lets the route start at one the car has already driven past, and then every number
+on the panel describes somewhere behind you: the distance counts *up* as you drive, and the
+instruction names the turn you just missed rather than admitting you missed it. It used to be
+patched after the fact by dropping the head node when the car was closer to the second node than the
+two nodes are to each other — which fires 12px past on a straight, but **never on a turn**, because
+there the second node is perpendicular and a full `PITCH` away wherever the car is. Measured driving
+straight through such a junction: 91 of 151 frames had the head node behind the car, and in 89 the
+displayed distance was growing while the panel still read `TURN LEFT`.
+
+Dropping the head node is not the fix either — on a turn the node after it is perpendicular, so you
+would be pointed somewhere you cannot reach in a straight line. Seed correctly and Dijkstra does the
+rest: it routes on around the block, because a U-turn costs 1.8 against three turns at 0.45. Which
+is what a real unit does when you miss one. `— guidance —` samples just past every junction on both
+axes and both directions, which is exactly where the old seed failed and where the
+250-routes-are-contiguous assertion could never look. Cyan (`PAL.cyan`) is reserved exclusively for guidance UI so it always reads as
 machine output — don't spend it elsewhere.
 
 ### Title screen and controls
@@ -449,7 +467,7 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. 175 assertions covering city invariants (address
+every drawing call is a no-op but all logic executes. 176 assertions covering city invariants (address
 uniqueness, porch reachability), HUD text widths, wedge escapability, 250 solved routes, 9000 fuzzed
 simulation frames checked for NaN and out-of-world drift, the attract rotation and 85s of autonomous
 demo driving, the full scoring loop, heat/cop behaviour, and the railway.

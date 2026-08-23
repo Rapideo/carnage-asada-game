@@ -261,6 +261,46 @@ for (let i = 0; i < 250; i++) {
 }
 ok(routeFail === 0, `250 routes solved, all contiguous (longest ${longest} nodes)`);
 
+/* The head of the route must be a junction the car is heading TOWARD. Nav
+   used to seed the search from the NEAREST junction and patch it up by
+   dropping the head node when the car was closer to the second node than the
+   two nodes are to each other — which fires 12px past on a straight, but never
+   on a TURN, because there the second node is perpendicular and a full PITCH
+   away wherever the car is. The panel then described somewhere behind you: the
+   distance counted UP as you drove and the instruction named the turn you had
+   just missed. Measured before the fix, driving straight through such a
+   junction: 91 of 151 frames had the head node behind the car.
+
+   Sampled just PAST every junction, on both axes and both directions, which is
+   exactly where the old seed failed and where 250-routes-are-contiguous could
+   never look. */
+let behindHead = 0, sampled = 0, worstBehind = 0;
+for (let nx = 0; nx <= 8; nx++) {
+  for (let ny = 0; ny <= 8; ny++) {
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const h = City.houses[(Math.random() * City.houses.length) | 0];
+      // 30px beyond the junction, still travelling the same way
+      const car = { x: City.nodeX(nx) + dx * 30, y: City.nodeY(ny) + dy * 30,
+                    ang: Math.atan2(dy, dx), vx: dx * 90, vy: dy * 90 };
+      if (car.x < 40 || car.y < 40 || car.x > WW - 40 || car.y > WH - 40) continue;
+      Nav.goal = { x: h.curb.x, y: h.curb.y, node: h.node, label: 'x' };
+      Nav.recompute(car);
+      if (!Nav.route.length) continue;
+      sampled++;
+      const r = Nav.route[0];
+      const back = -((City.nodeX(r[0]) - car.x) * Math.cos(car.ang)
+                   + (City.nodeY(r[1]) - car.y) * Math.sin(car.ang));
+      // the goal's own junction is allowed to be behind — you have arrived
+      const atGoal = r[0] === h.node[0] && r[1] === h.node[1];
+      if (back > 8 && !atGoal) { behindHead++; worstBehind = Math.max(worstBehind, back); }
+    }
+  }
+}
+Nav.clear();
+ok(behindHead === 0,
+   `route head is always a junction ahead (${behindHead} of ${sampled} behind` +
+   (behindHead ? `, worst ${worstBehind.toFixed(0)}px` : '') + ')');
+
 console.log('\n— simulation —');
 const ctx = makeCtx(makeCanvas());
 G.startShift();
