@@ -41,10 +41,25 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
       another era is another file against the same schema plus a switch on which one loads, not
       another pass through `40_city.js`. Nothing in the city generator hard-codes a year. See §4 of
       the spec.
-- [ ] **A kitchen mini-game to replace restock.** Restock is currently the one dead moment in the
-      game — drive to the dock, hold for a flat 1.0s, three bags appear. The full brief is in
-      `docs/kitchen-minigame-prompt.md`; the mechanic is a rebuild of one from an earlier project,
-      written out in full there so nothing has to be imported from outside this repo.
+- [ ] **The kitchen — the other half of the game.** **Scope changed 2026-08-23, and the change is
+      large.** This was filed as a mini-game replacing the flat 1.0s restock. It is not one. The
+      kitchen is now the *other half of the play*: players alternate between driving deliveries and
+      making the food, and the brief says so in its first line. Treat any earlier framing of it as a
+      restock replacement as superseded.
+
+      **The user is planning it now and a full spec is coming.** Do not start building from the
+      current brief — it is a work in progress with three sections still unwritten (The Clock, The
+      Order Timer, The Dialog System). Wait for the spec.
+
+      Two files, and `docs/kitchen-minigame-prompt1.1.md` is the **newer** of the two:
+      `docs/kitchen-minigame-prompt.md` is the original brief as revised, and the 1.1 adds a *Global
+      Adjustments* section for the changes needed game-wide to let the two halves share one product.
+      What has already moved between versions: menu, ingredients and build order become a **JSON
+      settings file** against the `content/` pattern the rest of the authored copy uses; tickets
+      become **concurrent**, up to three live at once, rather than one at a time; items per order
+      drop from 1-8 to 1-5. The filenames still say "minigame" and are now misleading — worth a
+      rename when the spec lands and the naming settles.
+
 - [ ] **Seasonal hazards.**
 - [ ] **NPC feedback — APB-style character dialogue.**
 

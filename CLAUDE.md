@@ -91,10 +91,14 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
   **Built and shipped.** Read it before changing `rank()`, the attract rotation, or anything in
   `78_scores.js`: it records why the score is the money rather than points, and why the
   `localStorage` wrapper is not optional.
-- `docs/kitchen-minigame-prompt.md` — a brief from the user for replacing the flat 1-second restock
-  with a kitchen mini-game. **Queued, not started.** It is deliberately written out in full rather
-  than as a pointer to the earlier project it comes from, because this file forbids importing
-  outside context — so the brief *is* the source.
+- `docs/kitchen-minigame-prompt.md` and `docs/kitchen-minigame-prompt1.1.md` — the brief for the
+  kitchen. **Not a mini-game, despite the filenames:** as of 2026-08-23 it is the *other half of the
+  play*, alternating with delivery driving, not a replacement for the 1.0s restock. **1.1 is the
+  newer file** and adds the game-wide *Global Adjustments* the two halves need. **Being specced by
+  the user right now — do not start building from these.** Both are drafts with unwritten sections.
+  They are deliberately written out in full rather than as a pointer to the earlier project the
+  mechanic comes from, because this file forbids importing outside context — so the brief *is* the
+  source.
 - `README.md` — what the game is, controls, and the development commands.
 - `JOURNAL.md` — the original brief, why each design call was made (including rejected alternatives), the
   bugs that mattered, and the repeatable build order. Read before changing a core mechanic; the reasoning
@@ -134,7 +138,7 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 | `50_entities` | `Player`, `Traffic`, `Train`, `Crossing`, `Ped`, `Cop`, `Bag`, `Fx`; shared car physics + collision |
 | `60_nav` | `Nav` (TACO-NAV unit) and `solve()` — Dijkstra over the intersection graph |
 | `70_hud` | `Hud.draw()` — order card, tip meter, nav panel, minimap; `navArrow`, `triArrow` |
-| `75_demo` | `Demo.drive()` — the attract-mode driver; sets the same fields `Player.control` does |
+| `75_demo` | `Demo.drive()` — the attract-mode driver; follows a lane-centre polyline, sets the same fields `Player.control` does |
 | `78_scores` | `Scores` — the high-score board: factory content, guarded `localStorage`, qualification, insertion. Model only, never draws. |
 | `80_game` | `G` — state machine, orders/tips/scoring, camera, render pipeline; `Post` |
 | `90_main` | canvas scaling, fixed-step loop, audio unlock, `window.TacoShop` bridge |
@@ -389,12 +393,31 @@ per pixel rather than assembling rects: the scalloped starburst and the letterin
 of angle. At 100px the ring lettering is far below legibility, so it is drawn as tick marks — the eye reads
 "text around a seal" from the rhythm, which is the honest way to render sub-pixel type.
 
-Two things the demo driver must keep doing, both learned by watching it fail:
+**The demo drives a lane, not a list of points.** `Demo.buildPath` turns `Nav.route` into a polyline
+of lane centres via `Traffic.laneFixed` — the same right-hand rule the traffic obeys — whose vertices
+are where consecutive legs' centrelines cross, which is the corner to drive round; left and right
+turns need no special case. `Demo.aim` then pursues a point a short way along it. `Nav` itself is
+untouched by any of this.
 
+Four things the demo driver must keep doing, all learned by watching it fail:
+
+- **Retire a waypoint by how far past it you are ALONG THE LEG IT LEADS INTO — never against the
+  car's nose.** The nose test is the obvious implementation and is catastrophically wrong: the corner
+  you are about to turn *onto* sits square to your heading, so the test discards the very waypoint you
+  were braking for and the path collapses to the delivery kerb, which can be most of the map away and
+  diagonal. Distance-along alone is not enough either — 7px off-centre in a 16px lane reads as 7px
+  "past" a corner still 80px up the road — so it also checks the car is laterally on that leg.
+- **Slow for a corner, and know why 70.** Turn radius is `v / (TURNRATE * (1 - 0.28 * v / MAXSPD))`:
+  ~37px at speed 100, ~24px at 70. Against a 32px carriageway a **right** turn only stays on the
+  tarmac below about 70, while left turns have room to spare. No aim point fixes a speed the car
+  cannot turn at, and pure pursuit additionally cuts a corner by roughly its lookahead — so the
+  lookahead has to stay near the turning radius.
 - **Steer at the house's `curb`, never at `Nav.goal`.** The goal is the porch, which sits in the front
   yard; steering at it drives the car off the road and into the scenery.
 - **Test streets with `classify()`, not `surfaceAt()`.** Parking lots and shop aprons are surfaced
-  `S_ROAD`, so a surface test lets the demo cut across lots full of solid parked cars.
+  `S_ROAD`, so a surface test lets the demo cut across lots full of solid parked cars. And when it
+  *is* off the street, send it at the nearest **carriageway**, not the nearest **junction** — a
+  junction is half a block away on both axes, so the line to it crosses the block interior.
 
 ### Game state (`G`)
 
@@ -426,7 +449,7 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. 171 assertions covering city invariants (address
+every drawing call is a no-op but all logic executes. 174 assertions covering city invariants (address
 uniqueness, porch reachability), HUD text widths, wedge escapability, 250 solved routes, 9000 fuzzed
 simulation frames checked for NaN and out-of-world drift, the attract rotation and 85s of autonomous
 demo driving, the full scoring loop, heat/cop behaviour, and the railway.
@@ -479,6 +502,6 @@ There is no per-test filter — it is one sequential script with labelled sectio
 
 ## Publishing
 
-`taco-shop.html` is the shippable artifact: one self-contained file, ~208 KB. It must stay free of external
+`taco-shop.html` is the shippable artifact: one self-contained file, ~219 KB. It must stay free of external
 requests. `?seed=<int>` on the URL regenerates the city deterministically (mulberry32); the default seed is
 in `90_main.js`.
