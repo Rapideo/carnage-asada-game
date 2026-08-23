@@ -3849,10 +3849,12 @@ function triArrow(x, cx, cy, a, r, col, outline) {
    off is throttle 0 (coast) rather than a fraction. */
 const Demo = {
   wedgeT: 0, esteer: 1, throwCd: 0, hold: false, path: [], pathKey: '',
+  progX: 0, progY: 0, progT: 0,
 
   reset(p) {
     this.wedgeT = 0; this.esteer = 1; this.throwCd = 0; this.hold = false;
     this.path = []; this.pathKey = '';
+    this.progX = p ? p.x : 0; this.progY = p ? p.y : 0; this.progT = 0;
   },
 
   /* ---- the route, as lane centres --------------------------
@@ -4123,10 +4125,54 @@ const Demo = {
        cannot steer out because steering needs speed. Back out first; if that
        fails too, put it back on a road. In a city this full of props there is
        always a corner reversing cannot escape, so the hard reset has to exist. */
-    // decay rather than reset: a wedged car jiggles, and a hard reset on any
-    // single fast frame let it oscillate below the threshold indefinitely
-    if (p.throttle > 0 && p.speed < 20) this.wedgeT += dt;
-    else this.wedgeT = Math.max(0, this.wedgeT - dt * 0.5);
+    /* Judged on PROGRESS over half a second, not on speed in a single frame.
+       Both of the obvious per-frame signals fail here, and each failed for its
+       own reason:
+
+         - `speed < 20` misses the commonest case outright. A car grinding
+           along a fence reads 21-29 and never trips it. Worse, when it does
+           trip, any single frame that ticks over 20 decays the accumulator
+           again, so a jiggling car oscillates below the threshold forever and
+           the 2.5s hard reset never fires. One traced excursion ran 8.8s that
+           way, creeping backwards along a wall the whole time. The defect is
+           the ratchet, not the number.
+         - `carBlocked` looked like the honest question — under power and
+           refused by collision — but measured, it is never sustained on any
+           build: 1.0% of frames, longest run 0.12s, because Player.update
+           calls unwedge() every frame and depenetrates. It catches contact,
+           not entrapment.
+
+       Net displacement over a window catches what both miss, because a car
+       that is genuinely stuck is not going anywhere by definition, whatever
+       its speedometer says or whoever it is touching. Suspended near the
+       target, where circling the dock is the job rather than a fault — the
+       same exemption the off-street test above uses.
+
+       20px in half a second is 40px/s, against a cruise of 70-115 and the
+       traced grinder's 22, and the bar was swept rather than picked. It is the
+       knee: every teleport is a visible jump, so a bar set too low buys nothing
+       and one set too high buys jumps. Over twenty minutes, entrapments longer
+       than four seconds against hard resets — 50px/s: 10 and 44. 40px/s: 7 and
+       25. 30px/s: 9 and 14, but the worst grind climbs back to 14.9s. Against
+       the speed test this replaced: 41 and 9. So this trades sixteen extra
+       teleports for five sixths of the long entrapments, and halves the worst
+       one from 16.8s to 9.1s, while off-tarmac time and deliveries both stay
+       where they were. */
+    this.progT += dt;
+    if (this.progT >= 0.5) {
+      const moved = hyp(p.x - this.progX, p.y - this.progY);
+      const busy = hyp(goal.x - p.x, goal.y - p.y) < 70;
+      if (moved < 20 && !busy) this.wedgeT += 0.5;
+      // Decay matches the accumulation rate, and that symmetry was measured
+      // rather than assumed. Halving it -- which is what the old per-frame
+      // version did -- shortens the worst grind further, 11.3s to 7.2s, but
+      // quadruples the hard resets, 10 to 47 over twenty minutes. A hard reset
+      // teleports the car to the nearest junction, so that is one visible
+      // disappearance every 25 seconds of attract mode, which is a worse thing
+      // to watch than the grind it prevents.
+      else this.wedgeT = Math.max(0, this.wedgeT - 0.5);
+      this.progX = p.x; this.progY = p.y; this.progT = 0;
+    }
     if (this.wedgeT > 1.2) { p.throttle = -1; p.steer = this.esteer; }
     if (this.wedgeT > 2.5) {
       p.x = City.nodeX(City.nearNodeX(p.x));
@@ -4134,6 +4180,8 @@ const Demo = {
       p.vx = p.vy = 0;
       this.wedgeT = 0; this.esteer = -this.esteer;
       this.pathKey = '';                    // the teleport invalidates the path
+      // and it is not progress: re-mark, or the jump counts as 190px of it
+      this.progX = p.x; this.progY = p.y; this.progT = 0;
     }
   },
 };

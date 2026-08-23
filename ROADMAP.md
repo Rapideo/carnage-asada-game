@@ -235,13 +235,37 @@ Three things worth keeping:
   to it ran diagonally through the block interior. Aiming at the nearest **carriageway** instead was
   worth most of the remaining gap.
 
-**Still open, and it is a real tail:** it gets *stuck* more than the old driver did even though it
-leaves the road less — hard wedge resets 2 to 6 per 20 minutes. The old driver's excursions were
-shallow drifts near kerbs and porches, which are `keep`-reserved and prop-free; this one leaves at
-corners, where block interiors are full of furniture, so each excursion goes deeper. Two candidates,
-neither investigated: the obstacle probe tests only `City.isSolid` and so cannot see a traffic car at
-all, and `Demo`'s wedge escape needs `p.speed < 20` to accumulate `wedgeT`, so a car grinding along a
-fence at 21-29 never trips the 2.5s hard reset. The latter is pre-existing.
+**The stuck tail, addressed 2026-08-23.** The driver leaves the road less than the old one but was
+going *deeper* when it did — its excursions start at corners, where block interiors are full of
+furniture, rather than as shallow drifts near kerbs and porches, which are `keep`-reserved and
+prop-free. The escape could not see it: `wedgeT` accumulated only below `p.speed < 20`, so a car
+grinding along a fence at 21-29 never tripped it, and worse, any single frame ticking over 20 decayed
+the accumulator, so a jiggling car oscillated below the threshold forever. **The defect was the
+ratchet, not the number.** One traced excursion ran 8.8s.
+
+Entrapment is now judged on net displacement over half a second — under 20px, away from the target —
+because a car that is genuinely stuck is not going anywhere whatever its speedometer reads. Over
+twenty minutes: entrapments longer than four seconds **41 to 7**, worst **16.8s to 9.1s**, with
+off-tarmac time and deliveries unchanged. The cost is hard resets going 9 to 25, one visible jump per
+48s of attract mode rather than one per 133s.
+
+Three things tried and rejected, all measured, so they are not re-run:
+
+- **`carBlocked` as the signal** — the honest-looking question, under power and refused by collision.
+  It is never sustained on any build: 1.0% of frames, longest run 0.12s, because `Player.update`
+  calls `unwedge()` every frame and depenetrates. It catches contact, not entrapment.
+- **Decaying at half the accumulation rate**, which the old per-frame version did. Shortens the worst
+  grind to 7.2s but quadruples the resets to 47.
+- **Snapping the reset to the nearest carriageway** instead of the nearest junction, to make the jump
+  read as a stumble (35px against 78px). A smaller escape turns out to be a less effective one — the
+  car is freed beside the trap and drives straight back in. Off-tarmac 26.8% against 23.2%,
+  deliveries 44 against 50, and it does not even reduce the resets.
+- **Splitting the two escapes** — progress driving the reverse, a frozen car driving the teleport.
+  Keeps resets at ~10 but off-tarmac balloons to ~35% and deliveries fall to ~33. The teleport is
+  doing real rescue work.
+
+Still open, and still uninvestigated: the obstacle probe tests only `City.isSolid` and so cannot see
+a traffic car at all.
 
 Closed 2026-08-22: **downtown deliveries**. The Fort/Main retail spine carried traffic, the rail
 corridor and the tightest driving in the game, and nothing to deliver to; orders concentrated south
