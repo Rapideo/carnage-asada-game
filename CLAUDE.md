@@ -449,7 +449,7 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. 174 assertions covering city invariants (address
+every drawing call is a no-op but all logic executes. 176 assertions covering city invariants (address
 uniqueness, porch reachability), HUD text widths, wedge escapability, 250 solved routes, 9000 fuzzed
 simulation frames checked for NaN and out-of-world drift, the attract rotation and 85s of autonomous
 demo driving, the full scoring loop, heat/cop behaviour, and the railway.
@@ -503,6 +503,6 @@ There is no per-test filter — it is one sequential script with labelled sectio
 
 ## Publishing
 
-`taco-shop.html` is the shippable artifact: one self-contained file, ~219 KB. It must stay free of external
+`taco-shop.html` is the shippable artifact: one self-contained file, ~220 KB. It must stay free of external
 requests. `?seed=<int>` on the URL regenerates the city deterministically (mulberry32); the default seed is
 in `90_main.js`.

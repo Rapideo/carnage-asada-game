@@ -8,6 +8,11 @@ const PITCH = SPAN * TS;            // 192 px between parallel roads
 const DIRV  = [[1, 0], [0, 1], [-1, 0], [0, -1]];   // 0=E 1=S 2=W 3=N
 
 const MAXSPD  = 176;
+// how far a car's shadow falls south of it. The offset is the light
+// direction, so it is fixed in WORLD space and must not rotate with the car —
+// only the silhouette turns. Was implicit in the old hard-coded rect, whose
+// centre sat 2.5px below the sprite's.
+const CAR_SHADOW_DY = 3;
 const ACC     = 285;
 const BRAKE   = 460;
 const REVMAX  = 78;
@@ -150,8 +155,7 @@ class Player {
 
   draw(x, cam) {
     const sx = this.x - cam.x, sy = this.y - cam.y;
-    x.fillStyle = PAL.shadow;
-    x.fillRect((sx - 8) | 0, (sy - 3) | 0, 17, 11);
+    drawRot(x, Art.carShadow, sx, sy + CAR_SHADOW_DY, this.ang);
     drawRot(x, Art.player, sx, sy, this.ang);
   }
 }
@@ -259,8 +263,7 @@ class Traffic {
   get ang() { return this.dir * (PI / 2); }
   draw(x, cam) {
     const sx = this.x - cam.x, sy = this.y - cam.y;
-    x.fillStyle = PAL.shadow;
-    x.fillRect((sx - 8) | 0, (sy - 3) | 0, 17, 11);
+    drawRot(x, Art.carShadow, sx, sy + CAR_SHADOW_DY, this.ang);
     drawRot(x, this.frames, sx, sy, this.ang);
   }
 }
@@ -520,8 +523,7 @@ class Cop {
   }
   draw(x, cam) {
     const sx = this.x - cam.x, sy = this.y - cam.y;
-    x.fillStyle = PAL.shadow;
-    x.fillRect((sx - 8) | 0, (sy - 3) | 0, 17, 11);
+    drawRot(x, Art.carShadow, sx, sy + CAR_SHADOW_DY, this.ang);
     drawRot(x, Art.cop, sx, sy, this.ang);
     const on = (this.flash * 6 | 0) % 2;
     x.fillStyle = on ? PAL.siren1 : PAL.siren2;

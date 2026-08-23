@@ -8,7 +8,7 @@ The city is a real place: the eight blocks of **downtown Hays, Kansas** around t
 
 **Zero dependencies**: no framework, no libraries, no image, font, or audio files. The city, every sprite,
 the shop badge, the graffiti title, the bitmap font, and all the audio are generated procedurally at boot.
-The whole game is one self-contained ~219 KB HTML file.
+The whole game is one self-contained ~220 KB HTML file.
 
 **Play:** open `taco-shop.html`. There is no page chrome — the canvas fills the window.
 

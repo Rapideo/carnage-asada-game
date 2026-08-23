@@ -860,7 +860,7 @@ const SPILL = ['#7a4a2a', '#c9542f', '#5aa14c', '#e0b055', '#d8b98a'];
 
 const Art = {
   tile: {}, house: [], bldg: [], store: [], civic: [], apts: [], church: [], shed: [], tree: [], prop: {},
-  car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [], signal: null, loco: null, boxcar: [],
+  car: [], player: null, cop: null, carShadow: null, ped: [], bag: null, taqueria: null, splat: [], signal: null, loco: null, boxcar: [],
   badge: null, wordmark: null, seal: null, steeple: null,
 
   build(rng) {
@@ -1587,6 +1587,16 @@ const Art = {
     for (const [a, b] of CAR_COLORS) this.car.push(rotFrames(this.mkCar(a, b, 'sedan'), ROT));
     this.player = rotFrames(this.mkCar(PAL.red, '#a52a18', 'hero'), ROT);
     this.cop    = rotFrames(this.mkCar(PAL.cop, '#141c30', 'cop'), ROT);
+    /* One shadow for every car, baked through rotFrames like the cars
+       themselves, because a shadow that does not turn with its car is a
+       rectangle the player watches slide around underneath it. It used to be
+       a bare `fillRect(sx - 8, sy - 3, 17, 11)` at three separate draw sites,
+       so it stayed axis-aligned at every heading: at 45 degrees roughly a
+       quarter of it lay outside the car while the nose and tail cast none.
+       Same 18x11 footprint as mkCar, so it is the car's own silhouette. */
+    const t = mkCanvas(18, 11);
+    R(t.x, PAL.shadow, 0, 0, 18, 11);
+    this.carShadow = rotFrames(t.c, ROT);
   },
 
   mkCar(body, dark, kind) {
@@ -2718,6 +2728,11 @@ const PITCH = SPAN * TS;            // 192 px between parallel roads
 const DIRV  = [[1, 0], [0, 1], [-1, 0], [0, -1]];   // 0=E 1=S 2=W 3=N
 
 const MAXSPD  = 176;
+// how far a car's shadow falls south of it. The offset is the light
+// direction, so it is fixed in WORLD space and must not rotate with the car —
+// only the silhouette turns. Was implicit in the old hard-coded rect, whose
+// centre sat 2.5px below the sprite's.
+const CAR_SHADOW_DY = 3;
 const ACC     = 285;
 const BRAKE   = 460;
 const REVMAX  = 78;
@@ -2860,8 +2875,7 @@ class Player {
 
   draw(x, cam) {
     const sx = this.x - cam.x, sy = this.y - cam.y;
-    x.fillStyle = PAL.shadow;
-    x.fillRect((sx - 8) | 0, (sy - 3) | 0, 17, 11);
+    drawRot(x, Art.carShadow, sx, sy + CAR_SHADOW_DY, this.ang);
     drawRot(x, Art.player, sx, sy, this.ang);
   }
 }
@@ -2969,8 +2983,7 @@ class Traffic {
   get ang() { return this.dir * (PI / 2); }
   draw(x, cam) {
     const sx = this.x - cam.x, sy = this.y - cam.y;
-    x.fillStyle = PAL.shadow;
-    x.fillRect((sx - 8) | 0, (sy - 3) | 0, 17, 11);
+    drawRot(x, Art.carShadow, sx, sy + CAR_SHADOW_DY, this.ang);
     drawRot(x, this.frames, sx, sy, this.ang);
   }
 }
@@ -3230,8 +3243,7 @@ class Cop {
   }
   draw(x, cam) {
     const sx = this.x - cam.x, sy = this.y - cam.y;
-    x.fillStyle = PAL.shadow;
-    x.fillRect((sx - 8) | 0, (sy - 3) | 0, 17, 11);
+    drawRot(x, Art.carShadow, sx, sy + CAR_SHADOW_DY, this.ang);
     drawRot(x, Art.cop, sx, sy, this.ang);
     const on = (this.flash * 6 | 0) % 2;
     x.fillStyle = on ? PAL.siren1 : PAL.siren2;

@@ -78,6 +78,17 @@ const t0 = Date.now();
 G.boot(20260816);
 console.log(`  city built in ${Date.now() - t0}ms`);
 ok(City.houses.length > 100, `addressed houses: ${City.houses.length}`);
+
+/* Every car's shadow is baked through rotFrames like the car itself. It was
+   three copies of a bare axis-aligned fillRect, so it never turned with the
+   car it belonged to — at 45 degrees about a quarter of it lay outside the
+   body while the nose and tail cast none. Nothing here can see pixels (every
+   draw is a no-op stub), so this asserts the shape of the fix: a rotation set
+   of the same length and frame size as the car it sits under. */
+ok(Array.isArray(Art.carShadow) && Art.carShadow.length === Art.player.length,
+   `car shadow is a rotation set, not a fixed rect (${Art.carShadow.length} frames)`);
+ok(Art.carShadow.size === Art.player.size,
+   `car shadow frames match the car sprite (${Art.carShadow.size}px)`);
 ok(City.statics.length > 500, `static props: ${City.statics.length}`);
 ok(City.shop && City.shop.dock, 'taqueria has a pickup dock');
 ok(City.buckets.length === City.BC * City.BC, `spatial buckets: ${City.buckets.length}`);

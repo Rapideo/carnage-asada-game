@@ -79,7 +79,7 @@ const SPILL = ['#7a4a2a', '#c9542f', '#5aa14c', '#e0b055', '#d8b98a'];
 
 const Art = {
   tile: {}, house: [], bldg: [], store: [], civic: [], apts: [], church: [], shed: [], tree: [], prop: {},
-  car: [], player: null, cop: null, ped: [], bag: null, taqueria: null, splat: [], signal: null, loco: null, boxcar: [],
+  car: [], player: null, cop: null, carShadow: null, ped: [], bag: null, taqueria: null, splat: [], signal: null, loco: null, boxcar: [],
   badge: null, wordmark: null, seal: null, steeple: null,
 
   build(rng) {
@@ -806,6 +806,16 @@ const Art = {
     for (const [a, b] of CAR_COLORS) this.car.push(rotFrames(this.mkCar(a, b, 'sedan'), ROT));
     this.player = rotFrames(this.mkCar(PAL.red, '#a52a18', 'hero'), ROT);
     this.cop    = rotFrames(this.mkCar(PAL.cop, '#141c30', 'cop'), ROT);
+    /* One shadow for every car, baked through rotFrames like the cars
+       themselves, because a shadow that does not turn with its car is a
+       rectangle the player watches slide around underneath it. It used to be
+       a bare `fillRect(sx - 8, sy - 3, 17, 11)` at three separate draw sites,
+       so it stayed axis-aligned at every heading: at 45 degrees roughly a
+       quarter of it lay outside the car while the nose and tail cast none.
+       Same 18x11 footprint as mkCar, so it is the car's own silhouette. */
+    const t = mkCanvas(18, 11);
+    R(t.x, PAL.shadow, 0, 0, 18, 11);
+    this.carShadow = rotFrames(t.c, ROT);
   },
 
   mkCar(body, dark, kind) {
