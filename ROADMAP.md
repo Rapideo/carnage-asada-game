@@ -167,6 +167,12 @@ car is heading toward, and Dijkstra does the rest: it routes on around the block
 costs 1.8 against three turns at 0.45. The demo, which builds its lane polyline from `Nav.route`,
 came out slightly better on every measure (off the tarmac 23.1% to 21.8%, grass 3.3% to 2.5%).
 
+Confirmed in play 2026-08-23, which closes the one gap the harness could not: every number above
+comes from a sandbox where all drawing is a no-op stub, and this is a change to what the panel
+*says*. Still untested is whether `MAKE A U-TURN` ever actually appears — the reproduction never
+produced a route where a U-turn beat going round the block, so that branch of `relTurn` remains
+unexercised in practice.
+
 Guarded by a new `— guidance —` assertion that samples just past every junction on both axes and
 both directions. It fails on the old code at **147 of 288** and passes at 0 — the 250-contiguous-
 routes assertion that was already there could never see it, because a contiguous route can still
