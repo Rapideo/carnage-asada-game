@@ -11,7 +11,7 @@ const Hud = {
   buildMap() {
     const t = mkCanvas(MM, MM);
     const x = t.x;
-    R(x, PAL.sea, 0, 0, MM, MM);
+    R(x, PAL.field, 0, 0, MM, MM);   // past the last street, same as the ground
     // roads are 2 tiles wide but a minimap pixel covers ~2 tiles, so point
     // sampling drops whole streets — take the most important class in the cell
     const step = GW / MM;
@@ -24,7 +24,7 @@ const Hud = {
         else if (c === T_WALK) walk = true;
         else if (c === T_LOT) land = true;
       }
-      const col = road ? '#828799' : walk ? '#4a4e5e' : land ? '#343848' : PAL.sea;
+      const col = road ? '#828799' : walk ? '#4a4e5e' : land ? '#343848' : PAL.field;
       R(x, col, mx, my, 1, 1);
     }
     this.mapImg = t.c;

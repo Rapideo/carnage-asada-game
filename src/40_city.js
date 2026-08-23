@@ -30,7 +30,7 @@ const City = {
   },
   surfaceAt(wx, wy) {
     const tx = (wx / TS) | 0, ty = (wy / TS) | 0;
-    if (tx < 0 || ty < 0 || tx >= GW || ty >= GH) return S_SEA;
+    if (tx < 0 || ty < 0 || tx >= GW || ty >= GH) return S_EDGE;
     return this.surf[ty * GW + tx];
   },
 
@@ -50,8 +50,8 @@ const City = {
       for (let tx = 0; tx < GW; tx++) {
         const c = classify(tx, ty), i = ty * GW + tx;
         cls[i] = c;
-        this.surf[i] = c === T_SEA ? S_SEA : (c === T_WALK ? S_WALK : (c === T_LOT ? S_GRASS : S_ROAD));
-        if (c === T_SEA) this.solid[i] = 1;
+        this.surf[i] = c === T_EDGE ? S_EDGE : (c === T_WALK ? S_WALK : (c === T_LOT ? S_GRASS : S_ROAD));
+        if (c === T_EDGE) this.solid[i] = 1;
       }
     }
 
@@ -77,13 +77,10 @@ const City = {
     const pick = (arr, tx, ty) => arr[((tx * 73856093) ^ (ty * 19349663)) & 3];
     for (let ty = 0; ty < GH; ty++) for (let tx = 0; tx < GW; tx++) {
       const c = cls[ty * GW + tx];
-      const set = c === T_SEA ? Art.tile.sea : c === T_WALK ? Art.tile.walk
+      const set = c === T_EDGE ? Art.tile.field : c === T_WALK ? Art.tile.walk
                 : c === T_LOT ? Art.tile.grass : c === 100 ? Art.tile.lot : Art.tile.road;
       x.drawImage(pick(set, tx, ty), tx * TS, ty * TS);
     }
-
-    /* ---- 4. sea wall along the grid edge ----------------- */
-    this.drawSeaWall(x);
 
     /* ---- 5. road markings -------------------------------- */
     this.drawRoadMarkings(x);
@@ -103,6 +100,11 @@ const City = {
       else if (k === 'lot')    this.genParking(rng, bx, by);
       else if (k === 'shop')   this.genShop(rng, bx, by);
     }
+
+    /* ---- 6b. the edge of the built world ----------------- */
+    /* After the blocks, not before: it draws the railway running out
+       through the border, and genRail is what sets `tracks`. */
+    this.drawEdge(x);
 
     /* ---- 7. street furniture ----------------------------- */
     this.genFurniture(rng);
@@ -153,22 +155,46 @@ const City = {
   },
 
   /* ---------- sea wall ------------------------------------ */
-  drawSeaWall(x) {
+  /* A stock fence where the streets stop, and the railway running out through
+     it. Called AFTER the block generators, because it needs `tracks`, which
+     genRail sets. The corridor crosses the full width of the map and has to
+     leave it: stopping the ballast dead at the border would make the line read
+     as ending in a field rather than going to Kansas City. genRail deliberately
+     skips `tx < BORDER || tx >= GW - BORDER`, so this fills exactly the gap it
+     leaves, with the same four rows and the same tiles.
+
+     The fence breaks for the corridor on the east and west, which is both
+     correct and the reason it is worth drawing a fence rather than a wall. */
+  drawEdge(x) {
     const a = BORDER * TS, b = (BORDER + SPANEND + 1) * TS;
-    const rim = (px, py, w, h) => {
-      R(x, PAL.wall, px, py, w, h);
-      R(x, shade(PAL.wall, 0.2), px, py, w, 1);
-      R(x, PAL.wallLo, px, py + h - 1, w, 1);
-    };
-    rim(a - 6, a - 6, b - a + 12, 6);
-    rim(a - 6, b, b - a + 12, 6);
-    rim(a - 6, a, 6, b - a);
-    rim(b, a, 6, b - a);
-    // foam on the water side
-    x.fillStyle = PAL.seaFoam;
-    for (let i = a - 6; i < b + 6; i += 7) {
-      x.fillRect(i, a - 9, 4, 1); x.fillRect(i + 2, b + 8, 4, 1);
-      x.fillRect(a - 9, i, 1, 4); x.fillRect(b + 8, i + 2, 1, 4);
+
+    if (this.tracks) {
+      const MID = 6, by = 2;
+      for (let ly = MID - 2; ly <= MID + 1; ly++) {
+        const ty = BORDER + by * SPAN + ly;
+        const set = (ly === MID - 1 || ly === MID) ? Art.tile.rail : Art.tile.ballast;
+        for (let tx = 0; tx < GW; tx++) {
+          if (tx >= BORDER && tx < GW - BORDER) continue;
+          x.drawImage(set[(tx + ly) & 3], tx * TS, ty * TS);
+        }
+      }
+    }
+    const gap = this.tracks ? [this.tracks[0] - 20, this.tracks[1] + 20] : null;
+
+    const post = (px, py) => { R(x, PAL.fence, px, py, 2, 3); R(x, PAL.fenceLo, px, py + 3, 2, 1); };
+    const wire = (px, py, w, h) => { R(x, PAL.fenceLo, px, py, w, h); R(x, PAL.fence, px, py, w, 1); };
+
+    wire(a - 5, a - 5, b - a + 10, 2);              // north
+    wire(a - 5, b + 3, b - a + 10, 2);              // south
+    for (let i = a - 5; i < b + 5; i += 9) { post(i, a - 7); post(i, b + 3); }
+
+    for (let yy = a - 5; yy < b + 5; yy++) {        // west and east, broken for the rails
+      if (gap && yy > gap[0] && yy < gap[1]) continue;
+      R(x, PAL.fence, a - 5, yy, 2, 1); R(x, PAL.fence, b + 3, yy, 2, 1);
+    }
+    for (let i = a - 5; i < b + 5; i += 9) {
+      if (gap && i > gap[0] && i < gap[1]) continue;
+      post(a - 7, i); post(b + 5, i);
     }
   },
 
@@ -649,9 +675,9 @@ const City = {
     // pond
     if (rng.chance(0.6)) {
       const px = lotX + 8 + rng.int(30), py = lotY + 8 + rng.int(30), pw = 40 + rng.int(24), ph = 30 + rng.int(16);
-      g.fillStyle = PAL.sea; g.beginPath(); g.ellipse(px + pw / 2, py + ph / 2, pw / 2, ph / 2, 0, 0, TAU); g.fill();
-      g.fillStyle = PAL.seaLite; g.beginPath(); g.ellipse(px + pw / 2, py + ph / 2 - 2, pw / 2 - 4, ph / 2 - 4, 0, 0, TAU); g.fill();
-      g.fillStyle = PAL.seaFoam;
+      g.fillStyle = PAL.pond; g.beginPath(); g.ellipse(px + pw / 2, py + ph / 2, pw / 2, ph / 2, 0, 0, TAU); g.fill();
+      g.fillStyle = PAL.pondLite; g.beginPath(); g.ellipse(px + pw / 2, py + ph / 2 - 2, pw / 2 - 4, ph / 2 - 4, 0, 0, TAU); g.fill();
+      g.fillStyle = PAL.pondFoam;
       for (let i = 0; i < 6; i++) g.fillRect(px + 8 + rng.int(pw - 16), py + 6 + rng.int(ph - 12), 4, 1);
       this.markSolid(((px + 6) / TS) | 0, ((py + 6) / TS) | 0, Math.max(1, ((pw - 12) / TS) | 0), Math.max(1, ((ph - 12) / TS) | 0));
     }

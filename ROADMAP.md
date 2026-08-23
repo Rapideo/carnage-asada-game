@@ -63,8 +63,6 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
       mouse position or facing direction. Note the design tension: throw spread scales with speed
       (`speed / MAXSPD * 22` px against a 28px porch), and that trade *is* the game's core skill, so
       auto-aim changes the feel more than any other item on this list.
-- [ ] **Border zones.** Replace the current grey/sea margin with proper N/E/S/W edge zones. The
-      border is still the 2-tile `T_SEA` ring from the original generator.
 - [ ] **A second time period.** `content/hays.json` exists in the shape it does to make this cheap:
       another era is another file against the same schema plus a switch on which one loads, not
       another pass through `40_city.js`. Nothing in the city generator hard-codes a year. See §4 of
@@ -103,7 +101,10 @@ These need a decision before they can become work.
 - [ ] **Difficulty progression.** Grid expansion? A faster timer? Something else? Note the shift
       clock is already a survival curve — 110s to start, +9s per delivery, +12s for a perfect toss —
       so difficulty may be more about tightening that ratio than adding systems.
-- [ ] **Is the $15 ticket too heavy now the cop can actually catch you?** This question has
+- [ ] **Is the ticket right at $10?** **Lowered from $15 to $10 on 2026-08-23** and not yet
+      played. The reasoning below is why, and the numbers in it were measured at $15.
+
+      Original question: This question has
       **reversed** since it was first written, and the reversal is the interesting part.
 
       The original finding was that reckless driving went unpunished: across three shifts, ten
@@ -146,6 +147,42 @@ These need a decision before they can become work.
 - [ ] **Gamepad / Xbox controller support**, and whether an on-screen control overlay comes with it.
 
 ### Landed, for the record
+
+Closed 2026-08-23: **the border is prairie, and the railway runs out through it.** The map edge was a
+2-tile ring of `T_SEA` — water, with a stone sea wall and foam — in a game set in western Kansas.
+It is `T_EDGE` now: dry grass, a stock fence where the streets stop, and the Union Pacific continuing
+east and west to the map edge, because a corridor that crosses the whole map has to leave it.
+`drawEdge` fills exactly the gap `genRail` leaves and the fence breaks for it. Moved to after the
+block generators, since it needs `tracks`.
+
+The border stays solid and `— hays map —` now asserts the ring is closed all the way round: 800
+tiles, 0 open. What is deliberately **not** here is four invented neighbourhoods. The repo records
+what borders each edge inside the map — mostly `res`, with the rail corridor punching through east
+and west — but nothing about what lies beyond 12th, 4th, Elm or Milner, and inventing it would be
+importing outside context of exactly the kind `CLAUDE.md` forbids. The edge says "the town stops
+here" and claims nothing more.
+
+**The bug worth remembering** is one the suite could not see. Removing `PAL.sea` left the park pond,
+the minimap and `surfaceAt` referencing a colour that no longer existed, and everything stayed green
+— a real canvas silently keeps the previous `fillStyle`. Found by grepping for the symbol, not by
+testing. The stub context now throws on an undefined colour, though that only helps on paths that
+run: the pond is behind `rng.chance(0.6)` and does not roll under the test seed.
+
+Closed 2026-08-23: **obstacle probes can see traffic.** Both the demo driver's and the cruiser's
+probes tested `City.isSolid` only — baked geometry, which knows nothing about cars — so both drove
+confidently into the back of moving traffic. `trafficBlocked` tests both. Traffic is rail-bound and
+so always axis-aligned, which lets the body test be an oriented box rather than a radius and stops
+the probe flinching at cars in the next lane. Measured on the demo: off-tarmac 24.4% to 19.9%, worst
+excursion 5.7s to 4.4s, deliveries 38 to 41, earnings $376 to $566.
+
+It also exposed a brittle assertion. `every wedged cop depenetrated and drove away` tested
+`carBlocked` at exactly t=6s, so a cruiser that had driven **457px** counted as "STILL BLOCKED"
+because it happened to be brushing a kerb as the clock stopped; the new probe perturbed trajectories
+enough to trip it about one run in eight. It now requires the car to be blocked for the whole final
+half second. Verified it still bites: with `unwedge` disabled in `Cop.update` it reports 0/12, every
+site at 0px, exactly as the original bug did. **Third time this assertion has been caught measuring
+an instant where it meant a state.**
+
 
 Closed 2026-08-23: **the nav unit stops describing junctions you have already passed.** Found while
 fixing the attract driver and deliberately deferred then, because it is player-facing and the driver

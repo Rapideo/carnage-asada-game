@@ -26,7 +26,18 @@ function makeCtx(canvas) {
       if (k in t) return t[k];
       return noop;                       // every drawing call is a no-op
     },
-    set(t, k, v) { t[k] = v; return true; },
+    set(t, k, v) {
+      /* An undefined colour is silently accepted by a real canvas — it keeps
+         the previous value — so a palette entry deleted out from under a
+         drawing call produces no error and no visible test failure, just
+         quietly wrong pixels in the browser. That happened while the sea
+         border became prairie: PAL.sea went away and the park pond, the
+         minimap and surfaceAt were all still using it, and the suite stayed
+         green. Refuse it here instead. */
+      if ((k === 'fillStyle' || k === 'strokeStyle') && (v === undefined || v === null))
+        throw new Error(`ctx.${k} set to ${v} — a palette entry is missing`);
+      t[k] = v; return true;
+    },
   });
 }
 function makeCanvas() {
@@ -58,11 +69,11 @@ vm.createContext(sandbox);
 // top-level const/let live in the script's lexical scope, not on the global
 // object, so hand them out explicitly from inside the same scope
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, money, MAXTHROW,' +
-  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, SURF_MUL, classify, SEG0, PITCH };',
+  ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER };',
   sandbox, { filename: 'bundle.js' });
 
 const { G, City, Nav, Art, Input, Demo, textW, money, MAXTHROW, VW, VH, WW, WH,
-        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, SURF_MUL, classify, SEG0, PITCH } = sandbox.__x;
+        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER } = sandbox.__x;
 sandbox.solve = sandbox.__x.solve;
 
 /* ---------- assertions ---------- */
@@ -232,9 +243,18 @@ ok(escaped === wedgeSites.length,
     G.player.x = Math.min(WW - 40, Math.max(40, site.x + 260));
     G.player.y = Math.min(WH - 40, Math.max(40, site.y + 260));
     const c = new Cop(site.x, site.y, -Math.PI / 2);
-    let path = 0, px2 = c.x, py2 = c.y;
-    for (let i = 0; i < 6 * 60; i++) { c.update(1 / 60, G); path += Math.hypot(c.x - px2, c.y - py2); px2 = c.x; py2 = c.y; }
-    const stillIn = carBlocked(c.x, c.y, c.ang);
+    /* ...and measure the END STATE over half a second, not at one instant.
+       carBlocked at exactly t=6s calls a cruiser that has driven 457px "still
+       blocked" because it happens to be brushing a kerb as the clock stops.
+       A car that is actually wedged is blocked every frame; one that is
+       driving is not. This is the third time this assertion has been caught
+       measuring an instant where it meant a state. */
+    let path = 0, px2 = c.x, py2 = c.y, blockedRun = 0;
+    for (let i = 0; i < 6 * 60; i++) {
+      c.update(1 / 60, G); path += Math.hypot(c.x - px2, c.y - py2); px2 = c.x; py2 = c.y;
+      if (i >= 6 * 60 - 30) blockedRun += carBlocked(c.x, c.y, c.ang) ? 1 : 0;
+    }
+    const stillIn = blockedRun >= 30;
     if (path > 30 && !stillIn) ok2++; else report.push(`${Math.round(path)}px${stillIn ? ' STILL BLOCKED' : ''}`);
   }
   G.player.x = keepP.x; G.player.y = keepP.y;
@@ -505,6 +525,21 @@ Input.anyKey = false; Input.endFrame();
 
 /* The city is a real place — downtown Hays, KS — authored in content/hays.json.
    These assertions are pure reads, so they are safe anywhere in the sequence. */
+/* The border is the edge of the playable world and must stay closed. It used
+   to be sea; it is prairie now, and the railway runs out through it east and
+   west - which is the one place the ring could be opened by accident, because
+   drawEdge paints tiles there after the block generators have run. */
+{
+  let open = 0, checked = 0;
+  for (let ty = 0; ty < GH; ty++) for (let tx = 0; tx < GW; tx++) {
+    if (tx >= BORDER && ty >= BORDER && tx < GW - BORDER && ty < GH - BORDER) continue;
+    checked++;
+    if (!City.solid[ty * GW + tx]) open++;
+  }
+  ok(open === 0, `the map border is closed all the way round (${checked} tiles, ${open} open)`);
+  ok(City.surfaceAt(-40, -40) === S_EDGE, 'off the map reads as open ground, not water');
+}
+
 console.log('\n— hays map —');
 ok(HSTREETS.length === 9 && VSTREETS.length === 9,
    `9 streets per axis (${HSTREETS.length}, ${VSTREETS.length})`);

@@ -56,19 +56,29 @@ const WW      = GW * TS;                          // 1632 px
 const WH      = GH * TS;
 
 /* ---- tile classes ---------------------------------------- */
-const T_SEA = 0, T_ROAD = 1, T_INTER = 2, T_WALK = 3, T_LOT = 4;
+const T_EDGE = 0, T_ROAD = 1, T_INTER = 2, T_WALK = 3, T_LOT = 4;
 
 /* ---- surfaces (drive feel) ------------------------------- */
-const S_ROAD = 0, S_WALK = 1, S_GRASS = 2, S_SEA = 3;
+const S_ROAD = 0, S_WALK = 1, S_GRASS = 2, S_EDGE = 3;
 
 /* ---- palette --------------------------------------------- */
 const PAL = {
   void:    '#1b1425',
-  sea:     '#1d3f5e',
-  seaLite: '#2a5c82',
-  seaFoam: '#7fb6cf',
-  wall:    '#5a5266',
-  wallLo:  '#3c3648',
+  /* Beyond the last street is the High Plains, not an ocean. The map is
+     downtown Hays -- 12th Street to 4th, Elm to Milner -- and what surrounds
+     it is dry grass, which is why these are the colours of late-summer prairie
+     rather than water. The border stays solid; it is the edge of the playable
+     world, and the fence is what says so without a sea wall having to. */
+  /* the one body of water left is the pond in Union Pacific Park */
+  pond:      '#1d3f5e',
+  pondLite:  '#2a5c82',
+  pondFoam:  '#7fb6cf',
+
+  field:     '#8a7d4e',
+  fieldLite: '#9d9060',
+  fieldDry:  '#6e6440',
+  fence:     '#6b5a44',
+  fenceLo:   '#463a2c',
 
   road:    '#4b4f63',
   roadLo:  '#43475a',
@@ -165,7 +175,7 @@ function makeRng(seed) {
 const SPANEND = BLOCKS * SPAN + 1;           // 97
 function classify(tx, ty) {
   const ax = tx - BORDER, ay = ty - BORDER;
-  if (ax < 0 || ay < 0 || ax > SPANEND || ay > SPANEND) return T_SEA;
+  if (ax < 0 || ay < 0 || ax > SPANEND || ay > SPANEND) return T_EDGE;
   const rx = (ax % SPAN) < 2, ry = (ay % SPAN) < 2;
   if (rx && ry) return T_INTER;
   if (rx || ry) return T_ROAD;
@@ -913,11 +923,15 @@ const Art = {
       for (let i = 0; i < 3; i++) { const a = rng.int(TS), b = rng.int(TS - 2); R(x, PAL.grassHi, a, b, 1, 2); }
     });
 
-    this.tile.sea = mk((x, r, v) => {
-      R(x, PAL.sea, 0, 0, TS, TS);
-      for (let i = 0; i < 5; i++) R(x, PAL.seaLite, rng.int(12), rng.int(TS), rng.int(4) + 2, 1);
-      if (v === 0) R(x, PAL.seaFoam, 3, 6, 5, 1);
-      if (v === 2) R(x, PAL.seaFoam, 8, 11, 4, 1);
+    /* Open prairie past the last street. Horizontal strokes rather than the
+       scattered pixels the lawn tile uses: grass this dry lies over, and the
+       lie is what stops 32px of it reading as another lawn. */
+    this.tile.field = mk((x, r, v) => {
+      R(x, PAL.field, 0, 0, TS, TS);
+      for (let i = 0; i < 6; i++) R(x, PAL.fieldLite, rng.int(11), rng.int(TS), rng.int(5) + 3, 1);
+      for (let i = 0; i < 4; i++) R(x, PAL.fieldDry, rng.int(13), rng.int(TS), rng.int(3) + 2, 1);
+      if (v === 0) R(x, PAL.fieldDry, 4, 5, 2, 2);
+      if (v === 2) R(x, PAL.fieldLite, 9, 10, 2, 2);
     });
 
     this.tile.dirt = mk((x) => {
@@ -1964,7 +1978,7 @@ const City = {
   },
   surfaceAt(wx, wy) {
     const tx = (wx / TS) | 0, ty = (wy / TS) | 0;
-    if (tx < 0 || ty < 0 || tx >= GW || ty >= GH) return S_SEA;
+    if (tx < 0 || ty < 0 || tx >= GW || ty >= GH) return S_EDGE;
     return this.surf[ty * GW + tx];
   },
 
@@ -1984,8 +1998,8 @@ const City = {
       for (let tx = 0; tx < GW; tx++) {
         const c = classify(tx, ty), i = ty * GW + tx;
         cls[i] = c;
-        this.surf[i] = c === T_SEA ? S_SEA : (c === T_WALK ? S_WALK : (c === T_LOT ? S_GRASS : S_ROAD));
-        if (c === T_SEA) this.solid[i] = 1;
+        this.surf[i] = c === T_EDGE ? S_EDGE : (c === T_WALK ? S_WALK : (c === T_LOT ? S_GRASS : S_ROAD));
+        if (c === T_EDGE) this.solid[i] = 1;
       }
     }
 
@@ -2011,13 +2025,10 @@ const City = {
     const pick = (arr, tx, ty) => arr[((tx * 73856093) ^ (ty * 19349663)) & 3];
     for (let ty = 0; ty < GH; ty++) for (let tx = 0; tx < GW; tx++) {
       const c = cls[ty * GW + tx];
-      const set = c === T_SEA ? Art.tile.sea : c === T_WALK ? Art.tile.walk
+      const set = c === T_EDGE ? Art.tile.field : c === T_WALK ? Art.tile.walk
                 : c === T_LOT ? Art.tile.grass : c === 100 ? Art.tile.lot : Art.tile.road;
       x.drawImage(pick(set, tx, ty), tx * TS, ty * TS);
     }
-
-    /* ---- 4. sea wall along the grid edge ----------------- */
-    this.drawSeaWall(x);
 
     /* ---- 5. road markings -------------------------------- */
     this.drawRoadMarkings(x);
@@ -2037,6 +2048,11 @@ const City = {
       else if (k === 'lot')    this.genParking(rng, bx, by);
       else if (k === 'shop')   this.genShop(rng, bx, by);
     }
+
+    /* ---- 6b. the edge of the built world ----------------- */
+    /* After the blocks, not before: it draws the railway running out
+       through the border, and genRail is what sets `tracks`. */
+    this.drawEdge(x);
 
     /* ---- 7. street furniture ----------------------------- */
     this.genFurniture(rng);
@@ -2087,22 +2103,46 @@ const City = {
   },
 
   /* ---------- sea wall ------------------------------------ */
-  drawSeaWall(x) {
+  /* A stock fence where the streets stop, and the railway running out through
+     it. Called AFTER the block generators, because it needs `tracks`, which
+     genRail sets. The corridor crosses the full width of the map and has to
+     leave it: stopping the ballast dead at the border would make the line read
+     as ending in a field rather than going to Kansas City. genRail deliberately
+     skips `tx < BORDER || tx >= GW - BORDER`, so this fills exactly the gap it
+     leaves, with the same four rows and the same tiles.
+
+     The fence breaks for the corridor on the east and west, which is both
+     correct and the reason it is worth drawing a fence rather than a wall. */
+  drawEdge(x) {
     const a = BORDER * TS, b = (BORDER + SPANEND + 1) * TS;
-    const rim = (px, py, w, h) => {
-      R(x, PAL.wall, px, py, w, h);
-      R(x, shade(PAL.wall, 0.2), px, py, w, 1);
-      R(x, PAL.wallLo, px, py + h - 1, w, 1);
-    };
-    rim(a - 6, a - 6, b - a + 12, 6);
-    rim(a - 6, b, b - a + 12, 6);
-    rim(a - 6, a, 6, b - a);
-    rim(b, a, 6, b - a);
-    // foam on the water side
-    x.fillStyle = PAL.seaFoam;
-    for (let i = a - 6; i < b + 6; i += 7) {
-      x.fillRect(i, a - 9, 4, 1); x.fillRect(i + 2, b + 8, 4, 1);
-      x.fillRect(a - 9, i, 1, 4); x.fillRect(b + 8, i + 2, 1, 4);
+
+    if (this.tracks) {
+      const MID = 6, by = 2;
+      for (let ly = MID - 2; ly <= MID + 1; ly++) {
+        const ty = BORDER + by * SPAN + ly;
+        const set = (ly === MID - 1 || ly === MID) ? Art.tile.rail : Art.tile.ballast;
+        for (let tx = 0; tx < GW; tx++) {
+          if (tx >= BORDER && tx < GW - BORDER) continue;
+          x.drawImage(set[(tx + ly) & 3], tx * TS, ty * TS);
+        }
+      }
+    }
+    const gap = this.tracks ? [this.tracks[0] - 20, this.tracks[1] + 20] : null;
+
+    const post = (px, py) => { R(x, PAL.fence, px, py, 2, 3); R(x, PAL.fenceLo, px, py + 3, 2, 1); };
+    const wire = (px, py, w, h) => { R(x, PAL.fenceLo, px, py, w, h); R(x, PAL.fence, px, py, w, 1); };
+
+    wire(a - 5, a - 5, b - a + 10, 2);              // north
+    wire(a - 5, b + 3, b - a + 10, 2);              // south
+    for (let i = a - 5; i < b + 5; i += 9) { post(i, a - 7); post(i, b + 3); }
+
+    for (let yy = a - 5; yy < b + 5; yy++) {        // west and east, broken for the rails
+      if (gap && yy > gap[0] && yy < gap[1]) continue;
+      R(x, PAL.fence, a - 5, yy, 2, 1); R(x, PAL.fence, b + 3, yy, 2, 1);
+    }
+    for (let i = a - 5; i < b + 5; i += 9) {
+      if (gap && i > gap[0] && i < gap[1]) continue;
+      post(a - 7, i); post(b + 5, i);
     }
   },
 
@@ -2583,9 +2623,9 @@ const City = {
     // pond
     if (rng.chance(0.6)) {
       const px = lotX + 8 + rng.int(30), py = lotY + 8 + rng.int(30), pw = 40 + rng.int(24), ph = 30 + rng.int(16);
-      g.fillStyle = PAL.sea; g.beginPath(); g.ellipse(px + pw / 2, py + ph / 2, pw / 2, ph / 2, 0, 0, TAU); g.fill();
-      g.fillStyle = PAL.seaLite; g.beginPath(); g.ellipse(px + pw / 2, py + ph / 2 - 2, pw / 2 - 4, ph / 2 - 4, 0, 0, TAU); g.fill();
-      g.fillStyle = PAL.seaFoam;
+      g.fillStyle = PAL.pond; g.beginPath(); g.ellipse(px + pw / 2, py + ph / 2, pw / 2, ph / 2, 0, 0, TAU); g.fill();
+      g.fillStyle = PAL.pondLite; g.beginPath(); g.ellipse(px + pw / 2, py + ph / 2 - 2, pw / 2 - 4, ph / 2 - 4, 0, 0, TAU); g.fill();
+      g.fillStyle = PAL.pondFoam;
       for (let i = 0; i < 6; i++) g.fillRect(px + 8 + rng.int(pw - 16), py + 6 + rng.int(ph - 12), 4, 1);
       this.markSolid(((px + 6) / TS) | 0, ((py + 6) / TS) | 0, Math.max(1, ((pw - 12) / TS) | 0), Math.max(1, ((ph - 12) / TS) | 0));
     }
@@ -2743,7 +2783,7 @@ const ACC     = 285;
 const BRAKE   = 460;
 const REVMAX  = 78;
 const TURNRATE = 3.25;
-const SURF_MUL = [1, 0.60, 0.54, 0.4];   // road, walk, grass, sea
+const SURF_MUL = [1, 0.60, 0.54, 0.4];   // road, walk, grass, open ground
 
 /* ---------------- generic car body collision -------------- */
 const CORNERS = [[9, 4.5], [9, -4.5], [-9, 4.5], [-9, -4.5], [0, 5.5], [0, -5.5]];
@@ -2884,6 +2924,28 @@ class Player {
     drawRot(x, Art.carShadow, sx, sy + CAR_SHADOW_DY, this.ang);
     drawRot(x, Art.player, sx, sy, this.ang);
   }
+}
+
+/* Static geometry PLUS the cars actually on the road.
+
+   `City.isSolid` is baked at generation and knows nothing about traffic, so
+   every obstacle probe built on it alone is blind to the one obstacle in this
+   city that can arrive after the city was built. The demo and the cruiser both
+   steered confidently into the back of moving cars because of it.
+
+   Traffic is rail-bound and therefore always axis-aligned, so the body test is
+   an oriented box rather than a radius: 18x11 plus a couple of pixels, which
+   is tighter than a circle round the long axis and stops the probe flinching
+   at cars in the next lane. */
+function trafficBlocked(wx, wy, G) {
+  if (City.isSolid(wx, wy)) return true;
+  if (!G || !G.traffic) return false;
+  for (const c of G.traffic) {
+    const dx = Math.abs(c.x - wx), dy = Math.abs(c.y - wy);
+    if (dx > 11 || dy > 11) continue;
+    if ((c.dir & 1) === 0 ? (dx < 11 && dy < 7) : (dx < 7 && dy < 11)) return true;
+  }
+  return false;
 }
 
 /* ---------------- traffic --------------------------------- */
@@ -3210,8 +3272,8 @@ class Cop {
     const t = G.player;
     let want = Math.atan2(t.y - this.y, t.x - this.x);
 
-    /* crude obstacle probe */
-    const probe = (a, d) => City.isSolid(this.x + Math.cos(a) * d, this.y + Math.sin(a) * d);
+    /* crude obstacle probe — geometry and traffic both */
+    const probe = (a, d) => trafficBlocked(this.x + Math.cos(a) * d, this.y + Math.sin(a) * d, G);
     if (probe(this.ang, 30)) {
       const l = probe(this.ang - 0.7, 30), r = probe(this.ang + 0.7, 30);
       want = this.ang + (l && !r ? 0.9 : r && !l ? -0.9 : (this.life % 2 < 1 ? 1.2 : -1.2));
@@ -3559,7 +3621,7 @@ const Hud = {
   buildMap() {
     const t = mkCanvas(MM, MM);
     const x = t.x;
-    R(x, PAL.sea, 0, 0, MM, MM);
+    R(x, PAL.field, 0, 0, MM, MM);   // past the last street, same as the ground
     // roads are 2 tiles wide but a minimap pixel covers ~2 tiles, so point
     // sampling drops whole streets — take the most important class in the cell
     const step = GW / MM;
@@ -3572,7 +3634,7 @@ const Hud = {
         else if (c === T_WALK) walk = true;
         else if (c === T_LOT) land = true;
       }
-      const col = road ? '#828799' : walk ? '#4a4e5e' : land ? '#343848' : PAL.sea;
+      const col = road ? '#828799' : walk ? '#4a4e5e' : land ? '#343848' : PAL.field;
       R(x, col, mx, my, 1, 1);
     }
     this.mapImg = t.c;
@@ -4035,6 +4097,8 @@ const Demo = {
     let want = Math.atan2(ty - p.y, tx - p.x);
 
     /* ---- crude obstacle probe, same shape as the cop's ---- */
+    // trafficBlocked, not City.isSolid: the baked map has no cars in it, so a
+    // probe on geometry alone drives into the back of the one that does move.
     // Lookahead scales with speed — a fixed 34px is only 0.3s of warning at
     // cruise, which is not enough to steer around a hydrant before clipping
     // it. The two splayed feelers catch corners the centre ray misses.
@@ -4045,7 +4109,7 @@ const Demo = {
     // and was the start of a fifth of the mid-block excursions. Blending
     // keeps the lane in the answer: enough to miss a hydrant, not enough to
     // leave the road.
-    const probe = (a2, d) => City.isSolid(p.x + Math.cos(a2) * d, p.y + Math.sin(a2) * d);
+    const probe = (a2, d) => trafficBlocked(p.x + Math.cos(a2) * d, p.y + Math.sin(a2) * d, G);
     const look = 22 + p.speed * 0.28;
     if (probe(p.ang, look) || probe(p.ang + 0.25, look * 0.8) || probe(p.ang - 0.25, look * 0.8)) {
       const l = probe(p.ang - 0.7, 30), r = probe(p.ang + 0.7, 30);
@@ -4297,7 +4361,7 @@ const TIME_PER_JOB = 9;
 const TIME_PERFECT = 3;
 const TIP_MAX = 1500, TIP_FLOOR = 200, TIP_DECAY = 55;
 const PERFECT_BONUS = 500;
-const REMAKE_FEE = 150, PED_FINE = 200, TICKET = 1500;
+const REMAKE_FEE = 150, PED_FINE = 200, TICKET = 1000;
 const HEAT_MAX = 100;
 const BAG_MAX = 3;
 const RAIL_EJECT = 52;      // px from the corridor centre a wreck throws you

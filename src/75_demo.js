@@ -225,6 +225,8 @@ const Demo = {
     let want = Math.atan2(ty - p.y, tx - p.x);
 
     /* ---- crude obstacle probe, same shape as the cop's ---- */
+    // trafficBlocked, not City.isSolid: the baked map has no cars in it, so a
+    // probe on geometry alone drives into the back of the one that does move.
     // Lookahead scales with speed — a fixed 34px is only 0.3s of warning at
     // cruise, which is not enough to steer around a hydrant before clipping
     // it. The two splayed feelers catch corners the centre ray misses.
@@ -235,7 +237,7 @@ const Demo = {
     // and was the start of a fifth of the mid-block excursions. Blending
     // keeps the lane in the answer: enough to miss a hydrant, not enough to
     // leave the road.
-    const probe = (a2, d) => City.isSolid(p.x + Math.cos(a2) * d, p.y + Math.sin(a2) * d);
+    const probe = (a2, d) => trafficBlocked(p.x + Math.cos(a2) * d, p.y + Math.sin(a2) * d, G);
     const look = 22 + p.speed * 0.28;
     if (probe(p.ang, look) || probe(p.ang + 0.25, look * 0.8) || probe(p.ang - 0.25, look * 0.8)) {
       const l = probe(p.ang - 0.7, 30), r = probe(p.ang + 0.7, 30);

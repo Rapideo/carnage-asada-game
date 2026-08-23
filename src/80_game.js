@@ -8,7 +8,7 @@ const TIME_PER_JOB = 9;
 const TIME_PERFECT = 3;
 const TIP_MAX = 1500, TIP_FLOOR = 200, TIP_DECAY = 55;
 const PERFECT_BONUS = 500;
-const REMAKE_FEE = 150, PED_FINE = 200, TICKET = 1500;
+const REMAKE_FEE = 150, PED_FINE = 200, TICKET = 1000;
 const HEAT_MAX = 100;
 const BAG_MAX = 3;
 const RAIL_EJECT = 52;      // px from the corridor centre a wreck throws you

@@ -150,7 +150,7 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 1. **Virtual screen** — `VW×VH` = 384×216. All drawing and HUD layout is in these units; `90_main` scales
    the canvas via CSS only. Never draw in device pixels.
 2. **World pixels** — `WW×WH` = 1632×1632. Entities, camera, and collision live here.
-3. **Tile grid** — `TS`=16, `GW`=102 tiles including a 2-tile (`BORDER`) sea margin.
+3. **Tile grid** — `TS`=16, `GW`=102 tiles including a 2-tile (`BORDER`) margin of open ground.
 
 Road math uses a fourth, implicit space: **grid space**, `ax = tx - BORDER`. `classify()` and every road
 formula operate on `ax`/`ay`, so mixing tile and grid coordinates is the most common source of
@@ -162,6 +162,18 @@ off-by-one-block bugs. `SEG0`/`PITCH` in `50_entities` are the world-pixel equiv
 Lots subdivide into a 2×2 grid of 4×4 sub-lots, one house each, all four facing the same axis per block.
 Intersections are indexed `0..BLOCKS` (9×9) and are the nav graph's nodes — `City.nodeX/nodeY` convert an
 index to world pixels, `nearNodeX/nearNodeY` go back.
+
+**Past the last street is prairie, not sea.** The border was a 2-tile ring of `T_SEA` with a stone
+sea wall and foam, in a game set in western Kansas. It is `T_EDGE` now — dry grass, a stock fence
+where the streets stop, and the Union Pacific **running out through the east and west edges**,
+because a corridor that crosses the whole map has to leave it or the line reads as ending in a
+field. `City.drawEdge` fills exactly the gap `genRail` leaves (it skips `tx < BORDER || tx >= GW -
+BORDER`), with the same four rows and the same tiles, and the fence breaks for it. It is called
+**after** the block generators, not at step 4 where the sea wall was, because it needs `tracks`.
+
+The border stays **solid** — it is the edge of the playable world, and `— hays map —` asserts the ring
+is closed all the way round. The one body of water left is the pond in Union Pacific Park, which
+keeps the old colours under `PAL.pond*`.
 
 `City.gen()` bakes the **entire world ground** — tiles, road markings, porch pads, driveways, and static
 shadows — into one 1632×1632 canvas. The render pass blits it with a single source-rect `drawImage`.
@@ -231,6 +243,14 @@ The sprite pass merges bucket-culled statics with live entities into `G.rl` and 
 inside draw code.
 
 ### Traffic
+
+**`trafficBlocked(x, y, G)`, not `City.isSolid`, is what an obstacle probe should ask.** `isSolid` is
+baked at generation and knows nothing about traffic, so a probe built on it alone is blind to the one
+obstacle in this city that arrives after the city was built — the demo and the cruiser both drove
+into the backs of moving cars for months. Traffic is rail-bound and therefore always axis-aligned, so
+the body test is an oriented box rather than a radius, which keeps the probe from flinching at cars
+in the next lane. Measured on the demo: off-tarmac time 24.4% to 19.9%, worst excursion 5.7s to 4.4s.
+
 
 Cars are rail-bound, not steered: each holds `dir` (0=E 1=S 2=W 3=N, matching `DIRV`) and `laneNode`, the
 **perpendicular** intersection index of the road it is on. Right-hand traffic puts E/N in the far lane and
@@ -502,7 +522,7 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. 176 assertions covering city invariants (address
+every drawing call is a no-op but all logic executes. 178 assertions covering city invariants (address
 uniqueness, porch reachability), HUD text widths, wedge escapability, 250 solved routes, 9000 fuzzed
 simulation frames checked for NaN and out-of-world drift, the attract rotation and 85s of autonomous
 demo driving, the full scoring loop, heat/cop behaviour, and the railway.
@@ -536,6 +556,13 @@ Three things to know when extending it:
   the physics runs. To drive the car from a test, set `Input.down['KeyW']` and friends — the same
   path a player uses. Both of these produced confidently wrong measurements before being caught by a
   result that made no physical sense (a car "restocking" 153px from the dock).
+- **The stub context throws on `fillStyle`/`strokeStyle` set to undefined.** A real canvas silently
+  keeps the previous colour, so a palette entry deleted out from under a drawing call produces no
+  error and no test failure — just quietly wrong pixels in the browser. That happened turning the sea
+  border into prairie: `PAL.sea` went away while the park pond, the minimap and `surfaceAt` were all
+  still using it, and the suite stayed green. Note the guard only fires on a path that actually runs;
+  the pond sits behind `rng.chance(0.6)` and does not roll under the test seed, so **grep for the
+  symbol as well** when you remove one.
 - **Sections share one mutable game and one `Input`, and run in order.** State leaks forward: the fuzz
   section holds driving keys in `Input.down`, so `— scoring —` must reset it before parking the car, or the
   player drives off and spins out — and `G.tryThrow()` silently no-ops while `player.spinT > 0`, which made
@@ -553,7 +580,7 @@ legitimately finish near where it started — it failed on working code. Total p
 
 **This has now bitten twice.** The cop-wedge assertion was first written as net displacement too, and
 called a cruiser stuck that had driven 118px to end 38px from where it started, circling a tight corner
-its crude obstacle probe could not read. Measure path, not displacement, whenever the thing under test
+its crude obstacle probe could not read at the time. Measure path, not displacement, whenever the thing under test
 steers itself.
 
 There is no per-test filter — it is one sequential script with labelled sections (`— boot module —`,

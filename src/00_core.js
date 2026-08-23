@@ -17,19 +17,29 @@ const WW      = GW * TS;                          // 1632 px
 const WH      = GH * TS;
 
 /* ---- tile classes ---------------------------------------- */
-const T_SEA = 0, T_ROAD = 1, T_INTER = 2, T_WALK = 3, T_LOT = 4;
+const T_EDGE = 0, T_ROAD = 1, T_INTER = 2, T_WALK = 3, T_LOT = 4;
 
 /* ---- surfaces (drive feel) ------------------------------- */
-const S_ROAD = 0, S_WALK = 1, S_GRASS = 2, S_SEA = 3;
+const S_ROAD = 0, S_WALK = 1, S_GRASS = 2, S_EDGE = 3;
 
 /* ---- palette --------------------------------------------- */
 const PAL = {
   void:    '#1b1425',
-  sea:     '#1d3f5e',
-  seaLite: '#2a5c82',
-  seaFoam: '#7fb6cf',
-  wall:    '#5a5266',
-  wallLo:  '#3c3648',
+  /* Beyond the last street is the High Plains, not an ocean. The map is
+     downtown Hays -- 12th Street to 4th, Elm to Milner -- and what surrounds
+     it is dry grass, which is why these are the colours of late-summer prairie
+     rather than water. The border stays solid; it is the edge of the playable
+     world, and the fence is what says so without a sea wall having to. */
+  /* the one body of water left is the pond in Union Pacific Park */
+  pond:      '#1d3f5e',
+  pondLite:  '#2a5c82',
+  pondFoam:  '#7fb6cf',
+
+  field:     '#8a7d4e',
+  fieldLite: '#9d9060',
+  fieldDry:  '#6e6440',
+  fence:     '#6b5a44',
+  fenceLo:   '#463a2c',
 
   road:    '#4b4f63',
   roadLo:  '#43475a',
@@ -126,7 +136,7 @@ function makeRng(seed) {
 const SPANEND = BLOCKS * SPAN + 1;           // 97
 function classify(tx, ty) {
   const ax = tx - BORDER, ay = ty - BORDER;
-  if (ax < 0 || ay < 0 || ax > SPANEND || ay > SPANEND) return T_SEA;
+  if (ax < 0 || ay < 0 || ax > SPANEND || ay > SPANEND) return T_EDGE;
   const rx = (ax % SPAN) < 2, ry = (ay % SPAN) < 2;
   if (rx && ry) return T_INTER;
   if (rx || ry) return T_ROAD;

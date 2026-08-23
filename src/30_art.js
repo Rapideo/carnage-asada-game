@@ -132,11 +132,15 @@ const Art = {
       for (let i = 0; i < 3; i++) { const a = rng.int(TS), b = rng.int(TS - 2); R(x, PAL.grassHi, a, b, 1, 2); }
     });
 
-    this.tile.sea = mk((x, r, v) => {
-      R(x, PAL.sea, 0, 0, TS, TS);
-      for (let i = 0; i < 5; i++) R(x, PAL.seaLite, rng.int(12), rng.int(TS), rng.int(4) + 2, 1);
-      if (v === 0) R(x, PAL.seaFoam, 3, 6, 5, 1);
-      if (v === 2) R(x, PAL.seaFoam, 8, 11, 4, 1);
+    /* Open prairie past the last street. Horizontal strokes rather than the
+       scattered pixels the lawn tile uses: grass this dry lies over, and the
+       lie is what stops 32px of it reading as another lawn. */
+    this.tile.field = mk((x, r, v) => {
+      R(x, PAL.field, 0, 0, TS, TS);
+      for (let i = 0; i < 6; i++) R(x, PAL.fieldLite, rng.int(11), rng.int(TS), rng.int(5) + 3, 1);
+      for (let i = 0; i < 4; i++) R(x, PAL.fieldDry, rng.int(13), rng.int(TS), rng.int(3) + 2, 1);
+      if (v === 0) R(x, PAL.fieldDry, 4, 5, 2, 2);
+      if (v === 2) R(x, PAL.fieldLite, 9, 10, 2, 2);
     });
 
     this.tile.dirt = mk((x) => {

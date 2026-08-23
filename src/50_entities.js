@@ -17,7 +17,7 @@ const ACC     = 285;
 const BRAKE   = 460;
 const REVMAX  = 78;
 const TURNRATE = 3.25;
-const SURF_MUL = [1, 0.60, 0.54, 0.4];   // road, walk, grass, sea
+const SURF_MUL = [1, 0.60, 0.54, 0.4];   // road, walk, grass, open ground
 
 /* ---------------- generic car body collision -------------- */
 const CORNERS = [[9, 4.5], [9, -4.5], [-9, 4.5], [-9, -4.5], [0, 5.5], [0, -5.5]];
@@ -158,6 +158,28 @@ class Player {
     drawRot(x, Art.carShadow, sx, sy + CAR_SHADOW_DY, this.ang);
     drawRot(x, Art.player, sx, sy, this.ang);
   }
+}
+
+/* Static geometry PLUS the cars actually on the road.
+
+   `City.isSolid` is baked at generation and knows nothing about traffic, so
+   every obstacle probe built on it alone is blind to the one obstacle in this
+   city that can arrive after the city was built. The demo and the cruiser both
+   steered confidently into the back of moving cars because of it.
+
+   Traffic is rail-bound and therefore always axis-aligned, so the body test is
+   an oriented box rather than a radius: 18x11 plus a couple of pixels, which
+   is tighter than a circle round the long axis and stops the probe flinching
+   at cars in the next lane. */
+function trafficBlocked(wx, wy, G) {
+  if (City.isSolid(wx, wy)) return true;
+  if (!G || !G.traffic) return false;
+  for (const c of G.traffic) {
+    const dx = Math.abs(c.x - wx), dy = Math.abs(c.y - wy);
+    if (dx > 11 || dy > 11) continue;
+    if ((c.dir & 1) === 0 ? (dx < 11 && dy < 7) : (dx < 7 && dy < 11)) return true;
+  }
+  return false;
 }
 
 /* ---------------- traffic --------------------------------- */
@@ -484,8 +506,8 @@ class Cop {
     const t = G.player;
     let want = Math.atan2(t.y - this.y, t.x - this.x);
 
-    /* crude obstacle probe */
-    const probe = (a, d) => City.isSolid(this.x + Math.cos(a) * d, this.y + Math.sin(a) * d);
+    /* crude obstacle probe — geometry and traffic both */
+    const probe = (a, d) => trafficBlocked(this.x + Math.cos(a) * d, this.y + Math.sin(a) * d, G);
     if (probe(this.ang, 30)) {
       const l = probe(this.ang - 0.7, 30), r = probe(this.ang + 0.7, 30);
       want = this.ang + (l && !r ? 0.9 : r && !l ? -0.9 : (this.life % 2 < 1 ? 1.2 : -1.2));
