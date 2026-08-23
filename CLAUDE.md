@@ -449,7 +449,7 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. 176 assertions covering city invariants (address
+every drawing call is a no-op but all logic executes. 175 assertions covering city invariants (address
 uniqueness, porch reachability), HUD text widths, wedge escapability, 250 solved routes, 9000 fuzzed
 simulation frames checked for NaN and out-of-world drift, the attract rotation and 85s of autonomous
 demo driving, the full scoring loop, heat/cop behaviour, and the railway.
@@ -475,6 +475,14 @@ Three things to know when extending it:
 - Top-level `const`/`let` live in the script's lexical scope and **never appear on the sandbox global**. The
   harness appends a `globalThis.__x = {...}` line to hand bindings out; add any new symbol you need there.
 - It stubs `setTimeout` into a `deferred` array so `90_main`'s boot IIFE does not race the assertions.
+- **`G.startShift()` builds a NEW `Player`.** A reference to `G.player` captured before it is a
+  detached object: you can drive it anywhere you like and the game will go on simulating the real
+  one. Capture `G.player` *after* the call, or re-read it each frame.
+- **Setting `player.throttle` directly does nothing in `play`.** `G.update` calls
+  `Player.control(Input)`, which overwrites `throttle`, `steer` and `hb` from the key state before
+  the physics runs. To drive the car from a test, set `Input.down['KeyW']` and friends — the same
+  path a player uses. Both of these produced confidently wrong measurements before being caught by a
+  result that made no physical sense (a car "restocking" 153px from the dock).
 - **Sections share one mutable game and one `Input`, and run in order.** State leaks forward: the fuzz
   section holds driving keys in `Input.down`, so `— scoring —` must reset it before parking the car, or the
   player drives off and spins out — and `G.tryThrow()` silently no-ops while `player.spinT > 0`, which made

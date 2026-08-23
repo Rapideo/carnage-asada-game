@@ -16,13 +16,41 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
 
 ### Bugs
 
-- [ ] **The shop apron is still tight, though it is no longer slow.** The original report was 25
-      seconds lost *crawling and re-wedging* within ~60px of the dock. **The crawling half is fixed**
-      (see below) — it was a data bug, not handling. What remains is geometry: the apron is a 32px-deep
-      pocket between the shop's solid south wall and the kerb, so a fast approach still noses into the
-      building and needs a reverse. `unwedge()` frees it every time, so this is awkward rather than a
-      softlock. Re-measure before changing it — the speed fix alone may have been most of the problem,
-      since a car that crosses the kerb at 176 instead of 106 arrives with more control, not less.
+- [ ] **The shop apron: re-measured 2026-08-23, and the question has changed.** The item asked for a
+      re-measurement before anyone touched the geometry. Done, and the geometry turns out to be
+      close to beside the point.
+
+      The corridor is clean. Kerb to dock is 40px, every sample along it is paved `S_ROAD`, and
+      **0 of 41 samples would block a car pointing south** — the crawl really was the whole of the
+      original 25-second report, and it is fixed. Measured over 20 minutes of demo: 44 visits inside
+      60px of the dock, **mean 2.3s each** against a mandatory 1.0s restock hold, so about 1.3s of
+      manoeuvring. Worst was 6.8s. Reversing accounts for 4.9% of apron frames and a blocked move
+      for 2.7%.
+
+      **The more useful finding: you never have to enter the apron at all.** Restock needs you within
+      54px of the dock and under speed 62, held 1.0s. The dock is at y=776 and the carriageway runs
+      y 800..832 — so a car anywhere on the road at the shop's x is **24 to 48px from the dock,
+      already inside the radius**. Driving straight past on the street, never leaving the
+      carriageway:
+
+      | approach speed | time inside 54px | of which under 62 | restocked? |
+      |---|---|---|---|
+      | 40 | 1.00s | 1.00s | **yes, at 3.5s** |
+      | 60 | 1.42s | 0.85s | no — just short |
+      | 80 | 1.07s | 0.00s | no |
+      | 120 | 1.07s | 0.00s | no |
+
+      So a kerbside restock works at roughly 40-50 and the **speed gate binds, not the geometry**.
+      The apron only costs anything because the driver aims at `City.shop.dock`, which is inside the
+      pocket, rather than stopping at the kerb — which is true of the demo and of any player who has
+      not noticed they can coast past.
+
+      That leaves a real decision rather than a bug. Options: leave it (the pocket is then a thing
+      skilled players learn to skip); widen the pocket; or lean into it and make the kerbside pickup
+      explicit, which is the only one that changes how the shop *reads*. Not a fix to apply blind —
+      it wants the same playtest the other balance questions want, and the numbers above are now on
+      record so it can be judged rather than guessed.
+
 ### HUD and presentation
 
 - [ ] **Judge the attract timings after a full cycle.** Still title 30s / winners 15s / demo 90s, and

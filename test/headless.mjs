@@ -426,10 +426,14 @@ ok(worstStall < 12, `demo never stalled for long (worst ${worstStall.toFixed(1)}
 const pctOff = (offTarmac / frames) * 100;
 const pctOnTop = (onTop / frames) * 100;
 const laneOff = laneSum / Math.max(1, laneN);
-// A generous catastrophe guard rather than a tuning pin: an 85s sample ranges
-// 16-26% on a healthy build against the old driver's 26.4%, so this catches a
-// car that has taken up residence on the pavement and not much finer than that.
-ok(pctOff < 34, `demo mostly keeps to the tarmac (off it ${pctOff.toFixed(1)}% of the time)`);
+// Reported, NOT asserted. Off-tarmac fraction over 85s is too noisy to bound:
+// a healthy build ranges 16-36%, because which orders come up decides how much
+// cornering the sample contains. It was briefly an ok(< 34) and flaked about
+// one run in six, which by this file's own rule is a harness bug rather than
+// noise to live with. The two assertions below discriminate the same
+// regression and hold steady, so the number is kept for whoever is debugging
+// and the guarding is left to them.
+console.log(`  --    demo off the tarmac ${pctOff.toFixed(1)}% of the time (not asserted: 16-36% is normal)`);
 // These two are the ones that actually discriminate. Old driver: 27.2% and
 // 10.0px. Lane follower: 3-5% and 6-7px. Nothing in between is reachable by
 // accident — a regression to steering at intersection centres moves both at
