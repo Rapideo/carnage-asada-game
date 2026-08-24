@@ -76,7 +76,9 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 
 ## Related docs
 
-- `ROADMAP.md` — the open punch list, and the tiered plan for reshaping the city into the real
+- `ROADMAP.md` — **starts with `NEXT: build the full game`, which is the current priority** and
+  records what is already settled about the Kitchen Shift so it is not re-litigated. Then the open
+  punch list, and the tiered plan for reshaping the city into the real
   neighbourhood. **Read before touching the street grid**: it records which six modules assume a uniform
   block pitch, and which tiers are safe versus which are a rewrite.
 - `docs/superpowers/specs/2026-08-21-hays-neighbourhood-design.md` — the design for the real downtown
@@ -94,8 +96,9 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 - `docs/kitchen-minigame-prompt.md` and `docs/kitchen-minigame-prompt1.1.md` — the brief for the
   kitchen. **Not a mini-game, despite the filenames:** as of 2026-08-23 it is the *other half of the
   play*, alternating with delivery driving, not a replacement for the 1.0s restock. **1.1 is the
-  newer file** and adds the game-wide *Global Adjustments* the two halves need. **Being specced by
-  the user right now — do not start building from these.** Both are drafts with unwritten sections.
+  newer file** and adds the game-wide *Global Adjustments* the two halves need. **Superseded by the PRD** as of 2026-08-24 — read
+  `docs/Taco Shop - Carnage Asada PRD.md` first and treat these two as background. Both are drafts
+  with unwritten sections.
   They are deliberately written out in full rather than as a pointer to the earlier project the
   mechanic comes from, because this file forbids importing outside context — so the brief *is* the
   source.

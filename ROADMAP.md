@@ -7,6 +7,78 @@ Checkboxes render as a live task list on GitHub:
 
 ---
 
+## NEXT: build the full game (paused 2026-08-24, awaiting the PRD)
+
+**This is the next piece of work.** Everything under *Punch list* below is the
+existing Delivery Shift and stays open, but it is not the priority.
+
+### What is paused on
+
+`docs/Taco Shop - Carnage Asada PRD.md` is being completed by the project owner.
+Nothing should be built from it until that lands, because three of its sections
+are empty and each one blocks real decisions:
+
+| section | blocks |
+|---|---|
+| **§IV.E** Menus, Ingredient Grid, Assembly | everything. With no recipes you cannot size a bin row or a pip row, and "learning the menu" — the stated mastery curve — has no content. |
+| **§IV.F** Points and Bonus Schema | what a ticket is worth in cents, how patience decays, what a walkout costs. |
+| **§II.B.1** Mode A, keyboard and mouse | the arcade map in §II.B.2 is specified; the keyboard one is not. |
+
+### What is already settled, and should not be re-litigated
+
+Decided during the 2026-08-24 art pass. These are inputs to the build, not open
+questions:
+
+- **The Kitchen Shift levels use the art in `reference/kitchen/`.** The *look* is
+  approved — palette balance, silhouette rules, the 44px dialogue portrait, and
+  reusing `Art.ped` for customers. Read that folder's README first; it names the
+  screen regions and the PRD uses the same names.
+- **The layout in those frames is a starting point, not a spec.** Element
+  positions are a working arrangement. Every menu item, ingredient name and price
+  in them is a placeholder waiting on §IV.E.
+- **Levels are independent.** Own clock, own money, own star rating, totalled at
+  the end. This preserves `78_scores.js` unchanged: the board still stores one
+  `cents` figure and `rank()` still derives its title from it.
+- **The ingredient grid is a navigable lattice**, 2×8 = 16 cells, always 16 with
+  unused slots lidded. A 4-way stick steps a cursor cell to cell; a mouse jumps
+  the cursor to what it clicks. **Travel distance is a real cost**, so ingredient
+  seating is level design.
+- **`WRAP` and `SERVE` are buttons, not cells** — three buttons: select, wrap,
+  serve. Which means **ticket focus cannot be player-selected**: there is no input
+  left, so the game assigns it. That is arithmetic, not preference.
+- **The recipe length cap is 6 steps.**
+- **One dialogue mechanism serves both halves** — the bottom strip in
+  `reference/kitchen/dialog.mjs`, drawn identically over a Kitchen frame and a
+  live Delivery frame. It takes the bottom band because that is the only region
+  non-critical in both. Its portrait box is the minimap's 56×56 rect.
+- **New screens are scored, not judged.** `node tools/render/measure.mjs` compares
+  a frame against a live Delivery Shift render; targets and the eleven art rules
+  are PRD §X.1.
+
+### Known first tasks, once the PRD lands
+
+- [ ] A `kitchen` state in `80_game.js`, and a level table that alternates it with
+      `play`. Seven states exist today and none of them is a kitchen.
+- [ ] A new module for it — numbered after everything it uses at load time. Note
+      `40_city.js` is not a dependency; the Kitchen Shift has no world.
+- [ ] `content/menus.json` on the §IV.E schema, inlined by `build.mjs` like the
+      other content files, with build-time validation extended to cover recipes.
+      **A note is not a guard.**
+- [ ] The dialogue strip promoted out of `reference/` into `src/`, since both
+      halves use it.
+- [ ] Test coverage for the new state. Remember `test/headless.mjs` draws through
+      stubs and cannot see a pixel — use `tools/render/` for anything visual.
+
+### One open decision the art pass surfaced and did not settle
+
+Three of the four independent design teams put **`ERRORS`** on the clock card's
+third row rather than `LOBBY`, reasoning that `floor(mistakes / 3)` is literally a
+scoring term, so a three-segment meter *draws* the star you are about to lose. The
+call was made for `LOBBY` and the art reflects that. Recorded here as data, not as
+a challenge.
+
+---
+
 ## Punch list
 
 The single list. Merged 2026-08-21 from this file and the standalone
