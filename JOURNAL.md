@@ -1248,3 +1248,93 @@ exposed the pan backing — which was near-black, so "rest" landed in the wrong
 histogram bucket and near-black rose from 41.9% to 49.6%. **Negative space has
 to be mid-value to do its job.** `PAL.roadLo` is the value the game already
 uses for exactly this.
+
+## How to make a new screen match this one (2026-08-24)
+
+The section above gives the numbers a frame should hit. This one is the method
+for hitting them, because measuring the gap turned out to be the easy half —
+every instinct about *what to change* was wrong the first time, and the wrong
+changes were expensive.
+
+### Split the metric before you believe it
+
+The kitchen frame measured 41.9% near-black against the game's 28.6%, and the
+obvious reading was "too many ink keylines" — every new object had been keyed
+in `PAL.ink` out of habit. That reading was wrong, and stripping the keylines
+would have been a day of work in the wrong direction.
+
+**Splitting near-black by temperature found it in one step.** The frame's *cool*
+dark measured 27.2% against the reference's 27.7% — already at parity. The
+entire 13.3-point excess was *warm* dark, and it came from a single surface:
+the brick wall at `#352518`, whose max channel is 53. The wall was
+simultaneously the warmest thing on screen and nearly the darkest, so it was
+failing the warm test, the near-black test and the mid-range test at once.
+
+The general form: **a composite metric tells you a frame is wrong, not what is
+wrong.** Split it along a second axis — temperature, or region — before acting.
+One `fillRect` was responsible for three failing numbers.
+
+### "Tone it down" cannot work, and this is provable
+
+`warm` is a binary test: `r > b + 8`. Muting `PAL.dirt` toward `PAL.fence`
+scored **exactly zero** change — measured, not guessed. A surface is warm or it
+is not, and desaturating a warm colour leaves it warm.
+
+So the remedy is never "make it less brown." It is **re-derive the surface from
+a palette entry of the correct hue.** The wall did not become a duller brown; it
+became `PAL.road`. The well backings became `PAL.road`, the bin borders
+`PAL.roadLo`, the prep board the `walk` family. Whole surfaces move families;
+they do not get tinted.
+
+Related trap: `shade()` collapses absolute chroma. Deriving the wall as
+`shade(PAL.curb, -0.34)` took its chroma from 22 to 14 and the result read flat
+and lifeless while barely moving the number. Derive from an entry that is
+already the hue you want.
+
+### Spend the reclaimed warmth as an island
+
+Converting the prep board to stainless *overshot*: warm fell to 17.3% but
+saturation fell to 27.8 and the frame read drained. The fix was to inset a
+`PAL.dirt` cutting board back into it — about 104px wide — which returned 4.5
+points of warm as a **single deliberate island**.
+
+That is how the shipped game already spends warmth: the yellow centre line, a
+red roof, the amber money. Not a wash across a surface, but a small saturated
+thing on a cool ground. A screen that is uniformly warm has not got more
+warmth than the road; it has got *less contrast*, because nothing is warm
+relative to anything else.
+
+### The strongest continuity move is reuse, not matching
+
+Two faces were drawn for a pass window, iterated repeatedly, and never stopped
+looking wrong. The replacement was not a better drawing — it was the **shipped
+`Art.ped` sprites**, blitted straight into a top-down view of the dining room:
+the same eight characters, four facings, two frames, 9x15, that walk the
+pavements outside. `Art.buildPeds(rng)` can be called on its own without the
+rest of `Art.build()`.
+
+Nothing new was authored, and the result is unarguably the same game, because
+it is the same art. **Before drawing a new asset, check whether an existing one
+can be pointed at the new problem.**
+
+### And the scale rule that made the faces hard
+
+The faces were failing at **21px**, and no amount of technique fixed them: at
+that width there are about 5 pixels between the eyes and every feature is a
+1px decision. The same drawing approach at **44px** — where an eye affords a
+lid, a white, an iris, a pupil and a catchlight — reads as a person
+immediately.
+
+So the working rule is that this game has **two legible sizes for a human and
+nothing in between**: 9x15, where `Art.ped` already solves it, and roughly
+44px, where a face can carry features. The band around 21px is a dead zone.
+Any new screen wanting a character should pick one of the two and build the
+layout around it, rather than choosing a box first and discovering the face
+does not fit. The dialogue portrait is 44px *because* the box was sized to it —
+not the other way round.
+
+Three anatomical notes from getting there, all found by rendering at 6x: a chin
+that tapers to a point lets the neck's outline show either side of it and reads
+as a beard; a neck as wide as the jaw reads as a slab; and shoulders drawn as a
+flat colour bar read as a table. Taper the chin to a flat, taper the neck out
+of the jaw, and slope the shoulders.
