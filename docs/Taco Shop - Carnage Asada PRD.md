@@ -437,6 +437,69 @@ The rules that made it work, in priority order:
 - Palette discipline: `PAL.cyan` is reserved for guidance so it reads as machine output,   `PAL.jade`/`PAL.gold` are badge-only and stay off the HUD, amber is money, red is danger.
 - Rebuild with `node build.mjs`; `taco-shop.html` does not reflect source edits until you do.
 
+### X.1 Art Requirements — matching the Delivery Shift
+
+**The bar at the end of this section is testable, not a matter of taste.** A live
+frame of the shipped Delivery Shift measures as follows, and any new screen must
+land within tolerance of it:
+
+| metric | target | tolerance |
+|---|---|---|
+| mean value (0–255) | 93 | ±10 |
+| mean saturation | 34% | ±5 |
+| warm pixels (`r > b+8`) | 19% | +6 |
+| near-black (`max < 70`) | 29% | +6 |
+| mid-range mass | 71% | −10 |
+| calm 8×8 blocks / busy 8×8 blocks | 22% / 29% | — |
+
+The rules below are how a screen gets there. Every one was learned by getting it
+wrong first; the reasoning and the measurements are in `JOURNAL.md` under
+*"How to make a new screen match this one"* and *"The game has a measurable
+palette fingerprint"*.
+
+- **Warmth is an accent, never a ground.** The game is cool-dominant — road,
+  kerb, walk and glass are blue-greys. Warmth signifies *because* it is rare: the
+  centre line, the money, one red car. Cool the surfaces and let the food, the
+  cash and the danger be the warm things. A screen that is warm everywhere has
+  not gained warmth, it has lost contrast.
+- **Surfaces move palette families; they do not get tinted.** `warm` is a binary
+  test, so desaturating a warm colour scores *zero*. Re-derive the whole surface
+  from a palette entry that is already the hue you want. Beware `shade()` — it
+  collapses absolute chroma, so shading a wrong-hue entry reads flat.
+- **Spend reclaimed warmth as an island.** One small saturated object on a cool
+  ground, the way the shipped game does it. A warm wash across a whole surface
+  drains the frame instead of warming it.
+- **Separate by value step and cast shadow, not by an ink keyline.** The shipped
+  frame runs 7.8 hard edges per 100px. Houses, cars and trees sit on the ground
+  with almost no outline. Keying every new object in `PAL.ink` is the single
+  most-missed rule and turns a screen into a grid.
+- **One hero object with space around it beats a full-bleed texture.** Anything
+  drawn edge-to-edge in its container reads as noise; a discrete outlined object
+  with bare ground showing around it reads as craft. The bare ground is not
+  waste — it is the negative space that makes the object legible.
+- **Negative space must be mid-value.** Opening up space around an object and
+  exposing a near-black backing makes the histogram *worse*. `PAL.roadLo` is the
+  value the game already uses for rest.
+- **Reuse before you draw.** The strongest continuity move is not matching an
+  existing asset but pointing it at the new problem. The dining-room customers
+  are `Art.ped` — the same sprites that walk the pavements outside — and cost no
+  new art. `Art.buildPeds(rng)` can be called without the rest of `Art.build()`.
+- **Two legible human sizes: 9×15 and roughly 44px, with nothing in between.**
+  At ~21px there are about five pixels between the eyes and every feature is a
+  1px decision; faces drawn there cannot be rescued by technique. Pick a size
+  first and build the layout around it — size the box to the face, never the
+  face to the box.
+- **Feedback must not be drawn in a colour the thing it marks might already be.**
+  A red mis-click flash is invisible on a red-toned ingredient. Flash a neutral
+  chrome element, or flash *value* (black/white) rather than hue.
+- **Aspect ratio decides a silhouette; shading never rescues one.** A symmetric U
+  with a level top is a bowl however it is shaded. Change the proportion or break
+  the symmetry.
+- **Check vertical fit by reading the pixels back.** The build validates copy
+  *width*; nothing validates height, and `text()` takes the top of the run, so a
+  7px glyph at `y` occupies `y..y+6`. Assert a clear row above and below every
+  glyph run by reading the rendered frame, not by arithmetic.
+
 ## 
 
 **The bar: I should not be able to tell, from a screenshot, that this mini-game came from somewhere else.**
