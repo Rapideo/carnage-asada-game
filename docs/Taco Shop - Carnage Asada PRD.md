@@ -54,7 +54,7 @@ If the player meets the expectations of the individual levels, dependant on the 
 
 - Type : Delivery Shift
 
-- Diffucult Level - Easy
+- Difficulty Level : Easy
 
 - Map : 1
 
@@ -62,11 +62,11 @@ If the player meets the expectations of the individual levels, dependant on the 
 
 #### 2. Level 2
 
-- Name : WInter - 1972
+- Name : Winter - 1972
 
 - Type : Kitchen Shift
 
-- Difficulty Level - Easy
+- Difficulty Level : Easy
 
 - Menu : 1
 
@@ -78,9 +78,9 @@ If the player meets the expectations of the individual levels, dependant on the 
 
 - Type : Delivery Shift
 
-- Difficulty Level - Easy 
+- Difficulty Level : Easy 
 
-- Map - 1
+- Map : 1
 
 - Era : 1970s
 
@@ -90,11 +90,11 @@ If the player meets the expectations of the individual levels, dependant on the 
 
 - Type : Kitchen Shift
 
-- Difficulty Level - Easy
+- Difficulty Level : Easy
 
-- Menu - 1
+- Menu : 1
 
-- Era - 1970s
+- Era : 1970s
 
 #### 5. Level 5
 
@@ -102,11 +102,11 @@ If the player meets the expectations of the individual levels, dependant on the 
 
 - Type : Delivery Shift
 
-- Diffculty  Level - Medium
+- Difficulty Level : Medium
 
-- Map - 1
+- Map : 1
 
-- Era - 1970s
+- Era : 1970s
 
 #### 6. Level 6
 
@@ -116,7 +116,7 @@ If the player meets the expectations of the individual levels, dependant on the 
 
 - Difficulty Level : Medium
 
-- Menu - 1
+- Menu : 1
 
 - Era : 1970s
 
@@ -128,9 +128,9 @@ If the player meets the expectations of the individual levels, dependant on the 
 
 - Difficulty Level : Easy
 
-- Map - 2
+- Map : 2
 
-- Era - 1980s
+- Era : 1980s
 
 #### 8. Level 8
 
@@ -198,7 +198,7 @@ If the player meets the expectations of the individual levels, dependant on the 
 
 - Type : Delivery Shift
 
-- Difficuly Level : Easy
+- Difficulty Level : Easy
 
 - Map : 3
 
@@ -230,11 +230,11 @@ If the player meets the expectations of the individual levels, dependant on the 
 
 #### 16. Level 16
 
-- Name : Winter 1993
+- Name : Summer 1993
 
-- Type : Delivery Shift
+- Type : Kitchen Shift
 
-- Difficutly Level : Medium
+- Difficulty Level : Medium
 
 - Menu : 3
 
@@ -262,7 +262,7 @@ If the player meets the expectations of the individual levels, dependant on the 
 
 - Menu : 4
 
-- Era: 1990s
+- Era : 1990s
 
 #### 19. Level 19
 
@@ -280,7 +280,7 @@ If the player meets the expectations of the individual levels, dependant on the 
 
 - Name : Winter 1999
 
-- Type : Kithen Shift
+- Type : Kitchen Shift
 
 - Difficulty Level : Hard
 
