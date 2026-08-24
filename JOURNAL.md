@@ -1146,3 +1146,105 @@ The practical addition is that the render harness is now a *tool*, not a one-off
 software canvas that loads the real `src/` modules, so any frame can be rendered to a PNG from Node,
 cropped, magnified, and measured without a browser. That is what made "read the pixels back" cheap
 enough to do routinely, and it is the only reason five of these eight findings exist.
+
+## The game has a measurable palette fingerprint (2026-08-24)
+
+The section above records what six mockups taught about drawing *objects*. This
+one records something more useful and more durable: **what this game's frame
+actually measures**, and therefore what "it doesn't look like the same game"
+means in numbers rather than in taste.
+
+None of the layouts that produced this are decided. The measurements are of the
+**shipped Delivery Shift**, and they hold regardless.
+
+### First, the thing that made it possible: the game renders headlessly now
+
+`test/headless.mjs` runs the real modules against a Proxy stub where every
+drawing call is a no-op. That catches logic, and by design it cannot see a
+single pixel. The gap has been filled twice in this journal by "render a frame
+in a browser and read it back with `getImageData`" — which works, but needs a
+browser and a person.
+
+A software canvas closes it. Roughly 300 lines of Node with no dependencies:
+an RGBA buffer, `fillRect`/`strokeRect`/`drawImage`, alpha blending, radial and
+linear gradients, a 2x3 transform matrix, arc flattening, and a PNG writer over
+`zlib`. Load `src/*.js` into a `node:vm` with `document.createElement('canvas')`
+returning one of these, call `G.boot(seed)`, `G.startShift()`, step `G.update`
+a few hundred times with keys held in `Input.down`, then `G.render(ctx)` and
+write the PNG.
+
+Two things were needed beyond the obvious, both discovered by it crashing:
+- **A full transform matrix, not a translate.** `Art.buildTrain` flips a sprite
+  with `scale(-1, 1)` and `rotFrames()` bakes 32 frames with `rotate()`.
+- **`ellipse()`.** `City.genPark` draws the pond with it. Note this is behind
+  `rng.chance(0.6)` and does not roll under the test seed — another instance of
+  the hazard already recorded in section 11 about `PAL.sea`.
+
+### The fingerprint
+
+Measured over a live `play` frame, 260 steps into a shift, seed 1972:
+
+| metric | Delivery Shift |
+|---|---|
+| mean value (0-255) | **93.2** |
+| mean saturation | **33.6%** |
+| warm pixels (`r > b+8`) | **19.0%** |
+| near-black (`max < 70`) | **28.6%** |
+| neutral/grey (`max-min < 14`) | **13.6%** |
+| mid-range mass (buckets 2-4 of 8) | **70.8%** |
+| calm 8x8 blocks (sd < 8) | **21.5%** |
+| busy 8x8 blocks (sd > 28) | **28.9%** |
+| hard horizontal edges | **7.8 per 100px** |
+
+Four of those describe the look better than any adjective:
+
+**The game is COOL-dominant. Only 19% of pixels are warm.** Road, kerb, walk
+and glass are blue-greys; grass is green. Warmth is spent as an *accent* — the
+yellow centre line, amber money, one red car — and it signifies precisely
+because it is rare. A screen that is warm everywhere has thrown that away. The
+kitchen mockup ran **64.7%** warm, 3.4x the game, and read as a different
+product for that reason alone before any other consideration.
+
+**71% of the frame sits in the middle of the value range.** The histogram is a
+hump, not a barbell. Big calm mid-value areas — road, grass — are what the
+bright accents and the dark shadows are legible *against*.
+
+**Only 7.8 hard edges per 100px, and 28.6% near-black.** Houses, cars and trees
+sit on the ground with almost no keyline. Separation is by **value step and
+cast shadow**, not by outline. This is the single most-missed rule: the
+instinct when drawing a new object is to key it in `PAL.ink`, and doing that
+everywhere pushed the mockup to 40-50% near-black and made the frame a grid.
+
+**Detail is concentrated, not spread.** 21.5% of the frame is calm and 28.9% is
+busy. The mockup inverted that — 12.2% calm, 54.9% busy — and the result reads
+as *noise*, not as fidelity, even though it contains more drawing. **Detail only
+reads as craft when there is rest around it.**
+
+### Three rules that fall out, for any new screen
+
+1. **Warmth is an accent, not a ground.** Cool the surfaces; let the food, the
+   money and the danger be the warm things.
+2. **Separate by value, not by keyline.** Reach for a lighter top edge and a
+   cast shadow before reaching for `PAL.ink`.
+3. **One hero object with space around it beats a full-bleed texture.** Both
+   reviews of the kitchen wells reached this independently: every element that
+   read had a discrete outlined object; every element that failed was a fill.
+   The negative space is not waste — it is what makes the object legible, and
+   it is the mid-range mass the histogram wants.
+
+### And one caution about the method
+
+Chasing a metric works until it doesn't. Cooling the wall and dropping the well
+backing to `PAL.roadLo` moved warm from 64.7% to 45.1% and brought saturation
+to within 0.3 of the reference — real defects, really fixed. But the next
+increment was unreachable: three cream paper tickets and a wooden prep board
+are **42% of that frame on their own**. Below about 45% the metric had stopped
+measuring a flaw and started measuring the design's own content, and pushing
+further would have meant grey paper and a board that is not wood.
+
+Related, and cheaper to learn here than in the product: the first fix in that
+direction made the number *worse*. Opening up negative space around each object
+exposed the pan backing — which was near-black, so "rest" landed in the wrong
+histogram bucket and near-black rose from 41.9% to 49.6%. **Negative space has
+to be mid-value to do its job.** `PAL.roadLo` is the value the game already
+uses for exactly this.
