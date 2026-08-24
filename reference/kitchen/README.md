@@ -90,10 +90,10 @@ coordinates are in the 384×216 virtual screen.
   serve. That is also why ticket focus cannot be player-selected — there is no
   input left, so the game must assign it.
 - **OVERHEAD is the only place a customer exists.** Queue length, who is at the
-  window, and a walkout are all there, and the LOBBY meter on the card above it
-  is the same information as a number.
+  window, and a walkout are all there. The QUEUE count on the wall beside the
+  opening goes red past three.
 - **The SCORE CARD is the Delivery Shift's own card**, at its own rect, with
-  only the third row changed (`HAYS PD` → `LOBBY`). It is drawn last, with a
+  only the third row changed (`HAYS PD` → `ERRORS`). It is drawn last, with a
   cast shadow, so it reads as hovering over the room rather than as a hole.
 - **The DIALOGUE STRIP takes the bottom band because that is the only region
   non-critical in BOTH halves** — you are not reading the minimap or the nav

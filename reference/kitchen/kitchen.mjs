@@ -253,7 +253,7 @@ function overheadView() {
 
   /* the label, on the wall so it reads as signage rather than HUD */
   const q = 4;
-  text(x, 'LOBBY ' + q, VW - 5, wy + 2, q > 3 ? PAL.bad : PAL.boneDim, 1, 2);
+  text(x, 'QUEUE ' + q, VW - 5, wy + 2, q > 3 ? PAL.bad : PAL.boneDim, 1, 2);
 }
 
 
@@ -770,7 +770,7 @@ function wrapped(cx, by) {
 
 /* ============================================================
    HUD -- the driving shift's own card, unchanged but for the third
-   row: the lobby is what the Hays PD meter was.
+   row: ERRORS, drawn as floor(mistakes / 3).
    ============================================================ */
 function hud() {
   const pw = 128, px0 = VW - pw + 1;
@@ -780,10 +780,19 @@ function hud() {
   text(x, clockStr(96), VW - 7, 5, PAL.bone, 2, 2);
   text(x, 'PAID', px0, 23, PAL.boneDim, 1);
   text(x, money(1275), VW - 7, 20, PAL.good, 2, 2);
-  text(x, 'LOBBY', px0, 37, PAL.boneDim, 1);
+  /* ERRORS, not a continuous bar: the score docks a star per THREE mistakes,
+     so the meter is three segments and each filled one is a star already
+     lost. The bar is the scoring term, drawn. */
+  text(x, 'ERRORS', px0, 37, PAL.boneDim, 1);
+  const MIS = 4, SEGW = 23;
   R(x, '#1b1425', px0 + 44, 36, 72, 5);
-  const lf = 0.62;
-  R(x, lf > 0.75 ? PAL.bad : lf > 0.4 ? '#e07a1f' : '#5b6a8a', px0 + 45, 37, Math.round(70 * lf), 3);
+  for (let i = 0; i < 3; i++) {
+    const sx = px0 + 45 + i * (SEGW + 1);
+    R(x, '#3a3050', sx, 37, SEGW, 3);                       // an EMPTY segment has
+    R(x, '#2a2338', sx + 1, 38, SEGW - 2, 1);               // to read as a segment,
+    const got = Math.max(0, Math.min(3, MIS - i * 3));      // or three stars at
+    if (got) R(x, got === 3 ? PAL.bad : '#e07a1f', sx, 37, Math.round(SEGW * got / 3), 3);
+  }
 
 }
 

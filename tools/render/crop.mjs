@@ -34,5 +34,5 @@ const src = readPNG(process.env.SRC || _j(_d(_f(import.meta.url)), '..', '..', '
 const cut = new Canvas(cw, ch);
 for (let y = 0; y < ch; y++) for (let k = 0; k < cw * 4; k++)
   cut.data[y * cw * 4 + k] = src.data[(y + cy) * src.width * 4 + cx * 4 + k];
-writePNG(upscale(cut, z), 'crop.png');
+writePNG(upscale(cut, z), OUT('crop.png'));
 console.log(`crop.png = ${cw}x${ch} at (${cx},${cy}) x${z}`);

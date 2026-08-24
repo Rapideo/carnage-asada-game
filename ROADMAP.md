@@ -69,13 +69,21 @@ questions:
 - [ ] Test coverage for the new state. Remember `test/headless.mjs` draws through
       stubs and cannot see a pixel — use `tools/render/` for anything visual.
 
-### One open decision the art pass surfaced and did not settle
+### The clock card's third row is ERRORS
 
-Three of the four independent design teams put **`ERRORS`** on the clock card's
-third row rather than `LOBBY`, reasoning that `floor(mistakes / 3)` is literally a
-scoring term, so a three-segment meter *draws* the star you are about to lose. The
-call was made for `LOBBY` and the art reflects that. Recorded here as data, not as
-a challenge.
+Settled 2026-08-24, and it went with the field rather than against it. Three of
+the four independent design teams put **`ERRORS`** there rather than `LOBBY`,
+reasoning that `floor(mistakes / 3)` is literally a scoring term — so a
+three-segment meter *draws the star you are about to lose* instead of abstracting
+it into a bar.
+
+The art now does that: three segments, each worth three mistakes, an empty one
+still reading as a segment so the three stars at stake are visible before any are
+gone. The room's own queue count keeps the wall signage beside the service window
+and is now labelled `QUEUE`, which is what it counts.
+
+`HAYS PD` is untouched on the Delivery Shift — heat is a real mechanic there and
+this decision is about the Kitchen Shift's third row only.
 
 ---
 
