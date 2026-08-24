@@ -1025,3 +1025,124 @@ twice shipped defects that were correct by every measure and wrong on screen: th
 the invisible north-facing store porch, both found by rendering a frame and looking at it. So the
 branch was held until it had been watched. It was, and it plays; the pursuit lookahead (`rem` in
 `Demo.aim`) is the dial if that judgement ever changes.
+
+## Drawing food at 384×216, six times over (2026-08-24)
+
+**None of the layouts this came from are decided, and nothing here endorses one.** The Kitchen Shift
+was mocked up six times in one day — once by hand against a reference, and five more times by four
+independent teams that never saw the first and never saw each other. Every layout in that exercise is
+a throwaway; it is quarantined outside the repo and marked as a test.
+
+What is *not* throwaway is what the six builds independently discovered about this renderer at this
+resolution. No code was shared. The same failures appeared anyway, which makes them properties of the
+screen rather than anybody's mistake — and every one of them cost multiple rewrites to find, because
+**every single one looked correct in the source.**
+
+### A symmetric U is a vessel. Four times over.
+
+A hard taco shell was drawn, independently, as a salad dish (48×14), a plant pot (30×15), a bucket
+(26×22) and a basket of soil. A second team's shell bin went "battlement, then two open crates, then a
+bucket — the tall horn read as a handle". A third's went "bananas, doughnuts, brass rings". A fourth
+needed five attempts.
+
+The mistake each time was believing shading would fix it. It never does. **A symmetric U with a level
+top is a bowl, and no amount of rim highlight, toasted fleck or inner shadow changes that.** Two things
+do:
+
+- **Aspect ratio.** Wider than tall is a dish; taller than wide is a tub. Neither is a taco.
+- **Asymmetry.** What finally worked was abandoning the upright U entirely for a **tilted crescent** — a
+  half-disc cut on a diagonal with the filling running along the cut. One team reached the same place by
+  a different route: "a C, not a U — right horn taller, notch off-centre, shadow instead of a baseline."
+
+The general form is that a food silhouette must differ from the *container* silhouette by more than
+colour, because at this size colour is the first thing the post pass takes away.
+
+### Small metal objects become batteries
+
+A foil-wrapped burrito with squared ends and grey end-caps read as a marker pen. Another team's
+specified ladle and tongs "drew a plunger and a battery". Rounded caps and an off-centre implement are
+what rescue them; a symmetrical capsule with a band around the middle is a battery, and always will be.
+
+### Goods stretched to fill a container become stripes
+
+A stack of tortillas drawn the full width of its shelf rendered as **floorboards**. A row of shells
+across a bay rendered as a **picket fence**. Another team's four heaps came out as "a crate, a ramp, a
+green box and a ziggurat".
+
+Two rules kill it: **draw objects at their own natural size, never the container's** — a heap should
+leave bare metal showing — and **never give a heap a level top**. The tortilla stack only started
+reading as tortillas when it was drawn as separate overlapping *discs* with visible round edges, rather
+than as a solid body with a rounded top.
+
+### The vignette is a seating chart, not an effect
+
+`Post` costs roughly **6%** of a colour's value at screen centre, **35%** near the edges, and reaches
+**50%** at the extremes. That was measured off a real render, not estimated: a mid-tone burrito at
+x322,y196 arrived at `#806d4e` from a source of `#dcbc84`.
+
+The consequence nobody had written down: **the end columns of a wide bin row are permanently worse
+seats.** No drawing fixes it. It is an authoring constraint — high-frequency ingredients belong in the
+middle columns, which makes bin *order* in a content file a legibility decision rather than a cosmetic
+one. The existing HUD already obeys this by accident: the minimap survives a 42% darkening in the
+bottom-left corner because it is high-contrast UI, not mid-tone art.
+
+### Brightness-based emphasis silently inverts
+
+`PAL.bone` at the vignette's maximum arrives at luminance **107**. `PAL.boneDim` near the centre arrives
+at **167** — 56% brighter. So "the active one is the brighter one" *reverses* depending on where the two
+things sit, and a highlight that reads correctly in a mockup can read backwards once the element moves.
+
+Emphasis has to ride on cues the vignette cannot touch: width, shape, an inverted bar, or a hue keyline.
+The order card's amber accent is safe for this reason; a bone-versus-boneDim pair would not have been.
+
+### The scanline pass eats bright rows, not dark ones
+
+Measured rather than assumed, and it corrected a briefing that had overstated it: the scanline layer is
+`rgba(10,6,16,0.13)` on alternate rows, so the real cost is **13%**, not a halving. The useful form of
+that: a 1px *highlight* can lose a third of its contrast, but a 1px *shadow* is untouched — so
+**horizontal highlights want 2px and shadows can stay at 1px.**
+
+### A fifth text-overflow bug, in the axis the suite still cannot see
+
+`— hud layout —` measures width. Section 10 of this journal already records a fourth overflow that
+shipped vertically because of it. A fifth was found the same way, and it had been in every image
+produced that day without anyone noticing: **twelve bin labels were all touching their own plate
+border**, with zero rows of air above the glyphs.
+
+`text()` takes `py` as the *top* of the run, so a 7px glyph at `y` occupies `y..y+6` — and a plate sized
+to exactly 9 rows leaves nothing. It was found by reading the rendered PNG back and counting which rows
+carried ink, and it is now guarded by an audit over all 17 label plates that asserts a clear row above
+every glyph run.
+
+That audit then immediately earned its keep by catching a second defect nobody had seen: the ticket
+rail's decorative hooks were hanging down and punching five dark ticks through the `TORTILLA` label,
+one of them straight through the A. **The rail now spans only the pass, not the whole kitchen.**
+
+One warning about that audit, because it nearly produced a false result: its first run reported seven
+failures, five of which were the *instrument* miscalibrating — an absolute ink threshold was catching
+vignetted paper in the corner columns. Ink arrives at luminance ~50 even at maximum vignette and the
+palest plate material at ~291, so the threshold has to sit between them. **Check the instrument before
+believing the artefact.**
+
+### A bin painted red cannot flash red
+
+The mis-click warning is a red flash, and three of the twelve ingredients — tomato, salsa roja, hot
+sauce — are red-toned. The warning would have been near-invisible on precisely the bins most easily
+confused with one another.
+
+Resolved by flashing the **label plate** rather than the contents. The plate is bone on every bin, so it
+reads identically everywhere, and red-plate-with-ink-text is the same grammar the order card already
+uses in amber. The general rule: **feedback must not be drawn in a colour the thing it marks might
+already be.**
+
+### What this changes about the method
+
+Nothing here was catchable by assertion. The suite draws through stubs, so it cannot see a silhouette,
+a value, or a row of type sitting on a border. Every defect above was found by rendering a frame,
+magnifying it, and looking — and several needed the pixels read back numerically because the eye passed
+them at 3×.
+
+The practical addition is that the render harness is now a *tool*, not a one-off: a zero-dependency
+software canvas that loads the real `src/` modules, so any frame can be rendered to a PNG from Node,
+cropped, magnified, and measured without a browser. That is what made "read the pixels back" cheap
+enough to do routinely, and it is the only reason five of these eight findings exist.
