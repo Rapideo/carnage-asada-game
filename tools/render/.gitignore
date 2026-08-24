@@ -1,2 +1,7 @@
 # scratch output from crop.mjs -- regenerated on demand
 crop.png
+
+# drive.mjs output: traffic and order selection use Math.random(), so every
+# run differs. reference-frame.png is the checked-in, stable comparison target.
+drive.png
+drive-x3.png
