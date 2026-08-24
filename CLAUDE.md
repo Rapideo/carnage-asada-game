@@ -100,6 +100,15 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
   mechanic comes from, because this file forbids importing outside context — so the brief *is* the
   source.
 - `README.md` — what the game is, controls, and the development commands.
+- `reference/kitchen/` — **the Kitchen Shift reference art, and the region map.** The *look* is a kept
+  starting point; the *layout* is not a spec and every menu item and price in those frames is a
+  placeholder. Its README names the screen regions (TICKET RAIL, OVERHEAD, LATTICE, PREP BOARD,
+  DIALOGUE STRIP) with exact rects — **use those names**, so the PRD and the art talk about the same
+  things. Read it before drawing anything new for that screen.
+- `tools/render/` — **headless rendering.** Renders the real game to a PNG from Node, with no
+  dependencies. `test/headless.mjs` draws through stubs and by design cannot see a pixel; this is how
+  you check the things it cannot — silhouettes, tone, and text that fits horizontally but sits on its
+  own border. `measure.mjs` scores a frame against a live Delivery Shift frame (targets in PRD §X.1).
 - `JOURNAL.md` — the original brief, why each design call was made (including rejected alternatives), the
   bugs that mattered, and the repeatable build order. Read before changing a core mechanic; the reasoning
   behind the tip decay, the throw scheme, and the bag-of-3 rule is not obvious from the code.
