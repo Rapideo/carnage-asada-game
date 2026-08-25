@@ -40,12 +40,18 @@ const val = (n, d) => { const i = argv.indexOf('--' + n); return i < 0 ? d : arg
    the art. Without --tray the crop has to clear the drawn rim, or the code's
    own pan ends up with a second steel border inside it. */
 const TRAY_MODE = argv.includes('--tray');
-const INSET_PCT = Number(val('inset', TRAY_MODE ? 0 : 12));
+/* Inset and top exist to crop INSIDE a drawn tray rim. A whole tray has no rim
+   to get past, and neither does a free object on a transparent field -- its
+   bounding box already is the subject. Applying them anyway ate 12% off the
+   sides and 26% off the top of the burrito, which detection had found
+   perfectly: a 1184x1156 circle became a 906x716 slice of one. */
+const FREE = TRAY_MODE || argv.includes('--keyed');
+const INSET_PCT = Number(val('inset', FREE ? 0 : 12));
 /* The top needs more than the sides. These trays are drawn in slight
    perspective, so their far wall is visible and the top rim is roughly twice
    the thickness of the side rims -- a uniform inset leaves a band of steel
    across the top of every well. */
-const TOP_PCT = Number(val('top', TRAY_MODE ? 0 : 26));
+const TOP_PCT = Number(val('top', FREE ? 0 : 26));
 const TRAY = TRAY_MODE;
 const ONLY = val('only', null);
 
@@ -63,11 +69,25 @@ const NAMES = val('names', null) ? val('names', '').split(',').map((n) => n.trim
                                  : DEFAULT_NAMES;
 const SPAN_ROWS = Number(val('rows', 1));
 const SPAN_COLS = Number(val('cols', 1));
+/* --size takes a target directly, for art that is not a grid cell at all --
+   the item on the assembly board is a free object on wood, not a pan in a row.
+   --keyed turns background removal back ON: `opaque` is right for a crop taken
+   inside a tray, and wrong for a subject with a real cutout around it. */
+const SIZE = val('size', null);
+const KEYED = flag('keyed');
 
 const img = readPNG(SHEET);
 const BG = [img.data[0], img.data[1], img.data[2]];
-const isBg = (r, g, b) =>
-  Math.abs(r - BG[0]) < 26 && Math.abs(g - BG[1]) < 26 && Math.abs(b - BG[2]) < 26;
+/* Detection has to key the same way the reduction does, or the two disagree
+   about where the subject is. On an RGBA source that means ALPHA first: the
+   burrito's tortilla rim is light against a transparent field, and keying it
+   on colour alone found a 914x719 fragment of a circle that is nearly square. */
+const isBg = (i) => {
+  if (img.data[i + 3] < 128) return true;
+  return Math.abs(img.data[i] - BG[0]) < 26
+      && Math.abs(img.data[i + 1] - BG[1]) < 26
+      && Math.abs(img.data[i + 2] - BG[2]) < 26;
+};
 
 /* ---- find the trays --------------------------------------
    Connected components of not-background, keeping only the large ones. The
@@ -80,7 +100,7 @@ const boxes = [];
 for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
   const p = y * W + x, i = p * 4;
   if (lab[p] !== -1) continue;
-  if (isBg(img.data[i], img.data[i + 1], img.data[i + 2])) continue;
+  if (isBg(i)) continue;
   const st = [p], id = boxes.length; lab[p] = id;
   let x0 = x, x1 = x, y0 = y, y1 = y, n = 0;
   while (st.length) {
@@ -93,7 +113,7 @@ for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
       if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
       const r = ny * W + nx, ri = r * 4;
       if (lab[r] !== -1) continue;
-      if (isBg(img.data[ri], img.data[ri + 1], img.data[ri + 2])) continue;
+      if (isBg(ri)) continue;
       lab[r] = id; st.push(r);
     }
   }
@@ -157,8 +177,8 @@ const PAD = Number(val('pad', 0));
 const COL_GAP = 1, ROW_GAP = 2;
 const SPAN_W = SPAN_COLS * CELL_W + (SPAN_COLS - 1) * COL_GAP;
 const SPAN_H = SPAN_ROWS * CELL_H + (SPAN_ROWS - 1) * ROW_GAP;
-const TW = TRAY ? SPAN_W - PAD * 2 : WELL_W + (SPAN_W - CELL_W);
-const TH = TRAY ? SPAN_H - PAD * 2 : WELL_H + (SPAN_H - CELL_H);
+const TW = SIZE ? Number(SIZE.split('x')[0]) : TRAY ? SPAN_W - PAD * 2 : WELL_W + (SPAN_W - CELL_W);
+const TH = SIZE ? Number(SIZE.split('x')[1]) : TRAY ? SPAN_H - PAD * 2 : WELL_H + (SPAN_H - CELL_H);
 const INK = '#1b1425';
 mkdirSync(OUT_DIR, { recursive: true });
 
@@ -176,7 +196,11 @@ for (let i = 0; i < trays.length; i++) {
      floats on a flat backing with nothing around it. */
     /* opaque: see reduce.mjs. Everything inside a tray is wanted, and keying
      would delete the black olives outright. */
-  const { cv } = reduceHead(img, crop, { maxW: TW, maxH: TH, colours: 16, opaque: true, fill: true });
+    const { cv } = reduceHead(img, crop, {
+    maxW: TW, maxH: TH, colours: 16,
+    opaque: !KEYED,
+    fill: !KEYED,          // a cutout keeps its proportions; a texture need not
+  });
 
   const seen = new Map();
   for (let k = 0; k < cv.data.length; k += 4) {

@@ -27,6 +27,12 @@ export function shrink(img, sx, sy, sw, sh, dw, dh, isBg) {
         if (xx < 0 || yy < 0 || xx >= img.width || yy >= img.height) continue;
         const i = (yy * img.width + xx) * 4;
         tot++;
+        /* A source ALPHA channel outranks the colour key. Keying guesses at
+           which colour meant "nothing"; alpha says so outright, and a subject
+           with a real cutout -- an open tortilla on transparency rather than a
+           tray on a flat field -- would otherwise be keyed against whatever
+           happened to be in its corner pixel. */
+        if (img.data[i + 3] < 128) continue;
         if (isBg(img.data[i], img.data[i + 1], img.data[i + 2])) continue;
         r += img.data[i]; g += img.data[i + 1]; b += img.data[i + 2]; n++;
       }
