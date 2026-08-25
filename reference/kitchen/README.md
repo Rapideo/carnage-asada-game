@@ -65,10 +65,12 @@ coordinates are in the 384×216 virtual screen.
       |                                      |      jambs either side    |
       |                                      |    QUEUE  max 4, facing N |
   104 +--------------------------------------+---------------------------+
-      |  LATTICE            2 rows x 8 = 16 cells, 46x28                 |
-      |    columns x = 5 52 99 146 193 240 287 334                       |
-      |    rows    y = 105, 135                                          |
-      |    unused slots are LIDDED, never removed                        |
+      |  LATTICE            2 rows x 6 = 12 BINS, 46x28                  |
+      |    bin columns x = 52 99 146 193 240 287                         |
+      |    rows        y = 105, 135                                      |
+      |    x5   BASE STATION (double height, 46x58) -- not built yet      |
+      |    x334 bare table                                                |
+      |    a level needing fewer leaves bins EMPTY, never covered         |
   164 +------------------------------------------------------------------+
       |  PREP BOARD                                                      |
       |    readout x6..125   |  CUTTING BOARD 138,171 104x41  |  BUILT   |
@@ -80,10 +82,20 @@ coordinates are in the 384×216 virtual screen.
 
 ### Why the regions are where they are
 
-- **LATTICE is 16 cells and always 16.** The menus scale from twelve
-  ingredients to sixteen, and an unused slot is *lidded* rather than absent, so
-  an ingredient never changes position between levels. A grid that re-packs at
-  level 8 invalidates everything learned at level 2.
+- **TWELVE BINS. Not sixteen, not a range — twelve, at every point in the
+  game.** This supersedes the earlier "16 cells and always 16, unused ones
+  lidded" rule, and the reasoning that produced it survives intact: an
+  ingredient must never change position between levels, because a grid that
+  re-packs at level 8 invalidates everything learned at level 2. A level that
+  needs fewer ingredients leaves bins **empty** rather than covering them.
+- **The columns either side of the twelve are bare steam table.** The left one
+  (x5) is reserved for the **base station** — one double-height picker for
+  tortillas, taco shells and chips, since those are a choice between forms of
+  the same thing rather than four separate reaches across the line. It is not
+  built yet. The right one (x334) is just table.
+- **The bins were NOT widened to fill the freed space.** 46px cells at their
+  original x positions, 40×22 wells. Widening to fill 384px would have moved
+  all twelve, which is the one thing the rule above forbids.
 - **The lattice is a navigable grid.** A 4-way stick steps a cursor cell to
   cell; a mouse jumps the cursor to whatever it clicks. **Travel distance is a
   real cost**, so which ingredients sit adjacent is level design, not

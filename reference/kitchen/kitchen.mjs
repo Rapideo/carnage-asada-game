@@ -17,17 +17,19 @@
 
      y   0..  6   ticket rail
      y   0..104   back wall    base shelf | pantry + tickets | pass window
-     y 104..164   steam table  12 bins (53px, caps at 16) | wrap + serve
+     y 104..164   steam table  12 bins, 46px | base station | bare table
      y 164..216   prep board   readout | building | built
 
    Horizontal budget, checked rather than eyeballed:
      shelf  3..110 (107)   tickets 112/158/204 (45)   card 253..381
-     bins   2/56/110/164/218/272 (53)          station 327..382
+     bins   52/99/146/193/240/287 (46)   base x5 (46x58)   bare x334
    ============================================================ */
 import { E, Canvas } from '../../tools/render/engine.mjs';
 import { writePNG, upscale } from '../../tools/render/px.mjs';
 import { drawDialog } from './dialog.mjs';
 import { CAST } from './cast.mjs';
+import { decodeFace } from './facedata.mjs';
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { dirname as _d, join as _j } from 'node:path';
 import { fileURLToPath as _f } from 'node:url';
 const OUT = (n) => _j(_d(_f(import.meta.url)), n);   // write beside this file
@@ -69,8 +71,16 @@ const ING = {
   CHEESE:    ['#e0b055',   '#f5d478', '#b0812c', 'shredH'],
   TOMATO:    ['#e05a2a',   '#ff8552', '#9c3410', 'dice'],   // pushed orange: it sat
   ONION:     ['#e6ddc6',   '#ffffff', '#a89e86', 'dice'],
-  JALAPENO:  [PAL.treeHi,  '#63b86b', PAL.treeLo, 'rings'],
+  PEPPERS:   [PAL.treeHi,  '#63b86b', PAL.treeLo, 'rings'],
   CREAM:     ['#f2e9d0',   '#ffffff', '#c2b89c', 'swirl'],
+  /* The prototype twelve. These three are new and their SHAPES currently
+     collide with neighbours -- CHICKEN reads as pale BEEF, OLIVES as dark
+     PEPPERS, CCQ as orange CREAM. That is not an oversight to fix here: it is
+     precisely what the incoming reference art exists to solve, and drawing
+     eleven convincing placeholder heaps first would be work thrown away. */
+  CHICKEN:   ['#c9a25e',   '#e2bd77', '#8f6d33', 'crumble'],
+  OLIVES:    ['#3a3040',   '#584a5e', '#241d28', 'rings'],
+  CCQ:       ['#e8a33c',   '#ffc466', '#a86a18', 'sauce'],
   ROJA:      ['#a8321f',   '#c9472f', '#741d10', 'sauce'],
   VERDE:     ['#8d9b32',   '#aab945', '#616c1f', 'sauce'],
   HOT:       ['#b03f1c',   '#d0592d', '#7a2810', 'sauce'],
@@ -252,9 +262,9 @@ function overheadView() {
   ped(6, 3, 1, qx + 17,  wy + wh + 31);              // arriving from the side
 
 
-  /* the label, on the wall so it reads as signage rather than HUD */
-  const q = 4;
-  text(x, 'QUEUE ' + q, VW - 5, wy + 2, q > 3 ? PAL.bad : PAL.boneDim, 1, 2);
+  /* The QUEUE count was here, on the wall so it read as signage rather than
+     HUD. Removed: the queue is already visible -- four people are standing in
+     it -- so the number was labelling something the picture already says. */
 }
 
 
@@ -318,25 +328,67 @@ function ticket(t) {
 /* ============================================================
    STEAM TABLE  y 104..164
    ============================================================ */
-/* ONE LATTICE, 2 rows x 8 = 16 cells, which is the cap the menus scale to.
+/* TWELVE BINS. Not sixteen, not a range -- twelve, at every point in the game.
 
-   Three decisions reshaped this. The bases moved off the wall and into the
-   grid, because a 4-way stick has to be able to reach them; WRAP and SERVE
-   left the table entirely, because they are buttons now; and with no labels
-   there is no width arithmetic to satisfy. What is left is 375px of cells at
-   46 wide, and a well of 40x22 -- more than three times the area the first
-   labelled 45px bin could give its food.
+   This replaces the earlier "16 cells and always 16, unused ones lidded" rule,
+   and the reasoning that produced it survives the change intact: nothing on the
+   line may ever move position between levels, because the muscle memory a
+   player builds in 1972 has to still work in 1999. Twelve fixed bins satisfy
+   that as well as sixteen did, and a level that needs fewer leaves bins EMPTY
+   rather than covering them.
 
-   Cell 7 of row A is LIDDED. Unused slots are covered, never removed, so an
-   ingredient never changes position between levels and the muscle memory a
-   player builds in 1972 still works in 1999. */
+   The columns either side are deliberately bare steam table. The left one is
+   where the base station will go -- one double-height picker for tortillas,
+   taco shells and chips, since those are a choice between forms of the same
+   thing rather than four separate reaches. The right one is just table.
+
+   Geometry is unchanged on purpose: 46-wide cells at the same x positions, a
+   40x22 well. Widening the bins to fill the freed space was considered and
+   rejected for exactly the reason above -- it would move all twelve.
+
+   Three decisions shaped the original grid and still hold. The bases moved off
+   the wall and into the line, because a 4-way stick has to be able to reach
+   them; WRAP and SERVE left the table entirely, because they are buttons now;
+   and with no labels there is no width arithmetic to satisfy. */
+/* The prototype menu. Row A is what goes in first and in bulk, row B is what
+   goes on top -- travel distance across the line is a real cost, so which
+   ingredients sit adjacent is level design rather than decoration.
+
+   Slot B6 is EMPTY, not covered. It is there to prove the rule: twelve bins
+   always, and a level that needs eleven leaves one bare.
+
+   DISPLAY NAMES, not full names. The plate holds 7 characters, so TOMATOES,
+   BLACK OLIVES, JALAPENOS and SOUR CREAM are shortened here. The full names
+   belong in the recipe data, where nothing has to draw them. */
 const LATTICE = [
-  ['TORTILLA', 'SHELLS', 'CHIPS', 'BEEF', 'BEANS', 'LETTUCE', 'CHEESE', null],
-  ['TOMATO', 'ONION', 'JALAPENO', 'CREAM', 'ROJA', 'VERDE', 'HOT', null],
+  ['BEEF', 'CHICKEN', 'BEANS', 'LETTUCE', 'TOMATO', 'ONION'],
+  ['CHEESE', 'OLIVES', 'PEPPERS', 'CREAM', 'CCQ', null],
 ];
+/* The twelve start at column 1. Column 0 is the base station's reservation and
+   column 7 is bare table -- neither is a bin, so neither is in the array. A
+   null INSIDE the array is different: it is one of the twelve, standing empty. */
+const BIN_COL0 = 1;
 const CELL_W = 46, CELL_H = 28, COL0 = 5, ROW_Y = [105, 135];
 const colX = (i) => COL0 + i * (CELL_W + 1);
-const CURSOR = [0, 3];              // row, col -- resting on BEEF
+
+/* The name plate is CELL_W - 2 wide and the name is centred in it, so a name
+   over 7 characters runs off both ends of its own bin.
+
+   This is a guard rather than a note because the overflow is INVISIBLE almost
+   all the time: the plate only draws at the moment a bin is picked or
+   mis-picked. JALAPENO has been 3px too wide since the frame was first drawn
+   and nobody saw it, because no screenshot ever caught it selected. That is
+   the same class of defect CLAUDE.md records three of in the order card. */
+const PLATE_W = CELL_W - 2;
+for (const row of LATTICE) for (const k of row) {
+  if (!k) continue;
+  const w = textW(k, 1);
+  if (w > PLATE_W) throw new Error(
+    `lattice: "${k}" is ${w}px on a ${PLATE_W}px name plate, ${w - PLATE_W}px too wide.\n` +
+    `  The plate holds ${Math.floor((PLATE_W + 1) / 6)} characters. Shorten the DISPLAY name;\n` +
+    `  the full name can live in the recipe data where nothing has to draw it.`);
+}
+const CURSOR = [0, 1];              // row, col -- resting on CHICKEN
 
 function steamTable() {
   R(x, STEEL_D, 0, 104, VW, 60);
@@ -349,12 +401,37 @@ function steamTable() {
   R(x, STEEL_X, 0, 162, VW, 2);
 
   LATTICE.forEach((row, r) => row.forEach((k, i) => {
-    const px = colX(i), py = ROW_Y[r];
-    if (!k) return lid(px, py, CELL_W, CELL_H);
-    // BEEF was just placed correctly; TOMATO was the last mis-pick
-    bin(px, py, CELL_W, CELL_H, k, k === 'TOMATO', k === 'BEEF');
+    const px = colX(BIN_COL0 + i), py = ROW_Y[r];
+    /* An empty bin is a BIN, drawn empty -- not a gap. Twelve are always on
+       the line, so a level that needs eleven has to still show twelve or the
+       rule is invisible and the grid looks like it re-packed. The columns
+       outside the twelve are bare table and are not drawn at all; the
+       difference between those two things is the whole point. */
+    if (!k) {
+      const e = WELLS.EMPTY;                       // the sheet drew one; use it
+      if (e) return void x.drawImage(e, px + ((CELL_W - e.width) >> 1),
+                                        py + ((CELL_H - e.height) >> 1));
+      return emptyBin(px, py, CELL_W, CELL_H);
+    }
+    // BEEF was just placed correctly; ONION was the last mis-pick
+    bin(px, py, CELL_W, CELL_H, k, k === 'ONION', k === 'BEEF');
   }));
-  cursor(colX(CURSOR[1]), ROW_Y[CURSOR[0]], CELL_W, CELL_H);
+  cursor(colX(BIN_COL0 + CURSOR[1]), ROW_Y[CURSOR[0]], CELL_W, CELL_H);
+}
+
+/* An empty bin: the same pan, with nothing in it. Deliberately NOT a lid and
+   deliberately not bare table -- it has to read as a station that is on the
+   line and unused, because that is exactly what it is. The well is a shade
+   darker than a full one, since an empty pan shows its own floor. */
+function emptyBin(px, py, w, h) {
+  R(x, PAL.roadLo, px, py, w, h);
+  R(x, STEEL_D, px + 1, py + 1, w - 2, h - 2);
+  R(x, STEEL_M, px + 1, py + 1, w - 2, 1);
+  R(x, shade(STEEL_X, -0.16), px + 2, py + 2, w - 4, h - 4);
+  const wx = px + 3, wy = py + 3, ww = w - 6, wh = h - 6;
+  R(x, 'rgba(12,8,20,0.34)', wx, wy, ww, 1);          // rim shadow, as a full bin
+  R(x, 'rgba(12,8,20,0.22)', wx, wy, 1, wh);
+  R(x, shade(STEEL_X, -0.05), wx, wy + wh - 2, ww, 2);  // light pooling on the floor
 }
 
 /* Label plate on the front lip, ingredient heaped in a steel well.
@@ -366,17 +443,63 @@ function steamTable() {
    the same everywhere. Red plate + ink text is the grammar the active ticket
    row already uses in amber. The brief says the warning persists until the
    right ingredient is picked, so this is a held state, not a one-frame blink. */
+/* BAKED=1 blits the reduced reference wells from content/lattice/ instead of
+   drawing heap(). Behind a flag on purpose: the art it replaces was rebuilt
+   around ONE HERO OBJECT for two measured reasons (see below), and reference
+   art that fills a well edge to edge undoes both. Whether that is a
+   regression is a question for measure.mjs and for looking, not for an
+   opinion, so both versions have to be renderable side by side. */
+/* The baked wells are the DEFAULT now. HEAPS=1 goes back to the drawn ones.
+
+   This reverses "one hero object, bare steel around it", and the reversal is
+   deliberate rather than forgetful. That rule was reached because every cell
+   that scored well had a discrete outlined object and every cell that scored
+   1 was a FILL -- but the fills it was judging were generic texture, so they
+   all collided. These do not: fine crumble, chunks, whole beans, rings with
+   holes, rings with seeds. Rendered side by side, beef and chicken are the
+   same mound in the drawn version and obviously different pans in this one.
+
+   The measured half of that rule still bites, and is still obeyed. Trays
+   butted edge to edge put the frame OUT of tolerance -- the calm mid-range
+   steel between bins is load-bearing, exactly as the original review said. It
+   is bought back with --pad 2, which is why the trays do not fill their cells. */
+const WELLS = {};
+if (!process.env.HEAPS) {
+  const dir = _j(_d(_f(import.meta.url)), '..', '..', 'content', 'lattice');
+  if (existsSync(dir)) for (const f of readdirSync(dir).filter((n) => n.endsWith('.json'))) {
+    const rec = JSON.parse(readFileSync(_j(dir, f), 'utf8'));
+    WELLS[rec.name] = decodeFace(rec);
+  }
+}
+
 function bin(px, py, w, h, key, wrong, picked) {
   const [mid, hi, lo, kind] = ING[key];
-  R(x, PAL.roadLo, px, py, w, h);                 // border off ink: cool dark
-  R(x, STEEL_D, px + 1, py + 1, w - 2, h - 2);    // was already at parity
-  R(x, STEEL_M, px + 1, py + 1, w - 2, 1);
+  const baked = WELLS[key];
+
+  /* A baked well arrives at one of two sizes and the size says which it is.
+     Cell-sized art (46x28) is a whole TRAY -- rim included -- so the chrome
+     below must not draw at all, or the pan gets a second steel border inside
+     its own. Well-sized art (40x22) is food only and sits in the pan the code
+     draws. Keying off the dimensions rather than a flag means the two can
+     never disagree about which is which. */
+  const wholeTray = baked && baked.width >= w - 6 && baked.height >= h - 6;
+
+  if (wholeTray) {                                 // centred, so --pad shows
+    x.drawImage(baked, px + ((w - baked.width) >> 1), py + ((h - baked.height) >> 1));
+  } else {
+    R(x, PAL.roadLo, px, py, w, h);                 // border off ink: cool dark
+    R(x, STEEL_D, px + 1, py + 1, w - 2, h - 2);    // was already at parity
+    R(x, STEEL_M, px + 1, py + 1, w - 2, 1);
+    R(x, STEEL_X, px + 2, py + 2, w - 4, h - 4);    // pan -- full height, no plate
+  }
 
   const wx = px + 3, wy = py + 3, ww = w - 6, wh = h - 6;
-  R(x, STEEL_X, px + 2, py + 2, w - 4, h - 4);     // pan -- full height, no plate
-  heap(wx, wy, ww, wh, mid, hi, lo, kind, key);
-  R(x, 'rgba(12,8,20,0.34)', wx, wy, ww, 1);       // shadow under the pan rim
-  R(x, 'rgba(12,8,20,0.22)', wx, wy, 1, wh);
+  if (baked && !wholeTray) x.drawImage(baked, wx, wy + ((wh - baked.height) >> 1));
+  else if (!baked) heap(wx, wy, ww, wh, mid, hi, lo, kind, key);
+  if (!wholeTray) {                                // the tray art has its own
+    R(x, 'rgba(12,8,20,0.34)', wx, wy, ww, 1);     // rim shadow already
+    R(x, 'rgba(12,8,20,0.22)', wx, wy, 1, wh);
+  }
 
   /* 10 rows, not 9: at 9 the glyph's top row landed on the plate's own
      border with zero air above it -- the vertical-overflow failure CLAUDE.md
@@ -556,22 +679,6 @@ function heap(wx, wy, ww, wh, mid, hi, lo, kind, seed) {
   }
 }
 
-/* A lidded slot. The menus scale from twelve ingredients to sixteen, and an
-   unused slot is COVERED rather than absent -- so nothing on the line ever
-   moves position between levels, and what a player learns in 1972 still holds
-   in 1999. A visible lid also reads as a kitchen rather than as a gap. */
-function lid(px, py, w, h) {
-  R(x, PAL.ink, px, py, w, h);
-  R(x, STEEL_D, px + 1, py + 1, w - 2, h - 2);
-  R(x, STEEL, px + 3, py + 4, w - 6, h - 8);
-  R(x, STEEL_H, px + 3, py + 4, w - 6, 2);
-  R(x, shade(STEEL_D, -0.3), px + 3, py + h - 6, w - 6, 2);
-  for (let i = 0; i < w - 10; i += 4)               // brushed
-    R(x, shade(STEEL, 0.06), px + 5 + i, py + 6, 1, h - 12);
-  R(x, PAL.ink, px + w / 2 - 7, py + h / 2 - 2, 14, 4);   // handle
-  R(x, STEEL_M, px + w / 2 - 6, py + h / 2 - 1, 12, 2);
-  R(x, STEEL_H, px + w / 2 - 6, py + h / 2 - 1, 12, 1);
-}
 
 /* The cursor. It exists because the stick steps cell to cell, so the player
    must always know where they are without hunting -- and it has to survive
@@ -601,16 +708,35 @@ function prepBoard() {
   R(x, WOOD_H, 0, 164, VW, 3);                     // lit front edge of the board
   R(x, shade(WOOD_L, -0.35), 0, 167, VW, 1);
   R(x, WOOD, 0, 168, VW, VH - 168);
+
+  /* The counter is FLAT steel, and that took two attempts.
+
+     It began as one grain loop of 150 random 1px streaks in WOOD_L -- a cool
+     grey -- at random x across the full 384, which painted the steel counter
+     AND the warm wooden board sitting on top of it. On steel those read as
+     scratches; on wood as blue-grey aliasing.
+
+     The fix for that was regular brushing every 4px, and it was worse: at this
+     contrast evenly spaced 1px lines across 384px read as venetian blinds, not
+     as metal. Texture was never what the surface needed. It is the calm the
+     rest of the frame is measured against, and a counter is allowed to be a
+     counter -- the vignette and the front edge already give it form. */
+
   /* Warmth as an ISLAND, the way the reference spends it -- full stainless
      measured within tolerance but drained the frame to sat 27.8. */
-  R(x, PAL.ink, 137, 170, 106, VH - 172);
-  R(x, PAL.dirt, 138, 171, 104, VH - 174);
-  R(x, PAL.porch, 138, 171, 104, 2);
-  R(x, PAL.dirtLo, 138, VH - 5, 104, 2);
+  const BX = 138, BW = 177;                 // was 104 wide; +70%
+  R(x, PAL.ink, BX - 1, 170, BW + 2, VH - 172);
+  R(x, PAL.dirt, BX, 171, BW, VH - 174);
+  R(x, PAL.porch, BX, 171, BW, 2);
+  R(x, PAL.dirtLo, BX, VH - 5, BW, 2);
+
+  /* the board's own grain, in the board's own colours and inside its own edges */
   const rng = makeRng(88);
-  for (let i = 0; i < 150; i++) {
-    const gy = 169 + rng.int(VH - 171);
-    R(x, rng.chance(0.5) ? WOOD_L : shade(WOOD, 0.09), rng.int(VW), gy, 6 + rng.int(24), 1);
+  for (let i = 0; i < 70; i++) {
+    const gy = 174 + rng.int(VH - 183);
+    const gx = BX + 2 + rng.int(BW - 14);
+    const gw = Math.min(6 + rng.int(22), BX + BW - 2 - gx);
+    R(x, rng.chance(0.5) ? shade(PAL.dirt, -0.13) : shade(PAL.dirt, 0.09), gx, gy, gw, 1);
   }
   x.globalAlpha = 0.20; R(x, PAL.ink, 0, VH - 7, VW, 7); x.globalAlpha = 1;
 
@@ -621,8 +747,12 @@ function prepBoard() {
   textOut(x, 'ITEM 3 OF 5', 60, 200, PAL.boneDim, 1);
 
   /* --- building, centre: pips over the item --- */
-  pips(180, 168, [ING.SHELLS[0], ING.BEEF[0], ING.LETTUCE[0], null, null]);
-  hardTaco(180, 193);
+  pips(BX + BW / 2, 168, [ING.SHELLS[0], ING.BEEF[0], ING.LETTUCE[0], null, null]);
+  /* hardTaco() drew the item under construction here. Removed from the frame,
+     NOT deleted: it is the shape that finally worked after five rewrites (see
+     its own comment), and the item under construction is a real mechanic that
+     comes back the moment the Kitchen Shift is built. Deleting it would throw
+     away the one drawing in this file with that much argument behind it. */
 
   /* --- built, right: what this ticket has already produced, on the pass
          tray. The tray is not decoration: measured off the render, the CRT
@@ -630,15 +760,72 @@ function prepBoard() {
          straight on the wood greyed out to mud there. Bright steel behind it
          restores the local contrast -- the same reason the driving HUD can
          put the minimap in a corner under a 42% darkening and still read. */
-  R(x, STEEL_X, 244, 182, 134, 32);
-  R(x, shade(STEEL, -0.14), 246, 184, 130, 28);
-  R(x, STEEL_H, 246, 184, 130, 1);
-  R(x, shade(STEEL, -0.34), 246, 210, 130, 2);
-  for (let i = 248; i < 376; i += 3) R(x, shade(STEEL, -0.06), i, 186, 1, 24);
-  textOut(x, 'BUILT', 246, 172, PAL.boneDim, 1);
-  textOut(x, 'X1.25 STREAK', 378, 172, PAL.amber, 1, 2);   // moved off the window
-  nachos(285, 206);
-  wrapped(340, 204);
+  /* WRAP IT! -- clears the finished item off the board.
+
+     A BUTTON, not a shelf. The design has always said so: three inputs,
+     select / wrap / serve, and wrap and serve are buttons rather than cells
+     because a 4-way stick has no spare direction for them. It sits at the
+     board's own vertical extent so the bottom row reads as one continuous
+     line of work rather than a board with a smaller thing beside it.
+
+     Amber, because in this frame amber already means "the live thing": the
+     cursor, the active ticket row. Green is taken -- it is the correct-pick
+     plate -- and red is a mis-pick, so neither can carry an action. */
+  const TX = BX + BW + 6, TW2 = VW - 4 - TX;
+  wrapButton(TX, 170, TW2, VH - 172);
+  /* nachos() and wrapped() sat on this tray. Removed from the frame and kept
+     for the same reason as hardTaco: BUILT is a real readout of what a ticket
+     has produced, and these are what it will hold. The steel stays, because
+     the tray is not decoration -- the CRT vignette takes ~34% of the value at
+     x322 and food sitting straight on the wood greys out to mud there. */
+}
+
+/* The wrap button. Bevelled rather than flat -- the frame has no other
+   pressable thing in it, so the affordance has to come from the drawing.
+
+   Two lines at scale 2, not one at scale 1: at 59px wide a single "WRAP IT!"
+   fits only at scale 1, where it reads as a caption on a coloured rectangle
+   instead of as a control you hit. */
+function wrapButton(px, py, w, h) {
+  const LINES = ['WRAP', 'IT!'];
+  for (const l of LINES) {
+    const lw = textW(l, 2);
+    if (lw > w - 10) throw new Error(
+      `wrap button: "${l}" is ${lw}px at scale 2 in a ${w}px button. ` +
+      `Widen it, shorten the word, or drop to scale 1.`);
+  }
+
+  /* Bare steel, an amber keyline, brackets at all four corners.
+
+     Three other treatments were drawn and rejected. A solid amber cap read as
+     a hazard sign rather than a control -- a saturated slab with ink text is
+     the visual language of a warning label, and at this size that is what the
+     eye calls it first. A brass push button read better but kept the warm
+     cost, and a dark HUD panel read as a readout rather than as a thing you
+     press.
+
+     The brackets are why this one works: they are the SAME shape the bin
+     cursor uses, so the screen has one grammar for "this is the thing you act
+     on" instead of two competing ones. It also spends almost no warm area,
+     which the frame needs -- the board beside it is already 177px of wood. */
+  R(x, PAL.ink, px, py, w, h);
+  R(x, shade(STEEL, -0.24), px + 1, py + 1, w - 2, h - 2);
+  R(x, shade(STEEL, -0.10), px + 1, py + 1, w - 2, 1);          // lit top edge
+  R(x, shade(STEEL, -0.42), px + 1, py + h - 2, w - 2, 1);
+
+  x.strokeStyle = PAL.amber; x.lineWidth = 1;
+  x.strokeRect(px + 2.5, py + 2.5, w - 5, h - 5);
+  const k = 7;                                                  // as cursor()
+  for (const [bx, by, dx, dy] of [
+    [px + 2, py + 2, 1, 1], [px + w - 4, py + 2, -1, 1],
+    [px + 2, py + h - 4, 1, -1], [px + w - 4, py + h - 4, -1, -1]]) {
+    R(x, PAL.amber, bx - (dx < 0 ? k - 2 : 0), by, k, 2);
+    R(x, PAL.amber, bx, by - (dy < 0 ? k - 2 : 0), 2, k);
+  }
+
+  const cx = px + w / 2;
+  textOut(x, LINES[0], cx, py + 11, PAL.amber, 2, 1);
+  textOut(x, LINES[1], cx, py + 26, PAL.amber, 2, 1);
 }
 
 /* filled with the ingredient you added, blank for the steps still to come.
