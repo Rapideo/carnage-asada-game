@@ -39,10 +39,16 @@ questions:
 - **Levels are independent.** Own clock, own money, own star rating, totalled at
   the end. This preserves `78_scores.js` unchanged: the board still stores one
   `cents` figure and `rank()` still derives its title from it.
-- **The ingredient grid is a navigable lattice**, 2×8 = 16 cells, always 16 with
-  unused slots lidded. A 4-way stick steps a cursor cell to cell; a mouse jumps
-  the cursor to what it clicks. **Travel distance is a real cost**, so ingredient
-  seating is level design.
+- **The ingredient grid is a navigable lattice of TWELVE bins**, always twelve, in
+  2 rows × 6. Superseded the earlier "2×8 = 16 cells, unused slots lidded" rule on
+  2026-08-24; the reasoning behind it survives unchanged, which is that nothing on
+  the line may ever move position between levels, and a level needing fewer
+  ingredients leaves bins **empty** rather than covering them. A 4-way stick steps
+  a cursor cell to cell; a mouse jumps the cursor to what it clicks. **Travel
+  distance is a real cost**, so ingredient seating is level design.
+- **Two BASE STATIONS flank the twelve**, double height, one column each: tortillas
+  and shells at x5, chips at x334. A station holds the thing an order is built *on*
+  rather than an ingredient added to it, which is why it sits outside the count.
 - **`WRAP` and `SERVE` are buttons, not cells** — three buttons: select, wrap,
   serve. Which means **ticket focus cannot be player-selected**: there is no input
   left, so the game assigns it. That is arithmetic, not preference.

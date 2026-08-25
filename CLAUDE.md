@@ -77,6 +77,13 @@ The dialogue width check is **not** the 384px one every other field uses: the po
 bubble, so the limit is computed from the widest baked face. A line that passes the screen-width check can
 still overflow the bubble, and nothing in the test suite can see it.
 
+**`content/lattice/*.json` is generated but does NOT ship yet.** It holds the baked
+steam-table wells, the two base stations and the item on the assembly board, and it is
+read straight off disk by `reference/kitchen/kitchen.mjs` — `build.mjs` never sees it,
+because the Kitchen Shift is not in `src/`. When it lands there, the lattice gets the
+same inlining and the same validation the faces already have. Re-bake with
+`tools/render/bake-lattice.mjs`; see `docs/art_pipeline.md`.
+
 `slogan` and `attribution` each accept a string *or* an array of lines, and `overlayWinners` lays the
 attribution out below whatever the slogan needs, so long copy wraps rather than being cut. If you add copy
 elsewhere, put it here and widen the validation rather than hard-coding strings in `80_game.js`.

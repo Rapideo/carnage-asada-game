@@ -264,6 +264,7 @@ a double-height station is ~0.78:1, taller than wide.
 | single bin | 46 × 28 | **42 × 24** | 40 × 22 | 1.75 : 1 |
 | double-height station | 46 × 58 | **42 × 54** | 40 × 52 | 0.78 : 1 |
 | double-width bin | 93 × 28 | 89 × 24 | 87 × 22 | 3.71 : 1 |
+| **free object** on the board | — | `--size WxH`, e.g. 40×38 | — | its own; aspect is kept |
 
 Bins sit at x = 52 99 146 193 240 287, rows y = 105 and 135. Column 0 (x5) and
 column 7 (x334) are the stations. Colour cap is **16**, same as a face.
@@ -288,6 +289,34 @@ node tools/render/measure.mjs reference/kitchen/kitchen.png
 Writes `content/lattice/<name>.json`, one per cell, and a `lattice-bake.png`
 contact sheet at 6×.
 
+## Free objects, which are not cells at all
+
+The item under construction sits on the wooden assembly board, not in a pan. It
+is a **cutout on transparency** rather than a texture in a rectangle, and that
+changes three things:
+
+```bash
+node tools/render/bake-lattice.mjs making_burrito.png --keyed --size 40x38 --names BURRITO
+```
+
+- **`--keyed`** turns background removal back **on**. `opaque` is right for a crop
+  taken inside a tray, where every pixel is food or pan floor; it is wrong here,
+  because the wood has to show through around a round tortilla.
+- **`--keyed` also keeps the aspect** instead of filling. A pan of beef can be
+  squashed a few percent and nobody can tell; a circle cannot.
+- **`--size WxH`** sets the target directly, because there is no cell to derive it
+  from. The board face is y171–212, so 38 tall clears its 2-row top highlight and
+  bottom shadow — 40 would sink into both.
+
+**A source alpha channel outranks the colour key.** Keying *guesses* which colour
+meant "nothing"; alpha says so outright. Before this was handled, the reducer
+tested colour only, and detection and reduction disagreed about where the subject
+even was — a 1184×1156 tortilla was found as a 914×719 fragment.
+
+**`--keyed` implies no inset, the way `--tray` does.** `--inset`/`--top` exist to
+crop *inside a drawn tray rim*. A free object has no rim to clear, and applying
+them anyway took 12% off its sides and 26% off its top.
+
 ## The flags, and why each exists
 
 | flag | for |
@@ -300,7 +329,9 @@ contact sheet at 6×.
 | `--merge` | union every detected component into one tray |
 | `--whole` | skip detection entirely; the image *is* the cell |
 | `--only NAME` | bake one cell, to look before committing to twelve |
-| `--inset N` `--top N` | food-only mode: how far inside the drawn rim to crop |
+| `--keyed` | background removal ON, aspect kept — for a cutout on transparency |
+| `--size WxH` | target size directly, for art that is not a grid cell |
+| `--inset N` `--top N` | food-only mode: how far inside the drawn rim to crop. Ignored under `--tray` and `--keyed` |
 
 **`--pad 2` is not cosmetic.** Twelve trays butted edge to edge turn the shared
 steam-table line into wall-to-wall tray, and the frame goes **out of tolerance** —
@@ -405,6 +436,9 @@ because its 19% warm target is unreachable for a design full of wood and tortill
 | It looks like a sticker pasted on the scene | palette does not match the line | regenerate it the way the rest of the sheet was generated |
 | The build throws on a bin name | over 7 characters; the plate is 44px and the name is centred | shorten the display name, keep the full one in recipe data |
 | The pan has a border inside its border | whole-tray art at the wrong size, so `bin()` did not stand down | bake at cell size; the check is `baked.width >= w - 6` |
+| A cutout comes out cropped into | tray insets applied to a free object — 12% off the sides, 26% off the top | fixed: `--keyed` implies no inset. Pass `--inset 0 --top 0` if you hit it another way |
+| A cutout comes out squashed | `fill` scales the axes independently, which is right for texture and wrong for a circle | `--keyed` keeps the aspect |
+| Detection finds a fragment of an RGBA subject | detection colour-keyed while the reduction honoured alpha | fixed: both key on alpha first |
 
 ---
 
