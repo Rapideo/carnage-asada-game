@@ -77,9 +77,11 @@ coordinates are in the 384×216 virtual screen.
       |    a level needing fewer leaves bins EMPTY, never covered        |
   164 +------------------------------------------------------------------+
       |  PREP BOARD                                                      |
-      |    readout   x6..~130   NOW BUILDING / name / ticket             |
+      |    BUILD PROGRESS  -- name + stage pips + the item picture        |
+      |      readout x6..~130   NOW BUILDING / name / ticket             |
       |      pips    right of the name, 8x8 + 1 gap, derived x           |
       |    BOARD     138,170  177x44   item centred, ~39x38              |
+      |      the picture is ONE FRAME of an item x stage sequence        |
       |    WRAP IT!  321,170  59x44                                      |
   216 +------------------------------------------------------------------+
 

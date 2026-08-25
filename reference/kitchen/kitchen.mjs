@@ -769,8 +769,19 @@ function prepBoard() {
   }
   x.globalAlpha = 0.20; R(x, PAL.ink, 0, VH - 7, VW, 7); x.globalAlpha = 1;
 
-  /* The item under construction, on the board. Drawn BEFORE the pips: the
-     pips are a readout of its progress and belong over it, the way a HUD sits
+  /* ---- BUILD PROGRESS ------------------------------------------------
+     The item name, the stage pips and the picture on the board are ONE
+     readout, and it is called Build Progress. They were drawn as three
+     unrelated things and placed accordingly, which is how the pips ended up
+     90px from the name they belong to.
+
+     The picture is ONE FRAME OF A SEQUENCE, not a decoration. The intent is
+     an image per menu item per assembly stage -- a taco at item 1 of 5 looks
+     different from the same taco at 4 of 5 -- swapped as the player builds.
+     Naming follows that: WELLS.<ITEM><STAGE>, e.g. TACO3. BURRITO is the one
+     frame that exists so far.
+
+     Drawn BEFORE the pips: the pips are a readout OF it, and a HUD belongs
      over the world rather than under it. */
   const item = WELLS.BURRITO;
   if (item) x.drawImage(item, (BX + BW / 2 - item.width / 2) | 0,
@@ -783,7 +794,7 @@ function prepBoard() {
   textOut(x, 'TICKET 1', 6, 200, PAL.amber, 1);
   textOut(x, 'ITEM 3 OF 5', 60, 200, PAL.boneDim, 1);
 
-  /* Pips sit immediately right of the item name, vertically centred on it.
+  /* Stage pips, immediately right of the item name and vertically centred.
 
      They were over the board, which put the progress readout on the far side
      of the screen from the item name it belongs to -- two halves of one
@@ -877,6 +888,8 @@ function wrapButton(px, py, w, h) {
 
 /* filled with the ingredient you added, blank for the steps still to come.
    Same chrome as the DELIVERIES bag slots in the driving HUD. */
+/* Build Progress stage markers: one pip per assembly step, filled with the
+   ingredient that went in and blank for the steps still to come. */
 const PIP_W = 8, PIP_G = 1;         // was 11/2; 30% narrower overall
 
 function pips(lx, cy, list) {

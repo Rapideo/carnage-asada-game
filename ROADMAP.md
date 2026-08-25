@@ -49,6 +49,11 @@ questions:
 - **Two BASE STATIONS flank the twelve**, double height, one column each: tortillas
   and shells at x5, chips at x334. A station holds the thing an order is built *on*
   rather than an ingredient added to it, which is why it sits outside the count.
+- **BUILD PROGRESS is one readout**: the item name, the stage pips beside it, and a
+  picture of the item on the assembly board. The picture is **one frame of an item ×
+  stage sequence**, swapped as the player builds — a taco at item 1 of 5 does not
+  look like the same taco at 4 of 5. Frames are baked cutouts, ~2.4 KB each, named
+  `<ITEM><STAGE>`; see `docs/art_pipeline.md`.
 - **`WRAP` and `SERVE` are buttons, not cells** — three buttons: select, wrap,
   serve. Which means **ticket focus cannot be player-selected**: there is no input
   left, so the game assigns it. That is arithmetic, not preference.

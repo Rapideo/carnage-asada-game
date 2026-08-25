@@ -317,6 +317,37 @@ even was — a 1184×1156 tortilla was found as a 914×719 fragment.
 crop *inside a drawn tray rim*. A free object has no rim to clear, and applying
 them anyway took 12% off its sides and 26% off its top.
 
+## Build Progress frames
+
+The picture on the assembly board is **one frame of a sequence**, not a one-off.
+The item name, the stage pips and the picture are one readout — **Build Progress** —
+and the plan is an image per **menu item × assembly stage**: a taco at item 1 of 5
+looks different from the same taco at 4 of 5, and the board swaps frames as the
+player builds.
+
+Bake them exactly like the free object above — they are cutouts on transparency,
+same `--keyed --size 40x38`. Two things follow from there being many of them:
+
+**Name them `<ITEM><STAGE>`.** `TACO1`…`TACO5`, `BURRITO1`…, and so on; the drawing
+code looks up `WELLS.<name>`. `BURRITO` is the single frame that exists today and
+will become `BURRITO1..n`.
+
+**Generate them as a contact sheet, one row per item.** Detection handles a grid of
+cutouts the same way it handles a grid of trays, and `--names` takes the whole
+reading order in one go:
+
+```bash
+node tools/render/bake-lattice.mjs taco_stages.png --keyed --size 40x38   --names TACO1,TACO2,TACO3,TACO4,TACO5
+```
+
+One sheet per item keeps the rows short and the names obvious. Framing rules are
+the ones above: even gaps, nothing touching, each frame filling its cell.
+
+**Budget it.** A frame is about **2.4 KB** of source. Five menu items at five stages
+is 25 frames ≈ **54 KB**, against a 246 KB artifact — worth knowing before the matrix
+grows, since the cost is linear in items × stages and nothing warns you. Frames that
+are identical between two stages should share one table rather than being baked twice.
+
 ## The flags, and why each exists
 
 | flag | for |
