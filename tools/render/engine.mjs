@@ -46,7 +46,7 @@ vm.runInContext(code + `
 ;globalThis.__x = { VW, VH, PAL, CAR_COLORS, clamp, lerp, R, mkCanvas, makeRng,
   FW, FH, GLYPH, textW, text, textOut, drawRun, money, clockStr,
   LOGO, LOGO_W, LOGO_H, logoW, logoText, keyline, disc, shade,
-  SPILL, BAG_MID, BAG_HI, BAG_LO, BAG_FOLD, Art, Hud, Post, MM };`,
+  ROOFS, WALLS, SPILL, BAG_MID, BAG_HI, BAG_LO, BAG_FOLD, Art, Hud, Post, MM };`,
   sandbox, { filename: 'bundle.js' });
 
 export const E = sandbox.__x;

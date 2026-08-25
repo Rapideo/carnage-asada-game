@@ -14,6 +14,9 @@ node tools/render/drive.mjs [steps]      # render a live Delivery Shift frame
 node tools/render/measure.mjs [a] [b]    # score a frame against the real game
 node tools/render/crop.mjs x y w h zoom  # magnify a region -> crop.png
 node tools/render/audit.mjs              # read pixels back, check label fit
+node tools/render/palette.mjs            # the complete palette as a sheet
+node tools/render/artboard.mjs           # pre-sized canvases for authoring art
+node tools/render/bake-face.mjs <name> <src.png> <x> <y> <w> <h>
 ```
 
 | file | what it is |
@@ -24,6 +27,12 @@ node tools/render/audit.mjs              # read pixels back, check label fit
 | `measure.mjs` | the normalisation score — see PRD §X.1 |
 | `crop.mjs` | nearest-neighbour magnifier |
 | `audit.mjs` | label-plate clearance, by pixel readback |
+| `palette.mjs` | every `PAL` entry as a sheet, grouped by what it is for |
+| `reduce.mjs` | reference image → small indexed bitmap; shared so the fit test and the bake cannot disagree |
+| `bake-face.mjs` | bake a reference into a source data table, round-tripped against the shipped decoder |
+| `png-read.mjs` | decode a PNG we did not write — real filters, so outside reference images load |
+| `fit-portrait.mjs` | reduce an outside reference into the 56×56 box and compare against what ships |
+| `artboard.mjs` | the lattice wells and the 56×56 face box at 6×, with their constraints drawn on |
 | `reference-frame.png` | a checked-in Delivery Shift frame, the comparison target |
 
 ## How it works

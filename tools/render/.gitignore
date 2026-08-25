@@ -5,3 +5,11 @@ crop.png
 # run differs. reference-frame.png is the checked-in, stable comparison target.
 drive.png
 drive-x3.png
+
+# fit-portrait.mjs scratch: derived from a reference image outside the repo,
+# so it cannot be regenerated from the tree alone and is not a comparison target
+portrait-fit.png
+
+# drive.mjs --dialog output: same Math.random() traffic problem as drive.png
+drive-dialog.png
+drive-dialog-x3.png
