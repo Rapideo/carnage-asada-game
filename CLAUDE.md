@@ -144,7 +144,10 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
   be numbered after everything it uses at load time. Slots are spaced by 10 for exactly this reason.
 - **All modules share one global scope in the bundle.** A top-level `const` name declared twice across two
   files is a fatal redeclaration that only surfaces in the bundle, never in dev. `node test/headless.mjs`
-  catches it because it concatenates the same way.
+  catches it because it concatenates the same way. **Before porting a module into `src/`, run
+  `node tools/collide.mjs <file>`** — it reports hard collisions, near-collisions that differ only by
+  case, and how many names the module would add at once against the ~9 a src module averages. A
+  reference module is an ES module with a scope of its own, so nothing in it warns you.
 - `shell.html` is the page template; `build.mjs` substitutes the `/*__GAME__*/` marker inside its
   `<script>`. It deliberately has **no page chrome** — no header, footer, bezel or key legend. The canvas
   is the whole product. Keep the `#stage` div: `90_main.js` measures it to size the canvas, and deleting

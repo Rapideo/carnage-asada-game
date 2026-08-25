@@ -49,6 +49,25 @@ questions:
 - **Two BASE STATIONS flank the twelve**, double height, one column each: tortillas
   and shells at x5, chips at x334. A station holds the thing an order is built *on*
   rather than an ingredient added to it, which is why it sits outside the count.
+- **PORTING THE KITCHEN SHIFT INTO `src/` IS THE NEXT REAL PIECE**, and it is deliberately
+  **held until the PRD lands**. §IV.A, §IV.B, §IV.C and §IV.E were all empty as of 2026-08-25,
+  which means the play mechanics, the interactions, the controls and the entire menu are
+  unspecified — building recipes against that is inventing placeholders, which is exactly what
+  the reference art already warns is not a decision.
+
+  A name-collision audit was run ahead of it (`node tools/collide.mjs reference/kitchen/kitchen.mjs`)
+  so the port is not blocked on an unknown:
+  - **0 hard collisions** against the 139 top-level names already in `src/`. The port will not
+    hit the fatal-and-invisible redeclaration this build model is prone to.
+  - **1 near-collision**: `hud` against `Hud` in `70_hud.js`. Legal, and a trap for a reader.
+  - **50 top-level names**, against the ~9 a `src/` module averages — 6x. That is not a naming
+    problem, it is a sign the module wants to be **one `Kitchen` object**, the way `Hud`, `City`,
+    `Nav`, `Art`, `Scores`, `Dialog` and `Faces` each are. Thirteen of the fifty are short
+    lowercase names another module would plausibly want: `bin c cursor heap hud mound nachos
+    pantry piece pips rail ticket wall`.
+
+  `dialog.mjs`, `portrait.mjs` and `cast.mjs` are clean on all three counts.
+
 - **BUILD PROGRESS is one readout**: the item name, the stage pips beside it, and a
   picture of the item on the assembly board. The picture is **one frame of an item ×
   stage sequence**, swapped as the player builds — a taco at item 1 of 5 does not
