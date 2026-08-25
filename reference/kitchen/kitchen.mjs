@@ -467,12 +467,6 @@ function emptyBin(px, py, w, h) {
    the same everywhere. Red plate + ink text is the grammar the active ticket
    row already uses in amber. The brief says the warning persists until the
    right ingredient is picked, so this is a held state, not a one-frame blink. */
-/* BAKED=1 blits the reduced reference wells from content/lattice/ instead of
-   drawing heap(). Behind a flag on purpose: the art it replaces was rebuilt
-   around ONE HERO OBJECT for two measured reasons (see below), and reference
-   art that fills a well edge to edge undoes both. Whether that is a
-   regression is a question for measure.mjs and for looking, not for an
-   opinion, so both versions have to be renderable side by side. */
 /* The baked wells are the DEFAULT now. HEAPS=1 goes back to the drawn ones.
 
    This reverses "one hero object, bare steel around it", and the reversal is

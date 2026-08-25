@@ -1,12 +1,28 @@
-# Art pipeline — adding a character
+# Art pipeline — reference image in, pixel table out
 
-How a reference image becomes a character in the game. Written after doing it once,
-end to end, on 2026-08-24; every rule below is here because something went wrong
-without it.
+How a reference image becomes art in the game. Written after doing it end to end
+twice on 2026-08-24 — once for a character, once for twelve ingredients and two
+base stations. Every rule below is here because something went wrong without it.
 
-**The one-line version:** the likeness is *data*, the variation is *code*. You draw
-a reference, `bake-face.mjs` reduces it to a pixel table in source, and the game
-decodes that at boot and layers blinks and expressions over it.
+**The one-line version:** the picture is *data*, the behaviour is *code*. You draw
+a reference, a baker reduces it to a pixel table in source, and the game decodes
+that at boot.
+
+## Two paths
+
+| you have | tool | goes to | target |
+|---|---|---|---|
+| a character | `bake-face.mjs` | `content/faces/` → **ships**, inlined by `build.mjs` | 46×54 head, 60×74 bust |
+| ingredients or a station | `bake-lattice.mjs` | `content/lattice/` → **reference only, for now** | 42×24 bin, 42×54 station |
+
+Both share `reduce.mjs`, deliberately, so the picture you approve and the picture
+in the game cannot drift apart. Both round-trip their output through the **shipped**
+decoder and refuse to write a file that does not come back identical.
+
+**Only faces ship today.** `build.mjs` inlines `content/faces/` into `FACES`;
+`content/lattice/` is read straight off disk by `reference/kitchen/kitchen.mjs`,
+because the Kitchen Shift is not in `src/` yet. When it is, the lattice gets the
+same treatment and the same validation.
 
 ---
 
@@ -34,6 +50,10 @@ blocked by CORS, so an image file would blank the screen on the main distributio
 path. Reference PNGs live *outside* the repo and are authoring input only.
 
 ---
+
+---
+
+# Part 1 — characters
 
 ## What the reference art needs to be
 
@@ -200,6 +220,134 @@ across all 376px. Breaking the frame is an arcade idiom, not an accident.
 
 ---
 
+# Part 2 — ingredients and stations
+
+Twelve bins on the steam table, plus a base station at each end. The bins hold
+ingredients; a station holds a **base** — the thing an order is built *on* rather
+than added to — which is why a station is not a thirteenth bin and the twelve stay
+twelve.
+
+## What the sheet needs to be
+
+**One sheet, not twelve files.** Consistent lighting and angle across the set is
+most of what makes them read as one game, and a single generation gives you that
+for free.
+
+**A regular grid, evenly spaced, equal cells**, nothing touching or overlapping.
+The crops are *found*, not given — hand-measuring twelve rects is twelve chances
+to be a pixel out — and detection needs clean gaps.
+
+**Frame each item tight.** This is the single biggest lever on how it looks, and
+it is not resolution. The first chips tray floated in a lot of empty background,
+so after cropping and reducing, each chip got very few output pixels and came out
+as mottled texture. The second filled its frame and reduced to readable individual
+triangles. Same size source, same command.
+
+**Draw the whole steel tray, rim included** — see `--tray` below. The code's own
+pan chrome stands down when it sees cell-sized art, so what you draw is what shows.
+
+**Match the line's palette.** A tortilla rack was once authored at 42×54 in four
+colours — cream, ink, green, bone. Next to a row of steel pans full of warm food
+it read as a sticker pasted onto the scene, its contents reduced to dark smears,
+and its cream field even scored as *warm* on the `r > b` test while looking neutral
+to the eye. The replacement was a steel rack lit like the trays, and it belonged
+immediately. **Art generated the way the rest of the sheet was generated matches
+automatically; art authored to spec in isolation has to match by luck.**
+
+**Aspect matters, because `fill` will squash to fit.** A bin is ~1.75:1 landscape;
+a double-height station is ~0.78:1, taller than wide.
+
+## Sizes
+
+| slot | cell | tray art (`--pad 2`) | food-only well | frame at |
+|---|---|---|---|---|
+| single bin | 46 × 28 | **42 × 24** | 40 × 22 | 1.75 : 1 |
+| double-height station | 46 × 58 | **42 × 54** | 40 × 52 | 0.78 : 1 |
+| double-width bin | 93 × 28 | 89 × 24 | 87 × 22 | 3.71 : 1 |
+
+Bins sit at x = 52 99 146 193 240 287, rows y = 105 and 135. Column 0 (x5) and
+column 7 (x334) are the stations. Colour cap is **16**, same as a face.
+
+## The steps
+
+```bash
+# 1. see what it found, bake nothing
+node tools/render/bake-lattice.mjs Ingredients.png --probe
+
+# 2. the twelve, as whole trays with steel showing between them
+node tools/render/bake-lattice.mjs Ingredients.png --tray --pad 2
+
+# 3. a single double-height station from a one-tray sheet
+node tools/render/bake-lattice.mjs rack.png --tray --pad 2 --rows 2 --merge --names TORTILLA
+
+# 4. look at it in place
+node reference/kitchen/kitchen.mjs        # HEAPS=1 renders the old drawn wells
+node tools/render/measure.mjs reference/kitchen/kitchen.png
+```
+
+Writes `content/lattice/<name>.json`, one per cell, and a `lattice-bake.png`
+contact sheet at 6×.
+
+## The flags, and why each exists
+
+| flag | for |
+|---|---|
+| `--probe` | report the detected grid and stop |
+| `--tray` | keep the whole pan including its rim; `bin()` then draws no chrome |
+| `--pad N` | leave N px of steam table around each tray. **Use 2** — see below |
+| `--rows N` `--cols N` | a bin spanning more than one cell |
+| `--names A,B,C` | override the twelve-name reading order |
+| `--merge` | union every detected component into one tray |
+| `--whole` | skip detection entirely; the image *is* the cell |
+| `--only NAME` | bake one cell, to look before committing to twelve |
+| `--inset N` `--top N` | food-only mode: how far inside the drawn rim to crop |
+
+**`--pad 2` is not cosmetic.** Twelve trays butted edge to edge turn the shared
+steam-table line into wall-to-wall tray, and the frame goes **out of tolerance** —
+the calm mid-range steel between bins is load-bearing. The original "one hero
+object, bare steel around it" review was right about that half, and `--pad` is how
+the rule is obeyed now that the wells are photographs rather than drawings.
+
+**`--merge` exists because connectivity is the wrong assumption for some subjects.**
+A tray of food is one connected blob. A shelving rack is not — its shelves are
+separated by dark background, so the first bake returned frame-plus-top-shelf as
+one piece and the lower shelves as another, and wrote half a rack under the name
+you asked for and the rest under a stray `CELL1`. Use `--merge` for anything with
+visible gaps between its parts; plain detection for pans.
+
+**`--whole` is for art authored at target size**, which has no background to key
+off and no margin to find an edge in.
+
+## Two traps specific to food
+
+**Background keying deletes dark ingredients.** Keying by colour cannot separate a
+dark subject from a dark ground. Black olives on a near-black field came out **87%
+deleted**, and the gaps between jalapeño rings were punched through to transparent.
+`bake-lattice.mjs` therefore reduces `opaque` — a crop taken *inside* a tray has no
+background, every pixel is food or pan floor. (A face crop still keys, because a
+head genuinely has empty space around it.)
+
+**A tray's top rim is thicker than its sides.** These trays are drawn in slight
+perspective so the far wall shows; a uniform inset leaves a band of steel across
+the top of every well. Hence a separate `--top`, defaulting to 26%.
+
+## Names: 7 characters
+
+The bin name plate is 44px and the name is centred in it, so **anything over 7
+characters runs off both ends of its own bin**. A guard in `kitchen.mjs` throws at
+render time.
+
+It is a guard rather than a note because the overflow is invisible almost all the
+time: the plate only draws at the instant a bin is picked or mis-picked. `JALAPENO`
+had been 3px too wide since the frame was first drawn and nobody saw it. Shorten
+the **display** name — `TOMATOES` → `TOMATO`, `BLACK OLIVES` → `OLIVES`, `JALAPENOS`
+→ `PEPPERS`, `SOUR CREAM` → `CREAM` — and keep the full name in the recipe data,
+where nothing has to draw it.
+
+---
+
+# Both paths
+
 ## What the build checks, and what nothing checks
 
 `build.mjs` rejects a face whose runs do not cover `w × h`, whose palette exceeds 16,
@@ -212,9 +360,22 @@ the widest baked face. Swapping in a wider portrait automatically tightens it an
 build names the line to trim. A line that passes a screen-width check can still
 overflow the bubble, and the test suite's drawing stubs cannot see it.
 
-**Nothing checks whether the face looks right.** `test/headless.mjs` draws through
+**Lattice wells are not validated at all yet**, because `build.mjs` never sees them
+— `content/lattice/` is read straight off disk by the reference mockup. The same
+checks should move across with the Kitchen Shift when it lands in `src/`. Until
+then the only guard on a well is the baker's own round trip, which catches an
+encoder/decoder disagreement but not a malformed hand edit.
+
+**Anything in `content/faces/` ships, wired up or not.** `build.mjs` inlines the
+whole directory, so an experiment you baked and abandoned is still ~3 KB in the
+artifact. Delete the JSON when you drop a character.
+
+**Nothing checks whether any of it looks right.** `test/headless.mjs` draws through
 stubs and by design cannot see a pixel. Render it and look — that is not optional
-advice, it is how every defect in the table below was found.
+advice, it is how every defect in the table below was found. For the lattice,
+`measure.mjs` is a useful second opinion but only that: it scores the frame against
+a live Delivery Shift frame, and it has already been wrong about this screen once,
+because its 19% warm target is unreachable for a design full of wood and tortilla.
 
 ---
 
@@ -230,6 +391,20 @@ advice, it is how every defect in the table below was found.
 | Skin goes blotchy gold | something snapped the face to `PAL` | faces carry their own palette. See step 2 |
 | A halo of background around the head | source background is not flat, or is far from the top-left pixel | re-export the reference on a flat backdrop |
 | `crop.mjs` throws on an outside PNG | it used to only read filter-0 rows from our own writer | fixed — `png-read.mjs` handles real encoder output. Both use it now |
+
+### Ingredients and stations
+
+| symptom | cause | fix |
+|---|---|---|
+| A dark ingredient comes out nearly empty | background keying cannot separate a dark subject from a dark ground — black olives were 87% deleted | already fixed: `bake-lattice.mjs` reduces `opaque`. Never turn that off for a tray crop |
+| A band of steel across the top of every well | the tray's far wall shows in perspective, so its top rim is thicker than its sides | `--top`, default 26%. Raise it if the art is drawn at a steeper angle |
+| Half a rack baked, and a stray `CELL1` | detection assumes one connected blob; a shelving rack's shelves are separated by background | `--merge` |
+| Nothing detected at all | art authored at target size has no background to key and no margin to find an edge in | `--whole` |
+| The frame drops out of tolerance after a bake | trays butted edge to edge lose the calm steel between bins | `--pad 2` |
+| An ingredient reads as mottled texture | the source floated in empty background, so each item got few output pixels | reframe tight. Resolution is not the lever |
+| It looks like a sticker pasted on the scene | palette does not match the line | regenerate it the way the rest of the sheet was generated |
+| The build throws on a bin name | over 7 characters; the plate is 44px and the name is centred | shorten the display name, keep the full one in recipe data |
+| The pan has a border inside its border | whole-tray art at the wrong size, so `bin()` did not stand down | bake at cell size; the check is `baked.width >= w - 6` |
 
 ---
 
@@ -268,5 +443,6 @@ the baker's round-trip check runs against the reference copy.
 
 - `CLAUDE.md` — *Faces and the dialogue strip*, and the module table
 - `tools/render/README.md` — every tool in the harness
-- `reference/kitchen/README.md` — the screen regions and the 44px finding
+- `reference/kitchen/README.md` — the screen regions, the twelve-bin rule, and the 44px finding
+- `reference/kitchen/kitchen.mjs` — `HEAPS=1` renders the drawn wells the baked ones replaced
 - `JOURNAL.md` — *"Drawing food at 384×216"* and the two-legible-sizes rule
