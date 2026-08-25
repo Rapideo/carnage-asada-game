@@ -368,6 +368,11 @@ const LATTICE = [
    column 7 is bare table -- neither is a bin, so neither is in the array. A
    null INSIDE the array is different: it is one of the twelve, standing empty. */
 const BIN_COL0 = 1;
+
+/* The assembly board, at module scope because three things now derive from it:
+   the board itself, the WRAP button that sits beyond its right edge, and the
+   guard that stops the progress pips being pushed into it by a long name. */
+const BX = 138, BW = 177;           // was 104 wide; +70%
 const CELL_W = 46, CELL_H = 28, COL0 = 5, ROW_Y = [105, 135];
 const colX = (i) => COL0 + i * (CELL_W + 1);
 
@@ -413,8 +418,15 @@ function steamTable() {
                                         py + ((CELL_H - e.height) >> 1));
       return emptyBin(px, py, CELL_W, CELL_H);
     }
-    // BEEF was just placed correctly; ONION was the last mis-pick
-    bin(px, py, CELL_W, CELL_H, k, k === 'ONION', k === 'BEEF');
+    /* No bin is showing its name plate. BEEF was drawn picked and ONION
+       mis-picked to demonstrate both feedback states; the frame reads cleaner
+       without them, and the states are still there to be switched on -- pass
+       `wrong` or `picked` true for any key.
+
+       This makes the 7-character guard above MORE important, not less: the
+       plate is now invisible in every rendered frame, so an over-long name
+       could never be caught by looking. It is caught at render time instead. */
+    bin(px, py, CELL_W, CELL_H, k, false, false);
   }));
   /* The right column: a double-height STATION, not a thirteenth bin.
 
@@ -742,7 +754,6 @@ function prepBoard() {
 
   /* Warmth as an ISLAND, the way the reference spends it -- full stainless
      measured within tolerance but drained the frame to sat 27.8. */
-  const BX = 138, BW = 177;                 // was 104 wide; +70%
   R(x, PAL.ink, BX - 1, 170, BW + 2, VH - 172);
   R(x, PAL.dirt, BX, 171, BW, VH - 174);
   R(x, PAL.porch, BX, 171, BW, 2);
@@ -758,14 +769,32 @@ function prepBoard() {
   }
   x.globalAlpha = 0.20; R(x, PAL.ink, 0, VH - 7, VW, 7); x.globalAlpha = 1;
 
+  /* The item under construction, on the board. Drawn BEFORE the pips: the
+     pips are a readout of its progress and belong over it, the way a HUD sits
+     over the world rather than under it. */
+  const item = WELLS.BURRITO;
+  if (item) x.drawImage(item, (BX + BW / 2 - item.width / 2) | 0,
+                              (171 + (VH - 174) / 2 - item.height / 2) | 0);
+
   /* --- readout, left --- */
+  const BUILDING = 'TACO';
   textOut(x, 'NOW BUILDING', 6, 172, PAL.boneDim, 1);
-  textOut(x, 'TACO', 6, 182, PAL.bone, 2);
+  textOut(x, BUILDING, 6, 182, PAL.bone, 2);
   textOut(x, 'TICKET 1', 6, 200, PAL.amber, 1);
   textOut(x, 'ITEM 3 OF 5', 60, 200, PAL.boneDim, 1);
 
-  /* --- building, centre: pips over the item --- */
-  pips(BX + BW / 2, 168, [ING.SHELLS[0], ING.BEEF[0], ING.LETTUCE[0], null, null]);
+  /* Pips sit immediately right of the item name, vertically centred on it.
+
+     They were over the board, which put the progress readout on the far side
+     of the screen from the item name it belongs to -- two halves of one
+     sentence, 90px apart. Next to the name they read as part of it.
+
+     The x is DERIVED from the name's width rather than hard-coded, because
+     the name is variable: TACO is 46px at scale 2 and TACO SUPREME is 142.
+     A guard below catches the case where that pushes them into the board. */
+  const NAME_W = textW(BUILDING, 2);
+  const pipX = 6 + NAME_W + 7;
+  pips(pipX, 182 + 7 - (PIP_W >> 1), [ING.SHELLS[0], ING.BEEF[0], ING.LETTUCE[0], null, null]);
   /* hardTaco() drew the item under construction here. Removed from the frame,
      NOT deleted: it is the shape that finally worked after five rewrites (see
      its own comment), and the item under construction is a real mechanic that
@@ -848,10 +877,17 @@ function wrapButton(px, py, w, h) {
 
 /* filled with the ingredient you added, blank for the steps still to come.
    Same chrome as the DELIVERIES bag slots in the driving HUD. */
-function pips(cx, cy, list) {
-  const n = list.length, w = 11, g = 2, tot = n * w + (n - 1) * g;
+const PIP_W = 8, PIP_G = 1;         // was 11/2; 30% narrower overall
+
+function pips(lx, cy, list) {
+  const n = list.length, w = PIP_W, g = PIP_G, tot = n * w + (n - 1) * g;
+  /* The readout shares the left region with the board, which starts at x137.
+     A long item name pushes the pips right, and nothing else would notice. */
+  if (lx + tot > BX - 5) throw new Error(
+    `pips: ${n} pips from x${lx} end at ${lx + tot}, and the board starts at ${BX - 1}. ` +
+    `A long item name pushes them right -- shorten it, or move the pips.`);
   list.forEach((col, i) => {
-    const px = (cx - tot / 2 + i * (w + g)) | 0;
+    const px = (lx + i * (w + g)) | 0;
     if (col) {
       R(x, PAL.ink, px, cy, w, w);
       R(x, col, px + 1, cy + 1, w - 2, w - 2);

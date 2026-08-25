@@ -31,11 +31,14 @@ of them are PRD §X.1.
 | `facedata.mjs` | decode a baked face, and draw variation (blink, hood) over it |
 | `cast.mjs` | the cast, as data — one entry per character |
 | `faces/*.mjs` | **generated** baked likenesses; re-bake with `tools/render/bake-face.mjs` |
+| `../../content/lattice/*.json` | **generated** baked wells, stations and the board item; re-bake with `tools/render/bake-lattice.mjs`. Read straight off disk here — `build.mjs` does not see them, because the Kitchen Shift is not in `src/` yet |
 | `dialog.mjs` | the dialogue strip — **shared by both halves of the game** |
 | `face.mjs` | portrait test rig; iterate on faces without rebuilding the scene |
 
 ```
 node reference/kitchen/kitchen.mjs            # redraw the frame
+HEAPS=1 node reference/kitchen/kitchen.mjs    # ...with the DRAWN wells, not the baked ones
+DIALOG=smoker node reference/kitchen/...      # ...with the baked face in the strip
 DIALOG=1 node reference/kitchen/kitchen.mjs   # ...with the dialogue strip up
 node reference/kitchen/face.mjs               # just the character sheet
 node tools/render/measure.mjs                 # score it against the real game
@@ -64,16 +67,20 @@ coordinates are in the 384×216 virtual screen.
       |                                      |      opening x296..336    |
       |                                      |      jambs either side    |
       |                                      |    QUEUE  max 4, facing N |
+      |                                      |      (count label removed)|
   104 +--------------------------------------+---------------------------+
       |  LATTICE            2 rows x 6 = 12 BINS, 46x28                  |
       |    bin columns x = 52 99 146 193 240 287                         |
       |    rows        y = 105, 135                                      |
-      |    x5   BASE STATION (double height, 46x58) -- not built yet      |
-      |    x334 bare table                                                |
-      |    a level needing fewer leaves bins EMPTY, never covered         |
+      |    x5    TORTILLA STATION   double height, 46x58                 |
+      |    x334  CHIPS STATION      double height, 46x58                 |
+      |    a level needing fewer leaves bins EMPTY, never covered        |
   164 +------------------------------------------------------------------+
       |  PREP BOARD                                                      |
-      |    readout x6..125   |  CUTTING BOARD 138,171 104x41  |  BUILT   |
+      |    readout   x6..~130   NOW BUILDING / name / ticket             |
+      |      pips    right of the name, 8x8 + 1 gap, derived x           |
+      |    BOARD     138,170  177x44   item centred, ~39x38              |
+      |    WRAP IT!  321,170  59x44                                      |
   216 +------------------------------------------------------------------+
 
       DIALOGUE STRIP  (overlay, either half)   4,150  376x60
