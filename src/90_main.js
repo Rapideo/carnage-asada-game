@@ -93,7 +93,7 @@
   /* Console bridge. Browsers pause requestAnimationFrame in a hidden tab, so
      this also makes the game steppable when it cannot self-drive. */
   window.TacoShop = {
-    G, City, Nav, Art, Audio5, Input, ctx,
+    G, City, Nav, Art, Audio5, Input, ctx, Dialog, Faces,
     step(n = 1) {
       for (let i = 0; i < n; i++) { G.update(STEP); handleGlobalKeys(); Input.endFrame(); }
       G.render(ctx);

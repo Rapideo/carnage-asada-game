@@ -65,6 +65,7 @@ const G = {
     City.gen(rng);
     Hud.buildMap();
     Scores.load();       // before any overlay can draw the board
+    Faces.build();       // decode baked likenesses once, like Art.build
     this.toTitle();
   },
 
@@ -265,6 +266,24 @@ const G = {
     this.miss(z, wrong);
   },
 
+  /* One line from the customer, over the dialogue strip. Kept out of the demo:
+     attract mode is a shop window and a talking head over it reads as a
+     cutscene rather than as play. Copy is authored in content/dialogue.json
+     and width-checked by build.mjs against the bubble the portrait leaves. */
+  react(kind, order, hostile) {
+    if (this.state !== 'play' || typeof DIALOGUE === 'undefined') return;
+    const lines = DIALOGUE[kind];
+    if (!lines || !lines.length) return;
+    Dialog.say(DIALOGUE.who, lines[(Math.random() * lines.length) | 0], {
+      face: DLG_FACE,
+      hostile: hostile,
+      hood: hostile ? 3 : 1,
+      sub: order && order.house ? order.house.addr : '',
+      meter: order ? clamp(order.tip / order.max, 0, 1) : null,
+      secs: 3.0,
+    });
+  },
+
   complete(perfect, z) {
     const o = this.order;
     const base = Math.round(o.tip) + (perfect ? PERFECT_BONUS : 0);
@@ -282,6 +301,7 @@ const G = {
     if (perfect) Fx.pop(z.x, z.y - 26, 'ON THE DOORSTEP! +' + money(PERFECT_BONUS), PAL.amber);
     Fx.pop(z.x, z.y - 40, '+' + (TIME_PER_JOB + (perfect ? TIME_PERFECT : 0)) + 'S', PAL.cyan);
     this.say(perfect ? 'PERFECT TOSS!' : 'DELIVERED!', perfect ? PAL.amber : PAL.good);
+    this.react('delivered', o, false);
     Audio5.sfx(perfect ? 'perfect' : 'deliver');
     Audio5.sfx('cash');
     this.flash = 0.14;
@@ -295,6 +315,7 @@ const G = {
     Fx.splat(z.x, z.y);
     Fx.spill(z.x, z.y);
     Audio5.sfx('splat');
+    this.react('missed', this.order, true);
     this.stats.splat++;
     this.earned = Math.max(0, this.earned - REMAKE_FEE);
     this.combo = 1;
@@ -674,6 +695,7 @@ const G = {
 
     Nav.update(dt, p);
     Fx.update(dt);
+    Dialog.update(dt);
 
     /* camera */
     const lead = 46;
@@ -765,6 +787,10 @@ const G = {
     if (this.state === 'scores')  this.overlayScores(x);
     if (this.state === 'entry')   this.overlayEntry(x);
     if (this.state === 'results') this.overlayResults(x);
+
+    /* over the HUD -- it is meant to cover the minimap -- but under Post, so
+       the scanlines run across it like everything else */
+    if (live) Dialog.draw(x);
 
     if (this.flash > 0) {
       x.globalAlpha = this.flash * 2.4;

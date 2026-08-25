@@ -1,0 +1,22 @@
+{
+  "_note": "Lines the customer says over the dialogue strip. PLACEHOLDER COPY -- the",
+  "_note2": "characters and their voices are not designed yet; this exists so the strip",
+  "_note3": "can be seen running. build.mjs rejects anything the 5x7 font cannot draw",
+  "_note4": "and anything too wide for the speech bubble, so edit freely and rebuild.",
+
+  "who": "CUSTOMER",
+
+  "delivered": [
+    "ABOUT TIME. SMELLS ALRIGHT THOUGH.",
+    "YOU FOUND IT. NOBODY EVER FINDS IT.",
+    "KEEP THE CHANGE, SPEED DEMON.",
+    "STILL WARM. I'LL ALLOW IT."
+  ],
+
+  "missed": [
+    "THAT'S MY HEDGE. THAT WAS MY DINNER.",
+    "IN THE BUSHES. VERY CLASSY.",
+    "YOU THREW IT AT THE LAWN.",
+    "I WATCHED YOU DO THAT."
+  ]
+}
