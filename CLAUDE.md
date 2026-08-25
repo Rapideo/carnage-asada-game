@@ -46,8 +46,9 @@ node test/headless.mjs   # full test suite; exits non-zero on failure
 There is no lint step, no test framework, and no watch mode. `build.mjs` must be re-run before
 `taco-shop.html` reflects source edits; `index.html` loads `src/*.js` directly so it does not.
 
-There is no `package.json` — nothing to install. `taco-shop.html`, `index.html` and **`src/05_content.js`**
-are generated; edit `src/`, `shell.html` and `content/` and rebuild rather than editing them directly.
+There is no `package.json` — nothing to install. `taco-shop.html`, `index.html`, **`src/05_content.js`**
+and **`content/faces/*.json`** are generated; edit `src/`, `shell.html` and `content/` and rebuild rather
+than editing them directly. Face data is re-baked with `node tools/render/bake-face.mjs`, not hand-edited.
 
 ## Authored copy (`content/*.json`)
 
@@ -69,6 +70,12 @@ draw, naming the offenders (curly quotes pasted from a document are the usual cu
 missing field; and it rejects copy too wide for the 384px screen, reporting how many characters to trim.
 That last one exists because the width limit was a comment in the JSON before it was a guard, and the first
 person to edit the file immediately exceeded it — **a note is not a guard.**
+
+**`content/dialogue.json`** holds the customer's lines, and **`content/faces/*.json`** the baked character
+likenesses (see the Faces section below). Both are inlined the same way, becoming `DIALOGUE` and `FACES`.
+The dialogue width check is **not** the 384px one every other field uses: the portrait sits beside the
+bubble, so the limit is computed from the widest baked face. A line that passes the screen-width check can
+still overflow the bubble, and nothing in the test suite can see it.
 
 `slogan` and `attribution` each accept a string *or* an array of lines, and `overlayWinners` lays the
 attribution out below whatever the slogan needs, so long copy wraps rather than being cut. If you add copy
@@ -102,6 +109,9 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
   They are deliberately written out in full rather than as a pointer to the earlier project the
   mechanic comes from, because this file forbids importing outside context — so the brief *is* the
   source.
+- `docs/art_pipeline.md` — **how to add a character**: reference art requirements, the crop/fit/bake
+  commands, the size budgets, and a troubleshooting table of every way it has gone wrong so far.
+  Read before baking a face or touching `35_faces.js`.
 - `README.md` — what the game is, controls, and the development commands.
 - `reference/kitchen/` — **the Kitchen Shift reference art, and the region map.** The *look* is a kept
   starting point; the *layout* is not a spec and every menu item and price in those frames is a
@@ -146,10 +156,12 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 | `10_font` | hand-authored 5×7 glyph table; `text()`, `textOut()`, `money()`, `clockStr()` |
 | `20_audio` | `Audio5`: WebAudio SFX, engine voice, siren, and the 4-bar chip loop scheduler |
 | `30_art` | `Art.build()` — bakes every sprite/tile once at boot; `rotFrames`/`drawRot`; `shade()`, `disc()`, `keyline()`; `LOGO` display face + `logoText()`/`mkLogoText()` |
+| `35_faces` | `Faces` — decodes the baked likenesses in `FACES` at boot; draws them with blink/hood variation |
 | `40_city` | `City.gen()` — street grid, addressed houses, baked ground layer, spatial buckets |
 | `50_entities` | `Player`, `Traffic`, `Train`, `Crossing`, `Ped`, `Cop`, `Bag`, `Fx`; shared car physics + collision |
 | `60_nav` | `Nav` (TACO-NAV unit) and `solve()` — Dijkstra over the intersection graph |
 | `70_hud` | `Hud.draw()` — order card, tip meter, nav panel, minimap; `navArrow`, `triArrow` |
+| `72_dialog` | `Dialog` — the dialogue strip: portrait box, speech bubble, slide-in. Shared by both halves |
 | `75_demo` | `Demo.drive()` — the attract-mode driver; follows a lane-centre polyline, sets the same fields `Player.control` does |
 | `78_scores` | `Scores` — the high-score board: factory content, guarded `localStorage`, qualification, insertion. Model only, never draws. |
 | `80_game` | `G` — state machine, orders/tips/scoring, camera, render pipeline; `Post` |
@@ -503,6 +515,29 @@ Four things the demo driver must keep doing, all learned by watching it fail:
   `S_ROAD`, so a surface test lets the demo cut across lots full of solid parked cars. And when it
   *is* off the street, send it at the nearest **carriageway**, not the nearest **junction** — a
   junction is half a block away on both axes, so the line to it crosses the block interior.
+
+### Faces and the dialogue strip
+
+**The likeness is data; the variation is code.** A parameterised drawing routine composes axis-aligned
+rectangles, which is fine for a car and hopeless for a face: at 44px a likeness needs irregular, diagonal
+edges, and every attempt to re-derive one from parameters produced a face made of bars — two hard brow
+strokes, a rectangular cheek shadow, a ruler-straight hairline. So the pixels come from `FACES`, baked out
+of a reference image by `tools/render/bake-face.mjs`, and `35_faces.js` only layers blink and hood **over**
+them. Repainting part of a face in flat rectangles puts the bars straight back.
+
+This is not a departure from how the project works: `GLYPH` and `LOGO` are also hand-authored pixel tables
+in source, decoded at boot. **Nothing is fetched** — an image file would blank the artifact under its CSP.
+
+`Faces.build()` is called from `G.boot()` before anything can draw, the same contract `Scores.load()` has.
+
+**The portrait box's 56×56 is a floor, not a ceiling.** It is the minimap's rect (`70_hud.js`: `MM + 4`),
+and a floating head fits it. A bust does not: measured, a bust squeezed into 56 rows drops the face from
+33px wide to 24px, and this project has already established that a face works at ~44px and is mush around
+21px. So a taller portrait **overhangs the strip upward** while the strip itself stays 60 rows — a 60×18
+patch at the bottom-left corner, where the minimap already is, rather than a taller band across all 376px.
+
+`G.react(kind, order, hostile)` is the trigger, and it returns early outside `play`: a talking head over
+attract mode reads as a cutscene rather than as play.
 
 ### Game state (`G`)
 
