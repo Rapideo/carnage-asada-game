@@ -148,14 +148,30 @@ export function reduceHead(img, [cx, cy, cw, chh], opt = {}) {
   const maxW = opt.maxW || 54, maxH = opt.maxH || 52, K = opt.colours || 16;
   const BG = opt.bg || [img.data[0], img.data[1], img.data[2]];
   const tol = opt.bgTol === undefined ? 18 : opt.bgTol;
-  const isBg = (r, g, b) =>
+
+  /* `opaque` turns background keying OFF, and some crops REQUIRE it.
+
+     Keying by colour cannot separate a dark subject from a dark background,
+     and an ingredient sheet is exactly that case: black olives on a near-black
+     field were 87% deleted before this existed, and the gaps between jalapeno
+     rings were punched through to transparent. A face crop needs keying,
+     because a head has a silhouette and the space around it is genuinely not
+     the subject. A crop taken INSIDE a tray has no such space -- every pixel
+     in it is either food or the pan floor, both of which are wanted. */
+  const isBg = opt.opaque ? () => false : (r, g, b) =>
     Math.abs(r - BG[0]) < tol && Math.abs(g - BG[1]) < tol && Math.abs(b - BG[2]) < tol;
 
   /* the ink outline adds 1 each side, so the budget has to be spent on the
      head 2 smaller than the box -- getting this wrong clips the keyline off */
   const inset = opt.ink ? 2 : 0;
   const sc = Math.min((maxW - inset) / cw, (maxH - inset) / chh);
-  const dw = Math.max(1, Math.round(cw * sc)), dh = Math.max(1, Math.round(chh * sc));
+  /* `fill` scales the axes independently to fill the target exactly, instead
+     of preserving aspect. Wrong for a head -- a stretched face is instantly
+     wrong to a viewer who knows what faces look like. Right for a pan of
+     ingredient, where the subject is texture with no fixed proportion and a
+     letterboxed well leaves a dark band above and below the food. */
+  const dw = opt.fill ? maxW : Math.max(1, Math.round(cw * sc));
+  const dh = opt.fill ? maxH : Math.max(1, Math.round(chh * sc));
 
   let cv = largestBlob(shrink(img, cx, cy, cw, chh, dw, dh, isBg));
   const pal = medianCut(cv, K);

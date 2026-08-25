@@ -13,3 +13,7 @@ portrait-fit.png
 # drive.mjs --dialog output: same Math.random() traffic problem as drive.png
 drive-dialog.png
 drive-dialog-x3.png
+
+# bake-lattice.mjs contact sheet: derived from a reference image outside the
+# repo, so it cannot be regenerated from the tree alone
+lattice-bake.png
