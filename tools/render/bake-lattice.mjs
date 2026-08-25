@@ -51,11 +51,18 @@ const ONLY = val('only', null);
 
 /* Reading order, matching the lattice in reference/kitchen/kitchen.mjs.
    Names are the DISPLAY names -- the plate holds 7 characters. */
-const NAMES = [
+const DEFAULT_NAMES = [
   'BEEF', 'CHICKEN', 'BEANS', 'LETTUCE',
   'TOMATO', 'ONION', 'CHEESE', 'OLIVES',
   'PEPPERS', 'CREAM', 'CCQ', 'EMPTY',
 ];
+/* --names lets a sheet of one tray, or a re-ordered sheet, be baked without
+   editing this file. --rows/--cols size the target for a bin that spans more
+   than one cell: a double-height station is one column by two rows. */
+const NAMES = val('names', null) ? val('names', '').split(',').map((n) => n.trim().toUpperCase())
+                                 : DEFAULT_NAMES;
+const SPAN_ROWS = Number(val('rows', 1));
+const SPAN_COLS = Number(val('cols', 1));
 
 const img = readPNG(SHEET);
 const BG = [img.data[0], img.data[1], img.data[2]];
@@ -93,7 +100,27 @@ for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
   boxes.push({ n, x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 });
 }
 
-const big = boxes.filter((b) => b.n > (W * H) / 400 && b.w > W / 12 && b.h > H / 12);
+/* --whole skips detection and takes the image as one cell. Detection assumes
+   a photo of a tray floating on a background; art authored AT target size has
+   no background to key off and no margin to find an edge in, so the detector
+   either returns nothing or carves the subject into pieces. */
+let big = flag('whole')
+  ? [{ n: W * H, x: 0, y: 0, w: W, h: H }]
+  : boxes.filter((b) => b.n > (W * H) / 400 && b.w > W / 12 && b.h > H / 12);
+
+/* --merge unions every surviving component into one tray.
+
+   Connectivity is the wrong assumption for some subjects. A tray of food is
+   one blob; a shelving RACK is not -- its shelves are separated by dark
+   background, so the detector hands back the frame-plus-top-shelf as one piece
+   and the lower shelves as another, and bakes half a rack. Merging takes the
+   bounding box of everything, which is what "the subject" meant all along. */
+if (flag('merge') && big.length > 1) {
+  const x0 = Math.min(...big.map((b) => b.x)), y0 = Math.min(...big.map((b) => b.y));
+  const x1 = Math.max(...big.map((b) => b.x + b.w)), y1 = Math.max(...big.map((b) => b.y + b.h));
+  console.log(`merging ${big.length} components into one tray`);
+  big = [{ n: (x1 - x0) * (y1 - y0), x: x0, y: y0, w: x1 - x0, h: y1 - y0 }];
+}
 /* reading order: rows top to bottom, then left to right within a row. Banding
    by row first, because a tray's y can wobble a few px between columns. */
 big.sort((a, b) => a.y - b.y);
@@ -123,7 +150,15 @@ const CELL_W = 46, CELL_H = 28, WELL_W = 40, WELL_H = 22;
    into wall-to-wall tray -- which is exactly the calm mid-range the frame is
    measured against losing. */
 const PAD = Number(val('pad', 0));
-const TW = TRAY ? CELL_W - PAD * 2 : WELL_W, TH = TRAY ? CELL_H - PAD * 2 : WELL_H;
+/* Multi-cell spans include the gaps they swallow: columns are pitched 47 for
+   a 46 cell, and rows sit at 105/135 for a 28 cell, so each extra cell brings
+   its own 1 or 2px of steel with it. Getting this wrong scales the art by a
+   couple of percent, which on a rim reads as a soft edge. */
+const COL_GAP = 1, ROW_GAP = 2;
+const SPAN_W = SPAN_COLS * CELL_W + (SPAN_COLS - 1) * COL_GAP;
+const SPAN_H = SPAN_ROWS * CELL_H + (SPAN_ROWS - 1) * ROW_GAP;
+const TW = TRAY ? SPAN_W - PAD * 2 : WELL_W + (SPAN_W - CELL_W);
+const TH = TRAY ? SPAN_H - PAD * 2 : WELL_H + (SPAN_H - CELL_H);
 const INK = '#1b1425';
 mkdirSync(OUT_DIR, { recursive: true });
 

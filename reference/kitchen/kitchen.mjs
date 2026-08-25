@@ -416,7 +416,31 @@ function steamTable() {
     // BEEF was just placed correctly; ONION was the last mis-pick
     bin(px, py, CELL_W, CELL_H, k, k === 'ONION', k === 'BEEF');
   }));
+  /* The right column: a double-height STATION, not a thirteenth bin.
+
+     The twelve are the ingredients, in columns 1..6, and they stay twelve. A
+     station holds a BASE -- the thing an order is built ON rather than an
+     ingredient added to it -- which is why it can sit outside the count
+     without breaking "twelve bins, period". The left column is reserved for
+     the other one, for tortillas and shells.
+
+     Double height because a base is a single deep reach rather than a row
+     position, and because the shape is what tells the two apart at a glance:
+     nothing else on this line is tall. */
+  const STATION_H = ROW_Y[1] + CELL_H - ROW_Y[0];
+  station(colX(0), ROW_Y[0], CELL_W, STATION_H, 'TORTILLA');
+  station(colX(7), ROW_Y[0], CELL_W, STATION_H, 'CHIPS');
+
   cursor(colX(BIN_COL0 + CURSOR[1]), ROW_Y[CURSOR[0]], CELL_W, CELL_H);
+}
+
+/* A base station. Same blit path as a bin, but it is allowed to be any size,
+   so the baked art decides the shape rather than the cell grid does. Falls
+   back to an empty pan when no art has been baked for it yet. */
+function station(px, py, w, h, key) {
+  const baked = WELLS[key];
+  if (!baked) return emptyBin(px, py, w, h);
+  x.drawImage(baked, px + ((w - baked.width) >> 1), py + ((h - baked.height) >> 1));
 }
 
 /* An empty bin: the same pan, with nothing in it. Deliberately NOT a lid and
