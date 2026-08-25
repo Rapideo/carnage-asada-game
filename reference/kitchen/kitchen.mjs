@@ -27,6 +27,7 @@
 import { E, Canvas } from '../../tools/render/engine.mjs';
 import { writePNG, upscale } from '../../tools/render/px.mjs';
 import { drawDialog } from './dialog.mjs';
+import { CAST } from './cast.mjs';
 import { dirname as _d, join as _j } from 'node:path';
 import { fileURLToPath as _f } from 'node:url';
 const OUT = (n) => _j(_d(_f(import.meta.url)), n);   // write beside this file
@@ -810,8 +811,12 @@ if (process.env.DIALOG) drawDialog(x, {
   line: "I HAVEN'T GOT ALL DAY, SWEETHEART.",
   sub: 'TICKET 1  -  WALKING OUT',
   meter: 0.18, hostile: 1,
-  face: { skin: '#eab98f', hair: '#d9a340', eyes: '#4a7fb5', shirt: '#c4557e',
-          bigHair: 1, lips: 1, mood: 'sour', seed: 3 },
+  /* DIALOG=1 draws the parametric face, DIALOG=smoker the baked one, so the
+     strip can be checked against both kinds without editing this file */
+  face: process.env.DIALOG === 'smoker'
+    ? Object.assign({}, CAST.smoker, { hood: 3 })
+    : { skin: '#eab98f', hair: '#d9a340', eyes: '#4a7fb5', shirt: '#c4557e',
+        bigHair: 1, lips: 1, mood: 'sour', seed: 3 },
 });
 Post.apply(x);
 

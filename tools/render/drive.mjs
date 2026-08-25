@@ -15,6 +15,9 @@ import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Canvas, writePNG, upscale } from './px.mjs';
 import { drawDialog } from '../../reference/kitchen/dialog.mjs';
+const BAKED = process.env.FACE
+  ? { baked: (await import('../../reference/kitchen/faces/' + process.env.FACE + '.mjs')).default }
+  : null;
 import { dirname as _d, join as _j } from 'node:path';
 import { fileURLToPath as _f } from 'node:url';
 const OUT = (n) => _j(_d(_f(import.meta.url)), n);   // write beside this file
@@ -42,10 +45,10 @@ const sandbox = {
 };
 sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
-vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, VW, VH, Post, PAL };',
+vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, VW, VH, Post, PAL, Dialog, Faces, FACES, DIALOGUE };',
   sandbox, { filename: 'bundle.js' });
 
-const { G, VW, VH, Input, PAL } = sandbox.__x;
+const { G, VW, VH, Input, PAL, Dialog } = sandbox.__x;
 
 const c = new Canvas(VW, VH);
 const ctx = c.getContext('2d');
@@ -61,6 +64,12 @@ for (let i = 0; i < STEPS; i++) {
   G.update(1 / 60);
   Input.endFrame();
 }
+/* --say renders the SHIPPED dialogue strip (src/72_dialog.js), not the
+   reference mockup -- the only way to see what the game actually draws. */
+if (process.argv.includes('--say')) {
+  G.react('delivered', G.order, false);
+  for (let i = 0; i < 24; i++) Dialog.update(1 / 60);   // let it finish sliding in
+}
 G.render(ctx);           // ...render takes the context
 
 if (process.argv.includes('--dialog')) {
@@ -69,7 +78,11 @@ if (process.argv.includes('--dialog')) {
     line: "THAT'S THE THIRD TIME YOU'VE PASSED MY HOUSE.",
     sub: '629 OAK ST  -  WAITING 41s',
     meter: 0.28, hostile: 1,
-    face: { skin: '#c98d63', hair: '#3a2a1e', eyes: '#3a5a3a', shirt: PAL.roofE,
+    /* FACE=<name> uses a baked likeness from reference/kitchen/faces/ instead
+       of the parametric one, so the strip can be checked over a LIVE driving
+       frame -- which is the only place that says whether it covers something
+       you needed to see. */
+    face: BAKED || { skin: '#c98d63', hair: '#3a2a1e', eyes: '#3a5a3a', shirt: PAL.roofE,
             bigHair: 1, lips: 1, mood: 'sour', seed: 19 },
   });
   writePNG(c, OUT('drive-dialog.png'));

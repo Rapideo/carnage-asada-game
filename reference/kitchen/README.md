@@ -27,7 +27,10 @@ of them are PRD §X.1.
 | `delivery-dialogue-x3.png` | the **same strip over a live Delivery Shift frame** |
 | `faces-x6.png` | four portraits at 6×, the character sheet |
 | `kitchen.mjs` | draws the frame. Edit this. |
-| `portrait.mjs` | the 44px dialogue portrait |
+| `portrait.mjs` | the 44px dialogue portrait, drawn from parameters. The skull is character data, not a module constant. |
+| `facedata.mjs` | decode a baked face, and draw variation (blink, hood) over it |
+| `cast.mjs` | the cast, as data — one entry per character |
+| `faces/*.mjs` | **generated** baked likenesses; re-bake with `tools/render/bake-face.mjs` |
 | `dialog.mjs` | the dialogue strip — **shared by both halves of the game** |
 | `face.mjs` | portrait test rig; iterate on faces without rebuilding the scene |
 
