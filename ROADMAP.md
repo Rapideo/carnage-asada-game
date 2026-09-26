@@ -39,7 +39,7 @@ still the source:
 | section | status | still blocks |
 |---|---|---|
 | **§IV.E** Menus, Ingredient Grid, Assembly | **Era 1 settled** in `menu.md`: 9 bins + 3 empty, 2 base stations, 9 items. Eras 2 and 3 empty. | every level past the 1970s. Era 1 is enough to port against. |
-| **§IV.F** Points and Bonus Schema | **empty**, apart from the star formula. | what a ticket is worth in cents, how patience decays, what a walkout costs. |
+| **§IV.F** Points and Bonus Schema | **Points rules settled** 2026-09-26: a ticket pays a tip (menu prices are flavour only), starting at *tip per item × items*, running down from arrival; at zero the customer walks out, with no fine. Bonus schema empty. | the Easy numbers for *tip per item* and *depreciation* in `difficulty.md`. The rules are enough to build against. |
 | **§II.B.1** Mode A, keyboard and mouse | **answered for driving** — "carries over the existing controls". | the Kitchen Shift's keyboard map. |
 
 §IV.A–C (play mechanics, interactions, controls) are still empty headings, but the

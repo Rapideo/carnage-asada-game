@@ -124,8 +124,9 @@ settled*. In brief:
 1. ~~Answer the six Era 1 menu questions.~~ Done.
 2. Commit the design-doc move (the deletions, `docs/gdd.md`,
    `docs/authored content/`, the doc repointing and this file).
-3. **§IV.F Kitchen scoring** is the last blocker: what a ticket is worth in cents,
-   how patience decays, what a walkout costs.
+3. ~~**§IV.F Kitchen scoring** rules.~~ Done 2026-09-26: a tip per item, running down
+   from arrival; a walkout at zero, with no fine. Still open: the Easy **tip per item**
+   and **depreciation rate** in `difficulty.md`.
 
 **The Kitchen Shift port, once §IV.F is settled** (from `ROADMAP.md`, *Known
 first tasks*):

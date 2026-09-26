@@ -34,6 +34,14 @@ Needs to be defined.
 
 - Full
 
+### E. Kitchen Shift
+
+See GDD §IV.F for how these are used.
+
+- Starting Tip per Item : TBD
+
+- Depreciation Rate : TBD
+
 ## II. Medium
 
 ### III. Hard

@@ -464,6 +464,23 @@ Difficulty scaled by lengthening recipes, widening the menu pool, adding items p
 
 #### 1. Points Schema
 
+*Settled 2026-09-26. The amounts are per difficulty and live in `difficulty.md`.*
+
+- **A served ticket pays a tip, not its menu price.** The Delivery Shift pays tips too, so
+  both halves score on the same scale. The menu prices ($0.29–$0.69) are printed on the
+  ticket for period flavour and are never scored. At those prices a kitchen level would
+  earn about a tenth of a delivery level.
+- **The starting tip is per item:** `starting tip = tip per item × items on the ticket`. A
+  5-item ticket takes longer, so it is worth more. That keeps a big ticket a choice
+  rather than something to avoid.
+- **The tip runs down from the moment the ticket arrives** on the rail, at a fixed rate
+  set by difficulty. It keeps running whether or not the ticket is in focus.
+- **The tip is the customer's patience.** When it reaches zero the customer **walks out**:
+  the ticket leaves the rail, pays nothing, and counts as a walkout in the star rating.
+  There is **no fine**. The lost tip is the money cost, and there is no second patience
+  meter to read.
+- **Stars** stay as written: `served − walkouts − floor(mistakes / 3)`, clamped to 1–5.
+
 #### 2. Bonus Schema
 
 n order arrives. It has 1–5 **items** (a customer orders more than one thing). Each item is a menu item — hard taco, bean burrito, sancho, nachos — and each menu item has a **fixed ingredient sequence**. You assemble it by clicking ingredients from a grid **in the correct order**, then hit a finishing action to close the item; when every item on the order is finished, you SERVE the order.
