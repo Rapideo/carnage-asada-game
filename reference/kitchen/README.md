@@ -8,13 +8,13 @@ and the decision to reuse `Art.ped` for customers.
 
 The **layout** is not a specification. Element positions are a working
 arrangement, and the menu, the ingredient names, the recipes and every price in
-these frames are **placeholders invented to make a picture**. The PRD is where
-those get settled; sections IV.E and IV.F are empty at the time of writing.
+these frames are **placeholders invented to make a picture**. The design docs are where
+those get settled — `docs/authored content/menu.md` and `docs/gdd.md` §IV.E–F.
 
 Produced 2026-08-24. Reasoning behind every rule is in `JOURNAL.md`, sections
 *"Drawing food at 384×216"*, *"The game has a measurable palette fingerprint"*
 and *"How to make a new screen match this one"*. The requirements distilled out
-of them are PRD §X.1.
+of them are GDD §X.1.
 
 ---
 
@@ -48,7 +48,7 @@ node tools/render/measure.mjs                 # score it against the real game
 
 ## Region map
 
-Named regions, so the PRD and the art talk about the same things. All
+Named regions, so the design docs and the art talk about the same things. All
 coordinates are in the 384×216 virtual screen.
 
 ```

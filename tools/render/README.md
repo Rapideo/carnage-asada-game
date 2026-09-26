@@ -25,7 +25,7 @@ node tools/render/bake-lattice.mjs <sheet.png> --tray --pad 2
 | `px.mjs` | software Canvas2D + PNG writer |
 | `engine.mjs` | loads the real `src/` modules against it, in a `node:vm` |
 | `drive.mjs` | boots the game, drives it, renders a play frame |
-| `measure.mjs` | the normalisation score — see PRD §X.1 |
+| `measure.mjs` | the normalisation score — see GDD §X.1 |
 | `crop.mjs` | nearest-neighbour magnifier |
 | `audit.mjs` | label-plate clearance, by pixel readback |
 | `palette.mjs` | every `PAL` entry as a sheet, grouped by what it is for |

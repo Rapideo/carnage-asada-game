@@ -1,5 +1,7 @@
 # Taco Shop - Carnage Asada
 
+## Game Design Document
+
 ## I. Overview and Current State
 
 Taco Shop - Carnage Asada started life as a one-shot attempt at generating 16-bit, arcade-stye driving game, with the original mechanic having the driver delivery pizzas. After incredibly impresive results from that effort, it was determined that this would be a great candidate for a game I have made prior attempts at designing - a restraunt-themed game based on a local Hays, KS fast food establishment "Taco Shop". 
@@ -28,7 +30,15 @@ The two games, while both contibuting to the overall player's point total - are 
 
 #### 1. Mode A : Keyboard and Mouse
 
+Mode A, and where our initial version of the game should start, carries over the play controls from our existing Delivery Shift game.  
+
 #### 2. Mode B:  Arcade
+
+Mode B expands these controls (the game should allow for the selection of Control Modes) to allow for game control via Joytick and button presses only, removing the mouse functionality altogether. 
+
+#### 3. Mode C: Mobile
+
+Mode C further expands the Arcade controls from Mode B, adding a joytick and button control overley to the screen during the driving sequences, and a a touch-based interface for the Kitchen Shift. 
 
 ### C. Attract Mode
 
@@ -260,7 +270,7 @@ If the player meets the expectations of the individual levels, dependant on the 
 
 - Difficulty Level : Medium
 
-- Menu : 4
+- Menu : 3
 
 - Era : 1990s
 
@@ -284,21 +294,27 @@ If the player meets the expectations of the individual levels, dependant on the 
 
 - Difficulty Level : Hard
 
-- Menu : 4
+- Menu : 3
 
 - Era : 1990s
 
-### H. Dialog System
+### H. Characters and Dialog System
 
-#### 1. Customers and Drivers
+#### 1. Customers - move to game type
 
-#### 2. Taco Shop Staff
+#### 2.  Drivers - move to game type
 
-### I. Difficulty Levels
+#### 2. Taco Shop Staff - move to game type
 
-### J. Era
+### J. Eras
 
-Over the 20 levels, the game will feature 3 "Eras"; the 1970s, 1980's, and 1990s which will impact the global look and feel of the game by utilizing both an Era-Specific color pallete, as well as changes to the meny, music, and delivery geography. 
+Over the 20 levels, the game will feature 3 "Eras"; the 1970s, 1980's, and 1990s which will impact the global look and feel of the game by utilizing both an Era-Specific color pallete, as well as changes to the menus, characters, and dialog. 
+
+#### 1. 1970s
+
+#### 2. 1980s
+
+#### 3. 1990s
 
 ### K. Seasons
 
@@ -306,41 +322,85 @@ The game levels will also specify a Season, either Summer of Winter, which wil d
 
 ### L. Music
 
-By leveraging music from each defined era, the games music will be a direct reflection of the time along with the visual aethstetic. Named below are each of the songs that the game will feature, and during which era they will appear. 
+By leveraging music from each defined era, the games music will be a direct reflection of the time along with the visual aethstetic. Named below are each of the songs that the game will feature, and during which era they will appear.
 
-Songs themselves will be derived from MIDI files, passed thru a Note JS conversion process that will leave us with a JSON song structure file, and instruction as to which model of synthesis and instuments to utilize. 
+Songs themselves will be derived from MIDI files, passed thru a Note JS conversion process that will leave us with a JSON song structure file, and instruction as to which model of synthesis and instuments to utilize.
 
-#### 1. 1972
+### III. Authored Content
 
-#### 2. 1975
+## A. Attract Mode (attract.md)
 
-#### 3. 1978
+## B. Levels (levels.md)
 
-#### 4. 1981
+## C. Difficulty (difficulty.md)
 
-#### 5. 1984
+- ## D. Menu (menu.md)
 
-#### 6. 1987
+- Era 1
 
-#### 7. 1990
+- Era 2
 
-#### 8. 1993
+- Era 3
 
-#### 9. 1996
+## E. Characters (characters.md)
 
-#### 10. 1999
+- Era 1 
 
-### M. Conclusion
+- Era 2
+
+- Era 3
+
+### F. Dialog (dialog.md)
+
+- Era 1
+
+- Era 2 
+
+- Era 3
+
+## G. Music (music.md)
+
+To minimize anacronisms, music will be specific to the Year defined in the Level. While songs don't need to come from the exact year of play, they should be current or prior by no more than 1-2 years to add to the time-realism of the game. 
+
+- 1972
+
+- 1975
+
+- 1978
+
+- 1981
+
+- 1984
+
+- 1987
+
+- 1990
+
+- 1993
+
+- 1996
+
+- 1999
+
+### 
 
 ## CONTROL MECHANICS
 
-I would like to make the controls a little more arcade-friendly, and compatible with playing with a joystick. This would require an existing change to the Delivery play; where it would assume the new control scheme:
+## III: The Delivery Shift
+
+### A. Play Mechanics
+
+### B. Control Mechanics
+
+#### 1. Mode A : Keyboard/Mouse
+
+#### 2. Mode B: Arcade Mode
 
 4-Way Joytick Control - DRIVE MODE
 
-- Up: Forward (Same as Accelerate Button)
+- Up: YTBD
 
-- Down: Reverse (Same as Reverse Button)
+- Down: YTBD
 
 - Left: Turn Left
 
@@ -354,11 +414,9 @@ There are a total of THREE butons:
 
 - Button 3: Aim and Release
 
-HOLDING Button 3 puts the Joysick into Aim Mode; where the joystick no longer moves the car, but instaed allows you to direct the path of the throw, much as the mouse does currently. RELEASING Button 3 tosses the bag.  
+HOLDING Button 3 puts the Joysick into Aim Mode; where the joystick no longer moves the car, but instaed allows you to direct the path of the throw, much as the mouse does currently. RELEASING Button 3 tosses the bag.
 
-## III: The Delivery Shift
-
-### A. Play Mechanic Updates
+#### 3. Mode C: Mobile Mode
 
 ### B. UI and Interaction Updates
 
@@ -408,12 +466,6 @@ Difficulty scaled by lengthening recipes, widening the menu pool, adding items p
 
 #### 2. Bonus Schema
 
-
-
-
-
-
-
 n order arrives. It has 1–5 **items** (a customer orders more than one thing). Each item is a menu item — hard taco, bean burrito, sancho, nachos — and each menu item has a **fixed ingredient sequence**. You assemble it by clicking ingredients from a grid **in the correct order**, then hit a finishing action to close the item; when every item on the order is finished, you SERVE the order.
 
 Both the menu, ingredients and build order will be defined in a JSON settings file. This file will also store our ingredient groups which wil define what appears in the bins. 
@@ -425,8 +477,6 @@ The rules that made it work, in priority order:
 3. **Incoming order tickets** - Play will start with one ticket, but as play progresses, more will appear. The idea is to keep up the pace to that you never have more than 3 live tickets at any one time. If there are more, customers start complaining.  No one ticket will have more than 5 menu items. 
 4. **Scored 1–5 stars**: `served − walkouts − floor(mistakes / 3)`, clamped.
 5. **Sound is load-bearing.** Ingredient clicks, order arrival, the walkout, and the SERVE moment. The feel I wrote down at the time was **"slot-machine fun"** — that's the target.
-
-
 
 ## X. Non-Negotiable Technical Constraints
 
@@ -443,14 +493,14 @@ The rules that made it work, in priority order:
 frame of the shipped Delivery Shift measures as follows, and any new screen must
 land within tolerance of it:
 
-| metric | target | tolerance |
-|---|---|---|
-| mean value (0–255) | 93 | ±10 |
-| mean saturation | 34% | ±5 |
-| warm pixels (`r > b+8`) | 19% | +6 |
-| near-black (`max < 70`) | 29% | +6 |
-| mid-range mass | 71% | −10 |
-| calm 8×8 blocks / busy 8×8 blocks | 22% / 29% | — |
+| metric                            | target    | tolerance |
+| --------------------------------- | --------- | --------- |
+| mean value (0–255)                | 93        | ±10       |
+| mean saturation                   | 34%       | ±5        |
+| warm pixels (`r > b+8`)           | 19%       | +6        |
+| near-black (`max < 70`)           | 29%       | +6        |
+| mid-range mass                    | 71%       | −10       |
+| calm 8×8 blocks / busy 8×8 blocks | 22% / 29% | —         |
 
 The rules below are how a screen gets there. Every one was learned by getting it
 wrong first; the reasoning and the measurements are in `JOURNAL.md` under
@@ -502,4 +552,4 @@ palette fingerprint"*.
 
 ## 
 
-**The bar: I should not be able to tell, from a screenshot, that this mini-game came from somewhere else.**
+*

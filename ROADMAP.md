@@ -7,22 +7,65 @@ Checkboxes render as a live task list on GitHub:
 
 ---
 
-## NEXT: build the full game (paused 2026-08-24, awaiting the PRD)
+## NEXT: build the full game (paused 2026-08-24, awaiting the design docs)
 
 **This is the next piece of work.** Everything under *Punch list* below is the
 existing Delivery Shift and stays open, but it is not the priority.
 
+### Where the design lives
+
+The PRD was replaced by **`docs/gdd.md`** (the game design document) plus the
+per-topic files in **`docs/authored content/`** — `levels`, `difficulty`, `menu`,
+`attract`, `music`. Section numbers cited below (§IV.E, §X.1, …) are the GDD's; it
+kept the PRD's numbering for the parts that carried over.
+
+**When the GDD and an authored-content file disagree, the authored content wins**
+(owner's ruling, 2026-09-26). The GDD holds rules and structure; the per-topic files
+hold the values. Known disagreements this settles:
+
+- **The level table.** `levels.md` is the one: difficulty climbs Easy ×6, Medium ×6,
+  Hard ×6, Supreme ×2 rather than resetting each decade, and its seasons for levels
+  7–12 and 17–18 are the right ones. GDD §II.G is stale. **Supreme is not yet
+  defined** in `difficulty.md`, and `levels.md` carries no Map or Menu number, which
+  the GDD's table did.
+- **The shift clock.** `difficulty.md` Easy: 3:00 start, +1:30 per extension, at
+  most five — over GDD §II.D's 2:00 and four.
+
 ### What is paused on
 
-`docs/Taco Shop - Carnage Asada PRD.md` is being completed by the project owner.
-Nothing should be built from it until that lands, because three of its sections
-are empty and each one blocks real decisions:
+Status as of 2026-09-26, against the three blockers recorded when the PRD was
+still the source:
 
-| section | blocks |
-|---|---|
-| **§IV.E** Menus, Ingredient Grid, Assembly | everything. With no recipes you cannot size a bin row or a pip row, and "learning the menu" — the stated mastery curve — has no content. |
-| **§IV.F** Points and Bonus Schema | what a ticket is worth in cents, how patience decays, what a walkout costs. |
-| **§II.B.1** Mode A, keyboard and mouse | the arcade map in §II.B.2 is specified; the keyboard one is not. |
+| section | status | still blocks |
+|---|---|---|
+| **§IV.E** Menus, Ingredient Grid, Assembly | **Era 1 settled** in `menu.md`: 9 bins + 3 empty, 2 base stations, 9 items. Eras 2 and 3 empty. | every level past the 1970s. Era 1 is enough to port against. |
+| **§IV.F** Points and Bonus Schema | **empty**, apart from the star formula. | what a ticket is worth in cents, how patience decays, what a walkout costs. |
+| **§II.B.1** Mode A, keyboard and mouse | **answered for driving** — "carries over the existing controls". | the Kitchen Shift's keyboard map. |
+
+§IV.A–C (play mechanics, interactions, controls) are still empty headings, but the
+core loop is written out in a paragraph that landed under §IV.F.2 — "An order
+arrives. It has 1–5 items…" — and belongs under §IV.A.
+
+**The Era 1 menu gaps, answered by the owner 2026-09-26** and written into `menu.md`:
+
+- **Cheese** was in seven of nine recipes and in no bin → **Cheese (shredded) takes
+  bin 9.**
+- **Four bases against two stations** → **the left station stacks taco shell, small
+  tortilla and large tortilla**, as the concept frame already draws it; the right is
+  chips. The two-station layout stands.
+- **Soft Taco Supreme** was identical to Soft Taco → **it mirrors Hard Taco Supreme**
+  (adds onions, tomatoes, sour cream) at **$0.49**, the same +$0.10 for going Supreme.
+- **Beef Burrito** numbered its steps 0, 1, 3 → **a typo**: tortilla, beef, cheese.
+- **Nachos** had no price → **$0.49**, level with the other three-step item.
+- **The Supremes are 7 steps** against the 6-step cap → **the base does not count**;
+  see the cap below.
+- **Full item names do not fit NOW BUILDING** (found answering the cap) → **each item
+  carries a `Short` name** in `menu.md`. The readout draws at scale 2, and the name and
+  its pips share x6 to the board at x137, so `12 × chars + 9 × steps ≤ 127`. All nine
+  Era 1 short names were checked against the same arithmetic as `pips()`'s guard; the
+  tightest end at x133. That is arithmetic, not a rendered frame — render it when the
+  readout is ported. `content/menus.json` validation must enforce this per item, not
+  as a flat character cap.
 
 ### What is already settled, and should not be re-litigated
 
@@ -32,7 +75,7 @@ questions:
 - **The Kitchen Shift levels use the art in `reference/kitchen/`.** The *look* is
   approved — palette balance, silhouette rules, the 44px dialogue portrait, and
   reusing `Art.ped` for customers. Read that folder's README first; it names the
-  screen regions and the PRD uses the same names.
+  screen regions, and the design docs should use the same names.
 - **The layout in those frames is a starting point, not a spec.** Element
   positions are a working arrangement. Every menu item, ingredient name and price
   in them is a placeholder waiting on §IV.E.
@@ -50,7 +93,7 @@ questions:
   and shells at x5, chips at x334. A station holds the thing an order is built *on*
   rather than an ingredient added to it, which is why it sits outside the count.
 - **PORTING THE KITCHEN SHIFT INTO `src/` IS THE NEXT REAL PIECE**, and it is deliberately
-  **held until the PRD lands**. §IV.A, §IV.B, §IV.C and §IV.E were all empty as of 2026-08-25,
+  **held until the design docs land**. §IV.A, §IV.B, §IV.C and §IV.E were all empty as of 2026-08-25,
   which means the play mechanics, the interactions, the controls and the entire menu are
   unspecified — building recipes against that is inventing placeholders, which is exactly what
   the reference art already warns is not a decision.
@@ -76,16 +119,20 @@ questions:
 - **`WRAP` and `SERVE` are buttons, not cells** — three buttons: select, wrap,
   serve. Which means **ticket focus cannot be player-selected**: there is no input
   left, so the game assigns it. That is arithmetic, not preference.
-- **The recipe length cap is 6 steps.**
+- **The recipe length cap is 6 toppings, not counting the base** (clarified
+  2026-09-26), so an item runs to at most **7 pips**. The concept draws the base as
+  the first pip. At 8px + 1px gap a 7-pip row is 62px; `pips()` in
+  `reference/kitchen/kitchen.mjs` throws if the row runs into the prep board, so a
+  long item name next to it is caught at port time.
 - **One dialogue mechanism serves both halves** — the bottom strip in
   `reference/kitchen/dialog.mjs`, drawn identically over a Kitchen frame and a
   live Delivery frame. It takes the bottom band because that is the only region
   non-critical in both. Its portrait box is the minimap's 56×56 rect.
 - **New screens are scored, not judged.** `node tools/render/measure.mjs` compares
   a frame against a live Delivery Shift render; targets and the eleven art rules
-  are PRD §X.1.
+  are GDD §X.1.
 
-### Known first tasks, once the PRD lands
+### Known first tasks, once the design docs land
 
 - [ ] A `kitchen` state in `80_game.js`, and a level table that alternates it with
       `play`. Seven states exist today and none of them is a kitchen.
@@ -94,8 +141,10 @@ questions:
 - [ ] `content/menus.json` on the §IV.E schema, inlined by `build.mjs` like the
       other content files, with build-time validation extended to cover recipes.
       **A note is not a guard.**
-- [ ] The dialogue strip promoted out of `reference/` into `src/`, since both
-      halves use it.
+- [x] The dialogue strip promoted out of `reference/` into `src/`, since both
+      halves use it. **Done 2026-08-24** (`50da529`): `src/72_dialog.js`, with the
+      faces in `src/35_faces.js` and `G.react()` firing it on a delivery or a miss.
+      The Kitchen Shift calls the same strip; it does not port a second one.
 - [ ] Test coverage for the new state. Remember `test/headless.mjs` draws through
       stubs and cannot see a pixel — use `tools/render/` for anything visual.
 
