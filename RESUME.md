@@ -150,9 +150,11 @@ settled*. In brief:
 9. ~~**Stars.**~~ Done 2026-09-26. One star per item made without a wrong click, and
    one per perfect delivery. Shown as a tally at level clear and game over; never
    money, never on the board.
-   **Open:** redrawing the ERRORS row on the kitchen clock card (it still shows three
-   segments; see `ROADMAP.md`), and whether a run gets its high-score entry before
-   a continue resets it.
+10. ~~**High scores and continues.**~~ Done 2026-09-26 (GDD §II.F). At game over,
+    initials first if the run qualifies, then a 10s CONTINUE? prompt. A continued run
+    starts at $0 and can make the board on its own.
+    **Open:** redrawing the ERRORS row on the kitchen clock card (it still shows three
+    segments; see `ROADMAP.md`).
 
 **The Kitchen Shift port, once §IV.F is settled** (from `ROADMAP.md`, *Known
 first tasks*):

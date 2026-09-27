@@ -82,6 +82,19 @@ Supreme), and a full 20-level run takes about two hours.
 
 ### F. High Scores
 
+*Settled 2026-09-26.* At game over, in the arcade order:
+
+1. **If the run qualifies, enter initials first.** The run is saved to the board before
+   anything else can happen to it.
+2. **Then CONTINUE?, with a 10-second countdown.**
+   - **Yes:** the level you died on restarts, as a **new run at $0.00**. That run can
+     make the board on its own when it ends.
+   - **No, or the countdown runs out:** back to attract mode.
+
+The board is unchanged: an entry is `{ ini, cents }`, entered with the arrow keys, and
+30 seconds idle saves it as `AAA` (see `docs/superpowers/specs/2026-08-21-high-scores-design.md`).
+Stars never appear on it.
+
 ### G. Levels
 
 #### 1. Level 1

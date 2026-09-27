@@ -61,7 +61,9 @@ every 20s on Medium, and at once whenever the rail empties.
 **A level is a checkpoint race** (GDD §II.D.3, settled 2026-09-26): reach the target
 (3 × the extension cap: 15 deliveries or tickets, 9 on Supreme) to clear it; reach 0:00
 first and the game is over. The score is the money across every level played. A
-**continue** restarts the level you died on with the score reset to $0. A full run of
+**continue** restarts the level you died on with the score reset to $0. At game over a
+qualifying run **enters its initials first**, then gets a 10-second CONTINUE? prompt, so
+a continue never wipes a score before it reaches the board (GDD §II.F). A full run of
 about two hours is intended, with no save between sessions. This
 replaces today's structure, where one shift *is* the whole game, so it is a `G` state
 machine change as well as a Kitchen one.
