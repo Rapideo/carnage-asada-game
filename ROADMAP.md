@@ -46,9 +46,16 @@ still the source:
 core loop is written out in a paragraph that landed under §IV.F.2 — "An order
 arrives. It has 1–5 items…" — and belongs under §IV.A.
 
-**Easy difficulty is fully defined** in `difficulty.md` as of 2026-09-26. Medium, Hard
-and Supreme are empty. Three of its rules **change the Delivery Shift as it plays
-today**, so they are Delivery work as well as Kitchen work:
+**Easy and Medium difficulty are defined** in `difficulty.md` as of 2026-09-26. Hard and
+Supreme are empty, but the **navigation ladder** already covers them (each difficulty
+removes one more guidance element, down to the beacon alone on Supreme), and so does the
+**items-per-ticket cap** (3 / 4 / 5 / 5). Medium keeps Easy's clock; tips drop faster
+(delivery $1 per 2.5s, kitchen $1 per 6s), the fines double, and navigation loses the
+minimap route line and the edge pointer. Kitchen tickets arrive every 25s on Easy and
+every 20s on Medium, and at once whenever the rail empties.
+
+Some Easy rules **change the Delivery Shift as it plays today**, so they are Delivery
+work as well as Kitchen work:
 
 - **The clock:** 3:00 to start, and +1:30 for every full load of 3 bags delivered
   (every 3 tickets served in the kitchen), at most five. **`TIME_PER_JOB` (+9s) and
