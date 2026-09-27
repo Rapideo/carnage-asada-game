@@ -64,7 +64,6 @@ Each difficulty takes one more piece away (settled 2026-09-26):
 | Supreme | | | | | x |
 
 Supreme leaves the address on the order card, and the beacon once the house is in view.
-Hard and Supreme follow this ladder unless they are revisited when they are defined.
 
 ### E. Kitchen Shift
 
@@ -174,3 +173,56 @@ these numbers. Anything not listed here is the same as Medium.
 A 1-item ticket lasts 25s (Medium 30s), 3 items 75s, 5 items 125s. A 3-item ticket served
 30s after it arrives pays $9.00. At an estimated ~15s to build an average ticket, the rail
 keeps up until a run of big tickets backs it up.
+
+## IV. Supreme
+
+Levels 19-20, Summer and Winter 1999: the finale. Anything not listed here is the same
+as Hard.
+
+### A. Shift
+
+- Starting Timer : 3:00 Minutes (same as Easy)
+
+- Starting Tip : 20.00
+
+- Depreciation Rate : 1.00 / 2 Seconds (same as Hard; runs out at 40s). Held on purpose:
+  beacon-only navigation already makes every drive longer
+
+### B. Bonus Structure
+
+#### 1. Extended Play
+
+- All 3 Items Complete : +1:00 Time Bonus (same as Hard)
+
+- Maximum Extensions Per Shift : 3 (longest shift 6:00; Hard 8:00)
+
+#### 2. Points Bonus
+
+- Same as Easy
+
+### C. Penalties
+
+- Speeding Ticket : 15.00
+
+- Hitting Pedestrian : 6.00
+
+- Hitting Train : 15.00
+
+Fines are flat from Medium through Hard; the finale is where they rise again.
+
+### D. Navigation
+
+- Beacon only : the address on the order card, and the beacon once the house is in view
+
+### E. Kitchen Shift
+
+- Starting Tip per Item : 5.00
+
+- Depreciation Rate : 1.00 / 5 Seconds (same as Hard)
+
+- Maximum Items per Ticket : 5
+
+- New Ticket Every : 15 Seconds. If the rail empties, the next ticket arrives at once
+
+Tickets arrive about as fast as an average one can be built (~15s, estimated), so the
+rail stays full and the 3-ticket limit is the finale's constant pressure.
