@@ -127,4 +127,50 @@ A 1-item ticket lasts 30s (Easy 40s), 3 items 90s, 4 items 120s. A 3-item ticket
 
 Hard and Supreme allow 5 items per ticket.
 
-### III. Hard
+## III. Hard
+
+Levels 13-18, the 1990s. Map 3 and the Era 3 menu add their own difficulty on top of
+these numbers. Anything not listed here is the same as Medium.
+
+### A. Shift
+
+- Starting Timer : 3:00 Minutes (same as Easy)
+
+- Starting Tip : 20.00
+
+- Depreciation Rate : 1.00 / 2 Seconds (runs out at 40s; Medium 50s)
+
+### B. Bonus Structure
+
+#### 1. Extended Play
+
+- All 3 Items Complete : +1:00 Time Bonus (Easy and Medium +1:30)
+
+- Maximum Extensions Per Shift : 5 (longest shift 8:00; Easy and Medium 10:30)
+
+#### 2. Points Bonus
+
+- Same as Easy
+
+### C. Penalties
+
+- Same as Medium : Speeding Ticket 10.00, Hitting Pedestrian 4.00, Hitting Train 10.00.
+  Held rather than raised on purpose: flat fines against smaller tips already cost more
+
+### D. Navigation
+
+- Minimal : minimap destination dot and beacon. No panel, no route line, no edge pointer
+
+### E. Kitchen Shift
+
+- Starting Tip per Item : 5.00
+
+- Depreciation Rate : 1.00 / 5 Seconds
+
+- Maximum Items per Ticket : 5
+
+- New Ticket Every : 18 Seconds. If the rail empties, the next ticket arrives at once
+
+A 1-item ticket lasts 25s (Medium 30s), 3 items 75s, 5 items 125s. A 3-item ticket served
+30s after it arrives pays $9.00. At an estimated ~15s to build an average ticket, the rail
+keeps up until a run of big tickets backs it up.

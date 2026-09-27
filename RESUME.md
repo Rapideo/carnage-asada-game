@@ -75,7 +75,7 @@ lists every way the pipeline has gone wrong so far.
 | **§IV.F Kitchen scoring** | **Empty**, apart from the star formula `served − walkouts − floor(mistakes/3)`. | What a ticket is worth in cents, how patience decays, what a walkout costs. |
 | **§II.B.1 Mode A controls** | **Answered for driving**: carries over the existing controls. | The Kitchen Shift's keyboard map. |
 | **§IV.A–C Kitchen mechanics, UI, controls** | Empty headings. The core loop is written, but it sits under §IV.F.2 ("An order arrives…") and belongs under §IV.A. | — |
-| **Difficulty** | Easy and Medium defined. Hard and **Supreme** undefined. | Levels 13 to 20. |
+| **Difficulty** | Easy, Medium and Hard defined. **Supreme** undefined. | Levels 19 and 20. |
 | **Maps, eras, seasons** | Headings only. `levels.md` names no map or menu per level. | Levels 7+, winter driving. |
 | **Music** | 100 empty slots (5 songs × 2 shifts × 10 years). | Nothing yet. Note that arranging real songs raises a copyright question if the game is published. |
 
@@ -135,7 +135,10 @@ settled*. In brief:
 5. ~~**Medium difficulty.**~~ Done 2026-09-26. Same clock; tips drop faster; fines
    double; navigation drops the minimap route line and the edge pointer. Kitchen:
    up to 4 items per ticket, a new ticket every 20s (Easy: 3 items, every 25s).
-   Still open: **Hard** and **Supreme**.
+6. ~~**Hard difficulty.**~~ Done 2026-09-26. Extensions +1:00 (longest shift 8:00);
+   tips drop faster; fines held at Medium's; navigation down to the minimap dot and
+   the beacon. Kitchen: 5 items per ticket, a new ticket every 18s.
+   Still open: **Supreme**.
 
 **The Kitchen Shift port, once §IV.F is settled** (from `ROADMAP.md`, *Known
 first tasks*):

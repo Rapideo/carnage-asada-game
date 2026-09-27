@@ -46,8 +46,10 @@ still the source:
 core loop is written out in a paragraph that landed under §IV.F.2 — "An order
 arrives. It has 1–5 items…" — and belongs under §IV.A.
 
-**Easy and Medium difficulty are defined** in `difficulty.md` as of 2026-09-26. Hard and
-Supreme are empty, but the **navigation ladder** already covers them (each difficulty
+**Easy, Medium and Hard difficulty are defined** in `difficulty.md` as of 2026-09-26.
+Hard shortens extensions to +1:00 (longest shift 8:00), drops tips faster (delivery $1
+per 2s, kitchen $1 per 5s), **holds Medium's fines**, and sends a ticket every 18s.
+Supreme is empty, but the **navigation ladder** already covers it (each difficulty
 removes one more guidance element, down to the beacon alone on Supreme), and so does the
 **items-per-ticket cap** (3 / 4 / 5 / 5). Medium keeps Easy's clock; tips drop faster
 (delivery $1 per 2.5s, kitchen $1 per 6s), the fines double, and navigation loses the
