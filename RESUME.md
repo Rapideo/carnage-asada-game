@@ -58,12 +58,14 @@ lists every way the pipeline has gone wrong so far.
     Easy ×6 → Medium ×6 → Hard ×6 → Supreme ×2.
   - **The shift clock:** `difficulty.md`. Easy is 3:00 to start, +1:30 per
     extension, at most five.
-- New reference material: era image sets (70s/80s/90s) in `reference/assets/images/`,
-  `reference/assets/midi/`, and `carnage_palette.png`.
+- New reference material, committed 2026-09-26 (`ea8628a`): era image sets
+  (70s/80s/90s) in `reference/assets/images/`, 203 MIDI files in
+  `reference/assets/midi/`, and `carnage_palette.png`. The sticker
+  (`reference/assets/Taco Shop.webp`) had been deleted and was restored.
 - `Migrated/` holds older files (menus, angry-customer lines, a game design spec)
-  dated May to Aug 1. **It has not been read.** `CLAUDE.md` warns against pulling in
-  context from outside the repo, so treat it as out of scope until the owner says
-  otherwise.
+  dated May to Aug 1. **Ruled in scope by the owner, 2026-09-26**, for the menu work.
+  It has still not been read: open a file there **only when the owner points at it**,
+  per `CLAUDE.md`'s rule on outside context. It is untracked.
 - Docs were repointed from the deleted PRD to the GDD (`CLAUDE.md`, `ROADMAP.md`,
   `reference/kitchen/README.md`, `tools/render/README.md`).
 
