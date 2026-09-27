@@ -488,6 +488,10 @@ HOLDING Button 3 puts the Joysick into Aim Mode; where the joystick no longer mo
 
 #### 2. Bonus Schema
 
+*Settled 2026-09-26; values in `difficulty.md` → Points Bonus.* A perfect delivery pays
++$5.00. The combo runs ×1.00 to ×3.00, up 0.25 per delivery, and multiplies everything a
+delivery pays; a missed throw, a crash, a pedestrian or a police ticket resets it.
+
 ## IV: The Kitchen Shift
 
 ### A. Play Mechanics
@@ -533,6 +537,14 @@ Difficulty scaled by lengthening recipes, widening the menu pool, adding items p
   §III.E.
 
 #### 2. Bonus Schema
+
+*Settled 2026-09-26; values in `difficulty.md` → Points Bonus.* A clean ticket (served
+with no wrong clicks) pays +$5.00. The combo runs ×1.00 to ×3.00, up 0.25 per ticket
+served, and a walkout resets it. A wrong click does not reset it: it already costs the
+item's star and the clean-ticket bonus.
+
+*The paragraph and rules below describe the core loop and belong under §IV.A. They are
+left here, where the owner wrote them, until the owner moves them.*
 
 n order arrives. It has 1–5 **items** (a customer orders more than one thing). Each item is a menu item — hard taco, bean burrito, sancho, nachos — and each menu item has a **fixed ingredient sequence**. You assemble it by clicking ingredients from a grid **in the correct order**, then hit a finishing action to close the item; when every item on the order is finished, you SERVE the order.
 

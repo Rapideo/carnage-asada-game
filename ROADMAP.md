@@ -7,99 +7,109 @@ Checkboxes render as a live task list on GitHub:
 
 ---
 
-## NEXT: build the full game (paused 2026-08-24, awaiting the design docs)
+## NEXT: build the full game (paused 2026-08-24; design mostly settled 2026-09-26)
 
 **This is the next piece of work.** Everything under *Punch list* below is the
-existing Delivery Shift and stays open, but it is not the priority.
+existing Delivery Shift and stays open, but it is not the priority. The Kitchen
+Shift port is still **held**: when it starts is the owner's call, and the gaps
+under *Still open* are what it would otherwise have to guess at.
 
 ### Where the design lives
 
 The PRD was replaced by **`docs/gdd.md`** (the game design document) plus the
 per-topic files in **`docs/authored content/`** — `levels`, `difficulty`, `menu`,
-`attract`, `music`. Section numbers cited below (§IV.E, §X.1, …) are the GDD's; it
+`attract`, `music`. Section numbers cited here (§IV.E, §X.1, …) are the GDD's; it
 kept the PRD's numbering for the parts that carried over.
 
 **When the GDD and an authored-content file disagree, the authored content wins**
 (owner's ruling, 2026-09-26). The GDD holds rules and structure; the per-topic files
-hold the values. Known disagreements this settles:
+hold the values. So `levels.md` is the level table (GDD §II.G is stale: its seasons for
+levels 7–12 and 17–18 and its difficulty curve are wrong), and `difficulty.md` sets the
+clock (over GDD §II.D's 2:00 and four extensions).
 
-- **The level table.** `levels.md` is the one: difficulty climbs Easy ×6, Medium ×6,
-  Hard ×6, Supreme ×2 rather than resetting each decade, and its seasons for levels
-  7–12 and 17–18 are the right ones. GDD §II.G is stale. **Supreme is not yet
-  defined** in `difficulty.md`, and `levels.md` carries no Map or Menu number, which
-  the GDD's table did.
-- **The shift clock.** `difficulty.md` Easy: 3:00 start, +1:30 per extension, at
-  most five — over GDD §II.D's 2:00 and four.
+These are markdown for people. The game reads `content/*.json`, so each settled value
+still has to be carried into JSON and validated by `build.mjs` when it is built.
 
-### What is paused on
+### Settled 2026-09-26
 
-Status as of 2026-09-26, against the three blockers recorded when the PRD was
-still the source:
+**How a level ends** (GDD §II.D.3). A checkpoint race: every level has a target, 3 × its
+extension cap (15 deliveries or tickets served; 9 on Supreme). Every 3 earns an
+extension. Reaching the target clears the level; reaching 0:00 first is game over. The
+score is the money across every level played. A **continue** restarts the level you died
+on with the score at $0. At game over a qualifying run **enters its initials first**, then
+gets a 10-second CONTINUE? prompt, so a continue never wipes a score before it reaches
+the board (GDD §II.F). A full run of about two hours is intended, with no save.
 
-| section | status | still blocks |
-|---|---|---|
-| **§IV.E** Menus, Ingredient Grid, Assembly | **Era 1 settled** in `menu.md`: 9 bins + 3 empty, 2 base stations, 9 items. Eras 2 and 3 empty. | every level past the 1970s. Era 1 is enough to port against. |
-| **§IV.F** Points and Bonus Schema | **Points rules settled** 2026-09-26: a ticket pays a tip (menu prices are flavour only), starting at *tip per item × items*, running down from arrival; at zero the customer walks out, with no fine. Bonus schema empty. Easy values set: **$5.00 per item, $1.00 per 8s**. | nothing for Easy. Medium, Hard and Supreme have no kitchen values yet. |
-| **§II.B.1** Mode A, keyboard and mouse | **answered for driving** — "carries over the existing controls". | the Kitchen Shift's keyboard map. |
+**Kitchen scoring** (GDD §IV.F). A served ticket pays a **tip, not its menu price** (the
+1970s prices are flavour). The tip starts at *tip per item × items*, runs down from the
+moment the ticket arrives, and is the customer's patience: at zero they walk out, paying
+nothing, with no fine. A clean ticket (no wrong clicks) pays +$5; the combo runs ×1 to ×3
+and a walkout resets it.
 
-§IV.A–C (play mechanics, interactions, controls) are still empty headings, but the
-core loop is written out in a paragraph that landed under §IV.F.2 — "An order
-arrives. It has 1–5 items…" — and belongs under §IV.A.
+**Stars** (GDD §IV.F.1, §III.E.1). One per item made without a wrong click, one per
+perfect delivery. A **report-card tally** at level clear and game over, never money and
+never on the board. Drawn in the concept frame as `STARS ★ 12` on the clock card, with
+the star at stake beside `ITEM 3 OF 5` (see *The clock card's third row* below).
 
-**All four difficulties are defined** in `difficulty.md` as of 2026-09-26.
-Hard shortens extensions to +1:00 (longest shift 8:00), drops tips faster (delivery $1
-per 2s, kitchen $1 per 5s), **holds Medium's fines**, and sends a ticket every 18s.
-Supreme allows only three extensions (longest shift 6:00), **holds Hard's tips**, raises
-the fines to $15 / $6 / $15, and sends a ticket every 15s. The **navigation ladder**
-spans all four (each difficulty
-removes one more guidance element, down to the beacon alone on Supreme), and so does the
-**items-per-ticket cap** (3 / 4 / 5 / 5). Medium keeps Easy's clock; tips drop faster
-(delivery $1 per 2.5s, kitchen $1 per 6s), the fines double, and navigation loses the
-minimap route line and the edge pointer. Kitchen tickets arrive every 25s on Easy and
-every 20s on Medium, and at once whenever the rail empties.
+**All four difficulties** (`difficulty.md`):
 
-**A level is a checkpoint race** (GDD §II.D.3, settled 2026-09-26): reach the target
-(3 × the extension cap: 15 deliveries or tickets, 9 on Supreme) to clear it; reach 0:00
-first and the game is over. The score is the money across every level played. A
-**continue** restarts the level you died on with the score reset to $0. At game over a
-qualifying run **enters its initials first**, then gets a 10-second CONTINUE? prompt, so
-a continue never wipes a score before it reaches the board (GDD §II.F). A full run of
-about two hours is intended, with no save between sessions. This
-replaces today's structure, where one shift *is* the whole game, so it is a `G` state
-machine change as well as a Kitchen one.
+| | Easy | Medium | Hard | Supreme |
+|---|---|---|---|---|
+| levels | 1–6 | 7–12 | 13–18 | 19–20 |
+| extension | +1:30 × 5 | +1:30 × 5 | +1:00 × 5 | +1:00 × 3 |
+| longest shift | 10:30 | 10:30 | 8:00 | 6:00 |
+| level target | 15 | 15 | 15 | 9 |
+| delivery tip ($20) drops | $1 / 3s | $1 / 2.5s | $1 / 2s | $1 / 2s |
+| kitchen tip ($5/item) drops | $1 / 8s | $1 / 6s | $1 / 5s | $1 / 5s |
+| fines: ticket / ped / train | $5 / $2 / $5 | $10 / $4 / $10 | $10 / $4 / $10 | $15 / $6 / $15 |
+| navigation | full | panel, map dot, beacon | map dot, beacon | beacon |
+| items per ticket | 3 | 4 | 5 | 5 |
+| new ticket every | 25s | 20s | 18s | 15s |
 
-Some Easy rules **change the Delivery Shift as it plays today**, so they are Delivery
+Every difficulty starts at 3:00. A kitchen ticket arrives at once whenever the rail
+empties. The kitchen numbers are paper estimates, to be tuned by playtest.
+
+**The Era 1 menu** (`menu.md`). Shredded cheese takes bin 9 (9 bins filled, 3 empty).
+The left base station stacks taco shell, small tortilla and large tortilla; the right is
+chips. Soft Taco Supreme mirrors Hard Taco Supreme at $0.49; Beef Burrito's 0, 1, 3 was
+a typo; Nachos is $0.49. The step cap is **6 toppings, not counting the base**, so up to
+7 pips. Full names do not fit NOW BUILDING beside their pips, so **each item carries a
+`Short` name**, limited per item by `12 × chars + 9 × steps ≤ 127` (the readout draws at
+scale 2 from x6 to the board at x137). All nine were checked by arithmetic against
+`pips()`'s guard, the tightest ending at x133 — not yet in a rendered frame.
+`content/menus.json` validation must enforce the limit per item, not as a flat cap.
+
+### Delivery Shift changes these imply
+
+Some settled rules **change the Delivery Shift as it plays today**, so they are Delivery
 work as well as Kitchen work:
 
-- **The clock:** 3:00 to start, and +1:30 for every full load of 3 bags delivered
-  (every 3 tickets served in the kitchen), at most five. **`TIME_PER_JOB` (+9s) and
-  `TIME_PERFECT` (+3s) go.** A perfect delivery keeps only its +$5.
-- **Tip and fines:** a $20 starting tip against today's `TIP_MAX` of $15, dropping
-  $1 every 3s. A $5 speeding ticket against today's $10 (`TICKET`). A $5 fine for
-  hitting the train, which is new.
-- **Kitchen bonuses mirror delivery:** +$5 for a clean ticket (no wrong clicks), and
-  the same combo, ×1 to ×3, reset by a walkout.
+- **Level structure:** today one shift *is* the whole game. Levels, targets, continues
+  and a level table are a `G` state-machine change.
+- **The clock:** time comes only from the 3:00 start and the extensions. **`TIME_PER_JOB`
+  (+9s) and `TIME_PERFECT` (+3s) go.** A perfect delivery keeps only its +$5.
+- **Tip and fines:** Easy's $20 starting tip against today's `TIP_MAX` of $15. Easy's $5
+  speeding ticket against today's $10 (`TICKET`). A train fine, which is new.
+- **Navigation:** the ladder above removes aids that are always on today.
+- **Stars:** a perfect-delivery tally for the report card.
 
-**The Era 1 menu gaps, answered by the owner 2026-09-26** and written into `menu.md`:
+### Still open
 
-- **Cheese** was in seven of nine recipes and in no bin → **Cheese (shredded) takes
-  bin 9.**
-- **Four bases against two stations** → **the left station stacks taco shell, small
-  tortilla and large tortilla**, as the concept frame already draws it; the right is
-  chips. The two-station layout stands.
-- **Soft Taco Supreme** was identical to Soft Taco → **it mirrors Hard Taco Supreme**
-  (adds onions, tomatoes, sour cream) at **$0.49**, the same +$0.10 for going Supreme.
-- **Beef Burrito** numbered its steps 0, 1, 3 → **a typo**: tortilla, beef, cheese.
-- **Nachos** had no price → **$0.49**, level with the other three-step item.
-- **The Supremes are 7 steps** against the 6-step cap → **the base does not count**;
-  see the cap below.
-- **Full item names do not fit NOW BUILDING** (found answering the cap) → **each item
-  carries a `Short` name** in `menu.md`. The readout draws at scale 2, and the name and
-  its pips share x6 to the board at x137, so `12 × chars + 9 × steps ≤ 127`. All nine
-  Era 1 short names were checked against the same arithmetic as `pips()`'s guard; the
-  tightest end at x133. That is arithmetic, not a rendered frame — render it when the
-  readout is ported. `content/menus.json` validation must enforce this per item, not
-  as a flat character cap.
+- **Era 2 and Era 3 menus** (`menu.md`). Era 1 is enough to port against.
+- **The Kitchen Shift's keyboard and mouse map** (GDD §II.B.1 answers driving only).
+- **§IV.A–C** (kitchen mechanics, UI, controls) are empty headings. The core loop is
+  written, in a paragraph under §IV.F.2 that belongs under §IV.A.
+- **"More than 3 live tickets and customers start complaining"** (GDD §IV): what
+  complaining does is undefined.
+- **Maps 2 and 3, eras, seasons** are headings only, and `levels.md` names no map or
+  menu per level.
+- **Music** (`music.md`): 100 empty slots. Arranging real songs raises a copyright
+  question if the game is published.
+- **Attract mode:** `attract.md` asks for a separate High Scores screen (title 15s,
+  winners 10s, scores 10s, demo 45s); the game today alternates the winners card and the
+  board in one slot, on a 75s loop.
+- **The kitchen frame's palette** was outside the §X.1 targets (warm 28.7%, neutral
+  34.3%) before any of this — a finding for the port.
 
 ### What is already settled, and should not be re-litigated
 
@@ -116,8 +126,9 @@ questions:
 - **Levels are independent.** Own clock and own money, totalled at the end. Money is
   the only score. **Stars** (2026-09-26, replacing the 1–5 per-level rating) are a
   report-card tally: one per item made without a wrong click, one per perfect delivery.
-  They never touch the money or the board, which still stores `{ ini, cents }`. This preserves `78_scores.js` unchanged: the board still stores one
-  `cents` figure and `rank()` still derives its title from it.
+  They never touch the money or the board. That preserves `78_scores.js` unchanged:
+  the board still stores `{ ini, cents }` and `rank()` still derives its title from
+  the cents.
 - **The ingredient grid is a navigable lattice of TWELVE bins**, always twelve, in
   2 rows × 6. Superseded the earlier "2×8 = 16 cells, unused slots lidded" rule on
   2026-08-24; the reasoning behind it survives unchanged, which is that nothing on
@@ -132,7 +143,8 @@ questions:
   **held until the design docs land**. §IV.A, §IV.B, §IV.C and §IV.E were all empty as of 2026-08-25,
   which means the play mechanics, the interactions, the controls and the entire menu are
   unspecified — building recipes against that is inventing placeholders, which is exactly what
-  the reference art already warns is not a decision.
+  the reference art already warns is not a decision. *As of 2026-09-26 §IV.E (Era 1) and
+  §IV.F are settled; §IV.A–C and the kitchen controls are not. See* Still open *above.*
 
   A name-collision audit was run ahead of it (`node tools/collide.mjs reference/kitchen/kitchen.mjs`)
   so the port is not blocked on an unknown:
@@ -277,18 +289,11 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
       making the food, and the brief says so in its first line. Treat any earlier framing of it as a
       restock replacement as superseded.
 
-      **The user is planning it now and a full spec is coming.** Do not start building from the
-      current brief — it is a work in progress with three sections still unwritten (The Clock, The
-      Order Timer, The Dialog System). Wait for the spec.
-
-      Two files, and `docs/kitchen-minigame-prompt1.1.md` is the **newer** of the two:
-      `docs/kitchen-minigame-prompt.md` is the original brief as revised, and the 1.1 adds a *Global
-      Adjustments* section for the changes needed game-wide to let the two halves share one product.
-      What has already moved between versions: menu, ingredients and build order become a **JSON
-      settings file** against the `content/` pattern the rest of the authored copy uses; tickets
-      become **concurrent**, up to three live at once, rather than one at a time; items per order
-      drop from 1-8 to 1-5. The filenames still say "minigame" and are now misleading — worth a
-      rename when the spec lands and the naming settles.
+      **Superseded as a punch-list item: this is now *NEXT* at the top of this file.** The two
+      briefs this item described (`docs/kitchen-minigame-prompt*.md`) were deleted, replaced first
+      by a PRD and then by `docs/gdd.md` and `docs/authored content/`. What they had already
+      settled carried over: menu, ingredients and build order as a **JSON settings file** on the
+      `content/` pattern; **concurrent** tickets, up to three live at once; 1–5 items per order.
 
 - [ ] **Seasonal hazards.**
 - [ ] **NPC feedback — APB-style character dialogue.**

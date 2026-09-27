@@ -35,6 +35,12 @@ that reason: this file travels with the repository, and memory does not.
 
 If something seems to be missing, ask. Do not go looking for it.
 
+**`Migrated/` is the one standing exception, and it is narrow.** It holds older files (a
+menu, angry-customer lines, a game design spec) from before this repo's current work, and
+it is untracked on purpose. The owner ruled it **in scope for the menu work** on
+2026-09-26, but a file there is opened **only when the owner points at it**. Being in the
+folder is not a pointer.
+
 ## Commands
 
 ```bash
@@ -90,6 +96,9 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 
 ## Related docs
 
+- **`RESUME.md` — read this first when starting a session.** Where the last session
+  left off, what the next one is for, the state of the repo, and what is still open. A
+  snapshot: where it and `ROADMAP.md` disagree, the roadmap wins.
 - `ROADMAP.md` — **starts with `NEXT: build the full game`, which is the current priority** and
   records what is already settled about the Kitchen Shift so it is not re-litigated. Then the open
   punch list, and the tiered plan for reshaping the city into the real
