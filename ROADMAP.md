@@ -184,14 +184,20 @@ questions:
 - [ ] Test coverage for the new state. Remember `test/headless.mjs` draws through
       stubs and cannot see a pixel — use `tools/render/` for anything visual.
 
-### The clock card's third row is ERRORS
+### The clock card's third row is STARS (was ERRORS)
 
-> **Reopened 2026-09-26.** The 1–5 formula this section rests on is gone: stars are now
-> earned **one per item made without a wrong click**. The row's intent survives, and it
-> still "draws the star you are about to lose", but that is now one star, on the item
-> being built, rather than three segments of three mistakes. **The concept art still
-> shows the three-segment meaning**, and redrawing it is an open art question. The
-> reasoning below is kept because it explains why the art looks the way it does.
+> **Redrawn 2026-09-26.** Stars are now earned **one per item made without a wrong
+> click**, so the three-segment meter lost the formula it drew. The row is now `STARS`,
+> the shift's banked tally (★ 12). The star still **at stake** moved to the item it
+> belongs to: beside `ITEM 3 OF 5` in BUILD PROGRESS, lit while the item is clean and
+> dimmed, not hidden, from the first wrong click. So the intent below, *draw the star
+> you are about to lose*, survives at the scale the rule now works at. Chosen from
+> three rendered options: everything in the card and an earned/made ratio were
+> rejected. A dim `#6b5f84` stands in for a lost star because the first try, the old
+> empty-segment `#3a3050`, vanished on both backgrounds. `measure.mjs` scores the
+> frame the same as before (warm 28.7%, neutral 34.3%). **Both were already outside
+> the §X.1 targets before this change** — that is a finding for the port, not a
+> regression. The 2026-08-24 reasoning below is kept for the record.
 
 Settled 2026-08-24, and it went with the field rather than against it. Three of
 the four independent design teams put **`ERRORS`** there rather than `LOBBY`,

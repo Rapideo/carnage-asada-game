@@ -792,7 +792,16 @@ function prepBoard() {
   textOut(x, 'NOW BUILDING', 6, 172, PAL.boneDim, 1);
   textOut(x, BUILDING, 6, 182, PAL.bone, 2);
   textOut(x, 'TICKET 1', 6, 200, PAL.amber, 1);
-  textOut(x, 'ITEM 3 OF 5', 60, 200, PAL.boneDim, 1);
+  const ITEM = 'ITEM 3 OF 5';
+  textOut(x, ITEM, 60, 200, PAL.boneDim, 1);
+  /* The star AT STAKE on this item: lit while it is clean, LOST from the first
+     wrong click. It is the old ERRORS meter's intent -- draw the star you are
+     about to lose -- at the scale the rule now works at, one item. Keylined
+     in ink like the textOut run beside it, or it reads faint against it. */
+  const starX = 60 + textW(ITEM, 1) + 4;         // its keyline reaches starX + 7
+  if (starX + 7 >= BX - 1) throw new Error(
+    `item star: its keyline reaches x${starX + 7}, and the board starts at ${BX - 1}.`);
+  star(starX, 200, process.env.SLIP ? STAR_LOST : STAR_LIT, PAL.ink);
 
   /* Stage pips, immediately right of the item name and vertically centred.
 
@@ -1025,7 +1034,9 @@ function wrapped(cx, by) {
 
 /* ============================================================
    HUD -- the driving shift's own card, unchanged but for the third
-   row: ERRORS, drawn as floor(mistakes / 3).
+   row: STARS, the shift's tally. It was ERRORS, a three-segment meter
+   drawn as floor(mistakes / 3), until the 1-5 star formula it drew was
+   replaced by a star per clean item (2026-09-26).
    ============================================================ */
 function hud() {
   const pw = 128, px0 = VW - pw + 1;
@@ -1038,17 +1049,28 @@ function hud() {
   /* ERRORS, not a continuous bar: the score docks a star per THREE mistakes,
      so the meter is three segments and each filled one is a star already
      lost. The bar is the scoring term, drawn. */
-  text(x, 'ERRORS', px0, 37, PAL.boneDim, 1);
-  const MIS = 4, SEGW = 23;
-  R(x, '#1b1425', px0 + 44, 36, 72, 5);
-  for (let i = 0; i < 3; i++) {
-    const sx = px0 + 45 + i * (SEGW + 1);
-    R(x, '#3a3050', sx, 37, SEGW, 3);                       // an EMPTY segment has
-    R(x, '#2a2338', sx + 1, 38, SEGW - 2, 1);               // to read as a segment,
-    const got = Math.max(0, Math.min(3, MIS - i * 3));      // or three stars at
-    if (got) R(x, got === 3 ? PAL.bad : '#e07a1f', sx, 37, Math.round(SEGW * got / 3), 3);
-  }
+  /* STARS: the shift's tally. A star is earned per item made without a wrong
+     click (GDD IV.F.1), and it is a report card, never money. The star still
+     AT STAKE is not here: it belongs to one item, so it is drawn with that
+     item in NOW BUILDING, and this row counts the ones already banked. */
+  text(x, 'STARS', px0, 37, PAL.boneDim, 1);
+  const n = '12', nx = VW - 7 - textW(n, 1);
+  star(nx - 10, 37, PAL.bone);
+  text(x, n, VW - 7, 37, PAL.bone, 1, 2);
+}
 
+/* The star glyph. The 5x7 font is ASCII-only, so it is drawn here, one pixel
+   per cell. LIT is a star still in play; LOST keeps the shape in a dim value
+   rather than hiding it -- a star you lost has to read as a star, the way the
+   old meter's empty segments still read as segments. */
+const STAR = ['...#...', '..###..', '#######', '.#####.', '..###..', '.##.##.', '##...##'];
+const STAR_LIT = PAL.bone, STAR_LOST = '#6b5f84';
+function star(sx, sy, col, ink) {
+  const on = (i, j) => j >= 0 && j < 7 && i >= 0 && i < 7 && STAR[j][i] === '#';
+  if (ink) for (let j = -1; j <= 7; j++) for (let i = -1; i <= 7; i++)   // 1px keyline,
+    if (!on(i, j) && (on(i - 1, j) || on(i + 1, j) || on(i, j - 1) || on(i, j + 1)))
+      R(x, ink, sx + i, sy + j, 1, 1);                                // as textOut has
+  STAR.forEach((r, j) => { for (let i = 0; i < 7; i++) if (r[i] === '#') R(x, col, sx + i, sy + j, 1, 1); });
 }
 
 /* ============================================================ */

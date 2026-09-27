@@ -120,6 +120,9 @@ settled*. In brief:
 
 ## Next steps already planned
 
+**Next session (2026-09-27 morning):** the owner works on the menu items in
+`docs/authored content/menu.md`. Era 1 is settled; Eras 2 and 3 are empty.
+
 **Now:**
 
 1. ~~Answer the six Era 1 menu questions.~~ Done.
@@ -153,8 +156,10 @@ settled*. In brief:
 10. ~~**High scores and continues.**~~ Done 2026-09-26 (GDD §II.F). At game over,
     initials first if the run qualifies, then a 10s CONTINUE? prompt. A continued run
     starts at $0 and can make the board on its own.
-    **Open:** redrawing the ERRORS row on the kitchen clock card (it still shows three
-    segments; see `ROADMAP.md`).
+11. ~~**The ERRORS row.**~~ Redrawn 2026-09-26. The clock card's third row is now
+    `STARS` (the shift's tally). The star at stake sits beside `ITEM 3 OF 5` and dims
+    on a wrong click. Note for the port: the kitchen frame was already outside the
+    §X.1 palette targets (warm and neutral) before this change.
 
 **The Kitchen Shift port, once §IV.F is settled** (from `ROADMAP.md`, *Known
 first tasks*):

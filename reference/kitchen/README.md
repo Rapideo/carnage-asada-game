@@ -40,6 +40,7 @@ node reference/kitchen/kitchen.mjs            # redraw the frame
 HEAPS=1 node reference/kitchen/kitchen.mjs    # ...with the DRAWN wells, not the baked ones
 DIALOG=smoker node reference/kitchen/...      # ...with the baked face in the strip
 DIALOG=1 node reference/kitchen/kitchen.mjs   # ...with the dialogue strip up
+SLIP=1 node reference/kitchen/kitchen.mjs     # ...with the item's star lost to a wrong click
 node reference/kitchen/face.mjs               # just the character sheet
 node tools/render/measure.mjs                 # score it against the real game
 ```
@@ -117,8 +118,11 @@ coordinates are in the 384×216 virtual screen.
   window, and a walkout are all there. The QUEUE count on the wall beside the
   opening goes red past three.
 - **The SCORE CARD is the Delivery Shift's own card**, at its own rect, with
-  only the third row changed (`HAYS PD` → `ERRORS`). It is drawn last, with a
-  cast shadow, so it reads as hovering over the room rather than as a hole.
+  only the third row changed (`HAYS PD` → `STARS`, the shift's tally; it was
+  `ERRORS` until 2026-09-26). It is drawn last, with a cast shadow, so it reads
+  as hovering over the room rather than as a hole. The star still **at stake** is
+  not on the card: it sits in BUILD PROGRESS beside `ITEM 3 OF 5`, with the item
+  it belongs to, and dims on a wrong click (`SLIP=1` renders that state).
 - **The DIALOGUE STRIP takes the bottom band because that is the only region
   non-critical in BOTH halves** — you are not reading the minimap or the nav
   unit during a one-line reaction. Its portrait box is 56×56, the minimap's
