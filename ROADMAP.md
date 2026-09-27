@@ -58,6 +58,14 @@ removes one more guidance element, down to the beacon alone on Supreme), and so 
 minimap route line and the edge pointer. Kitchen tickets arrive every 25s on Easy and
 every 20s on Medium, and at once whenever the rail empties.
 
+**A level is a checkpoint race** (GDD §II.D.3, settled 2026-09-26): reach the target
+(3 × the extension cap: 15 deliveries or tickets, 9 on Supreme) to clear it; reach 0:00
+first and the game is over. The score is the money across every level played. A
+**continue** restarts the level you died on with the score reset to $0. A full run of
+about two hours is intended, with no save between sessions. This
+replaces today's structure, where one shift *is* the whole game, so it is a `G` state
+machine change as well as a Kitchen one.
+
 Some Easy rules **change the Delivery Shift as it plays today**, so they are Delivery
 work as well as Kitchen work:
 
@@ -103,8 +111,10 @@ questions:
 - **The layout in those frames is a starting point, not a spec.** Element
   positions are a working arrangement. Every menu item, ingredient name and price
   in them is a placeholder waiting on §IV.E.
-- **Levels are independent.** Own clock, own money, own star rating, totalled at
-  the end. This preserves `78_scores.js` unchanged: the board still stores one
+- **Levels are independent.** Own clock and own money, totalled at the end. Money is
+  the only score. **Stars** (2026-09-26, replacing the 1–5 per-level rating) are a
+  report-card tally: one per item made without a wrong click, one per perfect delivery.
+  They never touch the money or the board, which still stores `{ ini, cents }`. This preserves `78_scores.js` unchanged: the board still stores one
   `cents` figure and `rank()` still derives its title from it.
 - **The ingredient grid is a navigable lattice of TWELVE bins**, always twelve, in
   2 rows × 6. Superseded the earlier "2×8 = 16 cells, unused slots lidded" rule on
@@ -173,6 +183,13 @@ questions:
       stubs and cannot see a pixel — use `tools/render/` for anything visual.
 
 ### The clock card's third row is ERRORS
+
+> **Reopened 2026-09-26.** The 1–5 formula this section rests on is gone: stars are now
+> earned **one per item made without a wrong click**. The row's intent survives, and it
+> still "draws the star you are about to lose", but that is now one star, on the item
+> being built, rather than three segments of three mistakes. **The concept art still
+> shows the three-segment meaning**, and redrawing it is an open art question. The
+> reasoning below is kept because it explains why the art looks the way it does.
 
 Settled 2026-08-24, and it went with the field rather than against it. Three of
 the four independent design teams put **`ERRORS`** there rather than `LOBBY`,

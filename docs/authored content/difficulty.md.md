@@ -22,6 +22,10 @@
 
 - Maximum Extensions Per Shift: 5
 
+- Level Target : 15 deliveries / 15 tickets served (3 x the extension cap; see GDD §II.D.3).
+  Reaching it clears the level; 0:00 first is game over. Medium and Hard: also 15.
+  Supreme: 9
+
 Time comes only from the starting timer and these extensions, in both shifts. The game
 today adds +0:09 per delivery and +0:03 per perfect one; those go.
 
@@ -195,6 +199,8 @@ as Hard.
 - All 3 Items Complete : +1:00 Time Bonus (same as Hard)
 
 - Maximum Extensions Per Shift : 3 (longest shift 6:00; Hard 8:00)
+
+- Level Target : 9 deliveries / 9 tickets served (Easy to Hard: 15)
 
 #### 2. Points Bonus
 

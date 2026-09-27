@@ -72,7 +72,7 @@ lists every way the pipeline has gone wrong so far.
 | Topic | Status | What it still blocks |
 |---|---|---|
 | **§IV.E Menus** | **Era 1 settled** (see below): 9 bins + 3 empty, 2 base stations, 9 items. Eras 2 and 3 empty. | Every level past the 1970s. |
-| **§IV.F Kitchen scoring** | **Empty**, apart from the star formula `served − walkouts − floor(mistakes/3)`. | What a ticket is worth in cents, how patience decays, what a walkout costs. |
+| **§IV.F Kitchen scoring** | **Settled**: a tip per item, running down from arrival; a walkout at zero. A star per clean item, as a report card. | Nothing. |
 | **§II.B.1 Mode A controls** | **Answered for driving**: carries over the existing controls. | The Kitchen Shift's keyboard map. |
 | **§IV.A–C Kitchen mechanics, UI, controls** | Empty headings. The core loop is written, but it sits under §IV.F.2 ("An order arrives…") and belongs under §IV.A. | — |
 | **Difficulty** | **All four defined**: Easy, Medium, Hard, Supreme. Kitchen values are paper estimates to tune by playtest. | Nothing. |
@@ -101,7 +101,8 @@ settled*. In brief:
 - The Kitchen Shift uses the art in `reference/kitchen/`. The **look** is approved;
   the **layout** is a starting point, and every menu item and price in the frames
   is a placeholder.
-- **Levels are independent**: each has its own clock, money and star rating,
+- **Levels are independent**: each has its own clock and money (stars are a
+  report-card tally, not a score),
   totalled at the end. `78_scores.js` stays unchanged.
 - **Twelve bins, always**, in 2 rows × 6. Nothing moves between levels, and a
   level needing fewer ingredients leaves bins empty rather than covering them.
@@ -141,6 +142,17 @@ settled*. In brief:
 7. ~~**Supreme difficulty.**~~ Done 2026-09-26. At most three +1:00 extensions
    (longest shift 6:00); tips held at Hard's; fines $15 / $6 / $15; the beacon only.
    Kitchen: a new ticket every 15s.
+8. ~~**How a level ends.**~~ Done 2026-09-26 (GDD §II.D.3). A checkpoint race: reach
+   the target (15 deliveries or tickets, 9 on Supreme) to clear the level; 0:00 first
+   is game over. The score is the money across every level played. A continue
+   restarts the level with the score at $0. A two-hour full run is intended, with no
+   save.
+9. ~~**Stars.**~~ Done 2026-09-26. One star per item made without a wrong click, and
+   one per perfect delivery. Shown as a tally at level clear and game over; never
+   money, never on the board.
+   **Open:** redrawing the ERRORS row on the kitchen clock card (it still shows three
+   segments; see `ROADMAP.md`), and whether a run gets its high-score entry before
+   a continue resets it.
 
 **The Kitchen Shift port, once §IV.F is settled** (from `ROADMAP.md`, *Known
 first tasks*):

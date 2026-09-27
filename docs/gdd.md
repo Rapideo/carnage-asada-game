@@ -52,6 +52,32 @@ Keeping with with the arcade pacing, each shift, both Driving and Kitchen will b
 
 If the player meets the expectations of the individual levels, dependant on the rules applied there, the user will recieve a time extension, and be allowed to continue play. The player shall recieve no more than FOUR extensions per level.
 
+*The starting time, extension length and cap are set per difficulty in `difficulty.md`,
+which wins over the 2 minutes and FOUR above (3:00, and up to five on Easy).*
+
+#### 3. Level End
+
+*Settled 2026-09-26.* Each level is a **checkpoint race**, like the classic arcade games:
+
+- Every level has a **target**: deliveries made in a Delivery Shift, tickets served in a
+  Kitchen Shift. Every 3 earns an extension.
+- **Reaching the target clears the level**, and play moves on to the next one.
+- **If the clock reaches 0:00 first, the game is over.**
+- The target is **3 × the difficulty's extension cap**: 15 on Easy, Medium and Hard, 9 on
+  Supreme. The level clears on the load that would have earned the last extension, so
+  every extension the cap allows is used and none past it is ever needed.
+- The score is the money earned across every level played, so a run that ends on level 7
+  still keeps its money for the high-score board.
+- **Continues:** at game over the player may continue from **the start of the level they
+  died on**, but **the score restarts at $0.00**. A continue buys the chance to see the
+  rest of the game, not a better score.
+
+A full 20-level run is expected to take around two hours, and that is intended
+(2026-09-26). There is no save between sessions.
+
+Rough estimate, at ~25-30s per delivery or ticket: a level runs 6-7 minutes (about 4 on
+Supreme), and a full 20-level run takes about two hours.
+
 ### E. Scoring
 
 ### F. High Scores
@@ -442,6 +468,11 @@ HOLDING Button 3 puts the Joysick into Aim Mode; where the joystick no longer mo
 
 #### 1. Points Schema
 
+- **Stars** (2026-09-26): each **perfect delivery**, a bag that lands on the doorstep,
+  earns a star. It is the delivery version of the kitchen's clean item (§IV.F.1), and
+  the same throw that already pays +$5. Stars are a report card only: a tally at level
+  clear and game over, never money and never on the board.
+
 #### 2. Bonus Schema
 
 ## IV: The Kitchen Shift
@@ -476,10 +507,17 @@ Difficulty scaled by lengthening recipes, widening the menu pool, adding items p
 - **The tip runs down from the moment the ticket arrives** on the rail, at a fixed rate
   set by difficulty. It keeps running whether or not the ticket is in focus.
 - **The tip is the customer's patience.** When it reaches zero the customer **walks out**:
-  the ticket leaves the rail, pays nothing, and counts as a walkout in the star rating.
-  There is **no fine**. The lost tip is the money cost, and there is no second patience
-  meter to read.
-- **Stars** stay as written: `served − walkouts − floor(mistakes / 3)`, clamped to 1–5.
+  the ticket leaves the rail, pays nothing, and resets the combo. There is **no fine**.
+  The lost tip is the money cost, and there is no second patience meter to read.
+- **Stars are earned per clean item** (2026-09-26, replacing the 1–5 formula). Every item
+  finished without a wrong click earns a star. A wrong click costs that item's star, the
+  ticket's clean-ticket bonus, and the time it takes to recover. So one slip on a 5-item
+  ticket loses the $5 but still earns 4 stars.
+- **Stars are a report card, not a score.** They are shown as a tally when a level clears
+  and at game over ("28 of 31 items clean"), with a running total for the run. They never
+  change the money or the high-score board, which keeps storing initials and cents only.
+  The Delivery Shift earns a star for each perfect delivery (bag on the doorstep); see
+  §III.E.
 
 #### 2. Bonus Schema
 
@@ -492,7 +530,9 @@ The rules that made it work, in priority order:
 1. **The recipes are hidden.** The player sees **how many steps remain** (a row of pips) and nothing else. You have to *know* that a sancho is tortilla → beef → lettuce → cheese →wrap. Learning the menu **is** the mastery curve.
 2. **A wrong click flashes red and is counted.** It doesn't undo your progress — it costs you accuracy and time, and it feeds the bark (below). If the wrong ingredient is selected, it warns you until to select the CORRECT ingredient. 
 3. **Incoming order tickets** - Play will start with one ticket, but as play progresses, more will appear. The idea is to keep up the pace to that you never have more than 3 live tickets at any one time. If there are more, customers start complaining.  No one ticket will have more than 5 menu items. 
-4. **Scored 1–5 stars**: `served − walkouts − floor(mistakes / 3)`, clamped.
+4. ~~**Scored 1–5 stars**: `served − walkouts − floor(mistakes / 3)`, clamped.~~ *Replaced
+   2026-09-26: a star for every item made without a wrong click, shown as a tally. See
+   §IV.F.1.*
 5. **Sound is load-bearing.** Ingredient clicks, order arrival, the walkout, and the SERVE moment. The feel I wrote down at the time was **"slot-machine fun"** — that's the target.
 
 ## X. Non-Negotiable Technical Constraints
