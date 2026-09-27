@@ -125,8 +125,13 @@ settled*. In brief:
 2. Commit the design-doc move (the deletions, `docs/gdd.md`,
    `docs/authored content/`, the doc repointing and this file).
 3. ~~**§IV.F Kitchen scoring** rules.~~ Done 2026-09-26: a tip per item, running down
-   from arrival; a walkout at zero, with no fine. Still open: the Easy **tip per item**
-   and **depreciation rate** in `difficulty.md`.
+   from arrival; a walkout at zero, with no fine. Easy values: **$5.00 per item,
+   $1.00 per 8s**.
+4. ~~**Easy difficulty.**~~ Done 2026-09-26, both shifts. Time comes only from
+   3:00 plus +1:30 extensions (3 bags delivered / 3 tickets served, at most five),
+   replacing today's +9s per delivery. The kitchen gets a +$5 clean-ticket bonus and
+   the same ×1 to ×3 combo as delivery, reset by a walkout. See `ROADMAP.md` for the
+   Delivery Shift code this changes.
 
 **The Kitchen Shift port, once §IV.F is settled** (from `ROADMAP.md`, *Known
 first tasks*):

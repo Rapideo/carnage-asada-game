@@ -39,12 +39,25 @@ still the source:
 | section | status | still blocks |
 |---|---|---|
 | **§IV.E** Menus, Ingredient Grid, Assembly | **Era 1 settled** in `menu.md`: 9 bins + 3 empty, 2 base stations, 9 items. Eras 2 and 3 empty. | every level past the 1970s. Era 1 is enough to port against. |
-| **§IV.F** Points and Bonus Schema | **Points rules settled** 2026-09-26: a ticket pays a tip (menu prices are flavour only), starting at *tip per item × items*, running down from arrival; at zero the customer walks out, with no fine. Bonus schema empty. | the Easy numbers for *tip per item* and *depreciation* in `difficulty.md`. The rules are enough to build against. |
+| **§IV.F** Points and Bonus Schema | **Points rules settled** 2026-09-26: a ticket pays a tip (menu prices are flavour only), starting at *tip per item × items*, running down from arrival; at zero the customer walks out, with no fine. Bonus schema empty. Easy values set: **$5.00 per item, $1.00 per 8s**. | nothing for Easy. Medium, Hard and Supreme have no kitchen values yet. |
 | **§II.B.1** Mode A, keyboard and mouse | **answered for driving** — "carries over the existing controls". | the Kitchen Shift's keyboard map. |
 
 §IV.A–C (play mechanics, interactions, controls) are still empty headings, but the
 core loop is written out in a paragraph that landed under §IV.F.2 — "An order
 arrives. It has 1–5 items…" — and belongs under §IV.A.
+
+**Easy difficulty is fully defined** in `difficulty.md` as of 2026-09-26. Medium, Hard
+and Supreme are empty. Three of its rules **change the Delivery Shift as it plays
+today**, so they are Delivery work as well as Kitchen work:
+
+- **The clock:** 3:00 to start, and +1:30 for every full load of 3 bags delivered
+  (every 3 tickets served in the kitchen), at most five. **`TIME_PER_JOB` (+9s) and
+  `TIME_PERFECT` (+3s) go.** A perfect delivery keeps only its +$5.
+- **Tip and fines:** a $20 starting tip against today's `TIP_MAX` of $15, dropping
+  $1 every 3s. A $5 speeding ticket against today's $10 (`TICKET`). A $5 fine for
+  hitting the train, which is new.
+- **Kitchen bonuses mirror delivery:** +$5 for a clean ticket (no wrong clicks), and
+  the same combo, ×1 to ×3, reset by a walkout.
 
 **The Era 1 menu gaps, answered by the owner 2026-09-26** and written into `menu.md`:
 
