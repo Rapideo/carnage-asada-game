@@ -49,7 +49,8 @@ Three things to know before touching anything:
   `build.mjs` does for the dev `index.html`, because `shell.html` leaves them to the
   artifact host and Netlify does not add them. Never deploy the repo itself: it holds
   the reference art, the MIDI library and `Migrated/`.
-- Netlify injects a "Powered by Netlify" badge over the canvas's bottom-right corner.
+- The "Powered by Netlify" badge is **off** (`built_with_badge_enabled: false`, set
+  2026-10-02). It sat over the canvas's bottom-right corner.
 - The Claude artifact linked from `JOURNAL.md` §6 is the 2026-08-16 Hot Slice build,
   not this game.
 
