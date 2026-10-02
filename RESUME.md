@@ -1,6 +1,7 @@
 # Resume here
 
-*Last updated at the end of the 2026-09-26 session.* This is the starting point for a
+*Last updated at the end of the 2026-09-26 session; the Netlify deployment was added
+2026-10-02.* This is the starting point for a
 fresh session. It is a snapshot: **`ROADMAP.md` is the living plan**, and if the two
 disagree, the roadmap wins.
 
@@ -34,6 +35,23 @@ Three things to know before touching anything:
   half of the planned 20-level game, exists only as reference art and concept frames
   in `reference/kitchen/`. The one piece of kitchen work already in the game is the
   dialogue strip (`src/72_dialog.js`, `src/35_faces.js`).
+
+## Where it is live
+
+- **<https://carnage-asada.netlify.app>** — public, deployed 2026-10-02 from `5f9700f`.
+  Netlify project `carnage-asada`, team Rapideo
+  ([admin](https://app.netlify.com/projects/carnage-asada)).
+- **It is not wired to GitHub**: a push does not redeploy it. To update it, run
+  `node build.mjs` and `node test/headless.mjs`, then wrap `taco-shop.html` as the
+  only file in a folder, named `index.html`, and run
+  `netlify deploy --prod --dir <folder> --site 4e57ea7d-9859-443a-a44d-7d9c4c60b46d`.
+  The wrap adds `<!doctype html>`, `<meta charset="utf-8">` and the viewport tag the way
+  `build.mjs` does for the dev `index.html`, because `shell.html` leaves them to the
+  artifact host and Netlify does not add them. Never deploy the repo itself: it holds
+  the reference art, the MIDI library and `Migrated/`.
+- Netlify injects a "Powered by Netlify" badge over the canvas's bottom-right corner.
+- The Claude artifact linked from `JOURNAL.md` §6 is the 2026-08-16 Hot Slice build,
+  not this game.
 
 ## Where the design lives
 
