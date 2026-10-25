@@ -1,130 +1,77 @@
-# Resume here
+# Resume here — Pure Carnage
 
-*Last updated at the end of the 2026-09-26 session; the Netlify deployment was added
-2026-10-02.* This is the starting point for a
-fresh session. It is a snapshot: **`ROADMAP.md` is the living plan**, and if the two
-disagree, the roadmap wins.
+*Written 2026-10-25 at the end of the single-shot build that finished the 20-level game.*
+This folder is a **copy** of `Taco Shop - Carnage Asada` (copied at `8e18837`). The
+original folder was never touched. The git remote was removed on purpose, so nothing
+here can push to the original GitHub repo. The work is on branch `pure-carnage` and is
+**not committed**.
 
----
+## What exists now
 
-## Start here
+The whole game is built: 20 levels alternating the Delivery Shift and the Kitchen Shift.
 
-**Next session: the owner works on the menu items** in
-`docs/authored content/menu.md`. Era 1 is settled; **Eras 2 and 3 are empty**. Follow
-the owner's lead. This is their authored content, and the session is theirs to steer.
+- **The run:** the level card shows the target, the clock rules and the nav level (the
+  kitchen card shows the menu). A level is a checkpoint race: 15 completions, or 9 on
+  Supreme. Every 3rd completion earns an extension. After that come LEVEL CLEAR, GAME
+  OVER, initials and CONTINUE? (10s), and a victory screen after level 20.
+- **Kitchen Shift:** `src/74_kitchen.js`.
+  - Tickets, plus a queue that complains past 3 (tips drain 1.5x).
+  - Hidden recipes. Wrong picks are held red and cost the star and the clean bonus.
+  - WRAP IT! / SEND IT!, and the board picture builds up stage by stage.
+  - Era casts barking in the shared strip, and an attract-mode cook.
+- **Delivery Shift changes:**
+  - Money, from content: the tip starts at $20 with a $2 floor, decaying at each
+    difficulty's rate, and fines are per difficulty, including the new train fine.
+  - The nav ladder, star tally, and level line.
+  - Clock: no per-delivery time.
+- **Eras:**
+  - The city regenerates per era from `content/hays*.json`.
+  - A full colour grade per era (`Post.grade`), applied to the world but not the cards.
+  - Menus: 9, 13 and 15 items. Faces: 6, 5 and 5 baked from the era sheets.
+- **Seasons:** winter snow on the ground, roofs and in the air, and looser grip.
+- **Music:** 42 MIDI arrangements, two per level plus the title (`src/22_music.js`,
+  `tools/music/`). Year rule: a song is never newer than its level, and at most 2 years
+  older.
+- **Controls:** Modes A, B and C on a mode-select screen (`src/25_pad.js`).
+- **Attract:** title, winners, board, then a random-level demo (delivery or kitchen).
 
-Three things to know before touching anything:
+**Every decision and every invention is in `docs/PURE-CARNAGE-DECISIONS.md`. Read it
+first.**
 
-1. **This is planning, not the port.** Nothing is being built in `src/`. Decisions go
-   into the design docs (below), and the Kitchen Shift port starts only when the owner
-   says so. Say "planning only" out loud whenever that's the case.
-2. **`Migrated/` is in scope for the menu work, but read only on request.** It holds
-   older files (a July 2026 menu, angry-customer lines, a game design spec) dated May
-   to Aug 1. The owner ruled it in scope on 2026-09-26. It has **not been read**. Open a
-   file there **only when the owner points at it**, per `CLAUDE.md`'s rule on outside
-   context. It is untracked on purpose.
-3. **When the GDD and an authored-content file disagree, the authored content wins**
-   (owner's ruling, 2026-09-26).
+## Verified
 
-## The state of the repo
-
-- **`master` = `origin/master`**, all pushed. The last code change to the game itself
-  was August's; 2026-09-26 changed docs, reference art and assets only.
-- **`node test/headless.mjs` passes, 178 of 178** (checked at the end of 2026-09-26).
-- The Delivery Shift is the shipped, playable game. The **Kitchen Shift**, the other
-  half of the planned 20-level game, exists only as reference art and concept frames
-  in `reference/kitchen/`. The one piece of kitchen work already in the game is the
-  dialogue strip (`src/72_dialog.js`, `src/35_faces.js`).
-
-## Where it is live
-
-- **<https://carnage-asada.netlify.app>** — public, deployed 2026-10-02 from `5f9700f`.
-  Netlify project `carnage-asada`, team Rapideo
-  ([admin](https://app.netlify.com/projects/carnage-asada)).
-- **It is not wired to GitHub**: a push does not redeploy it. To update it, run
-  `node build.mjs` and `node test/headless.mjs`, then wrap `taco-shop.html` as the
-  only file in a folder, named `index.html`, and run
-  `netlify deploy --prod --dir <folder> --site 4e57ea7d-9859-443a-a44d-7d9c4c60b46d`.
-  The wrap adds `<!doctype html>`, `<meta charset="utf-8">` and the viewport tag the way
-  `build.mjs` does for the dev `index.html`, because `shell.html` leaves them to the
-  artifact host and Netlify does not add them. Never deploy the repo itself: it holds
-  the reference art, the MIDI library and `Migrated/`.
-- The "Powered by Netlify" badge is **off** (`built_with_badge_enabled: false`, set
-  2026-10-02). It sat over the canvas's bottom-right corner.
-- The Claude artifact linked from `JOURNAL.md` §6 is the 2026-08-16 Hot Slice build,
-  not this game.
-
-## Where the design lives
-
-| file | holds |
+| check | result |
 |---|---|
-| `docs/gdd.md` | the game design document: rules and structure |
-| `docs/authored content/menu.md` | bins, base stations, items, prices, short names |
-| `docs/authored content/difficulty.md` | every number, per difficulty, both shifts |
-| `docs/authored content/levels.md` | the 20-level table (wins over GDD §II.G) |
-| `docs/authored content/attract.md` | the attract-mode loop |
-| `docs/authored content/music.md` | songs per year and shift (all empty) |
-| `ROADMAP.md` → *NEXT* | what is settled, what it changes, and what is still open |
+| `node build.mjs` | clean; `taco-shop.html` 619 KB, 18 modules, all content validated |
+| `node test/headless.mjs` | PASS: the original suite plus run structure, kitchen, kitchen demo and copy sections |
+| `node tools/check-pad.mjs` | 209 passed |
+| `node tools/music/check-music.mjs` | all music checks pass |
+| `node tools/render/sweep.mjs 2` | autoplayers clear every level; Hard deliveries 13 and 15 cleared 1 run in 2 |
+| rendered frames (`tools/render/frame.mjs`) | title, mode select, every card type, every era's kitchen and city, winter, pause, dialogue, touch overlay |
 
-These are markdown for people. The game reads `content/*.json`, so a settled value
-still has to be carried into JSON and validated by `build.mjs` when it is built.
+## Not verified — do these first
 
-## What 2026-09-26 settled
+1. **A real browser playtest.** Everything above is headless.
+   - Two Chrome browsers are connected to the account. The session waited for the
+     owner to choose one.
+   - Run `node serve.mjs` and open <http://localhost:8123/taco-shop.html>.
+   - Play a delivery level and a kitchen level in Mode A.
+2. **The music by ear.** The arrangements were chosen by structural heuristics, because
+   no agent can listen. `tools/music/preview/*.wav` holds the renders. Swap songs in
+   `tools/music/songs.json`, then rerun `node tools/music/midi2song.mjs --batch
+   tools/music/songs.json`.
+3. **Mode B on a real stick, and Mode C on a real phone.** Note: a gamepad press does
+   not count as a gesture for unlocking audio, so a stick-only cabinet needs Chrome
+   launched with `--autoplay-policy=no-user-gesture-required`.
+4. **Copyright.** The music arranges real songs (the owner's ruling). The public Netlify
+   site (`carnage-asada`) still runs the original game. Do not deploy this build there
+   until that is decided.
 
-Every decision is written into the files above; `ROADMAP.md` → *Settled 2026-09-26*
-has the full detail, including a table of all four difficulties. In short:
+## Known soft spots
 
-- **The Era 1 menu.** Cheese takes bin 9 (9 filled, 3 empty). The left base station
-  stacks taco shell, small tortilla and large tortilla; the right is chips. Soft Taco
-  Supreme mirrors Hard at $0.49; Nachos is $0.49. The step cap is 6 toppings after the
-  base. Every item has a **Short** name for the NOW BUILDING readout, limited per item
-  by `12 × chars + 9 × steps ≤ 127`.
-- **Kitchen scoring.** A ticket pays a tip (menu prices are flavour): *tip per item ×
-  items*, running down from arrival. At zero the customer walks out. Clean ticket +$5;
-  combo ×1 to ×3, reset by a walkout.
-- **All four difficulties**: Easy (levels 1–6), Medium (7–12), Hard (13–18), Supreme
-  (19–20). Each sets the clock, tips, fines, a navigation ladder, items per ticket and
-  ticket arrivals.
-- **How a level ends.** A checkpoint race: reach the target (15, or 9 on Supreme) to
-  clear it; 0:00 first is game over. Score is the money across every level played.
-  A continue restarts the level at $0. A two-hour full run is intended, with no save.
-- **Stars.** One per item made without a wrong click, one per perfect delivery. A
-  report-card tally, never money, never on the board.
-- **High scores.** At game over: initials first (if the run qualifies), then a 10s
-  CONTINUE? prompt.
-- **The concept frame's clock card** now reads `STARS ★ 12`, with the star at stake
-  beside `ITEM 3 OF 5`. It was the ERRORS meter.
-- **Assets.** The era image sets, 203 MIDI files and the palette sheet are committed;
-  the shop sticker (`reference/assets/Taco Shop.webp`) was restored. The repo is
-  public, by the owner's choice.
-
-## Still open
-
-See `ROADMAP.md` → *Still open*. The headline items:
-
-- **Era 2 and Era 3 menus.** Tomorrow's work.
-- The Kitchen Shift's keyboard and mouse controls.
-- GDD §IV.A–C (kitchen mechanics, UI, controls) are empty headings. The core loop is
-  written, in a paragraph under §IV.F.2 that belongs under §IV.A; left for the owner
-  to move.
-- What "customers start complaining" (more than 3 live tickets) actually does.
-- Maps 2 and 3, eras, seasons, music, and the attract loop's fourth screen.
-
-## When the port does start
-
-The first tasks are in `ROADMAP.md` → *Known first tasks*: a `kitchen` state and a
-level table in `80_game.js`; one `Kitchen` object in a new module (run
-`node tools/collide.mjs` on it first); `content/menus.json` with build-time validation
-of recipes and short names. Several settled rules also change the Delivery Shift as
-it plays today (the clock, tips, fines, navigation); `ROADMAP.md` lists them under
-*Delivery Shift changes these imply*.
-
-## Background: the last stretch of work before the break (2026-08-24 → 08-25)
-
-The kitchen art landed as reference (`d195994`). Imported pixel art became
-canvas-native data: faces, then the dialogue strip into the real game (`50da529`),
-then ingredients baked into twelve wells and two base stations. The concept frame got
-its layout passes (clock card, workstation, BUILD PROGRESS readout), and
-`tools/collide.mjs` (`a824924`) checked the kitchen code for name clashes before any
-port: none, but 50 top-level names, so it should become one `Kitchen` object.
-`docs/art_pipeline.md` documents how to add a character or an ingredient.
+- Era faces don't blink: the eye detector missed, so eye rects were cleared. Set them by
+  hand in `reference/kitchen/cast.mjs` to bring the blink back.
+- The kitchen's winter is light: snow on the customers' hats, and nothing more.
+- In Mode C the minimap sits under the on-screen stick.
+- The kitchen numbers are still the paper estimates from `difficulty.md`. The sweep says
+  they are winnable; a person has to say whether they are fun.

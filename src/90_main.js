@@ -32,15 +32,27 @@
   addEventListener('resize', resize);
 
   Input.init(canvas, () => scale);
+  /* Modes B and C: the gamepad and the touch layer. It injects into Input
+     the same codes a keyboard would, so nothing downstream has a second
+     input path to keep in step. */
+  if (typeof Pad !== 'undefined') Pad.init(canvas);
 
-  /* first gesture unlocks WebAudio */
+  /* First gesture unlocks WebAudio. The music for whatever screen is up was
+     asked for before there was a context to play it on, so ask again. */
   const unlock = () => {
     Audio5.init(); Audio5.resume();
+    if (G.musicKey != null) G.playMusic(G.musicKey);
     removeEventListener('keydown', unlock);
     removeEventListener('mousedown', unlock);
+    removeEventListener('touchstart', unlock);
+    removeEventListener('touchend', unlock);
   };
   addEventListener('keydown', unlock);
   addEventListener('mousedown', unlock);
+  /* Pad calls preventDefault on touches, so a phone never sends mousedown;
+     touchend is the gesture browsers accept for audio. */
+  addEventListener('touchstart', unlock);
+  addEventListener('touchend', unlock);
 
   /* splash while the city bakes */
   ctx.fillStyle = PAL.void; ctx.fillRect(0, 0, VW, VH);
@@ -78,9 +90,7 @@
     let guard = 0;
     while (acc >= STEP && guard++ < 5) {
       acc -= STEP;
-      G.update(STEP);
-      handleGlobalKeys();
-      Input.endFrame();
+      tick();
     }
     /* engine voice only while a shift is live */
     if (Audio5.ready) {
@@ -93,12 +103,26 @@
   /* Console bridge. Browsers pause requestAnimationFrame in a hidden tab, so
      this also makes the game steppable when it cannot self-drive. */
   window.TacoShop = {
-    G, City, Nav, Art, Audio5, Input, ctx, Dialog, Faces,
+    G, City, Nav, Art, Audio5, Input, ctx, Dialog, Faces, Kitchen,
+    Pad: typeof Pad !== 'undefined' ? Pad : null,
+    Music: typeof Music !== 'undefined' ? Music : null,
     step(n = 1) {
-      for (let i = 0; i < n; i++) { G.update(STEP); handleGlobalKeys(); Input.endFrame(); }
+      for (let i = 0; i < n; i++) tick();
       G.render(ctx);
     },
   };
+
+  /* One fixed step. The pad layer reads first, so its injected keys are in
+     Input.down before the game looks; endFrame clears one-shot presses last. */
+  function tick() {
+    if (typeof Pad !== 'undefined') {
+      Pad.aimHeading = G.player ? G.player.ang : 0;    // aim mode starts ahead of the car
+      Pad.poll(G.padContext(), STEP);
+    }
+    G.update(STEP);
+    handleGlobalKeys();
+    Input.endFrame();
+  }
 
   function handleGlobalKeys() {
     if (Input.p('KeyM')) {

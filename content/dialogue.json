@@ -1,22 +1,121 @@
 {
-  "_note": "Lines the customer says over the dialogue strip. PLACEHOLDER COPY -- the",
-  "_note2": "characters and their voices are not designed yet; this exists so the strip",
-  "_note3": "can be seen running. build.mjs rejects anything the 5x7 font cannot draw",
-  "_note4": "and anything too wide for the speech bubble, so edit freely and rebuild.",
+  "_note": "What the customer says over the dialogue strip, in both halves of the game. build.mjs INLINES this as const DIALOGUE - never fetched at runtime (CSP, file:// CORS). Edit here, then run: node build.mjs",
+  "_rules": "ALL CAPS, 5x7 font characters only, at most 34 characters per line (the kitchen's strip is the narrow one), and never wider than the speech bubble beside the widest baked face. build.mjs rejects anything else and says how much to trim.",
+  "_era": "A line may start with an era floor: '2|' means the 1980s and 1990s only, '3|' the 1990s only. Use it for anything that did not exist yet in 1972 (the Filofax, the pager, McFly). No prefix = any era. build.mjs strips the prefix before checking width, and rejects any other use of '|'. who, delivered and missed carry no prefixes: the shipped G.react reads them raw.",
+  "_voice": "Mostly from Migrated/angry-customer-lines-vol1.md and vol2.md: the Midwest regulars, the trucker, the lunch-break dad, the bridge-club grandma. Nothing crude, nothing ableist, no put-on accents, nothing from after the year on screen (no internet, no chains that were not there). The game is public.",
+  "_keys": "delivered / missed / late are the Delivery Shift (late = it arrived, but the tip had run down). arrive / wait / queue / walkout / served / wrong are the Kitchen Shift: a new ticket, patience under 30%, the line is past 3, patience ran out, a ticket served, a wrong pick.",
 
   "who": "CUSTOMER",
 
   "delivered": [
     "ABOUT TIME. SMELLS ALRIGHT THOUGH.",
-    "YOU FOUND IT. NOBODY EVER FINDS IT.",
+    "YOU FOUND IT. NOBODY FINDS IT.",
     "KEEP THE CHANGE, SPEED DEMON.",
-    "STILL WARM. I'LL ALLOW IT."
+    "STILL WARM. I'LL ALLOW IT.",
+    "RIGHT ON THE PORCH. WELL I'LL BE.",
+    "NOW THAT'S WHAT I CALL SERVICE!",
+    "TELL THE COOK I SAID HOWDY.",
+    "OOH, STILL STEAMING. BLESS YOU."
   ],
 
   "missed": [
-    "THAT'S MY HEDGE. THAT WAS MY DINNER.",
+    "THAT'S MY HEDGE. THAT WAS DINNER.",
     "IN THE BUSHES. VERY CLASSY.",
     "YOU THREW IT AT THE LAWN.",
-    "I WATCHED YOU DO THAT."
+    "I WATCHED YOU DO THAT.",
+    "MY TACOS! IN THE PETUNIAS!",
+    "WHAT IN THE NAME OF SAM HILL?!",
+    "WELL I NEVER!",
+    "HEAVENS TO BETSY! MY SUPPER!"
+  ],
+
+  "late": [
+    "IN MY DAY A TACO TOOK 30 SECONDS!",
+    "SLOWER THAN MOLASSES IN JANUARY!",
+    "I'VE SEEN TUMBLEWEEDS MOVE FASTER!",
+    "I ORDERED THIS AS A YOUNG MAN!",
+    "I STARTED GROWING A BEARD WAITING!",
+    "YOU MOVE LIKE CONTINENTAL DRIFT!",
+    "IT'S COLD. IT'S FINE. I'M FINE.",
+    "WELL. THAT'S... INTERESTING.",
+    "2|TIME IS MONEY, TACO BOY!"
+  ],
+
+  "arrive": [
+    "HOWDY! WHAT'S GOOD TODAY?",
+    "I AM ON MY LUNCH BREAK!",
+    "I HAVE THIRTY MINUTES. GO!",
+    "I HAVE A 2 PM WITH REGIONAL!",
+    "I LEFT MY STATION WAGON RUNNING!",
+    "I GOT REBAR TO TIE. MOVE IT!",
+    "I GOTTA GET BACK ON THE ROAD!",
+    "I'M GONNA MISS THE COIN TOSS!",
+    "TEN-FOUR, GOOD BUDDY. TACOS!",
+    "2|I HAVE A POWER LUNCH AT NOON!",
+    "3|MY PAGER'S GOING OFF. HURRY!"
+  ],
+
+  "wait": [
+    "HELLOOO? ANYBODY BACK THERE?",
+    "3|HELLOOO? MCFLY?",
+    "EARTH TO TACO BOY, COME IN!",
+    "I S'POSE I'LL JUST WAIT THEN.",
+    "BOY, YOU BETCHA I'M UPSET.",
+    "MY CATTLE MOVE FASTER THAN THIS!",
+    "I'VE POURED CONCRETE FASTER!",
+    "TICK. TOCK. THE TACO TIMER TICKS!",
+    "DEAR LORD, DELIVER UNTO ME MY TACO",
+    "I'LL BE DEAD BY THE TIME IT COMES!",
+    "SEEN GLACIERS WITH MORE HUSTLE!",
+    "2|MY FILOFAX SAYS I'M LATE, PAL!"
+  ],
+
+  "queue": [
+    "THIS LINE GOES CLEAR TO MAIN ST!",
+    "WEIGH STATIONS MOVE QUICKER!",
+    "IS THIS THE LINE FOR TACOS OR DMV?",
+    "I'LL GIVE YOU TWENTY BUCKS TO CUT!",
+    "THE WHOLE TOWN'S IN HERE TODAY!",
+    "I COULD'VE WALKED TO DODGE CITY!",
+    "EMPIRES HAVE RISEN AND FALLEN!",
+    "DELAY OF GAME! DELAY! OF! GAME!",
+    "WE'RE STACKED UP LIKE CORDWOOD!"
+  ],
+
+  "walkout": [
+    "I'LL DARKEN THIS DOOR NEVERMORE!",
+    "I'M TELLING MY BRIDGE CLUB!",
+    "SUSAN! GET IN THE CAR. ARBY'S!",
+    "...SHOULD'VE GONE TO WENDY'S...",
+    "...WAIT 'TIL I TELL LINDA...",
+    "NEVER COMING BACK. MAYBE TUESDAY.",
+    "...I DROVE TWENTY MINUTES FOR THIS",
+    "OPE! SORRY! OUT THE DOOR FOREVER!",
+    "CONVOY OF ONE, OVER AND OUT!",
+    "A POX UPON THIS ESTABLISHMENT!",
+    "MAY ALL YOUR TORTILLAS BE SOGGY!"
+  ],
+
+  "served": [
+    "NOW THAT'S A TACO!",
+    "WORTH EVERY PENNY. MOSTLY.",
+    "WELL, BLESS YOUR HEART, SUGAR.",
+    "BEAUTY. JUST BEAUTY.",
+    "MY COMPLIMENTS TO THE CHEF!",
+    "YOU'RE ALRIGHT, KID.",
+    "THAT'S WHAT I CAME FOR!",
+    "I'LL BE BACK. AND I'LL BE HUNGRY."
+  ],
+
+  "wrong": [
+    "WHOA WHOA WHOA. NOT THAT ONE!",
+    "DID I JUST WITNESS A CRIME?",
+    "THIS IS A CRIME AGAINST TORTILLAS!",
+    "OH NO! A FUMBLE ON THE TORTILLA!",
+    "YOU COULDN'T FOLD IT WITH A MAP!",
+    "FOR THE LOVE OF PETE, NOT THAT!",
+    "SORRY! THE ANSWER WAS 'A TACO'!",
+    "THAT AIN'T ON THE TICKET, BUD!",
+    "I DIDN'T ORDER THAT. DID I?"
   ]
 }

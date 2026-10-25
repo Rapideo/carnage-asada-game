@@ -62,9 +62,24 @@ const Audio5 = {
   },
 
   /* ---- named sfx ----------------------------------------- */
-  sfx(name) {
+  sfx(name, arg) {
     if (!this.ready) return;
     switch (name) {
+      /* The kitchen. GDD IV: "sound is load-bearing", and the feel is
+         slot-machine fun -- so every right pick is a reel stopping a step
+         higher than the last, and the item completing is the line paying out. */
+      case 'kpick':   { const n = [523, 587, 659, 784, 880, 1047, 1175][clamp((arg | 0) - 1, 0, 6)];
+                        this.tone(n, 0.07, 'square', 0.17); this.tone(n * 2, 0.04, 'square', 0.06, 0, 0.02); break; }
+      case 'kready':  [0, 1, 2].forEach((i) => this.tone([1047, 1319, 1568][i], 0.09, 'square', 0.15, 0, 0.06 + i * 0.05)); break;
+      case 'kwrong':  this.tone(165, 0.20, 'sawtooth', 0.18, 110); this.tone(175, 0.20, 'square', 0.10, 117); break;
+      case 'kbuzz':   this.tone(98, 0.09, 'square', 0.12); break;
+      case 'ktick':   this.tone(1568, 0.025, 'square', 0.06); break;
+      case 'kwrap':   this.noise(0.10, 0.16, 3200, 1.4); this.tone(660, 0.08, 'triangle', 0.14, 880, 0.04); break;
+      case 'kserve':  [0, 1, 2, 3, 4].forEach((i) => this.tone([784, 988, 1175, 1568, 1976][i], 0.10, 'square', 0.18, 0, i * 0.045)); break;
+      case 'kbell':   this.tone(1760, 0.22, 'sine', 0.13); this.tone(2637, 0.16, 'sine', 0.07, 0, 0.01); break;
+      case 'walkout': this.noise(0.12, 0.30, 220, 0.7); [0, 1, 2].forEach((i) => this.tone([392, 311, 233][i], 0.16, 'sawtooth', 0.14, 0, 0.08 + i * 0.12)); break;
+      case 'extend':  [0, 1, 2, 3].forEach((i) => this.tone([659, 880, 1047, 1319][i], 0.10, 'triangle', 0.18, 0, i * 0.06)); break;
+      case 'clear':   [0, 1, 2, 3, 4, 5].forEach((i) => this.tone([523, 659, 784, 1047, 784, 1047][i], 0.16, 'square', 0.20, 0, i * 0.11)); break;
       case 'throw':   this.noise(0.16, 0.18, 2600, 1.2); this.tone(680, 0.12, 'triangle', 0.10, 1400); break;
       case 'land':    this.tone(180, 0.09, 'square', 0.12, 120); this.noise(0.08, 0.14, 700, 1); break;
       case 'splat':   this.noise(0.26, 0.28, 420, 0.7); this.tone(150, 0.22, 'sawtooth', 0.14, 60); break;
@@ -155,6 +170,9 @@ const Audio5 = {
   },
   _sched() {
     if (!this.ready) return;
+    /* The arranged songs (22_music.js) own the music bus whenever they are
+       playing; this 4-bar loop is the fallback for a build without them. */
+    if (typeof Music !== 'undefined' && Music.owns) { this._next = this.ctx.currentTime + 0.1; return; }
     const spb = 60 / 138 / 4;                 // 16th note
     while (this._next < this.ctx.currentTime + 0.12) {
       this._play(this._step, this._next, spb);

@@ -1,0 +1,24 @@
+{
+  "_comment": "Map 3: downtown Hays, Kansas in the 1990s (levels 13-20). Same schema, same streets and same shop cell as hays.json (Map 1, the 1970s); only the zoning has moved on. build.mjs INLINES this as MAPS[3] - never fetched at runtime (CSP, file:// CORS). Edit here, then run: node build.mjs",
+  "_changes": "[INVENTED] Against the 1980s map: student housing for Fort Hays State at 11th & Walnut (1,1) and 5th & Ash (6,2), a strip centre on 8th & Ash (4,2), and storefronts down Oak at 6th (5,5). Rail, parks, civic and the shop never move.",
+  "_kinds": "res com park lot shop retail civic apts church auto rail. Only res, retail and apts make deliverable addresses. Exactly one cell must be shop, at the same place as in hays.json.",
+
+  "streetsNS": ["ELM ST", "WALNUT ST", "ASH ST", "FORT ST", "MAIN ST",
+                "OAK ST", "PINE ST", "ALLEN ST", "MILNER ST"],
+
+  "streetsEW": ["12TH ST", "11TH ST", "10TH ST", "9TH ST", "8TH ST",
+                "7TH ST", "6TH ST", "5TH ST", "4TH ST"],
+
+  "shop": { "bx": 1, "by": 3 },
+
+  "zoning": [
+    ["res",  "res",    "church", "retail", "retail", "com",    "apts",   "res"],
+    ["res",  "apts",   "com",    "retail", "retail", "retail", "res",    "res"],
+    ["rail", "rail",   "rail",   "rail",   "rail",   "rail",   "rail",   "rail"],
+    ["apts", "shop",   "com",    "retail", "retail", "auto",   "apts",   "auto"],
+    ["res",  "church", "com",    "civic",  "civic",  "com",    "com",    "auto"],
+    ["apts", "res",    "apts",   "civic",  "apts",   "retail", "res",    "church"],
+    ["res",  "res",    "apts",   "res",    "apts",   "res",    "res",    "res"],
+    ["res",  "res",    "res",    "res",    "park",   "res",    "park",   "res"]
+  ]
+}

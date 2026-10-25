@@ -173,9 +173,11 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 | module | responsibility |
 |---|---|
 | `00_core` | screen/world constants, `PAL`, RNG, `classify()`, `mkCanvas`/`R` helpers, `Input` |
-| `05_content` | **generated** — `CONTENT`, inlined from `content/winners.json` by `build.mjs` |
+| `05_content` | **generated** — `CONTENT`, `ATTRACT`, `SCORES`, `MAPS`/`HAYS`, `LEVELS`, `DIFFICULTY`, `MENUS`, `DIALOGUE`, `FACES`, `LATTICE`, `MUSIC`, `PLAYLIST`, all inlined from `content/` by `build.mjs` |
 | `10_font` | hand-authored 5×7 glyph table; `text()`, `textOut()`, `money()`, `clockStr()` |
-| `20_audio` | `Audio5`: WebAudio SFX, engine voice, siren, and the 4-bar chip loop scheduler |
+| `20_audio` | `Audio5`: WebAudio SFX (both shifts), engine voice, siren, and the fallback 4-bar loop |
+| `22_music` | `Music` — plays the arranged songs in `MUSIC` through `Audio5.musBus`; `playList()` per level from `PLAYLIST` |
+| `25_pad` | `Pad` — control Modes B (Gamepad API) and C (touch overlay). Injects into `Input` the same codes a keyboard would; `Pad.aiming/aimX/aimY/throwNow` for hold-to-aim |
 | `30_art` | `Art.build()` — bakes every sprite/tile once at boot; `rotFrames`/`drawRot`; `shade()`, `disc()`, `keyline()`; `LOGO` display face + `logoText()`/`mkLogoText()` |
 | `35_faces` | `Faces` — decodes the baked likenesses in `FACES` at boot; draws them with blink/hood variation |
 | `40_city` | `City.gen()` — street grid, addressed houses, baked ground layer, spatial buckets |
@@ -183,6 +185,7 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 | `60_nav` | `Nav` (TACO-NAV unit) and `solve()` — Dijkstra over the intersection graph |
 | `70_hud` | `Hud.draw()` — order card, tip meter, nav panel, minimap; `navArrow`, `triArrow` |
 | `72_dialog` | `Dialog` — the dialogue strip: portrait box, speech bubble, slide-in. Shared by both halves |
+| `74_kitchen` | `Kitchen` — the whole Kitchen Shift as one object: tickets, queue, lattice, picking, wrap/send, the board picture, its own clock card, and the attract-mode cook |
 | `75_demo` | `Demo.drive()` — the attract-mode driver; follows a lane-centre polyline, sets the same fields `Player.control` does |
 | `78_scores` | `Scores` — the high-score board: factory content, guarded `localStorage`, qualification, insertion. Model only, never draws. |
 | `80_game` | `G` — state machine, orders/tips/scoring, camera, render pipeline; `Post` |
@@ -497,9 +500,12 @@ separation push in `80_game` did exactly that, shoving the player inside buildin
 
 ### Attract mode
 
-`title` (15s) → `winners` (15s) → `demo` (45s) → `title`, driven by one `G.attractT` countdown — all four
-authored in `content/attract.json`, never hard-coded. Any key or
-click from `winners`/`demo` returns to the title. The demo reuses the play simulation exactly — same
+`title` (15s) → `winners` (10s) → `scores` (10s) → `demo` (45s) → `title`, driven by one `G.attractT`
+countdown — all authored in `content/attract.json`, never hard-coded (attract.md asks for the board as its
+own slot, which reversed the old alternating middle slot). Any key or click from the attract screens returns
+to the title. **The demo plays a random level**: a delivery level runs `Demo`, a kitchen level runs state
+`kdemo` with `Kitchen`'s own cook (`Kitchen.botStep`). `G.demoPin` pins it — the test suite sets it to 1,
+because a demo in another era regenerates the city on that era's map under every section that follows. The demo reuses the play simulation exactly — same
 physics, same traffic, same scoring — with `Demo.drive()` swapped in for `Player.control()` and a flag
 disabling pause and the tick sound. `G.aimPoint()` has a demo branch so throws aim at the porch.
 
@@ -562,12 +568,43 @@ attract mode reads as a cutscene rather than as play.
 
 ### Game state (`G`)
 
-States: `title` → `winners` → `demo` → `play` → `results`. One active `order` at a time; `G.needPickup` (bag empty) redirects the
-nav to the shop while the order and its decaying tip stay live. Throwing consumes a bag slot immediately, so
-a miss can strand you mid-order — that coupling is intentional.
+States: attract (`title` `winners` `scores` `demo` `kdemo`), then `mode` (control select) → `card` (level
+card, the stage built underneath) → `play` or `kitchen` → `clear` → next `card`; at 0:00 `over` → `entry`
+(only if the run places) → `cont` (CONTINUE? 10s); after level 20 `victory` → `entry`/`scores`.
 
-**All money is integer cents.** `money()` formats it. Tuning dials are the constants at the top of
-`80_game.js` (`SHIFT_START`, `TIME_PER_JOB`, `TIP_*`, fines, `BAG_MAX`).
+**`G.setLevel(n)` is the single switch** for a level's difficulty (`G.diff` from `DIFFICULTY`), era,
+season (`G.winter`, `Player.gripMul`), nav ladder (`G.nav`) and map — it regenerates the city when the
+era's map changes (`City.map`, read by `City.gen`). `G.stage` is `'delivery'` or `'kitchen'` and decides
+which world renders under the cards. `G.startShift()` is still the direct way into a delivery shift; the
+tests and the demo both use it.
+
+**Every completion in either shift calls `G.onComplete()`**: every third earns an extension up to the cap,
+and the target clears the level. Time comes only from the starting clock and extensions.
+
+**`G.earned` is the run total** and is what the board stores; `levelEarned` is the level's. Fines go
+through `G.fine()` so both stay in step. Stars: `G.levelStars`, `G.stars`.
+
+One active `order` at a time; `G.needPickup` (bag empty) redirects the nav to the shop while the order and
+its decaying tip stay live. Throwing consumes a bag slot immediately, so a miss can strand you mid-order —
+that coupling is intentional.
+
+**All money is integer cents.** `money()` formats it. The tuning dials are `content/difficulty.json`, per
+difficulty; `80_game.js` keeps only `PERFECT_BONUS`, `CLEAN_BONUS`, `BAG_MAX` and a `DIFF_FALLBACK`.
+
+**The era grade** (`Post.grade`, owner ruling) is a per-pixel curve over the finished WORLD — it runs after
+the city or kitchen and HUD and before the cards, menus and pause, which keep the game's own colours.
+
+### The Kitchen Shift (`Kitchen`)
+
+The regions are `reference/kitchen/README.md`'s. **Twelve bins, always, in 2×6, and a bin never moves
+between eras** — `build.mjs` refuses a menu that moves one; a later era may only fill an empty slot. The
+left base station holds three bases in three stacked zones (small tortilla, shell, large tortilla — the
+order of the baked rack art), so the cursor treats column 0 as three stops. Focus is assigned: the oldest
+ticket, its next unwrapped item. A wrong pick flashes and HOLDS the bin's plate red until the right pick,
+costs the item's star and the ticket's clean bonus, and never undoes progress. The tip starts when the
+docket goes on the rail; past three tickets customers queue in the OVERHEAD and every live tip drains at
+`COMPLAIN_MUL` (1.5). The recipes are hidden in play; the level card and the pause overlay show the menu.
+Barks are rate-limited to one per 5s (a walkout always speaks), because the strip covers the lower bins.
 
 ### Loop and input
 
@@ -655,7 +692,13 @@ There is no per-test filter — it is one sequential script with labelled sectio
 `— build —`,
 `— hud layout —`, `— collision —`, `— guidance —`, `— simulation —`, `— scoring —`, `— attract —`,
 `— hays map —`, `— block kinds —`, `— downtown addresses —`, `— shop apron —`, `— rail —`,
-`— high scores —`, `— heat —`). To isolate one, edit the script.
+`— high scores —`, `— heat —`, `— run structure —`, `— kitchen —`, `— kitchen demo —`, `— copy —`). To
+isolate one, edit the script.
+
+**`tools/render/frame.mjs <level> [secs]`** renders a real frame of any level to a PNG with the
+autoplayers at the controls — use it to look at anything the stubs cannot see. Note `--clear`/`--over`
+capture the first frame, under the level-clear flash, which reads as a grey wash; that is the flash, not
+the card.
 
 ## Publishing
 

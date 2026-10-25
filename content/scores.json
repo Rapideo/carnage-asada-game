@@ -1,19 +1,19 @@
 {
   "_comment": "The factory high-score board, as a cabinet ships with. build.mjs INLINES this at build time - it is not fetched at runtime, because the shipped artifact must stay a single self-contained file (the CSP blocks external requests, and fetch() on a file:// page is blocked by CORS). Edit here, then run: node build.mjs",
-  "_rules": "Exactly 10 entries, sorted descending by cents. ini is exactly 3 characters drawable by the 5x7 font. cents is a non-negative integer - the game stores all money in cents, so 4610 is $46.10. build.mjs rejects anything else.",
-  "_ranks": "The rank title beside each row is DERIVED from cents at draw time, not stored, so retuning G.rank() reflows the whole board. Thresholds today: under $40 TRAINEE, under $90 DRIVER, under $150 ACE, under $230 SALSA BARON, above that LEGEND OF THE ASADA.",
-  "_tuning": "Tenth place is the number a shift has to beat, and it is the single dial that decides how often placing feels achievable. $6.40 is deliberately low: three measured playtest shifts earned $20.90, $8.93 and $20.62, so a real run places immediately and learns the mechanic. Raise it once players are routinely clearing the whole board.",
+  "_rules": "Exactly 10 entries, sorted descending by cents. ini is exactly 3 characters drawable by the 5x7 font. cents is a non-negative integer - the game stores all money in cents, so 480000 is $4800.00. build.mjs rejects anything else.",
+  "_ranks": "The rank title beside each row is DERIVED from cents at draw time, not stored, so retuning G.rank() reflows the whole board. Thresholds for a 20-level RUN total (PURE-CARNAGE-DECISIONS, invented): under $250 TRAINEE, under $1,000 DRIVER, under $2,500 ACE, under $5,000 SALSA BARON, $5,000 and up LEGEND OF THE ASADA. The factory board deliberately stops short of LEGEND: that title is the player's to take.",
+  "_tuning": "[INVENTED] Rescaled 2026-10-25 from a single shift ($96 top) to a whole run. Tenth place, $90, is about one good Easy level, so a first run that clears level 1 places and learns the board; the top, $4,800, is roughly a full 20-level run played well. Two rows sit in each rank below LEGEND.",
 
   "board": [
-    { "ini": "MJS", "cents": 9600 },
-    { "ini": "JAX", "cents": 7250 },
-    { "ini": "RED", "cents": 5840 },
-    { "ini": "TAC", "cents": 4610 },
-    { "ini": "UPX", "cents": 3990 },
-    { "ini": "HAY", "cents": 3120 },
-    { "ini": "ELM", "cents": 2450 },
-    { "ini": "FRT", "cents": 1880 },
-    { "ini": "BOB", "cents": 1240 },
-    { "ini": "KAS", "cents": 640 }
+    { "ini": "MJS", "cents": 480000 },
+    { "ini": "JAX", "cents": 395000 },
+    { "ini": "RED", "cents": 210000 },
+    { "ini": "TAC", "cents": 155000 },
+    { "ini": "UPX", "cents": 82000 },
+    { "ini": "HAY", "cents": 46000 },
+    { "ini": "ELM", "cents": 23500 },
+    { "ini": "FRT", "cents": 16000 },
+    { "ini": "BOB", "cents": 12500 },
+    { "ini": "KAS", "cents": 9000 }
   ]
 }

@@ -82,6 +82,18 @@ class Ctx {
   }
   get tx() { return this.m[4]; }
   get ty() { return this.m[5]; }
+
+  /* Pixel readback, for the era grade in Post: it reads the finished frame,
+     curves it, and writes it back. Whole-canvas rects are all the game asks
+     for, so that is all this supports. */
+  getImageData(x, y, w, h) {
+    if (x !== 0 || y !== 0 || w !== this.w || h !== this.h) throw new Error('px: getImageData supports the whole canvas only');
+    return { width: w, height: h, data: new Uint8ClampedArray(this.d) };
+  }
+  putImageData(img, x, y) {
+    if (x !== 0 || y !== 0 || img.width !== this.w || img.height !== this.h) throw new Error('px: putImageData supports the whole canvas only');
+    this.d.set(img.data);
+  }
   _mul(n) {
     const m = this.m;
     this.m = [

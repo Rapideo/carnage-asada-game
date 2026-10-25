@@ -1,0 +1,27 @@
+{
+  "_comment": "The 20-level run, from docs/authored content/levels.md. build.mjs INLINES this as const LEVELS - never fetched at runtime (CSP, file:// CORS). Edit here, then run: node build.mjs",
+  "_schema": "n 1..20 in order; type delivery|kitchen; name is the level card title (font characters only); era 1|2|3 = 1970s|1980s|1990s; season summer|winter; difficulty is a key of content/difficulty.json; map and menu pick content/hays*.json and the era of content/menus.json, and equal the era.",
+  "_fixes": "levels.md typos corrected here: L18/L19 headings (IIXX/IXX), \"Leve 20\", and L20 Era \"Winter 1999\" which is the 1990s (era 3). Level 20 is Supreme, Winter 1999.",
+  "levels": [
+    { "n": 1, "type": "delivery", "name": "SUMMER 1972", "year": 1972, "era": 1, "season": "summer", "difficulty": "easy", "map": 1, "menu": 1 },
+    { "n": 2, "type": "kitchen", "name": "WINTER 1972", "year": 1972, "era": 1, "season": "winter", "difficulty": "easy", "map": 1, "menu": 1 },
+    { "n": 3, "type": "delivery", "name": "WINTER 1975", "year": 1975, "era": 1, "season": "winter", "difficulty": "easy", "map": 1, "menu": 1 },
+    { "n": 4, "type": "kitchen", "name": "SUMMER 1975", "year": 1975, "era": 1, "season": "summer", "difficulty": "easy", "map": 1, "menu": 1 },
+    { "n": 5, "type": "delivery", "name": "SUMMER 1978", "year": 1978, "era": 1, "season": "summer", "difficulty": "easy", "map": 1, "menu": 1 },
+    { "n": 6, "type": "kitchen", "name": "WINTER 1978", "year": 1978, "era": 1, "season": "winter", "difficulty": "easy", "map": 1, "menu": 1 },
+    { "n": 7, "type": "delivery", "name": "SUMMER 1981", "year": 1981, "era": 2, "season": "summer", "difficulty": "medium", "map": 2, "menu": 2 },
+    { "n": 8, "type": "kitchen", "name": "WINTER 1981", "year": 1981, "era": 2, "season": "winter", "difficulty": "medium", "map": 2, "menu": 2 },
+    { "n": 9, "type": "delivery", "name": "WINTER 1984", "year": 1984, "era": 2, "season": "winter", "difficulty": "medium", "map": 2, "menu": 2 },
+    { "n": 10, "type": "kitchen", "name": "SUMMER 1984", "year": 1984, "era": 2, "season": "summer", "difficulty": "medium", "map": 2, "menu": 2 },
+    { "n": 11, "type": "delivery", "name": "SUMMER 1987", "year": 1987, "era": 2, "season": "summer", "difficulty": "medium", "map": 2, "menu": 2 },
+    { "n": 12, "type": "kitchen", "name": "WINTER 1987", "year": 1987, "era": 2, "season": "winter", "difficulty": "medium", "map": 2, "menu": 2 },
+    { "n": 13, "type": "delivery", "name": "SUMMER 1990", "year": 1990, "era": 3, "season": "summer", "difficulty": "hard", "map": 3, "menu": 3 },
+    { "n": 14, "type": "kitchen", "name": "WINTER 1990", "year": 1990, "era": 3, "season": "winter", "difficulty": "hard", "map": 3, "menu": 3 },
+    { "n": 15, "type": "delivery", "name": "WINTER 1993", "year": 1993, "era": 3, "season": "winter", "difficulty": "hard", "map": 3, "menu": 3 },
+    { "n": 16, "type": "kitchen", "name": "SUMMER 1993", "year": 1993, "era": 3, "season": "summer", "difficulty": "hard", "map": 3, "menu": 3 },
+    { "n": 17, "type": "delivery", "name": "SUMMER 1996", "year": 1996, "era": 3, "season": "summer", "difficulty": "hard", "map": 3, "menu": 3 },
+    { "n": 18, "type": "kitchen", "name": "WINTER 1996", "year": 1996, "era": 3, "season": "winter", "difficulty": "hard", "map": 3, "menu": 3 },
+    { "n": 19, "type": "delivery", "name": "SUMMER 1999", "year": 1999, "era": 3, "season": "summer", "difficulty": "supreme", "map": 3, "menu": 3 },
+    { "n": 20, "type": "kitchen", "name": "WINTER 1999", "year": 1999, "era": 3, "season": "winter", "difficulty": "supreme", "map": 3, "menu": 3 }
+  ]
+}

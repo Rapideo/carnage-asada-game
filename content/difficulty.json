@@ -1,0 +1,37 @@
+{
+  "_comment": "The four difficulty ladders, from docs/authored content/difficulty.md. build.mjs INLINES this as const DIFFICULTY - never fetched at runtime (CSP, file:// CORS). Edit here, then run: node build.mjs",
+  "_units": "ALL MONEY IS INTEGER CENTS. Times are seconds. Rates are cents per second and may be fractional: difficulty.md writes them as '$1.00 / 3 seconds', which is 100/3 = 33.33 cents/s. start = starting clock; extend = seconds one extension adds; maxExt = extensions allowed per shift; target = deliveries or tickets that clear the level, and build.mjs rejects it unless it is exactly 3 x maxExt (GDD II.D.3). tipStart/tipFloor/tipDecay are the delivery tip: it starts at tipStart and falls at tipDecay, holding at tipFloor (owner ruling 5 keeps the $2.00 floor). fines are flat charges; remake is the $1.50 per splatted bag (kept as shipped, see PURE-CARNAGE-DECISIONS). nav says which guidance pieces show. kitchen: tipPerItem is a ticket's starting tip per item, decay is how fast it drains (cents/s), maxItems caps a ticket, every is the seconds between arrivals.",
+  "_extensions": "Owner ruling 4: an extension is earned by EVERY 3 completed deliveries or tickets, wherever they came from. difficulty.md's 'all 3 bags from one load' is overruled.",
+
+  "easy": {
+    "start": 180, "extend": 90, "maxExt": 5, "target": 15,
+    "tipStart": 2000, "tipFloor": 200, "tipDecay": 33.333333333333336,
+    "fines": { "ticket": 500, "ped": 200, "train": 500, "remake": 150 },
+    "nav": { "panel": true, "line": true, "dot": true, "edge": true, "beacon": true },
+    "kitchen": { "tipPerItem": 500, "decay": 12.5, "maxItems": 3, "every": 25 }
+  },
+
+  "medium": {
+    "start": 180, "extend": 90, "maxExt": 5, "target": 15,
+    "tipStart": 2000, "tipFloor": 200, "tipDecay": 40,
+    "fines": { "ticket": 1000, "ped": 400, "train": 1000, "remake": 150 },
+    "nav": { "panel": true, "line": false, "dot": true, "edge": false, "beacon": true },
+    "kitchen": { "tipPerItem": 500, "decay": 16.666666666666668, "maxItems": 4, "every": 20 }
+  },
+
+  "hard": {
+    "start": 180, "extend": 60, "maxExt": 5, "target": 15,
+    "tipStart": 2000, "tipFloor": 200, "tipDecay": 50,
+    "fines": { "ticket": 1000, "ped": 400, "train": 1000, "remake": 150 },
+    "nav": { "panel": false, "line": false, "dot": true, "edge": false, "beacon": true },
+    "kitchen": { "tipPerItem": 500, "decay": 20, "maxItems": 5, "every": 18 }
+  },
+
+  "supreme": {
+    "start": 180, "extend": 60, "maxExt": 3, "target": 9,
+    "tipStart": 2000, "tipFloor": 200, "tipDecay": 50,
+    "fines": { "ticket": 1500, "ped": 600, "train": 1500, "remake": 150 },
+    "nav": { "panel": false, "line": false, "dot": false, "edge": false, "beacon": true },
+    "kitchen": { "tipPerItem": 500, "decay": 20, "maxItems": 5, "every": 15 }
+  }
+}

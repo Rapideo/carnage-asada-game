@@ -1,0 +1,58 @@
+{
+  "_note": "Input to: node tools/music/midi2song.mjs --batch tools/music/songs.json [--preview]. One entry per song file in content/music/. file is relative to _root. Optional overrides: lead/bass/harm (part keys as the report prints them), start/bars (window, in bars), res (steps per beat). year is the original release year and is what the anachronism rule in content/music/playlist.json is checked against.",
+  "_root": "reference/assets/midi",
+  "songs": [
+    { "id": "one-step-beyond", "file": "80s/OneStepBeyond.mid", "title": "ONE STEP BEYOND", "artist": "MADNESS", "year": 1979 },
+    { "id": "reelin-in-the-years", "file": "70s/ReelingInTheYears.mid", "title": "REELIN' IN THE YEARS", "artist": "STEELY DAN", "year": 1972 },
+
+    { "id": "immigrant-song", "file": "70s/ImmigrantSong.mid", "title": "IMMIGRANT SONG", "artist": "LED ZEPPELIN", "year": 1970 },
+    { "id": "black-dog", "file": "70s/BlackDog.mid", "title": "BLACK DOG", "artist": "LED ZEPPELIN", "year": 1971 },
+    { "id": "walk-on-the-wild-side", "file": "70s/WalkontheWildSide.mid", "title": "WALK ON THE WILD SIDE", "artist": "LOU REED", "year": 1972 },
+    { "id": "do-it-again", "file": "70s/DoItAgain.mid", "title": "DO IT AGAIN", "artist": "STEELY DAN", "year": 1972 },
+
+    { "id": "bohemian-opera", "file": "70s/BohemianRhapsody.mid", "title": "BOHEMIAN RHAPSODY", "artist": "QUEEN", "year": 1975, "start": 56, "bars": 40, "_why": "the 149bpm operatic section; the MIDI's 420-event tempo map rules out a whole-song window" },
+    { "id": "bohemian-rock", "file": "70s/BohemianRhapsody.mid", "title": "BOHEMIAN RHAPSODY", "artist": "QUEEN", "year": 1975, "start": 97, "bars": 36, "_why": "the 208bpm hard-rock section, which follows the opera on the record" },
+    { "id": "dyer-maker", "file": "70s/DyerMaker.mid", "title": "D'YER MAK'ER", "artist": "LED ZEPPELIN", "year": 1973 },
+    { "id": "kashmir", "file": "70s/Kashmir.mid", "title": "KASHMIR", "artist": "LED ZEPPELIN", "year": 1975 },
+
+    { "id": "mr-blue-sky", "file": "70s/Mr.BlueSky.mid", "title": "MR. BLUE SKY", "artist": "ELO", "year": 1977 },
+    { "id": "just-what-i-needed", "file": "80s/JustWhatINeeded.mid", "title": "JUST WHAT I NEEDED", "artist": "THE CARS", "year": 1978 },
+    { "id": "lovely-day", "file": "70s/LovelyDay.mid", "title": "LOVELY DAY", "artist": "BILL WITHERS", "year": 1977 },
+    { "id": "peg", "file": "70s/Peg.mid", "title": "PEG", "artist": "STEELY DAN", "year": 1977 },
+
+    { "id": "dont-bring-me-down", "file": "70s/DontBringMeDown.mid", "title": "DON'T BRING ME DOWN", "artist": "ELO", "year": 1979 },
+    { "id": "stand-and-deliver", "file": "80s/AdamAndTheAntsStandAndDeliver.mid", "title": "STAND AND DELIVER", "artist": "ADAM AND THE ANTS", "year": 1981 },
+    { "id": "just-cant-get-enough", "file": "80s/JustCantGetEnough.mid", "title": "JUST CAN'T GET ENOUGH", "artist": "DEPECHE MODE", "year": 1981 },
+    { "id": "dont-you-want-me", "file": "80s/DontYouWantMe.mid", "title": "DON'T YOU WANT ME", "artist": "THE HUMAN LEAGUE", "year": 1981 },
+
+    { "id": "rock-the-casbah", "file": "80s/RocktheCasbah.mid", "title": "ROCK THE CASBAH", "artist": "THE CLASH", "year": 1982 },
+    { "id": "house-of-fun", "file": "80s/HouseOfFun.mid", "title": "HOUSE OF FUN", "artist": "MADNESS", "year": 1982 },
+    { "id": "africa", "file": "80s/Africa(2).mid", "title": "AFRICA", "artist": "TOTO", "year": 1982 },
+    { "id": "red-red-wine", "file": "80s/RedRedWine.mid", "title": "RED RED WINE", "artist": "UB40", "year": 1983 },
+
+    { "id": "take-on-me", "file": "80s/TakeOnMe.mid", "title": "TAKE ON ME", "artist": "A-HA", "year": 1985 },
+    { "id": "never-gonna-give-you-up", "file": "80s/NeverGonnaGiveYouUp.mid", "title": "NEVER GONNA GIVE YOU UP", "artist": "RICK ASTLEY", "year": 1987 },
+    { "id": "big-time", "file": "80s/BigTime.mid", "title": "BIG TIME", "artist": "PETER GABRIEL", "year": 1986 },
+    { "id": "if-you-leave", "file": "80s/IfYouLeave.mid", "title": "IF YOU LEAVE", "artist": "OMD", "year": 1986 },
+
+    { "id": "sweet-child-o-mine", "file": "80s/SweetChildOfMine.mid", "title": "SWEET CHILD O' MINE", "artist": "GUNS N' ROSES", "year": 1988 },
+    { "id": "here-comes-your-man", "file": "90s/HereComesYourMan.mid", "title": "HERE COMES YOUR MAN", "artist": "PIXIES", "year": 1989 },
+    { "id": "straight-up", "file": "90s/StraightUp.mid", "title": "STRAIGHT UP", "artist": "PAULA ABDUL", "year": 1988 },
+    { "id": "where-is-my-mind", "file": "80s/WhereIsMyMind.mid", "title": "WHERE IS MY MIND?", "artist": "PIXIES", "year": 1988 },
+
+    { "id": "everything-about-you", "file": "90s/EverythingAboutYou.mid", "title": "EVERYTHING ABOUT YOU", "artist": "UGLY KID JOE", "year": 1991 },
+    { "id": "alec-eiffel", "file": "90s/AlecEiffel.mid", "title": "ALEC EIFFEL", "artist": "PIXIES", "year": 1991 },
+    { "id": "two-princes", "file": "90s/TwoPrincess.mid", "title": "TWO PRINCES", "artist": "SPIN DOCTORS", "year": 1991 },
+    { "id": "cannonball", "file": "90s/Cannonball.mid", "title": "CANNONBALL", "artist": "THE BREEDERS", "year": 1993 },
+
+    { "id": "lump", "file": "90s/Lump.mid", "title": "LUMP", "artist": "THE PRESIDENTS OF THE USA", "year": 1995 },
+    { "id": "common-people", "file": "90s/CommonPeople.mid", "title": "COMMON PEOPLE", "artist": "PULP", "year": 1995 },
+    { "id": "peaches", "file": "90s/Peaches.mid", "title": "PEACHES", "artist": "THE PRESIDENTS OF THE USA", "year": 1995 },
+    { "id": "regulate", "file": "90s/Regulate.mid", "title": "REGULATE", "artist": "WARREN G AND NATE DOGG", "year": 1994 },
+
+    { "id": "song-2", "file": "90s/Song2.mid", "title": "SONG 2", "artist": "BLUR", "year": 1997 },
+    { "id": "i-think-im-paranoid", "file": "90s/IThinkImParanoid.mid", "title": "I THINK I'M PARANOID", "artist": "GARBAGE", "year": 1998 },
+    { "id": "bitter-sweet-symphony", "file": "90s/BittersweetSymphony.mid", "title": "BITTER SWEET SYMPHONY", "artist": "THE VERVE", "year": 1997 },
+    { "id": "steal-my-sunshine", "file": "90s/StealMySunshine.mid", "title": "STEAL MY SUNSHINE", "artist": "LEN", "year": 1999, "lead": "t1c3+t2c2", "harm": "t5c0", "_why": "the tune is split between the guy's and the girl's vocal tracks" }
+  ]
+}

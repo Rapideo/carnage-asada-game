@@ -89,11 +89,10 @@ const Hud = {
     R(x, hf > 0.75 ? PAL.bad : hf > 0.4 ? '#e07a1f' : '#5b6a8a', px0 + 45, 37, Math.round(70 * hf), 3);
     if (G.cop) textOut(x, 'IN PURSUIT', px0 + 44, 36, PAL.bad, 1);
 
-    /* ---------- combo ---------- */
-    if (G.combo > 1.001) {
-      textOut(x, 'X' + G.combo.toFixed(2) + ' STREAK', VW - 6, 51,
-        G.comboPop > 0 ? PAL.bone : PAL.amber, 1, 2);
-    }
+    /* The combo moved under the level line, which G.drawLevelLine draws in
+       both shifts. The nav ladder (difficulty.md) decides which of the five
+       guidance aids draw; the demo always shows them all. */
+    const nav = G.state === 'demo' || !G.nav ? { panel: 1, line: 1, dot: 1, edge: 1, beacon: 1 } : G.nav;
 
     /* ---------- minimap ---------- */
     const mx0 = 4, my0 = VH - MM - 4;
@@ -101,14 +100,14 @@ const Hud = {
     x.globalAlpha = 0.88; x.drawImage(this.mapImg, mx0, my0); x.globalAlpha = 1;
     const w2m = (wx) => mx0 + wx / WW * MM, h2m = (wy) => my0 + wy / WH * MM;
     // route breadcrumbs
-    if (Nav.goal) {
+    if (Nav.goal && nav.line) {
       x.fillStyle = PAL.cyanLo;
       for (const n of Nav.route) x.fillRect(w2m(City.nodeX(n[0])) | 0, h2m(City.nodeY(n[1])) | 0, 1, 1);
     }
     // shop
     R(x, PAL.red, w2m(City.shop.x + 60) - 1, h2m(City.shop.y + 40) - 1, 3, 3);
     // goal
-    if (Nav.goal) {
+    if (Nav.goal && nav.dot) {
       const blink = (G.time * 5 | 0) % 2;
       R(x, blink ? PAL.amber : PAL.bone, w2m(Nav.goal.x) - 2, h2m(Nav.goal.y) - 2, 5, 5);
       R(x, PAL.ink, w2m(Nav.goal.x) - 1, h2m(Nav.goal.y) - 1, 3, 3);
@@ -122,10 +121,13 @@ const Hud = {
     x.strokeRect(mx0 - 1.5, my0 - 1.5, MM + 3, MM + 3);
 
     /* ---------- TACO-NAV ---------- */
-    this.drawNav(x, G);
+    if (nav.panel) this.drawNav(x, G);
 
     /* ---------- taco bag ---------- */
-    const bx0 = VW - 76, by0 = VH - 20;
+    /* Mode C's GAS and REV buttons sit on the bag's corner, so on a phone the
+       bag moves up under the order card where nothing is pressed. */
+    const touchC = typeof Pad !== 'undefined' && Pad.mode === 'C';
+    const bx0 = touchC ? 6 : VW - 76, by0 = touchC ? 61 : VH - 20;
     text(x, 'DELIVERIES', bx0, by0 - 9, PAL.boneDim, 1);
     for (let i = 0; i < G.bagMax; i++) {
       const px = bx0 + i * 15, py = by0;
@@ -144,7 +146,7 @@ const Hud = {
     }
 
     /* ---------- edge arrow to target ---------- */
-    this.edgeArrow(x, G);
+    if (nav.edge) this.edgeArrow(x, G);
 
     /* ---------- banners ---------- */
     if (G.banner && G.bannerT > 0) {
@@ -209,7 +211,9 @@ const Hud = {
     // above the nav unit, clear of the minimap
     const cx = VW / 2, cy = VH / 2;
     const a = Math.atan2(sy - cy, sx - cx);
-    const hw = VW / 2 - 26, hh = VH / 2 - 52;
+    // Mode C: keep it above the on-screen controls, which start at y146
+    const touchC = typeof Pad !== 'undefined' && Pad.mode === 'C';
+    const hw = VW / 2 - 26, hh = VH / 2 - (touchC ? 70 : 52);
     const t = Math.min(Math.abs(hw / Math.cos(a)), Math.abs(hh / Math.sin(a)));
     const ex = cx + Math.cos(a) * t, ey = cy + Math.sin(a) * t;
     const pulse = 0.6 + 0.4 * Math.sin(G.time * 7);

@@ -1,0 +1,4 @@
+tools/music/preview/
+# frame.mjs output: throwaway renders, regenerate on demand
+tools/render/f-*.png
+tools/render/frame-*.png

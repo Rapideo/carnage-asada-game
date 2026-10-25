@@ -58,7 +58,11 @@ function unwedge(e, dt) {
 }
 
 /* ---------------- the player ------------------------------ */
+/* gripMul is set by G per level: 1 in summer, under 1 on winter snow. A
+   static on the class rather than a module const, so it adds no top-level
+   name to the bundle. */
 class Player {
+  static gripMul = 1;
   constructor(x, y, ang) {
     this.x = x; this.y = y; this.ang = ang;
     this.vx = 0; this.vy = 0;
@@ -105,7 +109,9 @@ class Player {
     vf = clamp(vf, -REVMAX, MAXSPD * mul);
 
     /* grip / drift */
-    const grip = this.hb ? 1.35 : (surf === S_ROAD ? 8.5 : 5.2);
+    /* Player.gripMul is the season: winter packs the streets with snow, so
+       the back steps out sooner and a handbrake turn carries further. */
+    const grip = (this.hb ? 1.35 : (surf === S_ROAD ? 8.5 : 5.2)) * Player.gripMul;
     const before = vl;
     vl *= Math.exp(-grip * dt);
     this.slip = Math.abs(before - vl);

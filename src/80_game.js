@@ -1,23 +1,46 @@
 /* ============================================================
-   TACO SHOP: CARNAGE ASADA  --  game loop, shift structure, render pipeline
-   ============================================================ */
+   TACO SHOP: CARNAGE ASADA  --  the run, both shifts, render pipeline
+   ============================================================
+
+   A run is twenty levels that alternate the Delivery Shift and the Kitchen
+   Shift (content/levels.json). Every level is a checkpoint race: reach the
+   target (15, or 9 on Supreme) before the clock reaches 0:00. Time comes only
+   from the starting clock and the extensions every third completion earns
+   (GDD II.D, difficulty.md, owner ruling 2026-10-25 "every 3 completed").
+
+   The score is the money across every level played -- G.earned, for the whole
+   run. Each level also keeps levelEarned for its clear card. Stars are a
+   report card, never money and never on the board.
+
+   Flow:  title -> mode select -> level card -> shift -> LEVEL CLEAR -> ...
+          0:00 -> GAME OVER -> initials if it places -> CONTINUE? 10s
+          level 20 cleared -> victory -> initials if it places -> board
+*/
 'use strict';
 
-const SHIFT_START  = 110;
-const TIME_PER_JOB = 9;
-const TIME_PERFECT = 3;
-const TIP_MAX = 1500, TIP_FLOOR = 200, TIP_DECAY = 55;
-const PERFECT_BONUS = 500;
-const REMAKE_FEE = 150, PED_FINE = 200, TICKET = 1000;
 const HEAT_MAX = 100;
 const BAG_MAX = 3;
 const RAIL_EJECT = 52;      // px from the corridor centre a wreck throws you
 const THROW_CD = 0.34;
+const PERFECT_BONUS = 500;  // difficulty.md: a perfect delivery, +$5.00
+const CLEAN_BONUS = 500;    // difficulty.md: a clean ticket, +$5.00
+const CONTINUE_SECS = 10;   // GDD II.F
 
-/* Attract rotation, cabinet-style: title -> winners -> demo -> title. The
+/* Used only if content/difficulty.json fails to load, so a broken content
+   file can never blank the game. build.mjs validates the real thing. */
+const DIFF_FALLBACK = {
+  start: 180, extend: 90, maxExt: 5, target: 15,
+  tipStart: 2000, tipFloor: 200, tipDecay: 100 / 3,
+  fines: { ticket: 500, ped: 200, train: 500, remake: 150 },
+  nav: { panel: true, line: true, dot: true, edge: true, beacon: true },
+  kitchen: { tipPerItem: 500, decay: 100 / 8, maxItems: 3, every: 25 },
+};
+const NAV_FULL = { panel: true, line: true, dot: true, edge: true, beacon: true };
+
+/* Attract rotation, cabinet-style: title -> winners -> scores -> demo. The
    durations are authored in content/attract.json and inlined as ATTRACT by
-   build.mjs — they are a judgement about pacing, and pacing wants changing
-   after watching a full cycle rather than recompiling a constant. */
+   build.mjs. attract.md asks for the board as its own screen (the owner's
+   authored content wins over the old alternating middle slot). */
 const ATTRACT_TITLE = ATTRACT.title.seconds;
 const ATTRACT_WINNERS = ATTRACT.winners.seconds;
 const ATTRACT_DEMO = ATTRACT.demo.seconds;
@@ -32,16 +55,15 @@ const TAG_HOLD   = 0.5;                          // which arrives on its own bea
 /* The lockup reads TACO SHOP / IN / CARNAGE ASADA and stages in that order:
    badge, then the tag at 0.5s, then the wordmark growing from 1s. At scale 1
    the tag is 11x7, which centres in the 15px the badge and wordmark leave with
-   4px of air either side — badge ends 122, tag 126-133, wordmark 137. Scale 2
-   was tried and is 14px tall against that 15px gap, touching both.
-
-   It stays on the 5x7 game font rather than the 7x9 display face, the same
-   call as EST. 1970 on the badge and for the same reason: it is small subtext
-   joining two pieces of display type, not a third piece of it. Drawn with
-   textOut rather than text, because at scale 1 the 1px strokes read thin and
-   lost without the ink outline thickening them. */
+   4px of air either side -- badge ends 122, tag 126-133, wordmark 137. */
 const ENTRY_TIMEOUT = 30;                        // seconds idle before the wheel confirms itself
 const WINNERS_BLUE = '#1f1fa8';
+
+const MODES = [
+  { k: 'A', name: 'KEYBOARD + MOUSE', sub: 'WASD OR ARROWS, MOUSE TO AIM' },
+  { k: 'B', name: 'ARCADE STICK', sub: 'STICK + 3 BUTTONS, NO MOUSE' },
+  { k: 'C', name: 'TOUCH', sub: 'ON-SCREEN STICK AND BUTTONS' },
+];
 
 const G = {
   state: 'boot', time: 0, shift: 0, earned: 0,
@@ -54,19 +76,62 @@ const G = {
   throwCd: 0, restock: 0, tipPop: 0, infraction: 0,
   stats: null, titleCam: 0, titleT: 0, titleSlam: false, paused: false, flash: 0,
   attractT: 0, demoAim: null,
-  scoresFromShift: false, scoreIdx: -1, attractFlip: false,
-  entryIni: [0, 0, 0], entrySlot: 0, entryT: 0, placed: false,
+  scoresFromShift: false, scoreIdx: -1,
+  entryIni: [0, 0, 0], entrySlot: 0, entryT: 0, placed: false, afterEntry: 'scores',
   rl: [],
+
+  /* the run */
+  seed: 0, levelN: 1, level: null, diffKey: 'easy', diff: DIFF_FALLBACK, nav: NAV_FULL,
+  era: 1, winter: false, stage: 'delivery', mapN: 0,
+  levelEarned: 0, levelStars: 0, stars: 0, done: 0, extUsed: 0,
+  cardT: 0, contT: 0, modeIdx: 0, startLevel: 1,
+  snow: [], snowMask: null, snowImgs: null,
 
   /* ---------------- setup ------------------------------- */
   boot(seed) {
-    const rng = makeRng(seed);
+    this.seed = seed;
     Art.build(makeRng(seed ^ 0x5eed));
-    City.gen(rng);
-    Hud.buildMap();
     Scores.load();       // before any overlay can draw the board
     Faces.build();       // decode baked likenesses once, like Art.build
+    const p = typeof location !== 'undefined' && location.search ? new URLSearchParams(location.search) : null;
+    this.startLevel = clamp(parseInt(p && p.get('level'), 10) || 1, 1, this.levels().length);
+    this.setLevel(1);    // builds Map 1, which the title drives over
+    Hud.buildMap();
     this.toTitle();
+  },
+
+  levels() {
+    if (typeof LEVELS !== 'undefined' && LEVELS.length) return LEVELS;
+    const out = [];
+    for (let n = 1; n <= 20; n++) out.push({ n, type: n % 2 ? 'delivery' : 'kitchen', name: 'LEVEL ' + n,
+      era: n <= 6 ? 1 : n <= 12 ? 2 : 3, season: n % 4 === 1 || n % 4 === 0 ? 'summer' : 'winter',
+      difficulty: n <= 6 ? 'easy' : n <= 12 ? 'medium' : n <= 18 ? 'hard' : 'supreme', year: 1972 });
+    return out;
+  },
+
+  /* Point the whole game at level n: difficulty, era, season, map. Regenerates
+     the city when the era's map changes -- the streets are the same in every
+     era, the zoning is not. */
+  setLevel(n) {
+    const L = this.levels();
+    this.levelN = clamp(n, 1, L.length);
+    this.level = L[this.levelN - 1];
+    this.diffKey = this.level.difficulty || 'easy';
+    const D = typeof DIFFICULTY !== 'undefined' && DIFFICULTY[this.diffKey];
+    this.diff = D || DIFF_FALLBACK;
+    this.nav = this.diff.nav || NAV_FULL;
+    this.era = this.level.era || 1;
+    this.winter = this.level.season === 'winter';
+    this.stage = this.level.type === 'kitchen' ? 'kitchen' : 'delivery';
+    Player.gripMul = this.winter ? 0.62 : 1;
+    const map = this.level.map || this.era;
+    if (map !== this.mapN) {
+      City.map = typeof MAPS !== 'undefined' && MAPS[map] ? MAPS[map] : HAYS;
+      City.gen(makeRng(this.seed));
+      this.mapN = map;
+      this.snowMask = null; this.snowImgs = null;
+    }
+    if (this.winter && !this.snowMask) this.buildSnow();
   },
 
   toTitle() {
@@ -77,6 +142,7 @@ const G = {
     this.attractT = ATTRACT_TITLE;
     this.paused = false; this.demoAim = null;
     Audio5.sirenOff();
+    Dialog.drop();
     this.player = new Player(City.shop.dock.x, City.shop.dock.y + 70, -PI / 2);
     this.traffic.length = 0; this.peds.length = 0; this.flying.length = 0;
     this.cop = null; Nav.clear(); Fx.clear();
@@ -84,6 +150,7 @@ const G = {
     this.cam.x = clamp(City.shop.x - VW / 2, 0, WW - VW);
     this.cam.y = clamp(City.shop.y - VH / 2, 0, WH - VH);
     this.seedTraffic(26); this.seedPeds(20);
+    this.playMusic('title');
   },
 
   toWinners() {
@@ -91,8 +158,8 @@ const G = {
     this.attractT = ATTRACT_WINNERS;
   },
 
-  /* The board serves twice: an attract screen on a timer, and the post-shift
-     screen waiting for input. One flag tells them apart. */
+  /* The board serves twice: an attract screen on a timer, and the screen at
+     the end of a finished run. One flag tells them apart. */
   toScores(fromShift) {
     this.state = 'scores';
     this.scoresFromShift = !!fromShift;
@@ -111,29 +178,101 @@ const G = {
     const ini = this.entryIni.map((i) => INI_ALPHA[i]).join('');
     this.scoreIdx = Scores.insert(ini, this.earned);
     Audio5.sfx('cash');
-    this.toScores(true);
+    if (this.afterEntry === 'cont') this.toCont();
+    else this.toScores(true);
   },
 
-  /* the demo is a real shift — same setup, same rules — with Demo at the
-     wheel instead of the player */
-  toDemo() {
-    this.startShift();
-    this.state = 'demo';
+  /* attract.md: the demo plays a RANDOM level -- a delivery level driven by
+     Demo, or a kitchen level cooked by the Kitchen's autoplayer. The tests
+     pass a level number to pin it. */
+  toDemo(n) {
+    const L = this.levels();
+    const pick = n || this.demoPin || (1 + ((Math.random() * L.length) | 0));
+    this.setLevel(pick);
+    this.combo = 1; this.levelEarned = 0; this.levelStars = 0; this.done = 0; this.extUsed = 0;
+    this.nav = NAV_FULL;                      // the demo shows the game at its friendliest
+    if (this.stage === 'kitchen') {
+      Kitchen.enter(this.level, this.diff, true);
+      this.shift = 999; this.earned = 0;
+      this.state = 'kdemo';
+    } else {
+      this.startShift();
+      this.state = 'demo';
+      this.shift = Math.max(this.shift, ATTRACT_DEMO + 30);
+      this.banner = ''; this.bannerT = 0;
+      this.demoAim = null;
+      Demo.reset(this.player);
+    }
     this.attractT = ATTRACT_DEMO;
-    this.banner = ''; this.bannerT = 0;
-    this.demoAim = null;
-    Demo.reset(this.player);
+    this.playMusic(pick);
   },
 
-  startShift() {
+  toMode() {
+    this.state = 'mode';
+    this.modeTouched = false;
+    const want = typeof Pad !== 'undefined' ? Pad.detect() : 'A';
+    this.modeIdx = Math.max(0, MODES.findIndex((m) => m.k === want));
+  },
+
+  /* ---------------- the run ------------------------------ */
+  startRun(n) {
+    this.earned = 0; this.stars = 0;
+    this.runStart = n;
+    this.toCard(n);
+  },
+
+  /* The level card. The stage is built underneath it -- the city or the
+     kitchen -- so the card reads as the shift about to start, not as a
+     loading screen. */
+  toCard(n) {
+    this.setLevel(n);
+    this.state = 'card';
+    this.cardT = 0;
+    this.paused = false;
+    Dialog.drop();
+    if (this.stage === 'kitchen') Kitchen.enter(this.level, this.diff, false);
+    else this.prepDelivery();
+    this.shift = this.diff.start;
+    this.playMusic(n);
+  },
+
+  beginShift() {
+    this.shift = this.diff.start;
+    this.levelEarned = 0; this.levelStars = 0; this.done = 0; this.extUsed = 0;
+    this.combo = 1; this.comboPop = 0;
+    if (this.stage === 'kitchen') {
+      this.state = 'kitchen';
+      this.stats = Kitchen.stats;
+      Nav.clear();
+      this.say('ORDER UP!', PAL.amber);
+      Audio5.sfx('start');
+    } else this.startShift(true);
+  },
+
+  /* A delivery shift. Kept as its own entry point: the test suite and the
+     attract demo both call it directly. */
+  startShift(fromCard) {
+    if (!fromCard) {
+      this.shift = this.diff.start;
+      this.levelEarned = 0; this.levelStars = 0; this.done = 0; this.extUsed = 0;
+      this.combo = 1; this.comboPop = 0;
+    }
+    this.stage = 'delivery';
+    this.prepDelivery();
     this.state = 'play';
-    this.time = 0; this.shift = SHIFT_START; this.earned = 0;
-    this.combo = 1; this.comboPop = 0; this.heat = 0;
+    this.newOrder();
+    this.say('CLOCK IN!', PAL.amber);
+    Audio5.sfx('start');
+  },
+
+  prepDelivery() {
+    this.heat = 0;
     this.bag = BAG_MAX; this.needPickup = false;
     this.cop = null; this.copT = 0; this.shake = 0; this.hitstop = 0;
     this.throwCd = 0; this.restock = 0; this.infraction = 0;
     this.stats = { delivered: 0, perfect: 0, splat: 0, best: 0, peds: 0, tickets: 0 };
     this.flying.length = 0; Fx.clear();
+    this.order = null; Nav.clear();
     this.resetRail();
     const d = City.shop.dock;
     this.player = new Player(d.x, d.y + 40, PI / 2);
@@ -141,9 +280,77 @@ const G = {
     this.cam.y = clamp(d.y - VH / 2, 0, WH - VH);
     this.traffic.length = 0; this.peds.length = 0;
     this.seedTraffic(30); this.seedPeds(24);
-    this.newOrder();
-    this.say('CLOCK IN!', PAL.amber);
-    Audio5.sfx('start');
+  },
+
+  /* Every completion, in either shift, comes through here: every third earns
+     an extension, up to the difficulty's cap, and the target clears the
+     level. The target is 3 x the cap, so the level clears on the completion
+     that would have earned the last extension. */
+  onComplete() {
+    if (this.state !== 'play' && this.state !== 'kitchen') return;
+    this.done++;
+    const D = this.diff;
+    if (this.done >= D.target) { this.levelClear(); return; }
+    if (this.done % 3 === 0 && this.extUsed < D.maxExt) {
+      this.extUsed++;
+      this.shift += D.extend;
+      this.say('+' + clockStr(D.extend) + ' EXTENSION', PAL.cyan);
+      Audio5.sfx('extend');
+    }
+  },
+
+  cleanBonus() { return CLEAN_BONUS; },
+
+  levelClear() {
+    this.state = 'clear';
+    this.cardT = 0;
+    Audio5.engineOff(); Audio5.sirenOff();
+    this.cop = null; Nav.clear(); Dialog.drop();
+    Audio5.sfx('clear');
+    this.flash = 0.2;
+  },
+
+  nextLevel() {
+    if (this.levelN >= this.levels().length) { this.toVictory(); return; }
+    this.toCard(this.levelN + 1);
+  },
+
+  timeUp() {
+    this.state = 'over';
+    this.cardT = 0;
+    this.shift = 0;
+    this.placed = Scores.qualifies(this.earned);
+    this.scoreIdx = -1;
+    Audio5.engineOff(); Audio5.sirenOff();
+    this.cop = null; Nav.clear(); Dialog.drop();
+    Audio5.sfx('over');
+  },
+
+  /* GDD II.F: initials FIRST, so the run is on the board before anything
+     else can happen to it; then CONTINUE?. */
+  afterOver() {
+    if (this.placed) { this.afterEntry = 'cont'; this.toEntry(); }
+    else this.toCont();
+  },
+
+  toCont() {
+    this.state = 'cont';
+    this.contT = CONTINUE_SECS;
+  },
+
+  toVictory() {
+    this.state = 'victory';
+    this.cardT = 0;
+    this.placed = Scores.qualifies(this.earned);
+    this.scoreIdx = -1;
+    Audio5.sfx('clear');
+  },
+
+  playMusic(key) {
+    this.musicKey = key;
+    if (typeof Music === 'undefined' || typeof PLAYLIST === 'undefined' || !Audio5.ready) return;
+    const ids = PLAYLIST[key];
+    if (ids && ids.length && Music.playList) Music.playList(ids);
   },
 
   /* ---------------- orders ------------------------------- */
@@ -154,16 +361,17 @@ const G = {
       const h = City.houses[(Math.random() * City.houses.length) | 0];
       if (this.order && this.order.house === h) continue;
       const d = hyp(h.cx - p.x, h.cy - p.y);
-      // the demo gets nearer addresses: it has 90 seconds to show a delivery
+      // the demo gets nearer addresses: it has 45 seconds to show a delivery
       // actually completing, and cross-town runs eat the whole window
       if (d < 230 || d > (this.state === 'demo' ? 560 : 980)) continue;
       const s = Math.random();
       if (s > bestScore) { bestScore = s; best = h; }
     }
     if (!best) best = City.houses[(Math.random() * City.houses.length) | 0];
+    const D = this.diff;
     this.order = {
       house: best, label: best.addr,
-      tip: TIP_MAX, max: TIP_MAX, floor: TIP_FLOOR, decay: TIP_DECAY,
+      tip: D.tipStart, max: D.tipStart, floor: D.tipFloor, decay: D.tipDecay,
     };
     this.syncNav();
     Fx.pop(p.x, p.y - 22, 'NEW ORDER', PAL.amber);
@@ -180,6 +388,11 @@ const G = {
   },
 
   say(msg, col) { this.banner = msg; this.bannerCol = col || PAL.bone; this.bannerT = 1.6; },
+
+  fine(cents) {
+    this.earned = Math.max(0, this.earned - cents);
+    this.levelEarned = Math.max(0, this.levelEarned - cents);
+  },
 
   /* ---------------- spawning ----------------------------- */
   seedTraffic(n) { for (let i = 0; i < n; i++) this.spawnCar(true); },
@@ -222,8 +435,12 @@ const G = {
   aimPoint() {
     const p = this.player;
     let ax, ay;
+    const pad = typeof Pad !== 'undefined' && Pad.aiming;
     if (this.state === 'demo' && this.demoAim) { ax = this.demoAim.x; ay = this.demoAim.y; }
-    else if (Input.hasMouse) { ax = this.cam.x + Input.mx; ay = this.cam.y + Input.my; }
+    /* throwNow too: on the release that throws, aiming is already false, and
+       the bag must still go where the stick was pointing */
+    else if (pad || (typeof Pad !== 'undefined' && Pad.throwNow)) { ax = p.x + Pad.aimX; ay = p.y + Pad.aimY; }
+    else if (Input.hasMouse && (typeof Pad === 'undefined' || Pad.mode === 'A')) { ax = this.cam.x + Input.mx; ay = this.cam.y + Input.my; }
     else { ax = p.x + Math.cos(p.ang) * 84; ay = p.y + Math.sin(p.ang) * 84; }
     const dx = ax - p.x, dy = ay - p.y, d = hyp(dx, dy);
     if (d > MAXTHROW) { ax = p.x + dx / d * MAXTHROW; ay = p.y + dy / d * MAXTHROW; }
@@ -239,7 +456,7 @@ const G = {
       return;
     }
     const p = this.player, a = this.aimPoint();
-    // accuracy falls off with speed — slowing down is the skill, not a chore
+    // accuracy falls off with speed -- slowing down is the skill, not a chore
     const spread = clamp(p.speed / MAXSPD, 0, 1) * 22;
     this.flying.push(new Bag(p.x, p.y, a.x, a.y, spread));
     this.bag--;
@@ -266,20 +483,36 @@ const G = {
     this.miss(z, wrong);
   },
 
+  /* A line for the dialogue strip, from content/dialogue.json. A line may
+     carry an era floor -- "2|HELLOOO? MCFLY?" only plays from the 1980s on
+     -- so nobody quotes a film that has not come out yet. */
+  pickLine(kind) {
+    if (typeof DIALOGUE === 'undefined') return null;
+    const all = DIALOGUE[kind];
+    if (!all || !all.length) return null;
+    const ok = [];
+    for (const s of all) {
+      const m = /^(\d)\|(.*)$/.exec(s);
+      if (!m) ok.push(s);
+      else if (this.era >= +m[1]) ok.push(m[2]);
+    }
+    return ok.length ? ok[(Math.random() * ok.length) | 0] : null;
+  },
+
   /* One line from the customer, over the dialogue strip. Kept out of the demo:
      attract mode is a shop window and a talking head over it reads as a
-     cutscene rather than as play. Copy is authored in content/dialogue.json
-     and width-checked by build.mjs against the bubble the portrait leaves. */
+     cutscene rather than as play. */
   react(kind, order, hostile) {
     if (this.state !== 'play' || typeof DIALOGUE === 'undefined') return;
-    const lines = DIALOGUE[kind];
-    if (!lines || !lines.length) return;
-    Dialog.say(DIALOGUE.who, lines[(Math.random() * lines.length) | 0], {
-      face: DLG_FACE,
+    const line = this.pickLine(kind);
+    if (!line) return;
+    const cast = Kitchen.castFor(this.era);
+    Dialog.say(DIALOGUE.who, line, {
+      face: cast[(Math.random() * cast.length) | 0],
       hostile: hostile,
       hood: hostile ? 3 : 1,
       sub: order && order.house ? order.house.addr : '',
-      meter: order ? clamp(order.tip / order.max, 0, 1) : null,
+      meter: order ? clamp((order.tip - order.floor) / Math.max(1, order.max - order.floor), 0, 1) : null,
       secs: 3.0,
     });
   },
@@ -288,10 +521,9 @@ const G = {
     const o = this.order;
     const base = Math.round(o.tip) + (perfect ? PERFECT_BONUS : 0);
     const paid = Math.round(base * this.combo);
-    this.earned += paid;
-    this.shift += TIME_PER_JOB + (perfect ? TIME_PERFECT : 0);
+    this.earned += paid; this.levelEarned += paid;
     this.stats.delivered++;
-    if (perfect) this.stats.perfect++;
+    if (perfect) { this.stats.perfect++; this.levelStars++; this.stars++; }
     this.stats.best = Math.max(this.stats.best, paid);
     this.combo = Math.min(3, this.combo + 0.25);
     this.comboPop = 0.4;
@@ -299,9 +531,9 @@ const G = {
     Fx.cash(z.x, z.y);
     Fx.pop(z.x, z.y - 10, money(paid), PAL.good, true);
     if (perfect) Fx.pop(z.x, z.y - 26, 'ON THE DOORSTEP! +' + money(PERFECT_BONUS), PAL.amber);
-    Fx.pop(z.x, z.y - 40, '+' + (TIME_PER_JOB + (perfect ? TIME_PERFECT : 0)) + 'S', PAL.cyan);
     this.say(perfect ? 'PERFECT TOSS!' : 'DELIVERED!', perfect ? PAL.amber : PAL.good);
-    this.react('delivered', o, false);
+    const late = o.tip < (o.floor + (o.max - o.floor) * 0.25);
+    this.react(late && DIALOGUE.late ? 'late' : 'delivered', o, late);
     Audio5.sfx(perfect ? 'perfect' : 'deliver');
     Audio5.sfx('cash');
     this.flash = 0.14;
@@ -309,6 +541,7 @@ const G = {
     this.order = null;
     if (this.bag > 0) this.newOrder();
     else { this.needPickup = true; this.syncNav(); }
+    this.onComplete();
   },
 
   miss(z, wrong) {
@@ -317,13 +550,14 @@ const G = {
     Audio5.sfx('splat');
     this.react('missed', this.order, true);
     this.stats.splat++;
-    this.earned = Math.max(0, this.earned - REMAKE_FEE);
+    const fee = this.diff.fines.remake;
+    this.fine(fee);
     this.combo = 1;
     if (wrong && this.order && wrong !== this.order.house) {
       Fx.pop(z.x, z.y - 10, 'WRONG HOUSE! ' + wrong.num, PAL.bad);
       this.say('THAT IS NOT ' + (this.order ? this.order.house.num : ''), PAL.bad);
     } else {
-      Fx.pop(z.x, z.y - 10, 'SPLAT! -' + money(REMAKE_FEE), PAL.bad);
+      Fx.pop(z.x, z.y - 10, 'SPLAT! -' + money(fee), PAL.bad);
       this.say('SPLAT!', PAL.bad);
     }
     if (this.bag === 0 && this.order) { this.needPickup = true; this.syncNav(); }
@@ -331,7 +565,7 @@ const G = {
 
   onCrash() { this.bumpHeat(7); },
 
-  /* THE most important function in this feature. A wreck that leaves the car
+  /* THE most important function in the railway. A wreck that leaves the car
      on the rails is a repeat-hit loop, which is the same class of defect as
      the collision wedge: not merely awkward but unescapable by any input.
      Throwing the car clear is the safety property, not a polish step.
@@ -343,11 +577,6 @@ const G = {
     const p = this.player;
     this.wreckCd = 1.5;
 
-    /* Out along the crossing road it was hit on. A wreck can only happen where
-       the corridor is not solid, which is a crossing, which is a north-south
-       street — so both exits are guaranteed roadway. Prefer the side it was
-       already on; fall back to the other; fall back again to the demo's hard
-       reset, which is ugly but always works. */
     let cx = p.x, nd = 1e9;
     for (const c of this.crossings) { const d = Math.abs(c.x - p.x); if (d < nd) { nd = d; cx = c.x; } }
     const first = p.y < City.railY ? -1 : 1;
@@ -365,7 +594,6 @@ const G = {
     p.spinT = 1.3;                       // longer than a crunch: this is a wreck
     this.railSide = p.y < City.railY ? -1 : 1;   // do not read the eject as beating the train
 
-    /* the whole load across the ballast, whatever you were carrying */
     for (let i = 0; i < this.bag; i++) Fx.splat(cx + rand(-30, 30), City.railY + rand(-14, 14));
     Fx.spill(cx, City.railY);
     for (let k = 0; k < 22; k++) Fx.spark(p.x, p.y, rand(-140, 140), rand(-140, 140));
@@ -375,18 +603,19 @@ const G = {
 
     this.shake = 12; this.hitstop = 0.14; this.flash = 0.18;
     this.combo = 1;
-    this.say('HIT BY TRAIN', PAL.bad);   // 12 chars — well inside the banner box
+    this.say('HIT BY TRAIN', PAL.bad);   // 12 chars -- well inside the banner box
     Audio5.sfx('crash'); Audio5.sfx('trainhorn');
-    // No fine. The spec is explicit: a wreck costs time and load, not money.
+    /* difficulty.md adds a fine the railway spec did not have. The demo is
+       spared it: it never scores. */
+    if (this.state === 'play') {
+      this.fine(this.diff.fines.train);
+      Fx.pop(p.x, p.y - 30, '-' + money(this.diff.fines.train), PAL.bad);
+    }
   },
 
-  /* The corridor band, generously sized. Used to keep a cop from being
-     dispatched onto the tracks: a cruiser that materialises under a moving
-     train is wrecked the instant it exists, which reads as a bug rather than
-     as a rule. */
   onRail(x, y) { return Math.abs(y - City.railY) < 44; },
 
-  /* Running a closed crossing is always allowed — the gates are drawn, not
+  /* Running a closed crossing is always allowed -- the gates are drawn, not
      solid. Surviving one is what costs you, because the cops saw you do it. */
   railCheck() {
     const p = this.player;
@@ -421,8 +650,6 @@ const G = {
   },
   dropCop() { this.cop = null; this.heat = Math.min(this.heat, 45); Audio5.sirenOff(); },
 
-  /* City.crossings is WHERE the crossings are, baked once at generation.
-     G.crossings is what they are DOING, and is rebuilt per shift. */
   resetRail() {
     this.train = null;
     this.trainT = rand(10, 22);
@@ -431,22 +658,27 @@ const G = {
     this.crossings = City.crossings.map((c) => new Crossing(c));
   },
 
+  /* which control scheme the Pad layer should map to */
+  padContext() {
+    if (this.state === 'kitchen' || this.state === 'kdemo') return 'kitchen';
+    if (this.state === 'play' && !this.paused) return 'drive';
+    return 'menu';
+  },
+
   /* ---------------- update ------------------------------- */
   update(dt) {
     this.time += dt;
     this.flash = Math.max(0, this.flash - dt);
+    this.bannerT -= dt;
+    if (this.winter) this.updateSnow(dt);
 
-    if (this.state === 'title') {
+    const S = this.state;
+
+    if (S === 'title') {
       this.titleCam += dt * 26;
-      /* The wordmark is withheld, then slams in. shake has to be decayed HERE
-         as well as in the play branch — this branch returns early, so a rumble
-         started on the title would otherwise never stop. */
+      /* shake has to be decayed HERE as well as in the play branch -- this
+         branch returns early, so a rumble started on the title would never stop */
       this.titleT += dt;
-      // The rumble belongs to the LANDING, not the launch. It is the same
-      // shake a collision gives, which is what makes the arrival read as part
-      // of the game rather than a transition effect — so it has to fire when
-      // the wordmark reaches full size, at the end of the grow, not when it
-      // starts creeping up from nothing two seconds earlier.
       if (!this.titleSlam && this.titleT >= TITLE_HOLD + TITLE_GROW) {
         this.titleSlam = true;
         this.shake = 9;                 // the same rumble a collision gives
@@ -458,30 +690,22 @@ const G = {
       this.cam.y = clamp(City.shop.y - VH / 2 + Math.sin(this.titleCam / 41) * r * 0.7, 0, WH - VH);
       this.player.x = this.cam.x + VW / 2; this.player.y = this.cam.y + VH / 2;
       this.simCrowd(dt);
-      if (Input.p('Enter', 'NumpadEnter', 'Space')) { Audio5.sfx('select'); this.startShift(); return; }
+      if (Input.p('Enter', 'NumpadEnter', 'Space') || Input.mhit) { Audio5.sfx('select'); this.toMode(); return; }
       this.attractT -= dt;
-      /* The middle slot alternates rather than adding a fourth screen: a
-         dedicated slot would grow the cycle from 135s to ~147s, and 90s of
-         demo is already the long part of the watch. */
-      if (this.attractT <= 0) {
-        this.attractFlip = !this.attractFlip;
-        if (this.attractFlip) this.toWinners(); else this.toScores(false);
-      }
+      if (this.attractT <= 0) this.toWinners();
       return;
     }
 
-    if (this.state === 'winners') {
+    if (S === 'winners') {
       this.attractT -= dt;
       if (Input.anyKey || Input.mhit) { Audio5.sfx('select'); this.toTitle(); return; }
-      if (this.attractT <= 0) this.toDemo();
+      if (this.attractT <= 0) this.toScores(false);
       return;
     }
 
-    if (this.state === 'scores') {
+    if (S === 'scores') {
       if (this.scoresFromShift) {
-        // the same keys results already uses, so there is no second set to learn
-        if (Input.p('Enter', 'NumpadEnter', 'KeyR')) { Audio5.sfx('select'); this.startShift(); return; }
-        if (Input.p('Escape')) { Audio5.sfx('select'); this.toTitle(); return; }
+        if (Input.p('Enter', 'NumpadEnter', 'Escape', 'Space') || Input.mhit) { Audio5.sfx('select'); this.toTitle(); return; }
       } else {
         this.attractT -= dt;
         if (Input.anyKey || Input.mhit) { Audio5.sfx('select'); this.toTitle(); return; }
@@ -491,7 +715,29 @@ const G = {
       return;
     }
 
-    if (this.state === 'entry') {
+    if (S === 'mode') {
+      /* A gamepad is invisible to the browser until a button on it is pressed,
+         so keep re-detecting until the player makes a choice of their own. */
+      if (!this.modeTouched && typeof Pad !== 'undefined') {
+        const i = MODES.findIndex((m) => m.k === Pad.detect());
+        if (i >= 0) this.modeIdx = i;
+      }
+      if (Input.p('ArrowUp', 'KeyW')) { this.modeIdx = (this.modeIdx + MODES.length - 1) % MODES.length; this.modeTouched = true; Audio5.sfx('tick'); }
+      if (Input.p('ArrowDown', 'KeyS')) { this.modeIdx = (this.modeIdx + 1) % MODES.length; this.modeTouched = true; Audio5.sfx('tick'); }
+      if (Input.mhit) {
+        const i = Math.floor((Input.my - 70) / 34);
+        if (i >= 0 && i < MODES.length && Math.abs(Input.mx - VW / 2) < 130) {
+          if (i === this.modeIdx) { this.chooseMode(); return; }
+          this.modeIdx = i; Audio5.sfx('tick');
+        }
+      }
+      if (Input.p('Enter', 'NumpadEnter', 'Space')) { this.chooseMode(); return; }
+      if (Input.p('Escape')) { this.toTitle(); return; }
+      this.simCrowd(dt);
+      return;
+    }
+
+    if (S === 'entry') {
       const n = INI_ALPHA.length;
       let acted = false;
       if (Input.p('ArrowUp', 'KeyW'))    { this.entryIni[this.entrySlot] = (this.entryIni[this.entrySlot] + 1) % n; acted = true; }
@@ -506,30 +752,82 @@ const G = {
       if (acted) { this.entryT = ENTRY_TIMEOUT; Audio5.sfx('tick'); }
       this.entryT -= dt;
       if (this.entryT <= 0) { this.commitEntry(); return; }
-      this.simCrowd(dt);
+      if (this.stage === 'delivery') this.simCrowd(dt);
       return;
     }
 
-    if (this.state === 'results') {
-      this.simCrowd(dt);
-      if (Input.p('Enter', 'NumpadEnter', 'KeyR')) {
+    if (S === 'card') {
+      this.cardT += dt;
+      if (this.stage === 'delivery') this.simCrowd(dt);
+      const go = Input.p('Enter', 'NumpadEnter', 'Space') || Input.mhit;
+      if ((go && this.cardT > 0.5) || this.cardT > 12) { Audio5.sfx('select'); this.beginShift(); }
+      return;
+    }
+
+    if (S === 'clear') {
+      this.cardT += dt;
+      if (this.stage === 'delivery') this.simCrowd(dt);
+      if (this.stage === 'kitchen') Kitchen.walk(dt);
+      const go = Input.p('Enter', 'NumpadEnter', 'Space') || Input.mhit;
+      if ((go && this.cardT > 1.0) || this.cardT > 10) { Audio5.sfx('select'); this.nextLevel(); }
+      return;
+    }
+
+    if (S === 'over') {
+      this.cardT += dt;
+      if (this.stage === 'delivery') this.simCrowd(dt);
+      const go = Input.p('Enter', 'NumpadEnter', 'Space') || Input.mhit;
+      if ((go && this.cardT > 1.2) || this.cardT > 6) { Audio5.sfx('select'); this.afterOver(); }
+      return;
+    }
+
+    if (S === 'cont') {
+      const was = Math.ceil(this.contT);
+      this.contT -= dt;
+      if (Math.ceil(this.contT) !== was) Audio5.sfx('tick');
+      if (Input.p('Enter', 'NumpadEnter', 'Space') || Input.mhit) { Audio5.sfx('start'); this.startRun(this.levelN); return; }
+      if (Input.p('Escape') || this.contT <= 0) { this.toTitle(); return; }
+      if (this.stage === 'delivery') this.simCrowd(dt);
+      return;
+    }
+
+    if (S === 'victory') {
+      this.cardT += dt;
+      const go = Input.p('Enter', 'NumpadEnter', 'Space') || Input.mhit;
+      if (go && this.cardT > 2) {
         Audio5.sfx('select');
-        if (this.placed) this.toEntry(); else this.startShift();
+        if (this.placed) { this.afterEntry = 'scores'; this.toEntry(); }
+        else this.toScores(true);
       }
-      if (Input.p('Escape')) this.toTitle();
+      return;
+    }
+
+    if (S === 'kitchen' || S === 'kdemo') {
+      const demo = S === 'kdemo';
+      if (demo) {
+        this.attractT -= dt;
+        if (Input.anyKey || Input.mhit) { Audio5.sfx('select'); this.toTitle(); return; }
+        if (this.attractT <= 0) { this.toTitle(); return; }
+      } else {
+        if (this.pauseInput()) return;
+        const was = Math.ceil(this.shift);
+        this.shift -= dt;
+        if (this.shift > 0 && this.shift < 6 && Math.ceil(this.shift) !== was) Audio5.sfx('tick');
+        if (this.shift <= 0) { this.timeUp(); return; }
+      }
+      this.comboPop = Math.max(0, this.comboPop - dt);
+      Kitchen.update(dt, this);
+      Dialog.update(dt);
       return;
     }
 
     /* ---- play, and the demo which runs the same simulation ---- */
-    const demo = this.state === 'demo';
+    const demo = S === 'demo';
     if (demo) {
       this.attractT -= dt;
       if (Input.anyKey || Input.mhit) { Audio5.sfx('select'); this.toTitle(); return; }
       if (this.attractT <= 0) { this.toTitle(); return; }
-    } else {
-      if (Input.p('Escape', 'KeyP')) this.paused = !this.paused;
-      if (this.paused) return;
-    }
+    } else if (this.pauseInput()) return;
 
     if (this.hitstop > 0) { this.hitstop -= dt; dt *= 0.15; }
 
@@ -537,15 +835,14 @@ const G = {
     this.shift -= dt;
     if (!demo && this.shift > 0 && this.shift < 6 && Math.ceil(this.shift) !== wasSec) Audio5.sfx('tick');
     // a demo that outlasts the clock returns to the title, it does not post a score
-    if (this.shift <= 0) { if (demo) this.toTitle(); else this.endShift(); return; }
+    if (this.shift <= 0) { if (demo) this.toTitle(); else this.timeUp(); return; }
 
-    this.bannerT -= dt;
     this.comboPop = Math.max(0, this.comboPop - dt);
     this.tipPop = Math.max(0, this.tipPop - dt);
     this.throwCd -= dt;
     this.infraction = Math.max(0, this.infraction - dt);
 
-    /* tip decay */
+    /* tip decay, down to the floor (owner ruling: the $2 floor stays) */
     if (this.order) {
       const before = this.order.tip;
       this.order.tip = Math.max(this.order.floor, this.order.tip - this.order.decay * dt);
@@ -557,7 +854,12 @@ const G = {
     if (demo) Demo.drive(dt, this); else p.control(Input);
     p.update(dt, this);
 
-    if (!demo && (Input.mhit || Input.p('Space'))) this.tryThrow();
+    if (!demo) {
+      const padThrow = typeof Pad !== 'undefined' && Pad.throwNow;
+      const click = Input.mhit && (typeof Pad === 'undefined' || Pad.mode === 'A');
+      if (click || Input.p('Space') || padThrow) this.tryThrow();
+      if (padThrow) Pad.throwNow = false;      // after the throw: aimPoint reads it
+    }
 
     /* engine audio */
     const sf = clamp(p.speed / MAXSPD, 0, 1);
@@ -576,7 +878,6 @@ const G = {
           c.x > SEG0 + BLOCKS * PITCH + 90 || c.y > SEG0 + BLOCKS * PITCH + 90) {
         this.traffic.splice(i, 1); continue;
       }
-      /* player vs traffic */
       const d = hyp(c.x - p.x, c.y - p.y);
       if (d < 15 && c.stun <= 0) {
         const rel = hyp(p.vx - DIRV[c.dir][0] * c.spd, p.vy - DIRV[c.dir][1] * c.spd);
@@ -607,12 +908,13 @@ const G = {
       if (hyp(q.x - p.x, q.y - p.y) > 780) { this.peds.splice(i, 1); continue; }
       if (q.tumble <= 0 && hyp(q.x - p.x, q.y - p.y) < 11 && p.speed > 42) {
         q.hitBy(p.x, p.y, p.vx, p.vy);
-        this.earned = Math.max(0, this.earned - PED_FINE);
+        const f = this.diff.fines.ped;
+        if (!demo) this.fine(f);
         this.stats.peds++;
         this.combo = 1;
         this.bumpHeat(34);
         Fx.star(q.x, q.y - 8);
-        Fx.pop(q.x, q.y - 18, 'OW! -' + money(PED_FINE), PAL.bad);
+        Fx.pop(q.x, q.y - 18, 'OW! -' + money(f), PAL.bad);
         this.shake = 5; this.hitstop = 0.05;
         Audio5.sfx('ped');
       }
@@ -624,22 +926,21 @@ const G = {
     this.trainT -= dt;
     if (!this.train && this.trainT <= 0) {
       const dir = Math.random() < 0.5 ? 1 : -1;
-      // eastbound keeps to the south track — City.tracks is [north, south]
+      // eastbound keeps to the south track -- City.tracks is [north, south]
       this.train = new Train(dir, City.tracks[dir > 0 ? 1 : 0]);
       this.trainT = rand(22, 40);
     }
     if (this.train) {
       this.train.update(dt, this);
       if (this.train.hits(p) && this.wreckCd <= 0) this.wreck();
-      /* Beat the train across and the pursuit eats it. That is what turns the
-         tracks from an obstacle into a tactic: a genuine high-risk escape.
-         heat = 0 has to come BEFORE dropCop, which only clamps it to 45. */
+      /* Beat the train across and the pursuit eats it. heat = 0 has to come
+         BEFORE dropCop, which only clamps it to 45. */
       if (this.cop && this.train.hits(this.cop)) {
         for (let k = 0; k < 20; k++) Fx.spark(this.cop.x, this.cop.y, rand(-150, 150), rand(-150, 150));
         Fx.pop(this.cop.x, this.cop.y - 22, 'CRUNCH!', PAL.good);
         this.shake = Math.max(this.shake, 7);
         Audio5.sfx('crash');
-        this.say('THE TRAIN GOT THEM', PAL.good);   // 18 chars, a 230px banner
+        this.say('THE TRAIN GOT THEM', PAL.good);
         this.heat = 0;
         this.dropCop();
       }
@@ -656,12 +957,13 @@ const G = {
       Audio5.sirenSet(clamp(1 - d / 420, 0, 1));
       if (d < 16 && this.cop.hitCd <= 0) {
         this.cop.hitCd = 3;
-        this.earned = Math.max(0, this.earned - TICKET);
+        const f = this.diff.fines.ticket;
+        if (!demo) this.fine(f);
         this.stats.tickets++;
         this.combo = 1;
         p.spinOut(1);
         this.shake = 9; this.hitstop = 0.1;
-        Fx.pop(p.x, p.y - 22, 'TICKET! -' + money(TICKET), PAL.bad, true);
+        Fx.pop(p.x, p.y - 22, 'TICKET! -' + money(f), PAL.bad, true);
         this.say('PULLED OVER', PAL.bad);
         Audio5.sfx('ticket');
         this.heat = 0;
@@ -676,7 +978,7 @@ const G = {
     for (let i = this.flying.length - 1; i >= 0; i--) {
       const z = this.flying[i];
       z.update(dt);
-      if (z.dead) { this.flying.splice(i, 1); this.onLand(z); }
+      if (z.dead) { this.flying.splice(i, 1); this.onLand(z); if (this.state !== 'play' && this.state !== 'demo') return; }
     }
 
     /* restock at the shop */
@@ -707,42 +1009,149 @@ const G = {
     this.shake = Math.max(0, this.shake - dt * 22);
   },
 
+  /* P / Esc toggle pause in every mode. While paused, Enter (a stick's
+     Button 1) and a tap also resume -- a stick or a phone has no Esc. Returns
+     true while the game is paused. */
+  pauseInput() {
+    if (this.paused) {
+      if (Input.p('Escape', 'KeyP', 'Enter', 'NumpadEnter') || Input.mhit) { this.paused = false; Input.mhit = false; Input.hit = Object.create(null); }
+      return this.paused;
+    }
+    if (Input.p('Escape', 'KeyP')) { this.paused = true; return true; }
+    return false;
+  },
+
+  chooseMode() {
+    const m = MODES[this.modeIdx];
+    if (typeof Pad !== 'undefined') Pad.setMode(m.k);
+    Audio5.sfx('start');
+    this.startRun(this.startLevel);
+  },
+
   simCrowd(dt) {
     for (const c of this.traffic) c.update(dt, this);
     for (const q of this.peds) q.update(dt, this);
     Fx.update(dt);
   },
 
-  endShift() {
-    this.state = 'results';
-    this.shift = 0;
-    // decided once, here, so the results screen and its Enter key agree
-    this.placed = Scores.qualifies(this.earned);
-    this.scoreIdx = -1;
-    Audio5.engineOff(); Audio5.sirenOff();
-    this.cop = null;
-    Nav.clear();
-    Audio5.sfx('over');
-  },
-
+  /* Rank titles for a whole 20-level run (2026-10-25). The board stores
+     {ini, cents} and nothing else, so retuning these reflows it. rank() must
+     read nothing but this.earned: overlayScores calls it on a fake `this`. */
   rank() {
     const e = this.earned;
-    return e < 4000 ? 'TRAINEE' : e < 9000 ? 'DRIVER' : e < 15000 ? 'ACE' : e < 23000 ? 'SALSA BARON' : 'LEGEND OF THE ASADA';
+    return e < 25000 ? 'TRAINEE' : e < 100000 ? 'DRIVER' : e < 250000 ? 'ACE' : e < 500000 ? 'SALSA BARON' : 'LEGEND OF THE ASADA';
+  },
+
+  /* ---------------- winter ------------------------------- */
+  /* Snow on the ground is one more baked layer, the size of the ground canvas,
+     drawn straight after it. Snow on the roofs is a whitened copy of each
+     building sprite's roof rows, cached per sprite. */
+  buildSnow() {
+    const t = mkCanvas(WW, WH), x = t.x, rng = makeRng(0x5170);
+    for (let ty = 0; ty < GH; ty++) for (let tx = 0; tx < GW; tx++) {
+      const c = classify(tx, ty), px = tx * TS, py = ty * TS;
+      if (c === T_ROAD || c === T_INTER) {
+        /* ploughed: slush along the kerbs, tyre tracks clear */
+        for (let i = 0; i < 3; i++) { x.fillStyle = 'rgba(232,236,246,0.30)'; x.fillRect(px + rng.int(TS), py + rng.int(TS), 2, 1); }
+        continue;
+      }
+      const dense = c === T_WALK ? 0.38 : 0.62;
+      x.fillStyle = 'rgba(236,240,250,' + dense + ')';
+      x.fillRect(px, py, TS, TS);
+      for (let i = 0; i < 6; i++) {
+        x.fillStyle = rng.chance(0.5) ? 'rgba(255,255,255,0.55)' : 'rgba(170,184,210,0.35)';
+        x.fillRect(px + rng.int(TS - 3), py + rng.int(TS - 1), 2 + rng.int(3), 1);
+      }
+    }
+    this.snowMask = t.c;
+    this.snowImgs = new Map();
+    this.snow = [];
+    for (let i = 0; i < 110; i++) this.snow.push({ x: Math.random() * VW, y: Math.random() * VH, v: 14 + Math.random() * 26, w: Math.random() * TAU, s: Math.random() < 0.2 ? 2 : 1 });
+  },
+
+  snowImg(it) {
+    let m = this.snowImgs.get(it.img);
+    if (m) return m;
+    const w = it.img.width, h = it.img.height, roof = Math.min(h, it.h || h);
+    const t = mkCanvas(w, h);
+    t.x.drawImage(it.img, 0, 0);
+    t.x.globalCompositeOperation = 'source-atop';
+    t.x.fillStyle = 'rgba(240,244,252,0.62)';
+    t.x.fillRect(0, 0, w, roof);
+    t.x.globalCompositeOperation = 'source-over';
+    this.snowImgs.set(it.img, t.c);
+    return t.c;
+  },
+
+  updateSnow(dt) {
+    for (const f of this.snow) {
+      f.w += dt * 1.7;
+      f.y += f.v * dt;
+      f.x += Math.sin(f.w) * 8 * dt - 4 * dt;
+      if (f.y > VH) { f.y = -2; f.x = Math.random() * VW; }
+      if (f.x < 0) f.x += VW;
+    }
+  },
+
+  drawSnowfall(x) {
+    for (const f of this.snow) {
+      x.fillStyle = f.s > 1 ? '#ffffff' : 'rgba(240,244,252,0.8)';
+      x.fillRect(f.x | 0, f.y | 0, f.s, f.s);
+    }
   },
 
   /* ---------------- render ------------------------------- */
   render(x) {
-    // the winners card is a solid field — no world behind it, as on a cabinet
+    // the winners card is a solid field -- no world behind it, as on a cabinet
     if (this.state === 'winners') { this.overlayWinners(x); Post.apply(x); return; }
 
+    const S = this.state;
+    const kitchenView = S === 'kitchen' || S === 'kdemo' ||
+      (this.stage === 'kitchen' && (S === 'card' || S === 'clear' || S === 'over' || S === 'cont' ||
+        (S === 'entry' && this.afterEntry === 'cont')));
+    if (kitchenView) this.renderKitchen(x);
+    else this.renderCity(x);
+    /* The era grade colours the WORLD -- the city, the kitchen, the HUD that
+       lives in them. The cards and menus drawn over it are the game talking
+       to the player, and keep the game's own colours in every era. */
+    Post.grade(x, this.era);
+
+    if ((S === 'play' || S === 'kitchen') && this.paused) this.overlayPause(x);
+    if (S === 'title')   this.overlayTitle(x);
+    if (S === 'mode')    this.overlayMode(x);
+    if (S === 'scores')  this.overlayScores(x);
+    if (S === 'entry')   this.overlayEntry(x);
+    if (S === 'card')    this.overlayCard(x);
+    if (S === 'clear')   this.overlayClear(x);
+    if (S === 'over')    this.overlayOver(x);
+    if (S === 'cont')    this.overlayCont(x);
+    if (S === 'victory') this.overlayVictory(x);
+
+    if (this.flash > 0) {
+      x.globalAlpha = this.flash * 2.4;
+      x.fillStyle = '#ffffff'; x.fillRect(0, 0, VW, VH);
+      x.globalAlpha = 1;
+    }
+    Post.apply(x);
+  },
+
+  renderKitchen(x) {
+    Kitchen.draw(x, this);
+    const live = this.state === 'kitchen' || this.state === 'kdemo';
+    if (live) {
+      this.drawLevelLine(x);
+      this.drawBanner(x);
+      if (this.state === 'kdemo') this.overlayDemo(x);
+      Dialog.draw(x);
+    }
+  },
+
+  renderCity(x) {
     /* `shake` displaces the CAMERA, which moves the world under a HUD that
        stays put. That is right in play. It is wrong on the title, where the
-       world is dimmed to 38% behind a wash and drifting slowly anyway, and the
-       badge and wordmark — the only things the eye is on — are drawn at fixed
-       screen coordinates and so were the one part of the frame exempt from the
-       rumble. Keep the offset for overlays that want to move with it.
-       Negated, because raising the source-rect origin slides the world LEFT:
-       an overlay must go the other way to shake in the same direction. */
+       badge and wordmark are drawn at fixed screen coordinates -- so the
+       offset is published for overlays that want to move with it. Negated,
+       because raising the source-rect origin slides the world LEFT. */
     const sh = this.shake;
     const jx = sh > 0 ? rand(-sh, sh) : 0, jy = sh > 0 ? rand(-sh, sh) : 0;
     const cx = Math.round(this.cam.x + jx);
@@ -752,15 +1161,18 @@ const G = {
 
     x.fillStyle = PAL.void; x.fillRect(0, 0, VW, VH);
     x.drawImage(City.ground, cx, cy, VW, VH, 0, 0, VW, VH);
+    const snowy = this.winter && this.snowMask;
+    if (snowy) x.drawImage(this.snowMask, cx, cy, VW, VH, 0, 0, VW, VH);
 
     const live = this.state === 'play' || this.state === 'demo';
-    if (live || this.state === 'results') Nav.drawRoute(x, cam, this.time);
-    if (live) this.drawBeacon(x, cam);
+    const nav = this.state === 'demo' ? NAV_FULL : this.nav;
+    if ((live || this.state === 'clear') && nav.panel) Nav.drawRoute(x, cam, this.time);
+    if (live && nav.beacon) this.drawBeacon(x, cam);
 
     /* ---- y-sorted sprite pass ---- */
     const rl = this.rl; rl.length = 0;
     City.collect(cx - 140, cy - 150, cx + VW + 140, cy + VH + 150, rl);
-    if (this.state !== 'title') rl.push({ sortY: this.player.y, e: this.player });
+    if (this.state !== 'title' && this.state !== 'mode') rl.push({ sortY: this.player.y, e: this.player });
     for (const c of this.traffic) if (this.nearScreen(c.x, c.y)) rl.push({ sortY: c.y, e: c });
     for (const q of this.peds)    if (this.nearScreen(q.x, q.y)) rl.push({ sortY: q.y, e: q });
     if (this.cop) rl.push({ sortY: this.cop.y, e: this.cop });
@@ -771,33 +1183,48 @@ const G = {
     rl.sort((a, b) => a.sortY - b.sortY);
     for (const it of rl) {
       if (it.e) it.e.draw(x, cam);
-      else x.drawImage(it.img, it.x - cx, it.y - it.oy - cy);
+      else x.drawImage(snowy && it.oy > 0 ? this.snowImg(it) : it.img, it.x - cx, it.y - it.oy - cy);
     }
 
     Fx.draw(x, cam);
+    if (this.winter) this.drawSnowfall(x);
 
     if (live) {
       this.drawAim(x, cam);
       Hud.draw(x, this);
+      this.drawLevelLine(x);
       if (this.restock > 0) this.drawRestock(x, cam);
-      if (this.state === 'play' && this.paused) this.overlayPause(x);
+      if (typeof Pad !== 'undefined' && this.state === 'play') Pad.draw(x, 'drive');
       if (this.state === 'demo') this.overlayDemo(x);
+      /* over the HUD -- it is meant to cover the minimap -- but under Post */
+      Dialog.draw(x);
     }
-    if (this.state === 'title')   this.overlayTitle(x);
-    if (this.state === 'scores')  this.overlayScores(x);
-    if (this.state === 'entry')   this.overlayEntry(x);
-    if (this.state === 'results') this.overlayResults(x);
+  },
 
-    /* over the HUD -- it is meant to cover the minimap -- but under Post, so
-       the scanlines run across it like everything else */
-    if (live) Dialog.draw(x);
+  /* Progress toward the level target, the run's stars, and the streak, under
+     the clock card in both shifts. */
+  drawLevelLine(x) {
+    if (this.state === 'demo' || this.state === 'kdemo' || this.stage === 'kitchen') return;
+    const lab = 'ORDERS ' + this.done + '/' + this.diff.target;
+    const w = textW(lab, 1);
+    textOut(x, lab, VW - 6, 51, PAL.bone, 1, 2);
+    const n = String(this.levelStars), sx = VW - 6 - w - 10 - textW(n, 1) - 9;
+    Kitchen.star(x, sx, 51, PAL.amber, PAL.ink);
+    textOut(x, n, sx + 9, 51, PAL.amber, 1);
+    if (this.combo > 1.001)
+      textOut(x, 'X' + this.combo.toFixed(2) + ' STREAK', VW - 6, 61, this.comboPop > 0 ? PAL.bone : PAL.amber, 1, 2);
+  },
 
-    if (this.flash > 0) {
-      x.globalAlpha = this.flash * 2.4;
-      x.fillStyle = '#ffffff'; x.fillRect(0, 0, VW, VH);
-      x.globalAlpha = 1;
-    }
-    Post.apply(x);
+  drawBanner(x) {
+    if (!this.banner || this.bannerT <= 0) return;
+    const a = clamp(this.bannerT / 0.4, 0, 1);
+    x.globalAlpha = a;
+    const w = textW(this.banner, 2) + 16;
+    R(x, PAL.ink, (VW - w) / 2 | 0, 60, w, 20);
+    x.strokeStyle = this.bannerCol; x.lineWidth = 1;
+    x.strokeRect(((VW - w) / 2 | 0) + 0.5, 60.5, w - 1, 19);
+    text(x, this.banner, VW / 2, 63, this.bannerCol, 2, 1);
+    x.globalAlpha = 1;
   },
 
   drawBeacon(x, cam) {
@@ -840,26 +1267,24 @@ const G = {
     const sx0 = p.x - cam.x, sy0 = p.y - cam.y;
     const sx1 = a.x - cam.x, sy1 = a.y - cam.y;
 
-    /* target lock test */
     let lock = false;
     if (this.order && !this.needPickup) {
       const r = this.order.house.porch;
       lock = a.x > r.x && a.x < r.x + r.w && a.y > r.y && a.y < r.y + r.h;
     }
     const col = lock ? PAL.good : PAL.bone;
+    const aiming = typeof Pad !== 'undefined' && Pad.aiming;
 
-    /* arc of dots */
     for (let i = 1; i <= 7; i++) {
       const t = i / 8;
       const px = lerp(sx0, sx1, t), py = lerp(sy0, sy1, t);
       const z = Z0 + (0 - Z0 + 0.5 * GRAV * THROW_T * THROW_T) / THROW_T * (t * THROW_T) - 0.5 * GRAV * (t * THROW_T) ** 2;
-      x.globalAlpha = 0.18 + t * 0.32;
+      x.globalAlpha = (0.18 + t * 0.32) * (aiming ? 1.6 : 1);
       x.fillStyle = col;
       x.fillRect(px | 0, (py - z) | 0, 2, 2);
     }
     x.globalAlpha = 1;
 
-    /* reticle */
     const rx = sx1 | 0, ry = sy1 | 0;
     x.fillStyle = col;
     for (const [dx, dy] of [[-5, 0], [4, 0], [0, -5], [0, 4]]) x.fillRect(rx + dx, ry + dy, dx ? 2 : 1, dy ? 2 : 1);
@@ -886,21 +1311,21 @@ const G = {
   },
 
   /* ---------------- overlays ----------------------------- */
+  card(x, w, h, py, accent) {
+    const px = (VW - w) / 2 | 0;
+    R(x, PAL.ink, px, py, w, h);
+    R(x, '#241a2e', px + 2, py + 2, w - 4, h - 4);
+    x.strokeStyle = accent || PAL.amber; x.lineWidth = 1;
+    x.strokeRect(px + 0.5, py + 0.5, w - 1, h - 1);
+    return px;
+  },
+
   overlayTitle(x) {
     x.fillStyle = 'rgba(20,12,28,0.62)'; x.fillRect(0, 0, VW, VH);
     const t = this.time;
-    // The lockup rides the shake. Without this the rumble that fires as the
-    // wordmark lands moves only the dimmed city behind it, and reads as
-    // nothing at all.
     const jx = this.shakeX, jy = this.shakeY;
-    // badge and sprayed wordmark, both baked once at boot. Controls are not
-    // listed here by design — they live in the pause overlay.
     x.drawImage(Art.badge, (((VW - Art.badge.width) / 2) | 0) + jx, 14 + jy);
 
-    /* The tag lands half a second in, between the badge and the wordmark that
-       is still two and a half seconds away. It rides the shake with everything
-       else, and it does not scale with the grow — 7px of type zooming up from
-       2px would be mush for two seconds. */
     const tagHeld = this.titleT - TAG_HOLD;
     if (tagHeld >= 0) {
       x.globalAlpha = clamp(tagHeld / TITLE_FADE, 0, 1);
@@ -908,79 +1333,180 @@ const G = {
       x.globalAlpha = 1;
     }
 
-    /* A title that is simply *there* has no beat. Holding back the half that
-       names the game buys one, and the rumble is the same shake a collision
-       gives, so the landing reads as part of the game rather than as a
-       transition effect bolted on top. */
+    /* The wordmark grows into place: quadratic and ACCELERATING, so it
+       arrives fast enough to earn the rumble that fires as it lands. */
     const held = this.titleT - TITLE_HOLD;
     if (held >= 0) {
-      /* The wordmark grows into place rather than cutting in. Easing is
-         quadratic and ACCELERATING, not decelerating: it has to arrive fast to
-         earn the rumble that fires as it lands. A grow that eases out drifts
-         to a halt and the shake then reads as unrelated. */
       const g = clamp(held / TITLE_GROW, 0, 1);
       const sc = TITLE_FROM + (1 - TITLE_FROM) * (g * g);
       const w = Art.wordmark.w, h = Art.wordmark.h;
       const cy = TITLE_Y + h / 2;
       x.globalAlpha = clamp(held / TITLE_FADE, 0, 1);
       if (g >= 1) {
-        // At rest, blit 1:1 at whole pixels. Anything else resamples a face
-        // whose whole point is hard 3px cells.
         x.drawImage(Art.wordmark.c, (((VW - w) / 2) | 0) + jx, TITLE_Y + jy);
       } else {
         const dw = Math.round(w * sc), dh = Math.round(h * sc);
         x.drawImage(Art.wordmark.c, Math.round(VW / 2 - dw / 2) + jx, Math.round(cy - dh / 2) + jy, dw, dh);
       }
       x.globalAlpha = 1;
-
-      // The prompt waits for the wordmark to land, not merely to appear —
-      // otherwise it blinks away underneath a logo that is still moving.
-      // textOut, not text: at scale 1 the 1px strokes read thin and lost, but a
-      // 1px ink outline thickens them to ~3px so the prompt still carries. The
-      // dark halo also lifts it off the city scrolling behind.
       if (g >= 1 && (t * 2 | 0) % 2) textOut(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 184, PAL.amber, 1, 1);
     }
   },
 
-  overlayResults(x) {
+  overlayMode(x) {
+    x.fillStyle = 'rgba(20,12,28,0.80)'; x.fillRect(0, 0, VW, VH);
+    text(x, 'CHOOSE YOUR CONTROLS', VW / 2, 30, PAL.amber, 2, 1);
+    MODES.forEach((m, i) => {
+      const y = 70 + i * 34, on = i === this.modeIdx;
+      const px = this.card(x, 260, 28, y, on ? PAL.amber : '#4a4058');
+      text(x, 'MODE ' + m.k, px + 10, y + 6, on ? PAL.amber : PAL.boneDim, 1);
+      text(x, m.name, px + 58, y + 6, on ? PAL.bone : PAL.boneDim, 1);
+      text(x, m.sub, px + 58, y + 16, PAL.boneDim, 1);
+      if (on && (this.time * 3 | 0) % 2) text(x, '>', px - 10, y + 10, PAL.amber, 1);
+    });
+    text(x, 'UP/DOWN - CHOOSE   ENTER - CLOCK IN', VW / 2, 182, PAL.boneDim, 1, 1);
+    if (this.startLevel > 1) text(x, 'STARTING AT LEVEL ' + this.startLevel, VW / 2, 196, PAL.cyan, 1, 1);
+  },
+
+  shiftName() { return this.stage === 'kitchen' ? 'KITCHEN SHIFT' : 'DELIVERY SHIFT'; },
+
+  /* The level card. For a kitchen level it carries the MENU: the recipes are
+     hidden during play (GDD IV rule 1), so this card and the pause overlay are
+     the only places they are written down -- learning them is the mastery
+     curve, and you get one look before the clock starts. [INVENTED] */
+  overlayCard(x) {
+    x.fillStyle = 'rgba(20,12,28,0.84)'; x.fillRect(0, 0, VW, VH);
+    const L = this.level, D = this.diff;
+    const px = this.card(x, 364, 204, 6);
+    text(x, 'LEVEL ' + this.levelN, px + 12, 14, PAL.amber, 2);
+    text(x, L.name || '', px + 352, 14, PAL.bone, 2, 2);
+    const kind = this.shiftName() + '  -  ' + this.diffKey.toUpperCase();
+    text(x, kind, px + 12, 34, PAL.boneDim, 1);
+    R(x, PAL.red, px + 12, 44, 340, 1);
+    if (this.stage === 'kitchen') {
+      text(x, 'SERVE ' + D.target + ' TICKETS BEFORE THE CLOCK RUNS OUT', px + 12, 50, PAL.bone, 1);
+      text(x, 'THE MENU', px + 12, 62, PAL.amber, 1);
+      this.drawRecipes(x, px + 12, 72, 352 - 12);
+    } else {
+      const rows = [
+        ['TARGET', D.target + ' DELIVERIES'],
+        ['CLOCK', clockStr(D.start) + '  +' + clockStr(D.extend) + ' EVERY 3, UP TO ' + D.maxExt],
+        ['TIPS', money(D.tipStart) + ' FALLING TO ' + money(D.tipFloor)],
+        ['FINES', 'TICKET ' + money(D.fines.ticket) + '  PED ' + money(D.fines.ped) + '  TRAIN ' + money(D.fines.train)],
+        ['TACO-NAV', this.navName()],
+        ['ROADS', this.winter ? 'SNOW - THE BACK END STEPS OUT' : 'DRY'],
+      ];
+      rows.forEach((r, i) => {
+        text(x, r[0], px + 12, 56 + i * 14, PAL.boneDim, 1);
+        text(x, r[1], px + 80, 56 + i * 14, PAL.bone, 1);
+      });
+    }
+    if ((this.time * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 198, PAL.amber, 1, 1);
+  },
+
+  navName() {
+    const n = this.nav;
+    if (n.panel && n.line && n.edge) return 'FULL GUIDANCE';
+    if (n.panel) return 'PANEL AND MAP DOT ONLY';
+    if (n.dot) return 'MAP DOT ONLY - YOU KNOW THE WAY';
+    return 'NONE. READ THE ADDRESS.';
+  },
+
+  /* Ticket name, then the build in order, each step in its ingredient's own
+     colour. Long builds abbreviate rather than overflow -- the width is the
+     card's, asserted in the test suite. */
+  drawRecipes(x, px, py, w) {
+    const items = (Kitchen.menu || Kitchen.fallbackMenu()).items;
+    const rowH = items.length > 12 ? 8 : 9;
+    items.forEach((it, i) => {
+      const y = py + i * rowH;
+      text(x, it.ticket || it.name, px, y, PAL.bone, 1);
+      let cx = px + 78;
+      const parts = it.recipe.map((k) => Kitchen.plateName(k));
+      let full = parts.join(' ');
+      const short = textW(full, 1) > w - 78;
+      parts.forEach((p, j) => {
+        const s = short ? p.slice(0, 4) : p;
+        const c = (Kitchen.ING[it.recipe[j]] || [PAL.bone, PAL.bone])[1];
+        text(x, s, cx, y, c, 1);
+        cx += textW(s, 1) + 6;
+      });
+    });
+  },
+
+  overlayClear(x) {
     x.fillStyle = 'rgba(20,12,28,0.78)'; x.fillRect(0, 0, VW, VH);
-    const s = this.stats || { delivered: 0, perfect: 0, splat: 0, best: 0, peds: 0, tickets: 0 };
-    const w = 250, h = 154, px = (VW - w) / 2 | 0, py = 24;
-    R(x, PAL.ink, px, py, w, h);
-    R(x, '#241a2e', px + 2, py + 2, w - 4, h - 4);
-    x.strokeStyle = PAL.amber; x.strokeRect(px + 0.5, py + 0.5, w - 1, h - 1);
-
-    text(x, 'SHIFT OVER', VW / 2, py + 10, PAL.red, 3, 1);
-    R(x, PAL.red, px + 16, py + 34, w - 32, 1);
-
-    const rows = [
-      ['DELIVERED', s.delivered + ''],
-      ['PERFECT TOSSES', s.perfect + ''],
-      ['ORDERS DROPPED', s.splat + ''],
-      ['PEDESTRIANS CLIPPED', s.peds + ''],
-      ['TICKETS', s.tickets + ''],
-      ['BEST SINGLE TIP', money(s.best)],
+    const px = this.card(x, 280, 168, 20, PAL.good);
+    text(x, 'LEVEL ' + this.levelN + ' CLEAR!', VW / 2, 30, PAL.good, 3, 1);
+    R(x, PAL.good, px + 16, 56, 248, 1);
+    const k = this.stage === 'kitchen', s = this.stats || {};
+    const made = k ? s.items : this.done;
+    const rows = k ? [
+      ['TICKETS SERVED', this.done + ''],
+      ['WALKOUTS', (s.walkouts || 0) + ''],
+      ['WRONG PICKS', (s.mistakes || 0) + ''],
+      ['STARS', this.levelStars + ' OF ' + (made || 0) + ' ITEMS CLEAN'],
+    ] : [
+      ['DELIVERED', this.done + ''],
+      ['ORDERS DROPPED', (s.splat || 0) + ''],
+      ['PEDESTRIANS CLIPPED', (s.peds || 0) + ''],
+      ['STARS', this.levelStars + ' OF ' + this.done + ' ON THE DOORSTEP'],
     ];
     rows.forEach((r, i) => {
-      const y = py + 42 + i * 11;
-      text(x, r[0], px + 16, y, PAL.boneDim, 1);
-      text(x, r[1], px + w - 16, y, PAL.bone, 1, 2);
+      text(x, r[0], px + 16, 64 + i * 11, PAL.boneDim, 1);
+      text(x, r[1], px + 264, 64 + i * 11, PAL.bone, 1, 2);
     });
-
-    R(x, '#3a2c48', px + 16, py + 112, w - 32, 1);
-    text(x, 'TAKE HOME', px + 16, py + 118, PAL.boneDim, 1);
-    text(x, money(this.earned), px + w - 16, py + 116, PAL.good, 2, 2);
-    text(x, this.rank(), VW / 2, py + 134, PAL.amber, 2, 1);
-
-    /* A leaderboard nobody is chasing is a trophy cabinet. Naming the number
-       that would put you on it is what turns it into a reason to press ENTER. */
-    if (this.placed) {
-      if ((this.time * 2 | 0) % 2) text(x, 'NEW HIGH SCORE - ENTER TO SIGN', VW / 2, VH - 22, PAL.amber, 1, 1);
-    } else {
-      text(x, 'BEAT ' + money(Scores.lowest()) + ' TO MAKE THE BOARD', VW / 2, VH - 32, PAL.boneDim, 1, 1);
-      if ((this.time * 2 | 0) % 2) text(x, 'ENTER - RUN IT BACK', VW / 2, VH - 22, PAL.bone, 1, 1);
+    R(x, '#3a2c48', px + 16, 112, 248, 1);
+    text(x, 'THIS SHIFT', px + 16, 120, PAL.boneDim, 1);
+    text(x, money(this.levelEarned), px + 264, 118, PAL.good, 2, 2);
+    text(x, 'RUN TOTAL', px + 16, 138, PAL.boneDim, 1);
+    text(x, money(this.earned), px + 264, 136, PAL.amber, 2, 2);
+    const L = this.levels();
+    if (this.levelN < L.length) {
+      const n = L[this.levelN];
+      text(x, 'NEXT: LEVEL ' + n.n + ' ' + (n.name || '') + ' - ' + (n.type === 'kitchen' ? 'KITCHEN' : 'DELIVERY'), VW / 2, 166, PAL.bone, 1, 1);
     }
-    text(x, 'ESC - TITLE', VW / 2, VH - 11, '#6b5f84', 1, 1);
+    if (this.cardT > 1 && (this.time * 2 | 0) % 2) text(x, 'PRESS ENTER', VW / 2, 198, PAL.amber, 1, 1);
+  },
+
+  overlayOver(x) {
+    x.fillStyle = 'rgba(20,12,28,0.80)'; x.fillRect(0, 0, VW, VH);
+    const px = this.card(x, 260, 150, 30, PAL.red);
+    text(x, "TIME'S UP", VW / 2, 40, PAL.red, 3, 1);
+    text(x, 'GAME OVER ON LEVEL ' + this.levelN, VW / 2, 66, PAL.bone, 1, 1);
+    R(x, PAL.red, px + 16, 78, 228, 1);
+    text(x, 'RUN TOTAL', px + 16, 90, PAL.boneDim, 1);
+    text(x, money(this.earned), px + 244, 88, PAL.good, 2, 2);
+    text(x, 'STARS', px + 16, 108, PAL.boneDim, 1);
+    text(x, String(this.stars), px + 244, 108, PAL.amber, 1, 2);
+    text(x, this.rank(), VW / 2, 126, PAL.amber, 2, 1);
+    if (this.placed) text(x, 'NEW HIGH SCORE!', VW / 2, 150, PAL.amber, 1, 1);
+    else text(x, 'BEAT ' + money(Scores.lowest()) + ' TO MAKE THE BOARD', VW / 2, 150, PAL.boneDim, 1, 1);
+    if (this.cardT > 1.2 && (this.time * 2 | 0) % 2) text(x, 'PRESS ENTER', VW / 2, 166, PAL.bone, 1, 1);
+  },
+
+  overlayCont(x) {
+    this.overlayScores(x);
+    const n = Math.max(0, Math.ceil(this.contT));
+    R(x, PAL.ink, 62, 150, 260, 34);
+    x.strokeStyle = PAL.amber; x.lineWidth = 1; x.strokeRect(62.5, 150.5, 259, 33);
+    text(x, 'CONTINUE? ' + n, VW / 2, 154, (this.time * 3 | 0) % 2 ? PAL.amber : PAL.bone, 2, 1);
+    text(x, 'ENTER - LEVEL ' + this.levelN + ' AT $0.00   ESC - QUIT', VW / 2, 172, PAL.boneDim, 1, 1);
+  },
+
+  overlayVictory(x) {
+    x.fillStyle = 'rgba(20,12,28,0.82)'; x.fillRect(0, 0, VW, VH);
+    const px = this.card(x, 320, 170, 20, PAL.gold);
+    text(x, 'ALL 20 SHIFTS', VW / 2, 30, PAL.gold, 3, 1);
+    text(x, 'WORKED. 1972 TO 1999.', VW / 2, 56, PAL.bone, 1, 1);
+    R(x, PAL.gold, px + 16, 70, 288, 1);
+    text(x, 'RUN TOTAL', px + 16, 82, PAL.boneDim, 1);
+    text(x, money(this.earned), px + 304, 80, PAL.good, 2, 2);
+    text(x, 'STARS', px + 16, 102, PAL.boneDim, 1);
+    text(x, String(this.stars), px + 304, 102, PAL.amber, 1, 2);
+    text(x, this.rank(), VW / 2, 124, PAL.amber, 2, 1);
+    text(x, 'THE ASADA THANKS YOU FOR YOUR SERVICE', VW / 2, 150, PAL.bone, 1, 1);
+    if (this.cardT > 2 && (this.time * 2 | 0) % 2) text(x, 'PRESS ENTER', VW / 2, 172, PAL.amber, 1, 1);
   },
 
   /* Ten rows on a 12px pitch. The rank title is derived from the score rather
@@ -998,7 +1524,6 @@ const G = {
     for (let i = 0; i < Scores.board.length; i++) {
       const e = Scores.board[i], y = 38 + i * 12;
       const mine = i === this.scoreIdx;
-      // the placing row blinks so the player can find themselves at a glance
       const on = !mine || (this.time * 3 | 0) % 2 === 0;
       const col = mine ? (on ? PAL.amber : PAL.bone) : PAL.bone;
       text(x, (i + 1) + '', 75, y, mine ? col : PAL.boneDim, 1, 2);
@@ -1007,20 +1532,16 @@ const G = {
       text(x, this.rank.call({ earned: e.cents }), 208, y, mine ? col : PAL.boneDim, 1);
     }
 
-    /* Prompts sit INSIDE the panel. Rows end at y=152 and the panel at 184;
-       leaving that gap empty and stranding the prompts below the border read
-       as an unfinished screen rather than a designed one. */
+    if (this.state === 'cont') return;
     if (this.scoresFromShift) {
-      if ((this.time * 2 | 0) % 2) text(x, 'ENTER - RUN IT BACK', VW / 2, 162, PAL.bone, 1, 1);
-      text(x, 'ESC - TITLE', VW / 2, 173, '#6b5f84', 1, 1);
+      if ((this.time * 2 | 0) % 2) text(x, 'ENTER - TITLE', VW / 2, 167, PAL.bone, 1, 1);
     } else {
       text(x, 'BEAT THE BOARD', VW / 2, 167, PAL.boneDim, 1, 1);
     }
   },
 
   /* Arrows only, by design. A keyboard player's instinct is to type, so the
-     prompt has to say plainly what drives it — an entry screen a player
-     cannot work out is worse than no board at all. */
+     prompt has to say plainly what drives it. */
   overlayEntry(x) {
     x.fillStyle = 'rgba(20,12,28,0.82)'; x.fillRect(0, 0, VW, VH);
     const w = 240, h = 118, px = (VW - w) / 2 | 0, py = 44;
@@ -1031,7 +1552,6 @@ const G = {
     text(x, 'NEW HIGH SCORE', VW / 2, py + 10, PAL.amber, 2, 1);
     text(x, money(this.earned) + '  ' + this.rank(), VW / 2, py + 30, PAL.good, 1, 1);
 
-    // three slots, 24px apart, the active one blinking under a caret
     for (let i = 0; i < INI_LEN; i++) {
       const cx = VW / 2 + (i - 1) * 24, active = i === this.entrySlot;
       const on = !active || (this.time * 3 | 0) % 2 === 0;
@@ -1044,45 +1564,56 @@ const G = {
     text(x, 'ENTER - DONE', VW / 2, py + 100, PAL.bone, 1, 1);
   },
 
-  /* The page frame used to carry a key legend under the canvas. It doesn't
-     any more, so this overlay is the only place the controls are written
-     down — keep them here. */
   /* The cabinet public-service card, following the period original: flat blue
      field, seal above, slogan in quotes, attribution beneath, credit counter
-     bottom right. All copy comes from content/winners.json, inlined at build
-     time — see build.mjs. The blue is the one place the game's palette gives
-     way to the reference, because that field IS the memory of these screens;
-     everything on top of it uses the game's own gold and bone. */
+     bottom right. Copy is content/winners.json. */
   overlayWinners(x) {
     R(x, WINNERS_BLUE, 0, 0, VW, VH);
-
     x.drawImage(Art.seal, ((VW - Art.seal.width) / 2) | 0, 12);
-
-    // slogan and attribution both accept a string or an array of lines, so
-    // copy too wide for 384px can wrap instead of being cut. Drop shadow
-    // first, the way the original's CRT bloom did the same job.
     const slog = [].concat(CONTENT.slogan);
     slog.forEach((s, i) => {
       const y = 132 + i * 18;
       text(x, s, VW / 2 + 1, y + 1, '#12126a', 2, 1);
       text(x, s, VW / 2, y, PAL.gold, 2, 1);
     });
-
     const attY = 132 + slog.length * 18 + 6;
     [].concat(CONTENT.attribution).forEach((s, i) => text(x, s, VW / 2, attY + i * 11, PAL.gold, 1, 1));
-
     text(x, CONTENT.credit, VW - 8, VH - 12, PAL.bone, 1, 2);
   },
 
   overlayDemo(x) {
     if ((this.time * 1.2 | 0) % 2) return;
-    textOut(x, 'ATTRACT MODE  -  PRESS ANY KEY', VW / 2, 52, PAL.amber, 1, 1);
+    /* attract.md's overlay text, verbatim. Any key works too: a cabinet that
+       ignored everything but one key would read as broken. */
+    textOut(x, 'PRESS ESC TO RETURN TO MENU', VW / 2, this.state === 'kdemo' ? 92 : 52, PAL.amber, 1, 1);
   },
 
+  /* The page carries no key legend, so this overlay is the only place the
+     controls are written down -- keep them here. In the kitchen it also
+     carries the menu: a look at the recipes, paid for in clock time. */
   overlayPause(x) {
     x.fillStyle = 'rgba(20,12,28,0.88)'; x.fillRect(0, 0, VW, VH);
-    // solid card, like the results screen: six rows of text over the live
-    // HUD is unreadable on a dim wash alone
+    const mode = typeof Pad !== 'undefined' ? Pad.mode : 'A';
+    const lab = (a, def) => (mode !== 'A' && typeof Pad !== 'undefined' && Pad.label(a)) || def;
+    if (this.stage === 'kitchen') {
+      const px = this.card(x, 368, 206, 5);
+      text(x, 'PAUSED', px + 12, 12, PAL.amber, 2);
+      const keys = [
+        [lab('drive', 'ARROWS/WASD/MOUSE'), 'MOVE'],
+        [lab('select', 'SPACE/Z/CLICK'), 'PICK'],
+        [lab('wrap', 'X'), 'WRAP'],
+        [lab('serve', 'ENTER/C'), 'SEND'],
+      ];
+      keys.forEach((r, i) => {
+        text(x, r[1], px + 356, 9 + i * 8, PAL.boneDim, 1, 2);
+        text(x, r[0], px + 356 - 30, 9 + i * 8, PAL.bone, 1, 2);
+      });
+      R(x, PAL.red, px + 12, 41, 344, 1);
+      text(x, 'THE MENU', px + 12, 46, PAL.amber, 1);
+      this.drawRecipes(x, px + 12, 56, 344);
+      text(x, 'P OR ESC TO RESUME', VW / 2, 202, PAL.cyan, 1, 1);
+      return;
+    }
     const w = 222, h = 132, px = (VW - w) / 2 | 0, py = 30;
     R(x, PAL.ink, px, py, w, h);
     R(x, '#241a2e', px + 2, py + 2, w - 4, h - 4);
@@ -1092,30 +1623,33 @@ const G = {
     text(x, 'PAUSED', VW / 2, py + 10, PAL.amber, 3, 1);
     R(x, PAL.red, px + 16, py + 34, w - 32, 1);
 
-    // keys right-aligned to x=198, actions left from x=210: widest pair is
-    // 107px + 83px, so the block spans 91..293 inside a card at 81..303
     const rows = [
-      ['W A S D  /  ARROWS', 'DRIVE'],
-      ['SHIFT', 'HANDBRAKE'],
-      ['MOUSE', 'AIM THE TOSS'],
-      ['CLICK  /  SPACE', 'THROW THE BAG'],
-      ['M  /  N', 'MUTE  /  MUSIC'],
-      ['P  /  ESC', 'PAUSE'],
+      [lab('drive', 'W A S D  /  ARROWS'), 'DRIVE'],
+      [mode === 'A' ? 'SHIFT' : '-', 'HANDBRAKE'],
+      [lab('aim', 'MOUSE'), 'AIM THE TOSS'],
+      [lab('throw', 'CLICK  /  SPACE'), 'THROW THE BAG'],
+      [lab('mute', 'M  /  N'), 'MUTE  /  MUSIC'],
+      [lab('pause', 'P  /  ESC'), 'PAUSE'],
     ];
     rows.forEach((r, i) => {
       const y = py + 46 + i * 13;
       text(x, r[0], 198, y, PAL.bone, 1, 2);
       text(x, r[1], 210, y, PAL.boneDim, 1);
     });
-
-    // just under the card, not at VH-20: that lands on the nav panel
     text(x, 'P OR ESC TO RESUME', VW / 2, py + h + 7, PAL.cyan, 1, 1);
   },
 };
 
-/* ---------------- CRT-ish post ----------------------------- */
+/* ---------------- CRT-ish post, and the era grade ------------- */
+/* The grade is the owner's ruling of 2026-10-25: a full colour grade per era.
+   It runs on the finished frame, after the scanlines, as a per-pixel curve:
+     1970s  warm and lifted, a little sepia, blacks never quite black
+     1980s  punchy: more saturation and contrast, magenta in the shadows
+     1990s  cooler and a touch desaturated, teal in the shadows
+   On a context with no pixel readback (the test stubs) it is skipped, and
+   everything else still draws. */
 const Post = {
-  lines: null, vig: null,
+  lines: null, vig: null, luts: null,
   build() {
     let t = mkCanvas(VW, VH);
     t.x.fillStyle = 'rgba(10,6,16,0.13)';
@@ -1128,9 +1662,40 @@ const Post = {
     t.x.fillStyle = g; t.x.fillRect(0, 0, VW, VH);
     this.vig = t.c;
   },
-  apply(x) {
+  apply(x, era) {
     if (!this.lines) this.build();
     x.drawImage(this.lines, 0, 0);
     x.drawImage(this.vig, 0, 0);
+    if (era) this.grade(x, era);
+  },
+
+  /* era -> [sat, contrast, lift, [r,g,b] gain, [r,g,b] shadow tint] */
+  GRADES: {
+    1: [1.04, 1.02, 8, [1.08, 1.00, 0.84], [14, 6, -8]],
+    2: [1.28, 1.08, 0, [1.03, 0.98, 1.06], [10, -4, 14]],
+    3: [0.80, 1.04, 4, [0.94, 1.00, 1.06], [-8, 6, 8]],
+  },
+
+  grade(x, era) {
+    const G2 = this.GRADES[era];
+    if (!G2 || !x.getImageData) return;
+    let img;
+    try { img = x.getImageData(0, 0, VW, VH); } catch (_) { return; }
+    if (!img || !img.data || !img.data.length) return;
+    const d = img.data, [sat, con, lift, gain, tint] = G2;
+    for (let i = 0; i < d.length; i += 4) {
+      let r = d[i], g = d[i + 1], b = d[i + 2];
+      const l = 0.299 * r + 0.587 * g + 0.114 * b;
+      r = l + (r - l) * sat; g = l + (g - l) * sat; b = l + (b - l) * sat;
+      r = (r - 128) * con + 128; g = (g - 128) * con + 128; b = (b - 128) * con + 128;
+      const sh = 1 - l / 255;                    // shadows take the tint
+      r = r * gain[0] + tint[0] * sh + lift * (1 - r / 255);
+      g = g * gain[1] + tint[1] * sh + lift * (1 - g / 255);
+      b = b * gain[2] + tint[2] * sh + lift * (1 - b / 255);
+      d[i] = r < 0 ? 0 : r > 255 ? 255 : r;
+      d[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
+      d[i + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
+    }
+    x.putImageData(img, 0, 0);
   },
 };

@@ -1,8 +1,29 @@
 /* inline every src module into a single self-contained page */
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 const SRC = 'src';
+
+/* Notes to the author are `_`-prefixed keys, at any depth (an item's `_drops`,
+   an era's `_note`). They never ship. */
+function stripNotes(v) {
+  if (Array.isArray(v)) return v.map(stripNotes);
+  if (v && typeof v === 'object') {
+    const o = {};
+    for (const [k, x] of Object.entries(v)) if (!k.startsWith('_')) o[k] = stripNotes(x);
+    return o;
+  }
+  return v;
+}
+const readJSON = (file) => {
+  try { return JSON.parse(readFileSync(file, 'utf8')); }
+  catch (e) { throw new Error(`${file.replace(/\\/g, '/')}: ${e.message}`); }
+};
+
+/* 05_content.js is read by people too: arrays of plain values go on one line,
+   so a zoning row reads as a row and a recipe as a recipe. */
+const pretty = (v) => JSON.stringify(v, null, 2)
+  .replace(/\[\n\s+([^[\]{}]*?)\n\s*\]/g, (m, inner) => '[' + inner.replace(/,\n\s+/g, ', ') + ']');
 
 /* ---- content ------------------------------------------------------------
    Authored copy lives in content/*.json but is INLINED here, not fetched at
@@ -18,6 +39,20 @@ const FONT_CHARS = /^[A-Z0-9 .,:;!?$+\-/\\%#()[\]*=<>'"_&@^~]*$/;
 const VW = 384, EDGE = 8;
 const FIELD_SCALE = { slogan: 2, attribution: 1, credit: 1 };
 const textPx = (s, k) => (s.length ? s.length * 6 - 1 : 0) * k;
+
+/* The one charset check every builder shares, so the message is the same
+   everywhere: which file, which field, which characters. */
+function drawable(where, s) {
+  if (typeof s !== 'string') throw new Error(`${where} must be a string, got ${JSON.stringify(s)}`);
+  const up = s.toUpperCase();
+  if (!FONT_CHARS.test(up)) {
+    const bad = [...new Set([...up].filter((ch) => !FONT_CHARS.test(ch)))].join(' ');
+    throw new Error(`${where} ${JSON.stringify(s)} uses characters the 5x7 font cannot draw: ${bad}`);
+  }
+  return up;
+}
+const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
+const isCents = (v) => Number.isInteger(v) && v >= 0;
 
 function buildContent() {
   const raw = JSON.parse(readFileSync(join('content', 'winners.json'), 'utf8'));
@@ -80,42 +115,39 @@ function worstAddress(city) {
   return worst;
 }
 
-function buildCity() {
-  const raw = JSON.parse(readFileSync(join('content', 'hays.json'), 'utf8'));
+function buildCity(file = 'hays.json') {
+  const F = `content/${file}`;
+  const raw = readJSON(join('content', file));
   const out = {};
   for (const [k, v] of Object.entries(raw)) if (!k.startsWith('_')) out[k] = v;
 
   for (const key of ['streetsNS', 'streetsEW']) {
     const a = out[key];
     if (!Array.isArray(a) || a.length !== BLOCKS + 1)
-      throw new Error(`content/hays.json: "${key}" must be exactly ${BLOCKS + 1} street names, got ${Array.isArray(a) ? a.length : typeof a}`);
+      throw new Error(`${F}: "${key}" must be exactly ${BLOCKS + 1} street names, got ${Array.isArray(a) ? a.length : typeof a}`);
     for (const s of a) {
-      if (typeof s !== 'string') throw new Error(`content/hays.json: "${key}" must contain only strings`);
-      const up = s.toUpperCase();
-      if (!FONT_CHARS.test(up)) {
-        const bad = [...new Set([...up].filter((ch) => !FONT_CHARS.test(ch)))].join(' ');
-        throw new Error(`content/hays.json: street name ${JSON.stringify(s)} uses characters the 5x7 font cannot draw: ${bad}`);
-      }
+      if (typeof s !== 'string') throw new Error(`${F}: "${key}" must contain only strings`);
+      drawable(`${F}: street name`, s);
     }
   }
 
   const z = out.zoning;
   if (!Array.isArray(z) || z.length !== BLOCKS)
-    throw new Error(`content/hays.json: "zoning" must be ${BLOCKS} rows, got ${Array.isArray(z) ? z.length : typeof z}`);
+    throw new Error(`${F}: "zoning" must be ${BLOCKS} rows, got ${Array.isArray(z) ? z.length : typeof z}`);
   const shopCells = [];
   z.forEach((row, by) => {
     if (!Array.isArray(row) || row.length !== BLOCKS)
-      throw new Error(`content/hays.json: zoning row ${by} must be ${BLOCKS} entries, got ${Array.isArray(row) ? row.length : typeof row}`);
+      throw new Error(`${F}: zoning row ${by} must be ${BLOCKS} entries, got ${Array.isArray(row) ? row.length : typeof row}`);
     row.forEach((kind, bx) => {
       if (!KINDS.includes(kind))
-        throw new Error(`content/hays.json: zoning[${by}][${bx}] is "${kind}", which is not one of: ${KINDS.join(' ')}`);
+        throw new Error(`${F}: zoning[${by}][${bx}] is "${kind}", which is not one of: ${KINDS.join(' ')}`);
       if (kind === 'shop') shopCells.push({ bx, by });
     });
   });
   if (shopCells.length !== 1)
-    throw new Error(`content/hays.json: zoning must contain exactly one "shop" cell, found ${shopCells.length}`);
+    throw new Error(`${F}: zoning must contain exactly one "shop" cell, found ${shopCells.length}`);
   if (!out.shop || out.shop.bx !== shopCells[0].bx || out.shop.by !== shopCells[0].by)
-    throw new Error(`content/hays.json: "shop" is ${JSON.stringify(out.shop)} but the shop cell in zoning is at ${JSON.stringify(shopCells[0])}`);
+    throw new Error(`${F}: "shop" is ${JSON.stringify(out.shop)} but the shop cell in zoning is at ${JSON.stringify(shopCells[0])}`);
 
   /* The restock line "<addr> WAITING" overflows the order card before the bare
      address does, so guard the line, not the address. Three text-overflow bugs
@@ -125,11 +157,50 @@ function buildCity() {
   const px = line.length * 6 - 1;
   if (px > CARD_TEXT_PX)
     throw new Error(
-      `content/hays.json: the longest address the generator can make is "${widest}", so the restock line\n` +
+      `${F}: the longest address the generator can make is "${widest}", so the restock line\n` +
       `  "${line}" is ${px}px wide, but the order card fits ${CARD_TEXT_PX}px.\n` +
       `  Shorten a street name by ${Math.ceil((px - CARD_TEXT_PX) / 6)} character(s).`);
 
+  /* res makes 4 addresses, retail and apts 2 each (40_city.js). A map with
+     almost nowhere to deliver is a valid table and an unplayable level. */
+  const ADDR = { res: 4, retail: 2, apts: 2 };
+  const addresses = z.flat().reduce((n, k) => n + (ADDR[k] || 0), 0);
+  if (addresses < MIN_ADDRESSES)
+    throw new Error(`${F}: the zoning makes only ${addresses} deliverable addresses (res 4, retail 2, apts 2 a block); the floor is ${MIN_ADDRESSES}.`);
+  Object.defineProperty(out, 'addresses', { value: addresses, enumerable: false });   // for the summary; never emitted
+
   return out;
+}
+const MIN_ADDRESSES = 80;
+
+/* ---- the three maps -----------------------------------------------------
+   One per era, against one schema. They may differ ONLY in zoning: 40_city.js
+   reads the street names into HSTREETS/VSTREETS once, at load, from Map 1, so
+   a street renamed in Map 2 would be silently ignored -- and the shop cell and
+   the Union Pacific row are assumed in more places than one (genShop's apron,
+   City.tracks, the wreck ejection, the crossing sweep in the tests). */
+const MAP_FILES = { 1: 'hays.json', 2: 'hays-1980s.json', 3: 'hays-1990s.json' };
+function buildMaps() {
+  const maps = {};
+  for (const [n, file] of Object.entries(MAP_FILES)) maps[n] = buildCity(file);
+  const base = maps[1];
+  for (const [n, m] of Object.entries(maps)) {
+    if (n === '1') continue;
+    const F = `content/${MAP_FILES[n]}`;
+    for (const key of ['streetsNS', 'streetsEW']) {
+      const i = m[key].findIndex((s, j) => s !== base[key][j]);
+      if (i >= 0)
+        throw new Error(`${F}: ${key}[${i}] is "${m[key][i]}" but Map 1 (content/hays.json) has "${base[key][i]}".\n` +
+          `  Every era shares one street grid; the city reads its names from Map 1 only.`);
+    }
+    if (m.shop.bx !== base.shop.bx || m.shop.by !== base.shop.by)
+      throw new Error(`${F}: the shop is at ${JSON.stringify(m.shop)} but Map 1 has it at ${JSON.stringify(base.shop)}. The shop never moves.`);
+    base.zoning.forEach((row, by) => row.forEach((k, bx) => {
+      if ((k === 'rail') !== (m.zoning[by][bx] === 'rail'))
+        throw new Error(`${F}: zoning[${by}][${bx}] is "${m.zoning[by][bx]}" where Map 1 has "${k}". The Union Pacific row never moves.`);
+    }));
+  }
+  return maps;
 }
 
 /* ---- the attract rotation ----------------------------------------------
@@ -235,95 +306,393 @@ function buildScores() {
      portrait box   x 7, width  FACE_W + 4
      bubble         x = box right + 10, to x 374
    The widest face decides how much room the bubble has, so this is computed
-   from the baked faces rather than hard-coded. */
+   from the baked faces rather than hard-coded. On top of that sits a flat
+   34-character cap: the Kitchen Shift's strip is the narrow one, and a line
+   has to fit both halves of the game because both draw from one pool.
+
+   A line may open with an era floor, "2|" or "3|": that line is only for the
+   1980s-and-later, or the 1990s. It is how a Filofax stays out of 1972. The
+   prefix ships in the string -- the game filters on it -- so it is stripped
+   here only for the width check. */
 const DLG_BUBBLE_PAD = 10;
+const DLG_MAX_CHARS = 34;
+const DLG_KEYS = ['who', 'delivered', 'missed', 'late', 'arrive', 'wait', 'queue', 'walkout', 'served', 'wrong'];
+const ERA_PREFIX = /^([0-9])\|/;
 function buildDialogue(faces) {
-  const raw = JSON.parse(readFileSync(join('content', 'dialogue.json'), 'utf8'));
+  const F = 'content/dialogue.json';
+  const raw = readJSON(join('content', 'dialogue.json'));
   const widestFace = Math.max(56, ...Object.values(faces).map((f) => f.w + 4));
   const bx = 7 + widestFace + DLG_BUBBLE_PAD;
-  const limitPx = (4 + 376 - 6) - bx - 8;            // bubble inner width, less padding
+  const bubblePx = (4 + 376 - 6) - bx - 8;            // bubble inner width, less padding
+  const limitPx = Math.min(bubblePx, textPx('X'.repeat(DLG_MAX_CHARS), 1));
   const maxChars = Math.floor((limitPx + 1) / 6);
+  const why = bubblePx < textPx('X'.repeat(DLG_MAX_CHARS), 1)
+    ? `The bubble gives ${bubblePx}px beside a ${widestFace}px portrait`
+    : `Lines are capped at ${DLG_MAX_CHARS} characters so they fit the Kitchen Shift's strip`;
 
   const out = {};
   for (const [k, v] of Object.entries(raw)) {
     if (k.startsWith('_')) continue;
+    if (!DLG_KEYS.includes(k))
+      throw new Error(`${F}: unknown key "${k}". The game reads: ${DLG_KEYS.join(' ')}. (Prefix a note with _ to keep it out of the build.)`);
+    if (k === 'who' ? typeof v !== 'string' : !Array.isArray(v) || !v.length)
+      throw new Error(`${F}: "${k}" must be ${k === 'who' ? 'a string' : 'a non-empty array of lines'}`);
     const list = Array.isArray(v) ? v : [v];
+    let anyEra = false;
     for (const s of list) {
-      if (typeof s !== 'string') throw new Error(`content/dialogue.json: "${k}" must be a string or array of strings`);
-      const up = s.toUpperCase();
-      if (!FONT_CHARS.test(up)) {
-        const bad = [...new Set([...up].filter((ch) => !FONT_CHARS.test(ch)))].join(' ');
-        throw new Error(`content/dialogue.json: "${k}" uses characters the 5x7 font cannot draw: ${bad}`);
-      }
-      const w = textPx(up, 1);
+      if (typeof s !== 'string') throw new Error(`${F}: "${k}" must contain only strings, got ${JSON.stringify(s)}`);
+      let body = s;
+      const m = ERA_PREFIX.exec(s);
+      if (m) {
+        if (k === 'who') throw new Error(`${F}: "who" cannot carry an era prefix`);
+        if (m[1] !== '2' && m[1] !== '3')
+          throw new Error(`${F}: "${k}" line ${JSON.stringify(s)} has era floor ${m[1]}; only 2| (1980s on) and 3| (1990s) mean anything. Drop it for every era.`);
+        body = s.slice(2);
+      } else anyEra = true;
+      if (body.includes('|'))
+        throw new Error(`${F}: "${k}" line ${JSON.stringify(s)} has a "|" that is not an era prefix at the start. The font cannot draw it.`);
+      if (body !== body.toUpperCase())
+        throw new Error(`${F}: "${k}" line ${JSON.stringify(s)} must be ALL CAPS, as it is drawn.`);
+      if (!body.trim()) throw new Error(`${F}: "${k}" has an empty line`);
+      drawable(`${F}: "${k}" line`, body);
+      const w = textPx(body, 1);
       if (w > limitPx) {
         throw new Error(
-          `content/dialogue.json: "${k}" line ${JSON.stringify(s)} is ${w}px wide.\n` +
-          `  The bubble gives ${limitPx}px beside a ${widestFace}px portrait, so the limit is ${maxChars} characters.\n` +
-          `  Trim ${s.length - maxChars} character${s.length - maxChars === 1 ? '' : 's'}.`);
+          `${F}: "${k}" line ${JSON.stringify(s)} is ${w}px wide.\n` +
+          `  ${why}, so the limit is ${maxChars} characters.\n` +
+          `  Trim ${body.length - maxChars} character${body.length - maxChars === 1 ? '' : 's'}.`);
       }
     }
+    /* every pool needs a line 1972 can say, or the strip draws nothing in Era 1 */
+    if (!anyEra) throw new Error(`${F}: every line in "${k}" carries an era prefix, so Era 1 has nothing to say there. Add a line with no prefix.`);
     out[k] = v;
   }
-  for (const need of ['who', 'delivered', 'missed']) {
-    if (!(need in out)) throw new Error(`content/dialogue.json is missing "${need}"`);
+  for (const need of DLG_KEYS) {
+    if (!(need in out)) throw new Error(`${F} is missing "${need}"`);
   }
   return out;
 }
 
-/* ---- baked faces --------------------------------------------------------
-   Generated by tools/render/bake-face.mjs, inlined here like every other bit
-   of content. Validated because a face whose runs do not cover its bitmap
-   decodes into a smear with no error, and the drawing stubs cannot see it. */
+/* ---- baked pixel tables -------------------------------------------------
+   Faces (tools/render/bake-face.mjs) and lattice art (bake-lattice.mjs) share
+   one format and one failure: runs that do not cover the bitmap decode into a
+   smear with no error, and the drawing stubs cannot see it. */
+const L64 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/';
+function checkRuns(where, f) {
+  for (const need of ['w', 'h', 'pal', 'pix', 'ink', 'skin'])
+    if (!(need in f)) throw new Error(`${where} is missing "${need}"`);
+  if (!Number.isInteger(f.w) || !Number.isInteger(f.h) || f.w <= 0 || f.h <= 0)
+    throw new Error(`${where}: w and h must be positive integers, got ${f.w}x${f.h}`);
+  if (!Array.isArray(f.pal) || f.pal.length > 16)
+    throw new Error(`${where}: ${Array.isArray(f.pal) ? f.pal.length : 'no'} palette entries, the symbol is one hex digit so 16 is the cap`);
+  if (typeof f.pix !== 'string' || f.pix.length % 2)
+    throw new Error(`${where}: "pix" must be a string of two-character runs, and has an odd length`);
+  // runs must cover exactly w*h, or the decode silently shears the image
+  let covered = 0;
+  for (let i = 0; i < f.pix.length; i += 2) {
+    const n = L64.indexOf(f.pix[i + 1]);
+    if (n < 0) throw new Error(`${where}: bad run length ${JSON.stringify(f.pix[i + 1])} at ${i}`);
+    const sym = f.pix[i];
+    if (sym !== '.' && !(parseInt(sym, 16) < f.pal.length))
+      throw new Error(`${where}: run at ${i} points at palette ${sym}, which is not there`);
+    covered += n;
+  }
+  if (covered !== f.w * f.h)
+    throw new Error(`${where}: runs cover ${covered}px but the bitmap is ${f.w}x${f.h} = ${f.w * f.h}`);
+}
+const jsonFiles = (dir) => { try { return readdirSync(dir).filter((f) => f.endsWith('.json')).sort(); } catch { return null; } };
+
 function buildFaces() {
-  const dir = join('content', 'faces');
-  let names = [];
-  try { names = readdirSync(dir).filter((f) => f.endsWith('.json')); } catch { return {}; }
   const out = {};
-  for (const file of names) {
-    const key = file.replace(/\.json$/, '');
-    const f = JSON.parse(readFileSync(join(dir, file), 'utf8'));
-    for (const need of ['w', 'h', 'pal', 'pix', 'ink', 'skin'])
-      if (!(need in f)) throw new Error(`content/faces/${file} is missing "${need}"`);
-    if (f.pal.length > 16)
-      throw new Error(`content/faces/${file}: ${f.pal.length} palette entries, the symbol is one hex digit so 16 is the cap`);
-    if (f.pix.length % 2)
-      throw new Error(`content/faces/${file}: "pix" has an odd length, runs are two characters each`);
-    // runs must cover exactly w*h, or the decode silently shears the image
-    const L64 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/';
-    let covered = 0;
-    for (let i = 0; i < f.pix.length; i += 2) {
-      const n = L64.indexOf(f.pix[i + 1]);
-      if (n < 0) throw new Error(`content/faces/${file}: bad run length ${JSON.stringify(f.pix[i + 1])} at ${i}`);
-      const sym = f.pix[i];
-      if (sym !== '.' && !(parseInt(sym, 16) < f.pal.length))
-        throw new Error(`content/faces/${file}: run at ${i} points at palette ${sym}, which is not there`);
-      covered += n;
-    }
-    if (covered !== f.w * f.h)
-      throw new Error(`content/faces/${file}: runs cover ${covered}px but the bitmap is ${f.w}x${f.h} = ${f.w * f.h}`);
-    out[key] = f;
+  for (const file of jsonFiles(join('content', 'faces')) || []) {
+    const f = readJSON(join('content', 'faces', file));
+    checkRuns(`content/faces/${file}`, f);
+    out[file.replace(/\.json$/, '')] = f;
   }
   return out;
+}
+
+/* Keyed by the record's own "name" (BEEF, CHIPS...), which is what the menu's
+   bin keys refer to, not by its filename. */
+function buildLattice() {
+  const out = {};
+  for (const file of jsonFiles(join('content', 'lattice')) || []) {
+    const where = `content/lattice/${file}`;
+    const f = readJSON(join('content', 'lattice', file));
+    checkRuns(where, f);
+    if (typeof f.name !== 'string' || !/^[A-Z0-9]+$/.test(f.name))
+      throw new Error(`${where}: "name" must be an upper-case key like "BEEF", got ${JSON.stringify(f.name)}`);
+    if (out[f.name]) throw new Error(`${where}: name "${f.name}" is already taken by another file in content/lattice/`);
+    out[f.name] = f;
+  }
+  return out;
+}
+
+/* ---- levels, difficulty, menus ------------------------------------------ */
+const DIFF_KEYS = ['easy', 'medium', 'hard', 'supreme'];   // in ladder order
+const NAV_KEYS = ['panel', 'line', 'dot', 'edge', 'beacon'];
+function buildDifficulty() {
+  const F = 'content/difficulty.json';
+  const out = stripNotes(readJSON(join('content', 'difficulty.json')));
+  for (const k of Object.keys(out))
+    if (!DIFF_KEYS.includes(k)) throw new Error(`${F}: unknown difficulty "${k}"; expected ${DIFF_KEYS.join(' ')}`);
+  let prevNav = null;
+  for (const k of DIFF_KEYS) {
+    const d = out[k], W = `${F}: "${k}"`;
+    if (!d || typeof d !== 'object') throw new Error(`${F} is missing "${k}"`);
+    for (const f of ['start', 'extend', 'maxExt', 'target'])
+      if (!Number.isInteger(d[f]) || d[f] <= 0) throw new Error(`${W}.${f} must be a positive whole number of ${f === 'start' || f === 'extend' ? 'seconds' : 'counts'}, got ${JSON.stringify(d[f])}`);
+    /* GDD II.D.3: the level clears at 3 x the extension cap. Two numbers that
+       must move together are one number written twice; this keeps them honest. */
+    if (d.target !== 3 * d.maxExt)
+      throw new Error(`${W}.target is ${d.target} but maxExt is ${d.maxExt}; the target must be exactly 3 x maxExt = ${3 * d.maxExt}.`);
+    for (const f of ['tipStart', 'tipFloor'])
+      if (!isCents(d[f])) throw new Error(`${W}.${f} must be integer cents (2000 = $20.00), got ${JSON.stringify(d[f])}`);
+    if (d.tipFloor >= d.tipStart) throw new Error(`${W}.tipFloor (${d.tipFloor}) must be below tipStart (${d.tipStart})`);
+    if (!isNum(d.tipDecay) || d.tipDecay <= 0)
+      throw new Error(`${W}.tipDecay must be a positive number of cents per second ($1.00 / 3s = 33.33), got ${JSON.stringify(d.tipDecay)}`);
+    if (!d.fines || typeof d.fines !== 'object') throw new Error(`${W} is missing "fines"`);
+    for (const f of ['ticket', 'ped', 'train', 'remake'])
+      if (!isCents(d.fines[f])) throw new Error(`${W}.fines.${f} must be integer cents, got ${JSON.stringify(d.fines[f])}`);
+    if (!d.nav || typeof d.nav !== 'object') throw new Error(`${W} is missing "nav"`);
+    for (const f of NAV_KEYS)
+      if (typeof d.nav[f] !== 'boolean') throw new Error(`${W}.nav.${f} must be true or false, got ${JSON.stringify(d.nav[f])}`);
+    /* difficulty.md: "each difficulty takes one more piece away" -- a harder
+       level never gives back a piece of guidance an easier one removed. */
+    if (prevNav) for (const f of NAV_KEYS)
+      if (d.nav[f] && !prevNav.nav[f])
+        throw new Error(`${W}.nav.${f} is on, but "${prevNav.k}" (easier) already turned it off. Guidance only ever comes away up the ladder.`);
+    prevNav = { k, nav: d.nav };
+    const kt = d.kitchen;
+    if (!kt || typeof kt !== 'object') throw new Error(`${W} is missing "kitchen"`);
+    if (!isCents(kt.tipPerItem) || kt.tipPerItem <= 0) throw new Error(`${W}.kitchen.tipPerItem must be positive integer cents, got ${JSON.stringify(kt.tipPerItem)}`);
+    if (!isNum(kt.decay) || kt.decay <= 0) throw new Error(`${W}.kitchen.decay must be a positive number of cents per second, got ${JSON.stringify(kt.decay)}`);
+    if (!Number.isInteger(kt.maxItems) || kt.maxItems < 1) throw new Error(`${W}.kitchen.maxItems must be a whole number >= 1, got ${JSON.stringify(kt.maxItems)}`);
+    if (!isNum(kt.every) || kt.every <= 0) throw new Error(`${W}.kitchen.every must be a positive number of seconds, got ${JSON.stringify(kt.every)}`);
+  }
+  return out;
+}
+
+/* Kitchen geometry the menu has to fit, mirrored from reference/kitchen/:
+   a bin's name plate is 44px (7 characters), a ticket line 72px (12), and
+   the NOW BUILDING readout shares 127px with one 9px pip per step. */
+const BIN_COUNT = 12, PLATE_CHARS = 7, TICKET_CHARS = 12, MAX_STEPS = 7, NOW_PX = 127;
+const nowCost = (short, steps) => 12 * short.length + 9 * steps;
+function checkSlot(where, s) {
+  if (!s || typeof s !== 'object' || Array.isArray(s))
+    throw new Error(`${where} must be an object like { "key": "BEEF", "name": "GROUND BEEF", "plate": "BEEF" }`);
+  if (typeof s.key !== 'string' || !/^[A-Z]+$/.test(s.key))
+    throw new Error(`${where}.key must be upper-case letters, got ${JSON.stringify(s.key)}`);
+  drawable(`${where}.name`, s.name);
+  const plate = drawable(`${where}.plate`, s.plate);
+  if (plate.length > PLATE_CHARS)
+    throw new Error(`${where}.plate ${JSON.stringify(s.plate)} is ${textPx(plate, 1)}px on a 44px name plate; the plate holds ${PLATE_CHARS} characters. Trim ${plate.length - PLATE_CHARS}.`);
+}
+function buildMenus() {
+  const F = 'content/menus.json';
+  const out = stripNotes(readJSON(join('content', 'menus.json')));
+  const eras = Object.keys(out).sort((a, b) => a - b);
+  if (!eras.length || eras.some((e, i) => e !== String(i + 1)))
+    throw new Error(`${F}: eras must be "1", "2", "3"... with no gaps, got ${JSON.stringify(eras)}`);
+  let prev = null;
+  for (const e of eras) {
+    const m = out[e], W = `${F}: era ${e}`;
+    if (!Array.isArray(m.bins) || m.bins.length !== BIN_COUNT)
+      throw new Error(`${W}: "bins" must be exactly ${BIN_COUNT} slots (null for an empty one), got ${Array.isArray(m.bins) ? m.bins.length : typeof m.bins}`);
+    const bins = new Set();
+    m.bins.forEach((b, i) => {
+      if (b === null) return;
+      checkSlot(`${W} bins[${i}]`, b);
+      if (bins.has(b.key)) throw new Error(`${W}: bin key "${b.key}" appears twice`);
+      bins.add(b.key);
+    });
+    /* A bin NEVER moves. The player learns where the beef is in 1972 and it
+       is still there in 1999; a later era may only fill a slot that was empty. */
+    if (prev) prev.bins.forEach((b, i) => {
+      if (b && (!m.bins[i] || m.bins[i].key !== b.key))
+        throw new Error(`${W}: bins[${i}] is ${m.bins[i] ? '"' + m.bins[i].key + '"' : 'empty'}, but era ${prev.e} put "${b.key}" there.\n` +
+          `  Bins never move or close; a later era may only fill a slot that was null.`);
+    });
+    const bs = m.bases;
+    if (!bs || !Array.isArray(bs.left) || bs.left.length !== 3 || !Array.isArray(bs.right) || bs.right.length < 1)
+      throw new Error(`${W}: "bases" must be { "left": [3 stacked zones, top to bottom], "right": [at least 1] }`);
+    const bases = new Set();
+    for (const [side, list] of [['left', bs.left], ['right', bs.right]]) list.forEach((b, i) => {
+      checkSlot(`${W} bases.${side}[${i}]`, b);
+      if (bases.has(b.key) || bins.has(b.key)) throw new Error(`${W}: key "${b.key}" is used twice across bins and bases`);
+      bases.add(b.key);
+    });
+    if (prev) {
+      const was = [...prev.m.bases.left, ...prev.m.bases.right].map((b) => b.key).join(' ');
+      const now = [...bs.left, ...bs.right].map((b) => b.key).join(' ');
+      if (was !== now) throw new Error(`${W}: the base stations are "${now}" but era ${prev.e} had "${was}". The stations are hardware; they never change.`);
+    }
+    if (!Array.isArray(m.items) || !m.items.length) throw new Error(`${W}: "items" must be a non-empty array`);
+    const seen = { name: new Set(), ticket: new Set(), short: new Set() };
+    m.items.forEach((it, i) => {
+      const I = `${W} item ${i + 1}`;
+      if (!it || typeof it !== 'object') throw new Error(`${I} must be an object`);
+      const name = drawable(`${I}.name`, it.name);
+      const ticket = drawable(`${I} (${name}).ticket`, it.ticket);
+      const short = drawable(`${I} (${name}).short`, it.short);
+      if (ticket.length > TICKET_CHARS)
+        throw new Error(`${I} (${name}): ticket ${JSON.stringify(it.ticket)} is ${ticket.length} characters; the 72px ticket line holds ${TICKET_CHARS}. Trim ${ticket.length - TICKET_CHARS}.`);
+      for (const [f, v] of [['name', name], ['ticket', ticket], ['short', short]]) {
+        if (seen[f].has(v)) throw new Error(`${I}: ${f} "${v}" is used by two items in era ${e}; the player could not tell them apart.`);
+        seen[f].add(v);
+      }
+      if (!isCents(it.price)) throw new Error(`${I} (${name}).price must be integer cents (29 = $0.29), got ${JSON.stringify(it.price)}`);
+      const r = it.recipe;
+      if (!Array.isArray(r) || r.length < 2 || r.length > MAX_STEPS)
+        throw new Error(`${I} (${name}).recipe must be a base then 1 to ${MAX_STEPS - 1} ingredients (2..${MAX_STEPS} keys), got ${Array.isArray(r) ? r.length : typeof r}`);
+      if (!bases.has(r[0]))
+        throw new Error(`${I} (${name}): recipe[0] is "${r[0]}", but ingredient 0 is always the base: one of ${[...bases].join(' ')}`);
+      r.slice(1).forEach((k, j) => {
+        if (bases.has(k)) throw new Error(`${I} (${name}): recipe[${j + 1}] is the base "${k}". Items that need a base mid-build are out (the base is always ingredient 0).`);
+        if (!bins.has(k)) throw new Error(`${I} (${name}): recipe[${j + 1}] is "${k}", which is not a bin in era ${e}. Era ${e} bins: ${[...bins].join(' ')}`);
+      });
+      /* The readout shares its row with one pip per step, so the budget is
+         a function of the recipe, not a fixed character count. */
+      const cost = nowCost(short, r.length);
+      if (cost > NOW_PX) {
+        const max = Math.floor((NOW_PX - 9 * r.length) / 12);
+        throw new Error(`${I} (${name}): short "${short}" at ${r.length} steps needs 12x${short.length} + 9x${r.length} = ${cost}px of the ${NOW_PX}px NOW BUILDING row.\n` +
+          `  At ${r.length} steps the limit is ${max} characters. Trim ${short.length - max}.`);
+      }
+    });
+    prev = { e, m, bins: m.bins };
+  }
+  return out;
+}
+
+const SEASONS = ['summer', 'winter'], TYPES = ['delivery', 'kitchen'];
+const LEVEL_COUNT = 20, LEVEL_CARD_SCALE = 2;
+function buildLevels(difficulty, maps, menus) {
+  const F = 'content/levels.json';
+  const raw = stripNotes(readJSON(join('content', 'levels.json')));
+  const L = raw.levels;
+  if (!Array.isArray(L) || L.length !== LEVEL_COUNT)
+    throw new Error(`${F}: "levels" must be exactly ${LEVEL_COUNT} entries, got ${Array.isArray(L) ? L.length : typeof L}`);
+  L.forEach((v, i) => {
+    const W = `${F}: level ${i + 1}`;
+    if (v.n !== i + 1) throw new Error(`${W} has n ${JSON.stringify(v.n)}; levels must be listed in order, n = 1..${LEVEL_COUNT}`);
+    if (!TYPES.includes(v.type)) throw new Error(`${W}.type must be ${TYPES.join(' or ')}, got ${JSON.stringify(v.type)}`);
+    const name = drawable(`${W}.name`, v.name);
+    if (textPx(name, LEVEL_CARD_SCALE) > VW - 2 * EDGE)
+      throw new Error(`${W}.name ${JSON.stringify(v.name)} is ${textPx(name, LEVEL_CARD_SCALE)}px at scale ${LEVEL_CARD_SCALE}, wider than the ${VW}px screen.`);
+    if (!Number.isInteger(v.year) || v.year < 1970 || v.year > 1999) throw new Error(`${W}.year must be 1970..1999, got ${JSON.stringify(v.year)}`);
+    if (!name.includes(String(v.year))) throw new Error(`${W}.name ${JSON.stringify(v.name)} does not show its year ${v.year}`);
+    const era = Math.floor((v.year - 1970) / 10) + 1;
+    if (v.era !== era) throw new Error(`${W}.era is ${JSON.stringify(v.era)} but ${v.year} is era ${era} (1 = 1970s, 2 = 1980s, 3 = 1990s)`);
+    if (!SEASONS.includes(v.season)) throw new Error(`${W}.season must be ${SEASONS.join(' or ')}, got ${JSON.stringify(v.season)}`);
+    if (!name.includes(v.season.toUpperCase())) throw new Error(`${W}.name ${JSON.stringify(v.name)} does not match its season "${v.season}"`);
+    if (!difficulty[v.difficulty]) throw new Error(`${W}.difficulty "${v.difficulty}" is not in content/difficulty.json (${Object.keys(difficulty).join(' ')})`);
+    if (v.map !== v.era || !maps[v.map]) throw new Error(`${W}.map is ${JSON.stringify(v.map)}; it must equal the era (${v.era}) and name a map in ${Object.values(MAP_FILES).join(', ')}`);
+    if (v.menu !== v.era || !menus[v.menu]) throw new Error(`${W}.menu is ${JSON.stringify(v.menu)}; it must equal the era (${v.era}) and name an era in content/menus.json`);
+    if (i > 0 && v.year < L[i - 1].year) throw new Error(`${W} is ${v.year}, earlier than level ${i} (${L[i - 1].year}); the run moves forward in time`);
+    if (i > 0 && DIFF_KEYS.indexOf(v.difficulty) < DIFF_KEYS.indexOf(L[i - 1].difficulty))
+      throw new Error(`${W} is "${v.difficulty}", easier than level ${i} ("${L[i - 1].difficulty}"); the run only gets harder`);
+  });
+  return L;
+}
+
+/* Every bin in every era names a piece of lattice art. A missing one draws
+   an empty well, which looks deliberate (bins CAN be empty) and so would be
+   the last thing anyone noticed. Bases are station art, named differently. */
+function checkMenuArt(menus, lattice) {
+  if (!Object.keys(lattice).length) return;
+  for (const [e, m] of Object.entries(menus)) m.bins.forEach((b, i) => {
+    if (b && !lattice[b.key])
+      throw new Error(`content/menus.json: era ${e} bins[${i}] is "${b.key}", but content/lattice/ has no record named "${b.key}".\n` +
+        `  Bake it with tools/render/bake-lattice.mjs, or rename the key to one of: ${Object.keys(lattice).join(' ')}`);
+  });
+}
+
+/* ---- music --------------------------------------------------------------
+   content/music/<id>.json is one song (tools/music/midi2song.mjs), and
+   playlist.json names which songs each level, and the title, may play.
+   music.md: a level plays songs from its own year or up to 2 years before,
+   never after -- an anachronism is a guard, not a judgement call. */
+const MUSIC_LOOKBACK = 2;
+function buildMusic(levels) {
+  const dir = join('content', 'music');
+  const files = jsonFiles(dir);
+  if (files === null) return { music: {}, playlist: {}, note: 'no content/music/ yet' };
+  const music = {};
+  for (const file of files) {
+    if (file === 'playlist.json') continue;
+    const id = file.replace(/\.json$/, '');
+    const s = readJSON(join(dir, file));
+    if (!s || typeof s !== 'object' || Array.isArray(s)) throw new Error(`content/music/${file} must be a song object`);
+    if (s.id !== undefined && s.id !== id) throw new Error(`content/music/${file}: id is "${s.id}" but the file is ${file}; they must match`);
+    for (const f of ['title', 'artist']) if (s[f] !== undefined) drawable(`content/music/${file} ${f}`, s[f]);
+    music[id] = stripNotes(s);
+  }
+  if (!files.includes('playlist.json')) return { music, playlist: {}, note: 'no playlist.json yet' };
+
+  const F = 'content/music/playlist.json';
+  const raw = stripNotes(readJSON(join(dir, 'playlist.json')));
+  const src = raw.levels && typeof raw.levels === 'object' && !Array.isArray(raw.levels) ? { ...raw.levels, title: raw.title } : raw;
+  const playlist = {};
+  const need = ['title', ...levels.map((l) => String(l.n))];
+  for (const k of need) {
+    const list = src[k];
+    if (!Array.isArray(list) || !list.length)
+      throw new Error(`${F}: "${k}" must be a non-empty array of song ids, e.g. "${k}": ["${Object.keys(music)[0] || 'song-id'}"]. ` +
+        `Every level 1-${levels.length} and "title" needs a list.`);
+    const lv = k === 'title' ? null : levels[+k - 1];
+    for (const id of list) {
+      if (typeof id !== 'string' || !music[id])
+        throw new Error(`${F}: "${k}" names ${JSON.stringify(id)}, which is not a song in content/music/ (have: ${Object.keys(music).join(' ') || 'none'})`);
+      const y = music[id].year;
+      if (lv && isNum(y) && (y > lv.year || y < lv.year - MUSIC_LOOKBACK))
+        throw new Error(`${F}: level ${k} (${lv.name}) plays "${id}" from ${y}. A level may only play songs from ${lv.year - MUSIC_LOOKBACK}-${lv.year}: its own year or up to ${MUSIC_LOOKBACK} before, never after.`);
+    }
+    playlist[k] = list;
+  }
+  for (const k of Object.keys(src))
+    if (!need.includes(k) && src[k] !== undefined) throw new Error(`${F}: unknown key "${k}"; expected "title" and "1".."${levels.length}"`);
+  return { music, playlist, note: null };
 }
 
 const content = buildContent();
-const city = buildCity();
+const maps = buildMaps();
+const city = maps[1];
 const attract = buildAttract();
 const scores = buildScores();
 const faces = buildFaces();
 const dialogue = buildDialogue(faces);
+const difficulty = buildDifficulty();
+const menus = buildMenus();
+const levels = buildLevels(difficulty, maps, menus);
+const lattice = buildLattice();
+checkMenuArt(menus, lattice);
+const { music, playlist, note: musicNote } = buildMusic(levels);
+
+/* big baked tables are unreadable by eye -- one line each keeps 05_content.js
+   navigable instead of burying the authored copy under thousands of lines */
+const oneLineEach = (obj) => '{\n' + Object.entries(obj)
+  .map(([k, f]) => `  ${JSON.stringify(k)}: ${JSON.stringify(f)}`).join(',\n') + '\n}';
 
 writeFileSync(join(SRC, '05_content.js'),
   '/* GENERATED by build.mjs from content/*.json — do not edit by hand. */\n' +
   "'use strict';\n\n" +
-  'const CONTENT = ' + JSON.stringify(content, null, 2) + ';\n\n' +
-  'const HAYS = ' + JSON.stringify(city, null, 2) + ';\n\n' + 'const ATTRACT = ' + JSON.stringify(attract, null, 2) + ';\n\n' + 'const SCORES = ' + JSON.stringify(scores, null, 2) + ';\n\n' +
-  'const DIALOGUE = ' + JSON.stringify(dialogue, null, 2) + ';\n\n' +
-  /* faces are big and unreadable by eye -- one line each keeps 05_content.js
-     navigable instead of burying the authored copy under 5000 lines of runs */
-  'const FACES = {\n' + Object.entries(faces)
-    .map(([k, f]) => `  ${JSON.stringify(k)}: ${JSON.stringify(f)}`).join(',\n') + '\n};\n');
+  'const CONTENT = ' + pretty(content) + ';\n\n' +
+  '/* one map per era; LEVELS[i].map picks one. HAYS is Map 1, kept for the\n' +
+  '   modules that read it directly. */\n' +
+  'const MAPS = ' + pretty(maps) + ';\n' +
+  'const HAYS = MAPS[1];\n\n' +
+  'const ATTRACT = ' + pretty(attract) + ';\n\n' +
+  'const SCORES = ' + pretty(scores) + ';\n\n' +
+  '/* a line may open with "2|" or "3|": an era floor, filtered at runtime */\n' +
+  'const DIALOGUE = ' + pretty(dialogue) + ';\n\n' +
+  'const LEVELS = ' + pretty(levels).replace(/\{\n\s+"n"[^}]*\}/g, (m) => m.replace(/\n\s*/g, ' ')) + ';\n\n' +
+  'const DIFFICULTY = ' + pretty(difficulty) + ';\n\n' +
+  'const MENUS = ' + pretty(menus).replace(/\{\n\s+"(key|name)"[^{}]*?\}/g, (m) => m.replace(/\n\s*/g, ' ')) + ';\n\n' +
+  'const FACES = ' + oneLineEach(faces) + ';\n\n' +
+  'const LATTICE = ' + oneLineEach(lattice) + ';\n\n' +
+  'const MUSIC = ' + (Object.keys(music).length ? oneLineEach(music) : '{}') + ';\n\n' +
+  'const PLAYLIST = ' + pretty(playlist) + ';\n');
 
 const files = readdirSync(SRC).filter((f) => f.endsWith('.js')).sort();
 const code = files.map((f) => `\n/* ===== ${f} ===== */\n` + readFileSync(join(SRC, f), 'utf8')).join('\n');
@@ -343,8 +712,16 @@ writeFileSync('index.html', '<!doctype html>\n<html lang="en">\n<head>\n<meta ch
   dev.slice(0, dev.indexOf('</style>') + 8) + '\n</head>\n<body>\n' +
   dev.slice(dev.indexOf('</style>') + 8) + '\n</body>\n</html>\n');
 
+const count = (a, f) => a.filter(f).length;
 console.log(`built taco-shop.html  (${(out.length / 1024).toFixed(1)} kB, ${files.length} modules)`);
 console.log(`  content: "${String(content.slogan).slice(0, 40)}"`);
 console.log(`  city:    ${city.streetsNS.length}x${city.streetsEW.length} streets, shop at ${city.streetsNS[city.shop.bx]} & ${city.streetsEW[city.shop.by + 1]}`);
-console.log(`  attract: title ${attract.title.seconds}s (wordmark at ${attract.title.wordmarkHold}s) / winners ${attract.winners.seconds}s / demo ${attract.demo.seconds}s`);
+console.log(`  maps:    ${Object.entries(maps).map(([n, m]) => `${n}: ${m.addresses} addresses`).join(', ')} (by zoning)`);
+console.log(`  attract: title ${attract.title.seconds}s (wordmark at ${attract.title.wordmarkHold}s) / winners ${attract.winners.seconds}s / scores ${attract.scores.seconds}s / demo ${attract.demo.seconds}s`);
 console.log(`  scores:  ${scores.board.length} places, top ${centsStr(scores.board[0].cents)}, tenth ${centsStr(scores.board[SCORE_MAX - 1].cents)}`);
+console.log(`  levels:  ${levels.length} (${count(levels, (l) => l.type === 'delivery')} delivery, ${count(levels, (l) => l.type === 'kitchen')} kitchen), ${levels[0].name} to ${levels[levels.length - 1].name}`);
+console.log(`  diff:    ${Object.entries(difficulty).map(([k, d]) => `${k} ${d.target}/${d.maxExt}x${d.extend}s`).join(', ')}`);
+console.log(`  menus:   ${Object.entries(menus).map(([e, m]) => `era ${e} ${m.items.length} items/${m.bins.filter(Boolean).length} bins`).join(', ')}`);
+console.log(`  dialog:  ${DLG_KEYS.slice(1).map((k) => `${k} ${dialogue[k].length}`).join(', ')}`);
+console.log(`  baked:   ${Object.keys(faces).length} faces, ${Object.keys(lattice).length} lattice`);
+console.log(`  music:   ${Object.keys(music).length} songs, ${Object.keys(playlist).length} playlists${musicNote ? ' (' + musicNote + ')' : ''}`);

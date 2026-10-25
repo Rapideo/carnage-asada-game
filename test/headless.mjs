@@ -71,6 +71,7 @@ vm.createContext(sandbox);
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, money, MAXTHROW,' +
   ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER };',
   sandbox, { filename: 'bundle.js' });
+vm.runInContext(';globalThis.__k = { Kitchen, LEVELS, DIALOGUE, MENUS };', sandbox);
 
 const { G, City, Nav, Art, Input, Demo, textW, money, MAXTHROW, VW, VH, WW, WH,
         ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER } = sandbox.__x;
@@ -88,6 +89,11 @@ console.log('\n— build —');
 const t0 = Date.now();
 G.boot(20260816);
 console.log(`  city built in ${Date.now() - t0}ms`);
+/* The attract demo plays a RANDOM level, and a level in another era
+   regenerates the city on that era's map. Every section below that inspects
+   City expects Map 1, so pin the demo to level 1 here; — kitchen demo —
+   exercises the other kind explicitly. */
+G.demoPin = 1;
 ok(City.houses.length > 100, `addressed houses: ${City.houses.length}`);
 
 /* Every car's shadow is baked through rotFrames like the car itself. It was
@@ -355,7 +361,7 @@ for (let f = 0; f < 9000; f++) {
   if (!finite(p.x) || !finite(p.y) || !finite(p.ang) || !finite(p.vx) || !finite(p.vy)) { nanFrames++; break; }
   if (p.x < 0 || p.x > WW || p.y < 0 || p.y > WH) { console.error('  player escaped the world at frame ' + f); fails++; break; }
   maxSpeed = Math.max(maxSpeed, Math.hypot(p.vx, p.vy));
-  if (G.state === 'results') { delivered0 = G.stats.delivered; G.startShift(); }
+  if (G.state === 'over' || G.state === 'clear') { delivered0 = G.stats.delivered; G.startShift(); }
 }
 ok(nanFrames === 0, 'no NaN in player state over 9000 frames');
 ok(maxSpeed > 60, `car reaches speed (peak ${maxSpeed.toFixed(0)} px/s)`);
@@ -413,7 +419,9 @@ ok(G.state === 'title', 'attract starts on the title');
 step(ATTRACT_TITLE + 0.5);
 ok(G.state === 'winners', `title holds ${ATTRACT_TITLE}s then shows the winners card`);
 step(ATTRACT_WINNERS + 0.5);
-ok(G.state === 'demo', `winners holds ${ATTRACT_WINNERS}s then starts the demo`);
+ok(G.state === 'scores', `winners holds ${ATTRACT_WINNERS}s then shows the board`);
+step(ATTRACT_SCORES + 0.5);
+ok(G.state === 'demo', `the board holds ${ATTRACT_SCORES}s then starts the demo`);
 
 /* the demo must actually drive — a car wedged against a wall would still
    satisfy "no NaN", so track distance covered and watch for drift */
@@ -963,16 +971,16 @@ ok(!Scores.valid([]), 'an empty array is rejected');
 
 /* the board is an attract screen, alternating with the winners card */
 Input.down = Object.create(null); Input.anyKey = false; Input.mhit = false; Input.hasMouse = false;
+/* attract.md: four screens in a fixed order, the board as its own slot */
 G.toTitle();
-const seq = [];
-for (let cycle = 0; cycle < 4 && seq.length < 3; cycle++) {
-  for (let i = 0; i < (ATTRACT_TITLE + 0.5) * 60; i++) { G.update(1 / 60); Input.endFrame(); }
-  seq.push(G.state);
-  G.toTitle();
+const seq = [G.state];
+for (let i = 0; i < (ATTRACT_TITLE + ATTRACT_WINNERS + ATTRACT_SCORES + 1.5) * 60; i++) {
+  G.update(1 / 60); Input.endFrame();
+  if (seq[seq.length - 1] !== G.state) seq.push(G.state);
 }
-ok(seq.length === 3 && seq[0] !== seq[1] && seq[1] !== seq[2],
-   `the attract middle slot alternates: ${seq.join(' -> ')}`);
-ok(seq.includes('scores') && seq.includes('winners'), 'and it shows both the board and the winners card');
+ok(seq.join(' -> ') === 'title -> winners -> scores -> demo',
+   `the attract loop runs the four authored screens: ${seq.join(' -> ')}`);
+G.toTitle();
 
 /* the widest row the board can ever draw must fit the screen */
 const RANK_X = 208, WIDEST_RANK = 'LEGEND OF THE ASADA';
@@ -1035,28 +1043,42 @@ ok(G.state === 'entry' && G.entryT > ENTRY_TIMEOUT - 1,
 G.render(ctx);
 G.commitEntry();
 
-/* the shift end routes to the wheel only when the score places */
+/* GDD II.F: at 0:00, GAME OVER; initials FIRST if the run places, then
+   CONTINUE? with a 10s countdown. A continue restarts the level you died on
+   as a new run at $0.00. */
+const waitCard = () => { for (let i = 0; i < 90; i++) { G.update(1 / 60); Input.endFrame(); } };
 Scores.load();
 Input.down = Object.create(null);
 G.startShift();
 G.earned = Scores.lowest() + 1000;
 G.shift = 0.01;
 for (let i = 0; i < 5; i++) { G.update(1 / 60); Input.endFrame(); }
-ok(G.state === 'results', 'a finished shift still shows the results card first');
-ok(G.placed === true, 'and knows the score placed');
+ok(G.state === 'over', 'running out the clock is GAME OVER');
+ok(G.placed === true, 'and knows the run placed');
+G.render(ctx);
+waitCard();
 Input.hit['Enter'] = true; G.update(1 / 60); Input.endFrame();
-ok(G.state === 'entry', 'enter from a placing result opens the wheel');
-G.toTitle();
+ok(G.state === 'entry', 'enter from a placing game over opens the wheel first');
+G.commitEntry();
+ok(G.state === 'cont', 'and signing it goes on to CONTINUE?');
+G.render(ctx);
+const diedOn = G.levelN;
+Input.hit['Enter'] = true; G.update(1 / 60); Input.endFrame();
+ok(G.state === 'card' && G.levelN === diedOn && G.earned === 0,
+   `a continue restarts level ${diedOn} as a new run at $0.00 (${G.state}, ${G.earned})`);
 
 Scores.load();
 G.startShift();
 G.earned = 1;                       // beats nothing on a full board
 G.shift = 0.01;
 for (let i = 0; i < 5; i++) { G.update(1 / 60); Input.endFrame(); }
-ok(G.placed === false, 'a non-placing shift knows it did not place');
+ok(G.placed === false, 'a non-placing run knows it did not place');
 G.render(ctx);                      // the BEAT $x line draws without throwing
+waitCard();
 Input.hit['Enter'] = true; G.update(1 / 60); Input.endFrame();
-ok(G.state === 'play', 'and enter runs it back as it always did');
+ok(G.state === 'cont', 'and goes straight to CONTINUE?');
+for (let i = 0; i < 11 * 60; i++) { G.update(1 / 60); Input.endFrame(); }
+ok(G.state === 'title', 'an unanswered CONTINUE? returns to attract after 10s');
 
 /* the results screen names the target, and it has to fit */
 const boardTarget = 'BEAT ' + money(Scores.lowest()) + ' TO MAKE THE BOARD';
@@ -1096,7 +1118,154 @@ ok(finite(G.cop ? G.cop.x : 0), 'cop pursuit stable');
    the railway (17 of those 19 jammed 166-272px away from the corridor, in
    ordinary city geometry), so it is on the ROADMAP punch list rather than
    papered over with a looser bound here. */
-ok(G.state === 'play' || G.state === 'results', `the pursuit ran in a live state (${G.state})`);
+ok(G.state === 'play' || G.state === 'over', `the pursuit ran in a live state (${G.state})`);
+
+/* ================================================================
+   THE FULL GAME -- 2026-10-25
+   ================================================================ */
+const KX = sandbox.__k;
+
+console.log('\n— run structure —');
+Input.down = Object.create(null);
+const LV = KX.LEVELS;
+ok(LV.length === 20, `twenty levels (${LV.length})`);
+ok(LV.every((l, i) => l.type === (i % 2 ? 'kitchen' : 'delivery')), 'the shifts alternate, delivery first');
+G.startRun(1);
+ok(G.state === 'card' && G.levelN === 1, 'a run opens on the level 1 card');
+G.render(ctx);
+for (let i = 0; i < 40; i++) { G.update(1 / 60); Input.endFrame(); }
+Input.hit['Enter'] = true; G.update(1 / 60); Input.endFrame();
+ok(G.state === 'play', 'enter on a delivery card clocks in');
+ok(G.shift === G.diff.start, `the clock starts at the difficulty's ${G.diff.start}s, with no per-delivery time`);
+const t0Shift = G.shift;
+for (let i = 0; i < 2; i++) G.onComplete();
+ok(G.shift === t0Shift && G.extUsed === 0, 'two deliveries earn nothing on the clock');
+G.onComplete();
+ok(G.extUsed === 1 && Math.abs(G.shift - (t0Shift + G.diff.extend)) < 1e-6, `the third earns +${G.diff.extend}s`);
+for (let i = 3; i < G.diff.target - 1; i++) G.onComplete();
+ok(G.state === 'play' && G.extUsed === G.diff.maxExt - 1, `one short of target: still playing, ${G.extUsed} extensions`);
+G.onComplete();
+ok(G.state === 'clear', `the ${G.diff.target}th completion clears the level`);
+G.render(ctx);
+for (let i = 0; i < 70; i++) { G.update(1 / 60); Input.endFrame(); }
+Input.hit['Enter'] = true; G.update(1 / 60); Input.endFrame();
+ok(G.state === 'card' && G.levelN === 2 && G.stage === 'kitchen', 'level 2 is the kitchen');
+G.render(ctx);
+
+/* every level card, every era's map, every season, draws without throwing */
+let cardsOk = 0;
+for (let n = 1; n <= 20; n++) { G.toCard(n); G.render(ctx); for (let i = 0; i < 3; i++) { G.update(1 / 60); Input.endFrame(); } cardsOk++; }
+ok(cardsOk === 20, 'all twenty level cards render');
+ok(City.houses.length > 80, `the 1990s map has addresses (${City.houses.length})`);
+
+console.log('\n— kitchen —');
+G.toCard(2);
+for (let i = 0; i < 40; i++) { G.update(1 / 60); Input.endFrame(); }
+Input.hit['Enter'] = true; G.update(1 / 60); Input.endFrame();
+ok(G.state === 'kitchen', 'enter on a kitchen card starts the kitchen');
+const Kt = KX.Kitchen;
+for (let i = 0; i < 120; i++) { G.update(1 / 60); G.render(ctx); Input.endFrame(); }
+ok(Kt.tickets.length >= 1, `the first ticket is up within 2s (${Kt.tickets.length})`);
+const tk = Kt.tickets[0], it0 = tk.items[0];
+ok(tk.max === G.diff.kitchen.tipPerItem * tk.items.length, `starting tip is ${money(G.diff.kitchen.tipPerItem)} x ${tk.items.length} items`);
+/* drive the real cursor to a cell and pick it, the way a player does */
+const pickKey = (key) => { const c = Kt.cellOf(key); Kt.cur.c = c.c; Kt.cur.r = c.r; Kt.cur.z = c.z; Kt.select(G); };
+const recipe = it0.def.recipe;
+const wrongKey = Kt.bins.find((b) => b && !recipe.includes(b.key)).key;
+pickKey(recipe[0]);
+ok(it0.step === 1, 'the right base fills a pip');
+pickKey(wrongKey);
+ok(it0.step === 1 && !it0.clean && !tk.clean, 'a wrong pick costs the star and the clean bonus, not the progress');
+ok(Kt.wrongKey === wrongKey, 'and the red plate holds');
+for (let i = 1; i < recipe.length; i++) pickKey(recipe[i]);
+ok(it0.step === recipe.length && Kt.wrongKey === null, 'finishing the build clears the red plate');
+const starsBefore = G.levelStars;
+Kt.wrap(G);
+ok(it0.wrapped && G.levelStars === starsBefore, 'wrapping a dirty item banks no star');
+const buildAll = () => { for (const it of tk.items) if (!it.wrapped) { for (const k of it.def.recipe.slice(it.step)) pickKey(k); Kt.wrap(G); } };
+buildAll();
+const paidBefore = G.earned, doneBefore = G.done;
+Kt.serve(G);
+ok(G.earned > paidBefore && G.done === doneBefore + 1, `serving pays (${money(G.earned - paidBefore)}) and counts toward the target`);
+
+/* a clean ticket banks a star per item */
+for (let i = 0; i < 60 * 30 && !Kt.tickets.length; i++) { G.update(1 / 60); Input.endFrame(); }
+const tk2 = Kt.tickets[0], s0 = G.levelStars;
+for (const it of tk2.items) { for (const k of it.def.recipe) pickKey(k); Kt.wrap(G); }
+ok(tk2.clean && G.levelStars === s0 + tk2.items.length, `a clean ticket banks ${tk2.items.length} star(s)`);
+const e0 = G.earned, combo0 = G.combo, tip2 = Math.round(tk2.tip);
+Kt.serve(G);
+ok(G.earned - e0 === Math.round((tip2 + 500) * combo0), 'and pays tip + $5.00 clean, times the combo');
+
+/* patience: a ticket left alone walks out, pays nothing, resets the combo */
+G.combo = 2;
+Kt.tickets.length = 0; Kt.queue.length = 0; Kt.arrive(G);
+const lone = Kt.tickets[0];
+lone.tip = 3;
+const wo = Kt.stats.walkouts, eW = G.earned;
+for (let i = 0; i < 30; i++) { G.update(1 / 60); Input.endFrame(); }
+ok(Kt.stats.walkouts === wo + 1 && G.combo === 1 && G.earned === eW, 'a customer whose tip runs out walks out: no pay, combo reset');
+
+/* the soft limit: past three, the queue complains and every tip drains faster */
+Kt.tickets.length = 0; Kt.queue.length = 0;
+for (let i = 0; i < 4; i++) Kt.arrive(G);
+ok(Kt.tickets.length === 3 && Kt.queue.length === 1, 'the rail holds three; the fourth customer queues');
+const before4 = Kt.tickets.map((t) => t.tip);
+Kt.update(1, G);
+const drained = before4.map((b, i) => b - Kt.tickets[i].tip);
+ok(drained.every((d) => Math.abs(d - G.diff.kitchen.decay * 1.5) < 0.01), `while they queue, every tip drains at 1.5x (${drained[0].toFixed(2)}c/s)`);
+Kt.tickets.length = 0; Kt.queue.length = 0;
+
+/* every menu item in every era can be built, and its Short name clears the board */
+let unbuildable = 0, crowded = 0, items = 0;
+for (const era of [1, 2, 3]) {
+  Kt.enter({ era }, G.diff, true);
+  for (const def of Kt.menu.items) {
+    items++;
+    if (!def.recipe.every((k) => Kt.cellOf(k))) unbuildable++;
+    const lx = 6 + textW(def.short, 2) + 7, tot = def.recipe.length * 9 - 1;
+    if (lx + tot > Kt.BX - 1) crowded++;      // menu.md: 12*chars + 9*steps <= 127 ends the pips at x136, the board border is x137
+  }
+}
+ok(unbuildable === 0, `every item in all three menus is buildable from the lattice (${items} items)`);
+ok(crowded === 0, 'every Short name leaves its pips clear of the board');
+
+/* the recipe card fits: ticket name + plates, abbreviated if long */
+let tooWideRecipe = 0;
+for (const era of [1, 2, 3]) {
+  Kt.enter({ era }, G.diff, true);
+  for (const def of Kt.menu.items) {
+    const parts = def.recipe.map((k) => Kt.plateName(k));
+    let w = 78 + textW(parts.join(' '), 1);
+    if (w > 340) w = 78 + parts.reduce((a, p) => a + textW(p.slice(0, 4), 1) + 6, 0);
+    if (w > 344) tooWideRecipe++;
+  }
+  ok(Kt.menu.items.length * 8 + 72 <= 198, `era ${era}'s menu fits the level card (${Kt.menu.items.length} rows)`);
+}
+ok(tooWideRecipe === 0, 'every recipe line fits the menu card');
+
+console.log('\n— kitchen demo —');
+G.toDemo(2);
+ok(G.state === 'kdemo', 'the attract demo can play a kitchen level');
+let kBad = 0;
+for (let i = 0; i < 40 * 60; i++) {
+  G.update(1 / 60); G.render(ctx); Input.endFrame();
+  if (!Number.isFinite(G.earned)) { kBad++; break; }
+  if (G.state !== 'kdemo') break;
+}
+ok(kBad === 0, 'no NaN in 40s of the kitchen autoplayer');
+ok(Kt.stats.served >= 2, `the autoplayer actually serves (${Kt.stats.served} tickets in 40s)`);
+ok(!Scores.board.some((e) => e.cents === G.earned && e.cents > 0 && e.ini === 'ZZZ'), 'and never posts a score');
+G.toTitle();
+
+console.log('\n— copy —');
+const dl = KX.DIALOGUE;
+let longLine = 0;
+for (const k of ['arrive', 'wait', 'queue', 'walkout', 'served', 'wrong', 'late'])
+  for (const s of dl[k] || []) if (textW(s.replace(/^\d\|/, ''), 1) > 34 * 6) longLine++;
+ok(longLine === 0, 'every kitchen bark fits the bubble');
+for (const b of ['ORDER UP!', 'WALKOUT!', '+1:30 EXTENSION', 'LEVEL 20 CLEAR!'])
+  ok(textW(b, 2) + 16 <= VW || textW(b, 3) <= VW, `"${b}" fits`);
 
 console.log(`\n${fails === 0 ? 'PASS' : 'FAIL (' + fails + ')'}  —  ${ops.toLocaleString()} draw calls exercised`);
 process.exit(fails ? 1 : 0);

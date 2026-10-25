@@ -59,7 +59,9 @@ const City = {
     /* Hand-authored in content/hays.json, not rolled: this is a real place.
        build.mjs has already checked the table is 8x8, that every kind is known,
        and that exactly one cell is the shop. */
-    const kinds = HAYS.zoning.map((row) => row.slice());
+    /* City.map is set by G per era (Map 1/2/3 = content/hays*.json). The
+       streets are the same in every era; only the zoning moves. */
+    const kinds = (this.map || HAYS).zoning.map((row) => row.slice());
     this.kinds = kinds;
 
     /* ---- 3. paint block ground surfaces ------------------ */

@@ -1,81 +1,104 @@
-# Taco Shop — Carnage Asada
+# Taco Shop — Carnage Asada (Pure Carnage)
 
-A 16-bit top-down taco delivery arcade game. Drive fast, because the tip shrinks every second you take —
-but speed wrecks your aim and attracts the police. The sat-nav is not on your side.
+A 16-bit arcade game in two halves: **twenty shifts** at the Taco Shop in Hays, Kansas, from the summer
+of 1972 to the winter of 1999, alternating between the **Delivery Shift** (drive, toss, don't get caught)
+and the **Kitchen Shift** (build the order from memory, before the customer walks out).
 
 The city is a real place: the eight blocks of **downtown Hays, Kansas** around the actual Taco Shop at
-333 W 8th St, with the Union Pacific running through the middle of it.
+333 W 8th St, with the Union Pacific running through the middle of it. It is rezoned for each decade.
 
-**Zero dependencies**: no framework, no libraries, no image, font, or audio files. The city, every sprite,
-the shop badge, the graffiti title, the bitmap font, and all the audio are generated procedurally at boot.
-The whole game is one self-contained ~232 KB HTML file.
+**Zero runtime dependencies**: no framework, no libraries, no image, font, or audio files at runtime. The
+city, every sprite, the customers' faces, the ingredient wells, the bitmap font and all the audio are
+generated at boot from data in the file. Faces and ingredients are pixel art baked into source tables by
+`tools/render/`; the music is arranged from MIDI into chip-synth data by `tools/music/`. The whole game is
+one self-contained HTML file.
 
 **Play:** open `taco-shop.html`. There is no page chrome — the canvas fills the window.
+`?level=N` starts a run at level N.
 
-## Controls
+## The run
 
 | | |
 |---|---|
-| `W A S D` / arrows | Drive |
-| `Shift` | Handbrake |
-| Mouse | Aim the toss |
-| Click / `Space` | Throw the bag |
-| `P` · `M` · `N` | Pause · mute · music |
+| Levels | 20, alternating Delivery and Kitchen, delivery first |
+| Eras | 1970s (levels 1–6), 1980s (7–12), 1990s (13–20) — each with its own colour grade, map, menu, customers and music |
+| Seasons | summer and winter; winter puts snow on Hays and takes the grip out of your tyres |
+| Difficulty | Easy 1–6, Medium 7–12, Hard 13–18, Supreme 19–20 |
+| A level | a checkpoint race: 15 deliveries or 15 tickets served (9 on Supreme) before 0:00 |
+| The clock | 3:00, plus an extension for every third completion (up to 5; 3 on Supreme) |
+| Score | the money, across the whole run. Stars are a report card and never go on the board |
+| Game over | initials first if you placed, then CONTINUE? for 10 seconds: restart the level as a new run at $0.00 |
 
-Press `P` in game for this list — the pause screen is where the controls live.
+## Controls
 
-Land it on the porch to deliver; land it on the doorstep for a **perfect toss** bonus. Miss and the bag
-bursts on the pavement — and it still costs you one from your bag of three. Run out and you're driving back
-to the shop while the tip keeps draining.
+Pick a mode after the title: **A** keyboard + mouse, **B** arcade stick (any browser gamepad),
+**C** touch.
+
+**Delivery Shift**
+
+| Mode A | Mode B | |
+|---|---|---|
+| `W A S D` / arrows | stick, Button 1 gas, Button 2 reverse | Drive |
+| `Shift` | — | Handbrake |
+| Mouse | hold Button 3, stick aims | Aim the toss |
+| Click / `Space` | release Button 3 | Throw the bag |
+
+**Kitchen Shift**
+
+| Mode A | Mode B | |
+|---|---|---|
+| arrows / `WASD`, or the mouse | stick | Move along the line |
+| `Space` / `Z` / click | Button 1 | Pick the ingredient |
+| `X` / click the button | Button 2 | Wrap the item |
+| `Enter` / `C` / click the button | Button 3 | Send the ticket |
+
+`P` pauses (Start on a stick), `M` mutes, `N` toggles music. The pause screen lists the controls for the
+mode you chose — and in the kitchen it shows the menu, at the cost of clock time.
 
 ## How it plays
 
-- **The tip decays.** $15.00 down to a $2.00 floor at 55¢/sec. It's the loudest thing on screen for a reason.
-- **The TACO-NAV 2000** gives turn-by-turn directions over a green LCD, paints the route on the tarmac, and
-  falls apart into `RECALCULATING` the moment you cut across someone's lawn.
-- **Heat.** Clip pedestrians or drive on the pavement and a siren comes looking for you.
-- **Downtown takes orders too.** The storefronts on the retail spine have flats above them, and they
-  order tacos like anyone else. Those doors open straight onto the pavement rather than sitting back
-  behind a lawn, so the toss is a little kinder — which is the point, given you had to get through
-  the traffic and over the tracks to reach them.
-- **The railway splits the map.** A train runs the Union Pacific corridor every 20–40 seconds and the
-  tracks are solid except at nine level crossings. The gates are drawn but never solid, so you can always
-  run one — you just have to be right. Get it wrong and the train takes your whole load and throws the car
-  clear of the rails. The cruiser is not exempt, which makes the crossing a genuine escape.
-- Each delivery buys more time on the shift clock. Bank as much as you can before it runs out.
-- **The board.** Take-home pay is the score. Beat the tenth place and you sign it with three initials
-  on a cabinet wheel — arrows, not typing. It survives a reload, and it shows up in the attract loop
-  every other cycle so you know what you are chasing.
+**Delivery.** The tip starts at $20.00 and drains to a $2.00 floor — faster every difficulty. Land the
+bag on the porch to deliver, on the doorstep for a **perfect toss** (+$5 and a star). Miss and it bursts,
+and still costs one from your bag of three. The **TACO-NAV** helps less as you go: full guidance on Easy,
+just the beacon over the house on Supreme. Clip pedestrians or drive on the pavement and Hays PD comes
+looking. The Union Pacific splits the map; the gates are drawn, not solid, so you can always run one.
 
-Leave it alone and it runs a cabinet-style attract loop — title, a public-service card, then 90 seconds of
-the game playing itself. Any key returns to the title.
+**Kitchen.** Tickets clip to the rail; the customer queues in the dining room above. The **recipes are
+hidden** — the pips say how many steps, not which — so the menu on the level card is the one look you
+get. Pick the base from a station, the ingredients from the twelve bins, in order; wrap each item, send
+the ticket. A wrong pick flashes the bin's plate red and holds it until you pick the right one: it costs
+the item's star and the ticket's +$5 clean bonus, but never your progress. A ticket's tip is the
+customer's patience — at zero they walk out. More than three waiting and the line complains, and every
+tip drains half again as fast. Bins never move between levels; the 1980s fill two empty ones (sauce,
+chili), the 1990s the last (chicken).
 
-`?seed=<number>` on the URL reshuffles the houses, props and scenery, deterministically. The street grid,
-the street names and the block programme come from `content/hays.json` and stay put — that is the map.
+Leave it alone and it runs a cabinet-style attract loop: title, a public-service card, the high-score
+board, then a random level playing itself.
 
 ## Development
 
 ```bash
-node build.mjs           # bundle src/*.js -> taco-shop.html (ship) + index.html (dev)
+node build.mjs           # validate content/, bundle src/*.js -> taco-shop.html (ship) + index.html (dev)
 node serve.mjs           # dev server on http://localhost:8123
 node test/headless.mjs   # test suite — runs the real game logic against a stub canvas
+node tools/render/frame.mjs <level> [secs] [--card|--clear|--over|--pause|--say]   # a real frame to PNG
 ```
 
 `src/*.js` are plain scripts concatenated in filename order, so the numeric prefix is the load order.
 `taco-shop.html`, `index.html` and `src/05_content.js` are generated — edit `src/`, `shell.html` and
 `content/`, then rebuild.
 
-Authored copy lives in `content/`: the attract card in `winners.json`, the attract rotation's timings in
-`attract.json`, the factory high-score board in `scores.json`, and the city itself — street names, the
-shop's cell and the 8×8 zoning table — in `hays.json`. Both are inlined at build time, so the shipped
-file stays self-contained. The build refuses any character the bitmap font cannot draw, a street list of the
-wrong length, an unknown block kind, or an address too wide for the order card.
+Everything authored lives in `content/` and is inlined and validated at build time: the levels, the
+difficulties, the three menus, the three maps, the dialogue, the attract card and timings, the factory
+board, the baked faces and ingredient wells, and the arranged music. The build refuses anything the
+bitmap font cannot draw, copy too wide for where it is drawn, a bin that moves between eras, a recipe that
+cannot be built, a Short name whose pips would hit the board, and a song newer than its level.
 
 ## Docs
 
-- **`ROADMAP.md`** — the punch list: every known bug, unbuilt feature and open question, in one place.
-- **`CLAUDE.md`** — architecture: coordinate systems, the baked ground layer, the y-sorted render pass,
-  traffic lane rules, and the invariants that keep every address winnable.
-- **`JOURNAL.md`** — the original brief, why each design call was made (and which alternatives were
-  rejected), the bugs that mattered, and the build order to repeat it.
-- **`GAME-SPEC-GUIDE.md`** — how to brief a game like this one so it can be built in a single pass.
+- **`docs/PURE-CARNAGE-DECISIONS.md`** — the owner's rulings for this build, and every invention, marked.
+- **`docs/gdd.md`** and **`docs/authored content/`** — the design.
+- **`ROADMAP.md`** — the punch list.
+- **`CLAUDE.md`** — architecture and invariants.
+- **`JOURNAL.md`** — why each design call was made, and the bugs that mattered.
+- **`docs/art_pipeline.md`** — how a face or an ingredient becomes source data.
