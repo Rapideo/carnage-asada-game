@@ -83,12 +83,11 @@ The dialogue width check is **not** the 384px one every other field uses: the po
 bubble, so the limit is computed from the widest baked face. A line that passes the screen-width check can
 still overflow the bubble, and nothing in the test suite can see it.
 
-**`content/lattice/*.json` is generated but does NOT ship yet.** It holds the baked
-steam-table wells, the two base stations and the item on the assembly board, and it is
-read straight off disk by `reference/kitchen/kitchen.mjs` — `build.mjs` never sees it,
-because the Kitchen Shift is not in `src/`. When it lands there, the lattice gets the
-same inlining and the same validation the faces already have. Re-bake with
-`tools/render/bake-lattice.mjs`; see `docs/art_pipeline.md`.
+**`content/lattice/*.json`** holds the baked steam-table wells, the two base stations and
+the item on the assembly board. It ships: `build.mjs` inlines and validates it as
+`LATTICE`, the same way it does the faces, and `74_kitchen.js` draws from it. Re-bake with
+`tools/render/bake-lattice.mjs`, and derive a recoloured well (SAUCE, CHILI) from an
+existing one with `tools/render/recolor-lattice.mjs`; see `docs/art_pipeline.md`.
 
 `slogan` and `attribution` each accept a string *or* an array of lines, and `overlayWinners` lays the
 attribution out below whatever the slogan needs, so long copy wraps rather than being cut. If you add copy
@@ -99,8 +98,8 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 - **`RESUME.md` — read this first when starting a session.** Where the last session
   left off, what the next one is for, the state of the repo, and what is still open. A
   snapshot: where it and `ROADMAP.md` disagree, the roadmap wins.
-- `ROADMAP.md` — **starts with `NEXT: build the full game`, which is the current priority** and
-  records what is already settled about the Kitchen Shift so it is not re-litigated. Then the open
+- `ROADMAP.md` — **starts with the current priority** (as of 2026-10-25: tools around the
+  authored content; the full game was built that day). Then the open
   punch list, and the tiered plan for reshaping the city into the real
   neighbourhood. **Read before touching the street grid**: it records which six modules assume a uniform
   block pitch, and which tiers are safe versus which are a rewrite.
@@ -123,10 +122,14 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
   superseded first by a PRD (2026-08-24), and that in turn by `docs/gdd.md`.
 - `docs/gdd.md` and `docs/authored content/*.md` — **the current design.** The GDD holds rules and
   structure; the per-topic files (`levels`, `difficulty`, `menu`, `attract`, `music`) hold the values.
-  **When they disagree, the authored content wins** (owner's ruling, 2026-09-26). Both are drafts with
-  unwritten sections — `ROADMAP.md` tracks which ones block the Kitchen Shift port. These are
-  markdown for people; the game reads `content/*.json`, so a value decided here still has to be
-  carried into JSON and validated by `build.mjs`.
+  **When they disagree, the authored content wins** (owner's ruling, 2026-09-26). Both were brought
+  up to date with the built game on 2026-10-25; the GDD ends with a list of what that build invented.
+  These are markdown for people; the game reads `content/*.json`, so a value decided here still has
+  to be carried into JSON and validated by `build.mjs`.
+- `docs/PURE-CARNAGE-DECISIONS.md` — **history, not spec.** The log of the 2026-10-25 build that
+  finished the game (done in a copy of this repo called "Pure Carnage", then merged back): the
+  owner's rulings that day, and every invention with its reasoning. The GDD and authored content
+  now carry the outcomes; read this for the *why*.
 - `docs/art_pipeline.md` — **how to add a character**: reference art requirements, the crop/fit/bake
   commands, the size budgets, and a troubleshooting table of every way it has gone wrong so far.
   Read before baking a face or touching `35_faces.js`.
@@ -702,6 +705,6 @@ the card.
 
 ## Publishing
 
-`taco-shop.html` is the shippable artifact: one self-contained file, ~232 KB. It must stay free of external
+`taco-shop.html` is the shippable artifact: one self-contained file, ~620 KB (the music, faces and lattice tables are most of it). It must stay free of external
 requests. `?seed=<int>` on the URL regenerates the city deterministically (mulberry32); the default seed is
 in `90_main.js`.

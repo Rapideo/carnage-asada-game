@@ -108,7 +108,7 @@ RESUME**. Where a ruling below differs from a doc, the ruling wins.
     Serving pays out and clears the ticket.
   - Pressing either too early is a buzz. It is not a mistake.
 - **Arrivals:** the first ticket arrives at 1.5s. After that, one every *New Ticket
-  Every* seconds, and at once if the rail and queue are both empty. Items per ticket are
+  Every* seconds, and after 0.6s if the rail and queue are both empty. Items per ticket are
   1..*max*, weighted toward 1-2.
 - **Patience and tip:** per GDD §IV.F and difficulty.md. A ticket's tip starts at
   `tipPerItem × items` and falls from arrival. At 0 the customer walks out: no pay, the
@@ -147,15 +147,16 @@ mode.
 
 ### Eras [INVENTED]
 
-- **Colour grade:** a per-era tone curve applied to the finished frame, after the CRT
-  pass.
+- **Colour grade:** a per-era tone curve applied to the world frame, before the cards and before the CRT
+  pass (scanlines and vignette), so cards keep their true colours.
   - 1970s: warm, lifted blacks, a slight orange-sepia.
   - 1980s: punchy, saturated magenta-cyan.
   - 1990s: cooler and slightly desaturated, with green-teal shadows.
-- **Accents per era as well:** car paint sets, the cast of faces, and the music.
+- **Accents per era as well:** the cast of faces and the music. (Per-era car paint sets
+  were planned but not built: every era uses the one `CAR_COLORS` set.)
 - **Seasons:**
   - **Winter:** a snow overlay with falling flakes, a snow grade on the ground, and
-    looser grip (more slide; the handbrake bites harder). Winter customers wear coats.
+    looser grip (more slide; the handbrake bites harder). Winter kitchen customers get snow on their hats (planned coats were not built).
   - **Summer:** heat shimmer is skipped (it would cost legibility). Summer is the
     baseline.
 
@@ -224,4 +225,5 @@ mode.
     guy, R&B singer).
   - Eye rects are cleared on every era face. The detector placed them badly, and a
     blink drawn in the wrong place paints across a cheek. Faces do not blink until
-    someone sets eyes by hand in `cast.mjs`.
+    someone sets `eyes` by hand in `content/faces/<name>.json`. A re-bake writes the
+    detector's guess back, so set them again after one.

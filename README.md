@@ -1,4 +1,4 @@
-# Taco Shop — Carnage Asada (Pure Carnage)
+# Taco Shop — Carnage Asada
 
 A 16-bit arcade game in two halves: **twenty shifts** at the Taco Shop in Hays, Kansas, from the summer
 of 1972 to the winter of 1999, alternating between the **Delivery Shift** (drive, toss, don't get caught)

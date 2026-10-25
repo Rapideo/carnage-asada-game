@@ -7,12 +7,90 @@ Checkboxes render as a live task list on GitHub:
 
 ---
 
-## NEXT: build the full game (paused 2026-08-24; design mostly settled 2026-09-26)
+## NEXT: tools for the authored content
 
-**This is the next piece of work.** Everything under *Punch list* below is the
-existing Delivery Shift and stays open, but it is not the priority. The Kitchen
-Shift port is still **held**: when it starts is the owner's call, and the gaps
-under *Still open* are what it would otherwise have to guess at.
+**The owner's next priority.** Build tools around the authored content: editing,
+validating and previewing the `content/*.json` files and the
+`docs/authored content/*.md` files they are carried from.
+
+*Placeholder.* The design will be worked out with the owner and is deliberately not
+sketched here. Two facts it will start from:
+
+- `build.mjs` already validates every content file and fails loudly.
+- `tools/render/` can already render a real frame headless.
+
+---
+
+## DONE: the full game (the 2026-10-25 build)
+
+The 2026-10-25 build finished the game the section below planned:
+
+- **20 levels** that alternate the Delivery Shift and the Kitchen Shift, as checkpoint
+  races, with level cards, LEVEL CLEAR, GAME OVER, initials, CONTINUE? and a victory
+  card.
+- **The Kitchen Shift**, in `src/74_kitchen.js`.
+- **Three eras**, each with its own map (`content/hays*.json`), menu, customer cast,
+  colour grade and music.
+- **Winter.**
+- **Control modes A, B and C** (`src/25_pad.js`).
+- **The four-screen attract loop**, with a random-level demo.
+
+The design as built is **`docs/gdd.md`**. The values are in `docs/authored content/`.
+Every owner ruling and every invention is recorded in `docs/PURE-CARNAGE-DECISIONS.md`.
+
+### Verified headless
+
+| check | result |
+|---|---|
+| `node build.mjs` | clean; `taco-shop.html` ~619 KB, 18 modules, all content validated |
+| `node test/headless.mjs` | PASS: the original suite plus `— run structure —`, `— kitchen —`, `— kitchen demo —` and `— copy —` |
+| `node tools/check-pad.mjs` | 209 passed |
+| `node tools/music/check-music.mjs` | all music checks pass |
+| `node tools/render/sweep.mjs 2` | the autoplayers clear every level; the Hard deliveries 13 and 15 cleared 1 run in 2 |
+| `tools/render/frame.mjs` | rendered frames of the title, mode select, every card type, every era's kitchen and city, winter, pause, dialogue and the touch overlay |
+
+### Still needs a human
+
+- [ ] **A real browser playtest, in depth.** Everything above is headless. Play
+      delivery and kitchen levels across the eras, in Mode A first:
+      `node serve.mjs`, then <http://localhost:8123/taco-shop.html>.
+- [ ] **The music, by ear.** The arrangements were chosen by structural heuristics,
+      because no agent can listen.
+      - Renders to listen to are in `tools/music/preview/*.wav`.
+      - To swap a song, edit `tools/music/songs.json`, then run
+        `node tools/music/midi2song.mjs --batch tools/music/songs.json`.
+- [ ] **Mode B on a real stick.** A gamepad press does not unlock audio in the
+      browser, so a stick-only cabinet needs Chrome launched with
+      `--autoplay-policy=no-user-gesture-required`.
+- [ ] **Mode C on a real phone.**
+- [ ] **Kitchen tuning.** The kitchen numbers are still the paper estimates from
+      `difficulty.md`. The sweep says they are winnable; a person has to say whether
+      they are fun.
+
+### Owner action before any public deploy
+
+- [ ] **Clearance for the MIDI arrangements.** The music arranges real songs, by the
+      owner's ruling, and the owner will get clearance. **This is not a blocker for
+      the work.** It has to be done before this build replaces what the public
+      Netlify site (`carnage-asada`) serves, which is still the original game.
+
+### Known soft spots
+
+- **Era faces don't blink.** The eye detector misplaced the eyes, so the eye rects were
+  cleared. Set them by hand to bring the blink back.
+- **The kitchen's winter is light:** snow on the customers' hats, and nothing more.
+- **In Mode C the minimap sits under the on-screen stick.**
+- **The Hard deliveries (levels 13 and 15)** cleared only 1 sweep run in 2.
+- **The kitchen frame's palette** was outside the GDD §X.1 targets before the build
+  (warm 28.7%, neutral 34.3%). No later measurement is recorded.
+
+---
+
+## The plan the build worked from (paused 2026-08-24; design settled 2026-09-26)
+
+*Kept as the record of what was settled before the build. Where an owner ruling of
+2026-10-25 changed something, it is noted inline; `docs/PURE-CARNAGE-DECISIONS.md` has
+the full list.*
 
 ### Where the design lives
 
@@ -69,8 +147,15 @@ the star at stake beside `ITEM 3 OF 5` (see *The clock card's third row* below).
 Every difficulty starts at 3:00. A kitchen ticket arrives at once whenever the rail
 empties. The kitchen numbers are paper estimates, to be tuned by playtest.
 
+*Changed by the 2026-10-25 rulings:*
+
+- **Extensions:** an extension is earned by every 3 completions, however they came
+  about, not by "all 3 bags from one load".
+- **The delivery tip** holds at a $2.00 floor instead of running out.
+
 **The Era 1 menu** (`menu.md`). Shredded cheese takes bin 9 (9 bins filled, 3 empty).
-The left base station stacks taco shell, small tortilla and large tortilla; the right is
+The left base station stacks small tortilla, taco shell and large tortilla, top to bottom
+(order settled 2026-10-25 to match the rack art); the right is
 chips. Soft Taco Supreme mirrors Hard Taco Supreme at $0.49; Beef Burrito's 0, 1, 3 was
 a typo; Nachos is $0.49. The step cap is **6 toppings, not counting the base**, so up to
 7 pips. Full names do not fit NOW BUILDING beside their pips, so **each item carries a
@@ -81,35 +166,40 @@ scale 2 from x6 to the board at x137). All nine were checked by arithmetic again
 
 ### Delivery Shift changes these imply
 
-Some settled rules **change the Delivery Shift as it plays today**, so they are Delivery
-work as well as Kitchen work:
+Some settled rules **changed the Delivery Shift as it played**, so they were Delivery
+work as well as Kitchen work. **All done in the 2026-10-25 build:**
 
-- **Level structure:** today one shift *is* the whole game. Levels, targets, continues
-  and a level table are a `G` state-machine change.
-- **The clock:** time comes only from the 3:00 start and the extensions. **`TIME_PER_JOB`
-  (+9s) and `TIME_PERFECT` (+3s) go.** A perfect delivery keeps only its +$5.
-- **Tip and fines:** Easy's $20 starting tip against today's `TIP_MAX` of $15. Easy's $5
-  speeding ticket against today's $10 (`TICKET`). A train fine, which is new.
-- **Navigation:** the ladder above removes aids that are always on today.
-- **Stars:** a perfect-delivery tally for the report card.
+- [x] **Level structure:** one shift used to *be* the whole game. Levels, targets,
+      continues and a level table are now a `G` state-machine change.
+- [x] **The clock:** time comes only from the 3:00 start and the extensions.
+      **`TIME_PER_JOB` (+9s) and `TIME_PERFECT` (+3s) are gone.** A perfect delivery
+      keeps only its +$5.
+- [x] **Tip and fines:** these now come from `content/difficulty.json`:
+      - the tip starts at $20 (the old `TIP_MAX` was $15) and holds at the $2 floor;
+      - the speeding ticket and pedestrian fines are per difficulty;
+      - there is a new train fine.
+- [x] **Navigation:** the ladder above takes aids away by difficulty.
+- [x] **Stars:** a perfect-delivery tally for the report card.
 
-### Still open
+### Still open (as of 2026-09-26), and how the build closed each
 
-- **Era 2 and Era 3 menus** (`menu.md`). Era 1 is enough to port against.
-- **The Kitchen Shift's keyboard and mouse map** (GDD §II.B.1 answers driving only).
-- **§IV.A–C** (kitchen mechanics, UI, controls) are empty headings. The core loop is
-  written, in a paragraph under §IV.F.2 that belongs under §IV.A.
-- **"More than 3 live tickets and customers start complaining"** (GDD §IV): what
-  complaining does is undefined.
-- **Maps 2 and 3, eras, seasons** are headings only, and `levels.md` names no map or
-  menu per level.
-- **Music** (`music.md`): 100 empty slots. Arranging real songs raises a copyright
-  question if the game is published.
-- **Attract mode:** `attract.md` asks for a separate High Scores screen (title 15s,
-  winners 10s, scores 10s, demo 45s); the game today alternates the winners card and the
-  board in one slot, on a 75s loop.
-- **The kitchen frame's palette** was outside the §X.1 targets (warm 28.7%, neutral
-  34.3%) before any of this — a finding for the port.
+- [x] **Era 2 and Era 3 menus.** Built from the real Taco Shop menu, by the owner's
+      ruling. Era 1 stays `menu.md` exactly. See GDD §IV.E.
+- [x] **The Kitchen Shift's keyboard and mouse map**, and Modes B and C. See GDD §IV.C.
+- [x] **§IV.A–C** (kitchen mechanics, UI, controls) are filled from what was built. The
+      owner's core-loop paragraph is still under §IV.F.2, where the owner left it.
+- [x] **"More than 3 live tickets and customers start complaining."** By the owner's
+      ruling: past three, customers queue in the OVERHEAD, every live ticket drains 50%
+      faster, and they bark.
+- [x] **Maps 2 and 3, eras, seasons.** One map and one menu per era, a colour grade per
+      era (owner's ruling), and winter snow and grip. See GDD §II.J, §II.K and §III.C.1.
+- [x] **Music.** 42 arrangements of real MIDIs: two per level, plus the title. Copyright
+      is an owner action before any public deploy (see above).
+- [x] **Attract mode.** Four screens, with the board as its own screen and a
+      random-level demo.
+- [ ] **The kitchen frame's palette** was outside the §X.1 targets (warm 28.7%, neutral
+      34.3%) before any of this — a finding for the port. *Still open: no measurement
+      of the built kitchen is recorded.*
 
 ### What is already settled, and should not be re-litigated
 
@@ -139,7 +229,8 @@ questions:
 - **Two BASE STATIONS flank the twelve**, double height, one column each: tortillas
   and shells at x5, chips at x334. A station holds the thing an order is built *on*
   rather than an ingredient added to it, which is why it sits outside the count.
-- **PORTING THE KITCHEN SHIFT INTO `src/` IS THE NEXT REAL PIECE**, and it is deliberately
+- **PORTING THE KITCHEN SHIFT INTO `src/` IS THE NEXT REAL PIECE** *(done 2026-10-25:
+  it is one `Kitchen` object in `src/74_kitchen.js`, as recommended below)*, and it is deliberately
   **held until the design docs land**. §IV.A, §IV.B, §IV.C and §IV.E were all empty as of 2026-08-25,
   which means the play mechanics, the interactions, the controls and the entire menu are
   unspecified — building recipes against that is inventing placeholders, which is exactly what
@@ -182,19 +273,25 @@ questions:
 
 ### Known first tasks, once the design docs land
 
-- [ ] A `kitchen` state in `80_game.js`, and a level table that alternates it with
-      `play`. Seven states exist today and none of them is a kitchen.
-- [ ] A new module for it — numbered after everything it uses at load time. Note
+*All done in the 2026-10-25 build.*
+
+- [x] A `kitchen` state in `80_game.js`, and a level table that alternates it with
+      `play`. Seven states existed then and none of them was a kitchen.
+      *Now there are `kitchen` and `kdemo`, driven by `content/levels.json`.*
+- [x] A new module for it — numbered after everything it uses at load time. Note
       `40_city.js` is not a dependency; the Kitchen Shift has no world.
-- [ ] `content/menus.json` on the §IV.E schema, inlined by `build.mjs` like the
+      *`src/74_kitchen.js`.*
+- [x] `content/menus.json` on the §IV.E schema, inlined by `build.mjs` like the
       other content files, with build-time validation extended to cover recipes.
       **A note is not a guard.**
 - [x] The dialogue strip promoted out of `reference/` into `src/`, since both
       halves use it. **Done 2026-08-24** (`50da529`): `src/72_dialog.js`, with the
       faces in `src/35_faces.js` and `G.react()` firing it on a delivery or a miss.
       The Kitchen Shift calls the same strip; it does not port a second one.
-- [ ] Test coverage for the new state. Remember `test/headless.mjs` draws through
+- [x] Test coverage for the new state. Remember `test/headless.mjs` draws through
       stubs and cannot see a pixel — use `tools/render/` for anything visual.
+      *`— run structure —`, `— kitchen —`, `— kitchen demo —` and `— copy —`, with
+      rendered frames for the visual checks.*
 
 ### The clock card's third row is STARS (was ERRORS)
 
@@ -279,39 +376,60 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
       mouse position or facing direction. Note the design tension: throw spread scales with speed
       (`speed / MAXSPD * 22` px against a 28px porch), and that trade *is* the game's core skill, so
       auto-aim changes the feel more than any other item on this list.
-- [ ] **A second time period.** `content/hays.json` exists in the shape it does to make this cheap:
+      *Partly answered 2026-10-25: Modes B and C throw by hold-to-aim and release. Mode A is
+      unchanged, so the question still stands for the keyboard and the mouse.*
+- [x] **A second time period.** `content/hays.json` exists in the shape it does to make this cheap:
       another era is another file against the same schema plus a switch on which one loads, not
       another pass through `40_city.js`. Nothing in the city generator hard-codes a year. See §4 of
-      the spec.
-- [ ] **The kitchen — the other half of the game.** **Scope changed 2026-08-23, and the change is
+      the spec. **Done 2026-10-25, and it was as cheap as promised.** There are three eras, each
+      its own map: `hays.json`, `hays-1980s.json` and `hays-1990s.json`. They share the same
+      streets and the same shop cell, and only the zoning moves. The city regenerates when the
+      era changes. See GDD §III.C.1.
+- [x] **The kitchen — the other half of the game.** **Done 2026-10-25** (`src/74_kitchen.js`,
+      GDD §IV). **Scope changed 2026-08-23, and the change is
       large.** This was filed as a mini-game replacing the flat 1.0s restock. It is not one. The
       kitchen is now the *other half of the play*: players alternate between driving deliveries and
       making the food, and the brief says so in its first line. Treat any earlier framing of it as a
       restock replacement as superseded.
 
-      **Superseded as a punch-list item: this is now *NEXT* at the top of this file.** The two
+      **Superseded as a punch-list item: it became the *NEXT* section, which the 2026-10-25
+      build closed (*DONE* at the top of this file).** The two
       briefs this item described (`docs/kitchen-minigame-prompt*.md`) were deleted, replaced first
       by a PRD and then by `docs/gdd.md` and `docs/authored content/`. What they had already
       settled carried over: menu, ingredients and build order as a **JSON settings file** on the
       `content/` pattern; **concurrent** tickets, up to three live at once; 1–5 items per order.
 
-- [ ] **Seasonal hazards.**
-- [ ] **NPC feedback — APB-style character dialogue.**
+- [ ] **Seasonal hazards. Partly done 2026-10-25.**
+      - Built for winter: snow on the ground and the roofs, falling flakes, and grip x0.62.
+        In the kitchen, snow on the customers' hats.
+      - Not built: any seasonal hazard beyond grip.
+- [x] **NPC feedback — APB-style character dialogue.** The dialogue strip landed
+      2026-08-24. The 2026-10-25 build gave it era casts and lines for both halves
+      (`content/dialogue.json`, GDD §II.H). Customers are the only speakers. Drivers and
+      staff have no lines yet.
 
 ### Housekeeping
 
 - [ ] **Default branch is `master`, not `main`.** GitHub took what the repo had. One command if it
       matters: `git branch -m master main && git push -u origin main`.
+- [ ] **Merge the 2026-10-25 build back.** The build was done in a copy of the repo, on branch
+      `pure-carnage`, and that copy is to be archived once the work is merged into the
+      original project.
 
 ### Open questions
 
 These need a decision before they can become work.
 
-- [ ] **Difficulty progression.** Grid expansion? A faster timer? Something else? Note the shift
+- [x] **Difficulty progression.** Grid expansion? A faster timer? Something else? Note the shift
       clock is already a survival curve — 110s to start, +9s per delivery, +12s for a perfect toss —
       so difficulty may be more about tightening that ratio than adding systems.
-- [ ] **Is the ticket right at $10?** **Lowered from $15 to $10 on 2026-08-23** and not yet
-      played. The reasoning below is why, and the numbers in it were measured at $15.
+      **Answered by `difficulty.md` and built 2026-10-25.** There are four difficulties: Easy,
+      Medium, Hard and Supreme. Each sets the extension length and cap, the tip decay, the
+      fines and the navigation ladder. The time-per-delivery clock described above is gone.
+- [ ] **Is the ticket right?** **Lowered from $15 to $10 on 2026-08-23.** It is now per
+      difficulty: $5 on Easy, $10 on Medium and Hard, and $15 on Supreme (`difficulty.md`).
+      None of these amounts has been played. The reasoning below is why the question was asked,
+      and the numbers in it were measured at $15, on the old clock.
 
       Original question: This question has
       **reversed** since it was first written, and the reversal is the interesting part.
@@ -351,12 +469,21 @@ These need a decision before they can become work.
       `retail`/`apts` in `addAddress`, not the address count — narrowing the downtown target to
       ~18px was the rejected alternative and is a one-number change if it turns out to be wanted.
       Decide by playing, not by arithmetic.
-- [ ] **What happens when Hays PD catches you?** Currently a $10 ticket (was $15 until
-      2026-08-23), a spin-out and heat reset.
+- [ ] **What happens when Hays PD catches you?** Currently the difficulty's speeding ticket
+      ($5 to $15; it was a flat $15 until 2026-08-23, then $10), a spin-out, a heat reset and
+      a combo reset.
 - [ ] **How should the player car read as *the* car?** Turning it white is the starting idea.
-- [ ] **Gamepad / Xbox controller support**, and whether an on-screen control overlay comes with it.
+- [x] **Gamepad / Xbox controller support**, and whether an on-screen control overlay comes with it.
+      **Built 2026-10-25:**
+      - Mode B, the arcade stick, uses the Gamepad API with Button 3 held to aim.
+      - Mode C, touch, has an on-screen stick plus GAS, REV and TOSS.
+      - Both go through `src/25_pad.js`.
+
+      Neither has been tried on real hardware yet (see *Still needs a human*).
 
 ### Landed, for the record
+
+Closed 2026-10-25: **the full game.** See *DONE* at the top of this file.
 
 Closed 2026-08-23: **the attract loop, judged on measurement.** It was title 30s / winners 15s /
 demo 90s, and the entry asked for a judgement nobody had made. Across 24 full demo runs the first
@@ -366,6 +493,8 @@ flat past 60s: a 60s demo and the 90s one both showed at least one delivery in 9
 roughly one demo in five now shows a single delivery rather than two, accepted deliberately for a
 snappier cabinet. The title held 30s while its lockup completes at 3s, so 27 of those seconds were a
 static screen; cut to **15s**. Full cycle **135s → 75s**, all of it in `content/attract.json`.
+*Since 2026-10-25 (from `attract.md`), the loop is four screens: title 15s, winners 10s, scores 10s
+and demo 45s, which is 80s a cycle. The board has its own screen, and the demo plays a random level.*
 
 `test/headless.mjs` had an 85-second demo loop hard-coded against the old 90 and would have failed
 outright; it derives the length from `ATTRACT_DEMO` now, so retuning the authored file cannot break
@@ -622,6 +751,13 @@ room for.
 ### Playtest notes — 2026-08-21
 
 Measured over three shifts. Numbers, not impressions; feel is still untested.
+
+*These notes predate the 2026-10-25 build:*
+
+- *They were measured on the old clock (110s, plus time per delivery) and the old $15 tip.*
+- *The break-even point below no longer applies, because time now comes only from
+  extensions.*
+- *The tip-floor observation still holds, because the $2 floor was kept.*
 
 - **Break-even is about 9 seconds per delivery**, and the best measured round trip was 9.4s. A
   delivery buys `TIME_PER_JOB` = 9s (12s perfect) against a 110s shift, so the game is a survival

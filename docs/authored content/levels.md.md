@@ -1,5 +1,35 @@
 # levels.md
 
+Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
+`content/levels.json`.
+
+- Eras : each era has its own map, menu, cast of customers, car paint, music and colour
+  grade
+
+  - 1970s : levels 1-6, Map 1, Menu 1 (menu.md Era 1)
+
+  - 1980s : levels 7-12, Map 2, Menu 2
+
+  - 1990s : levels 13-20, Map 3, Menu 3
+
+  The three maps are downtown Hays with the same streets and the same shop; only the
+  zoning moves on from era to era.
+
+- Seasons : Summer is the baseline. Winter lays snow over everything but the ploughed
+  roads and on every roof, with falling flakes, and the car grips at 0.62 of normal, so it
+  slides more and the handbrake bites harder. Kitchen customers come in with snow on
+  their hats
+
+- Music : names the music.md section the level plays
+
+- Level Card : `LEVEL n` over the season and year, for example `SUMMER 1972`. A Kitchen
+  level's card also carries that era's menu, every recipe in build order, because the
+  recipes are hidden during play
+
+- Clearing : reach the difficulty's level target before the clock runs out (see
+  difficulty.md). Then comes the LEVEL CLEAR card and the next level's card; after Level
+  20, the victory card
+
 ## I. Level 1
 
 - Sequence : 1
@@ -90,11 +120,11 @@
 
 - Era : 1970s
 
-- Music : 1978 - Kitchen 
+- Music : 1978 - Kitchen
 
 - Difficulty : Easy
 
-- Season :  Winter
+- Season : Winter
 
 ## VII. Level 7
 
@@ -152,7 +182,7 @@
 
 - Name : Level 10 - Summer 1984
 
-- Era :1980s
+- Era : 1980s
 
 - Music : 1984 - Kitchen
 
@@ -178,7 +208,7 @@
 
 ## XII. Level 12
 
-- Sequence :12
+- Sequence : 12
 
 - Game Type : Kitchen
 
@@ -258,7 +288,7 @@
 
 ## XVII. Level 17
 
-- Sequence : 17 
+- Sequence : 17
 
 - Game Type : Delivery
 
@@ -272,7 +302,7 @@
 
 - Season : Summer
 
-## IIXX. Level 18
+## XVIII. Level 18
 
 - Sequence : 18
 
@@ -288,7 +318,7 @@
 
 - Season : Winter
 
-## IXX. Level 19
+## XIX. Level 19
 
 - Sequence : 19
 
@@ -310,9 +340,9 @@
 
 - Game Type : Kitchen
 
-- Name : Leve 20 - Winter 1999
+- Name : Level 20 - Winter 1999
 
-- Era : Winter 1999
+- Era : 1990s
 
 - Music : 1999 - Kitchen
 

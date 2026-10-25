@@ -1642,7 +1642,8 @@ const G = {
 
 /* ---------------- CRT-ish post, and the era grade ------------- */
 /* The grade is the owner's ruling of 2026-10-25: a full colour grade per era.
-   It runs on the finished frame, after the scanlines, as a per-pixel curve:
+   It runs on the world frame, before the cards and the scanlines, as a
+   per-pixel curve:
      1970s  warm and lifted, a little sepia, blacks never quite black
      1980s  punchy: more saturation and contrast, magenta in the shadows
      1990s  cooler and a touch desaturated, teal in the shadows

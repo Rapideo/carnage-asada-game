@@ -12,6 +12,20 @@ While the game as it sits is HIGHLY playable, and overall a very impressive effo
 
 Allowing for this requires specific updates to the Delivery Shift game; changes to how the player controls currently work, to map expansion efforts, to difficulty parameters, adding a dialog engine, and more.
 
+**Current state (2026-10-25).** That game now exists. The 2026-10-25 build finished it:
+
+- 20 levels that alternate the Delivery Shift and the Kitchen Shift, ten of each.
+- Three eras (1970s, 1980s, 1990s), each with its own map, menu, customer cast, colour
+  grade and music.
+- Two seasons. Winter puts snow on the city and loosens the car's grip.
+- Three control modes (A, B and C), chosen on a mode-select screen.
+- A four-screen attract loop.
+
+The rules below describe the game as built. The values (level table, difficulty numbers,
+menus, attract timings, songs) live in `docs/authored content/*.md` and, for the game
+itself, in `content/*.json`. Every ruling and invention from the build is recorded in
+`docs/PURE-CARNAGE-DECISIONS.md`. Section XI lists the inventions.
+
 **Context Clarification**
 
 *THIS IS NOT A JUST MINI-GAME.* This was introducted to our current project as  new "mini game" but this framing was incorrect. The new "kitchen shift" game will equally represent the "delivery shift" game in the 20 total levels of Carnage Asada, with 10 levels for each. 
@@ -25,6 +39,12 @@ The two games, while both contibuting to the overall player's point total - are 
 **Carnage Asada's look and feel are right and are not up for revision.** The frantic pace, the arcade read, the CRT pass, the palette discipline, the procedural chunky sprites, the chip audio — that's the product. The Build is being brought *into* this game's aesthetic, not bolted onto the side of it. If any detail of this fights the way this game looks or sounds, **this game wins**. If it cannot live up to this standard, we scrap it. 
 
 **The bar: I should not be able to tell, from a screenshot, that this this is a different game after this change effort than before it.**
+
+*Owner's ruling, 2026-10-25: each era gets **a full colour grade** (§II.J), which
+overrides the screenshot rule above and the old "no new colour" rule. Everything else in
+this section stands. The grade colours the world: the city or the kitchen, and the HUD
+inside it. The level cards, menus and pause screen are drawn after the grade, so they keep
+the game's own colours in every era.*
 
 ### B. Controls
 
@@ -40,7 +60,46 @@ Mode B expands these controls (the game should allow for the selection of Contro
 
 Mode C further expands the Arcade controls from Mode B, adding a joytick and button control overley to the screen during the driving sequences, and a a touch-based interface for the Kitchen Shift. 
 
+#### 4. As built
+
+- **All three modes ship** (owner's ruling, 2026-10-25).
+- **The mode is chosen on a mode-select screen**, between the title and the first level
+  card. It preselects one:
+  - C on a touch-first device;
+  - B when a gamepad has been seen;
+  - otherwise A.
+
+  A gamepad is invisible to the browser until one of its buttons is pressed, so the
+  screen keeps checking until the player picks a mode.
+- **Modes B and C do not add a second input path.** `src/25_pad.js` (`Pad`) turns the
+  stick, the buttons or the touch overlay into the same key codes and mouse fields the
+  game already reads. Anything still held when the context changes (menu, drive,
+  kitchen) is ignored until it is let go. Without that, the button that serves the last
+  ticket would also skip the level-clear card.
+- **In every mode, P / Esc pauses.** The pause overlay is the only place the controls are
+  written down, and it shows the current mode's labels.
+- The per-shift maps are in §III.B (driving) and §IV.C (kitchen).
+- **Audio note for Mode B:** browsers do not count a gamepad press as a gesture that
+  unlocks audio. A stick-only cabinet needs Chrome launched with
+  `--autoplay-policy=no-user-gesture-required`.
+
 ### C. Attract Mode
+
+The cabinet loop is **four screens**, in order: title, winners, high scores, then a demo.
+The durations are in `attract.md` (carried into `content/attract.json`).
+
+- **Title:** the badge, `IN`, and the `CARNAGE ASADA` wordmark landing with a rumble, over
+  Map 1. Enter, Space or a click goes to mode select.
+- **Winners:** the period "Winners Don't Use Drugs" card, with the slogan and attribution
+  from `attract.md` (carried into `content/winners.json`).
+- **High scores:** the board, as its own screen.
+- **Demo:** **a random level** of the 20.
+  - A delivery level is driven by the attract driver (`Demo`).
+  - A kitchen level is cooked by the kitchen autoplayer. It plays at a human pace and gets
+    about one pick in twelve wrong, so the demo shows what a wrong pick looks like.
+  - The demo always shows full navigation, scores nothing, and keeps the dialogue strip
+    quiet.
+  - The overlay blinks `PRESS ESC TO RETURN TO MENU`. Any key returns to the title.
 
 ### D. The Clock
 
@@ -54,6 +113,11 @@ If the player meets the expectations of the individual levels, dependant on the 
 
 *The starting time, extension length and cap are set per difficulty in `difficulty.md`,
 which wins over the 2 minutes and FOUR above (3:00, and up to five on Easy).*
+
+*Owner's ruling, 2026-10-25: **every 3 completed deliveries or tickets earn one
+extension**, however they came about. They do not have to be one bag load, and a miss only
+delays the extension. This overrides `difficulty.md`'s "all 3 bags from one load". Time
+comes only from the starting clock and the extensions. There is no time per delivery.*
 
 #### 3. Level End
 
@@ -78,7 +142,56 @@ A full 20-level run is expected to take around two hours, and that is intended
 Rough estimate, at ~25-30s per delivery or ticket: a level runs 6-7 minutes (about 4 on
 Supreme), and a full 20-level run takes about two hours.
 
+#### 4. The Run, Screen by Screen
+
+```
+title -> mode select -> level card -> shift -> LEVEL CLEAR -> next level card -> ...
+0:00          -> GAME OVER -> initials (if the run places) -> CONTINUE? 10s
+level 20 done -> victory   -> initials (if the run places) -> high scores -> attract
+```
+
+- **The level card** comes before every shift. The shift is already set up behind it, so
+  it reads as the start of a shift rather than a loading screen.
+  - It shows the level number and name, the shift type and the difficulty.
+  - A delivery card lists the target, the clock and extension rules, the tips, the fines,
+    the TACO-NAV level, and the roads (dry, or snow).
+  - A kitchen card shows the target and **the menu** (§IV.B).
+  - Enter starts the shift, and so does waiting 12 seconds.
+- **LEVEL CLEAR** shows the level's own tally and stars (§II.E), the money from this shift,
+  the run total, and what the next level is.
+- **GAME OVER** (`TIME'S UP`) shows the level you died on, the run total, the run's stars
+  and rank, and either `NEW HIGH SCORE!` or what the board's lowest entry is.
+- **Victory**, after level 20, shows the run total, stars and rank. It then goes to initials
+  if the run places, and then to the board.
+- **Development aids:** `?level=N` starts a run at level N (the mode-select screen says
+  so), and `?seed=` still seeds the city.
+
 ### E. Scoring
+
+- **The score is the money**, in integer cents, as it always was. `G.earned` is the
+  **run** total, which is what the board stores. Each level also keeps its own total for
+  the LEVEL CLEAR card.
+- **Both shifts pay tips** (§III.E, §IV.F), and both multiply what they pay by a
+  **combo**. The combo starts at x1.00, rises 0.25 per completion to x3.00, and **resets at
+  the start of every level**. Each shift also has its own reset rules.
+- **Fines and fees come off the run total and the level total**, and neither goes below
+  $0.00. The amounts are per difficulty in `difficulty.md`.
+- **Stars** are a report card, never money (§III.E.1, §IV.F.1).
+  - A level's stars appear on its LEVEL CLEAR card.
+  - The run's stars appear on the GAME OVER and victory cards.
+  - Stars never appear on the board.
+- **Rank titles** are rescaled for a 20-level run. The board's factory entries
+  (`content/scores.json`) were rescaled to match. The title is derived from the cents
+  when it is drawn, so retuning these thresholds reflows the whole board (`G.rank()` in
+  `src/80_game.js`):
+
+  | rank | run total |
+  |---|---|
+  | TRAINEE | under $250 |
+  | DRIVER | under $1,000 |
+  | ACE | under $2,500 |
+  | SALSA BARON | under $5,000 |
+  | LEGEND OF THE ASADA | $5,000 and up |
 
 ### F. High Scores
 
@@ -95,269 +208,118 @@ The board is unchanged: an entry is `{ ini, cents }`, entered with the arrow key
 30 seconds idle saves it as `AAA` (see `docs/superpowers/specs/2026-08-21-high-scores-design.md`).
 Stars never appear on it.
 
+A run that clears level 20 goes from the victory card to initials (if it places), then to
+the board, and from there back to the title.
+
 ### G. Levels
 
-#### 1. Level 1
-
-- Name : Summer - 1972
-
-- Type : Delivery Shift
-
-- Difficulty Level : Easy
-
-- Map : 1
-
-- Era : 1970s
-
-#### 2. Level 2
-
-- Name : Winter - 1972
-
-- Type : Kitchen Shift
-
-- Difficulty Level : Easy
-
-- Menu : 1
-
-- Era : 1970s
-
-#### 3. Level 3
-
-- Name : Winter - 1975
-
-- Type : Delivery Shift
-
-- Difficulty Level : Easy 
-
-- Map : 1
-
-- Era : 1970s
-
-#### 4. Level 4
-
-- Name : Summer - 1975
-
-- Type : Kitchen Shift
-
-- Difficulty Level : Easy
-
-- Menu : 1
-
-- Era : 1970s
-
-#### 5. Level 5
-
-- Name : Summer - 1978
-
-- Type : Delivery Shift
-
-- Difficulty Level : Medium
-
-- Map : 1
-
-- Era : 1970s
-
-#### 6. Level 6
-
-- Name : Winter - 1978
-
-- Type : Kitchen Shift
-
-- Difficulty Level : Medium
-
-- Menu : 1
-
-- Era : 1970s
-
-#### 7. Level 7
-
-- Name : Winter - 1981
-
-- Type : Delivery Shift
-
-- Difficulty Level : Easy
-
-- Map : 2
-
-- Era : 1980s
-
-#### 8. Level 8
-
-- Name : Summer - 1981
-
-- Type : Kitchen Shift
-
-- Difficulty Level : Easy
-
-- Menu : 2
-
-- Era : 1980s
-
-#### 9. Level 9
-
-- Name : Summer - 1984
-
-- Type : Delivery Shift
-
-- Difficulty Level : Medium
-
-- Map : 2
-
-- Era : 1980s
-
-#### 10. Level 10
-
-- Name : Winter 1984
-
-- Type : Kitchen Shift
-
-- Difficulty Level : Medium
-
-- Menu : 2 
-
-- Era : 1980s
-
-#### 11. Level 11
-
-- Name : Winter - 1987
-
-- Type : Delivery Shift
-
-- Difficulty Level : Medium
-
-- Map : 2
-
-- Era : 1980s
-
-#### 12. Level 12
-
-- Name : Summer 1987
-
-- Type : Kitchen Shift
-
-- Difficulty Level : Medium
-
-- Menu : 2
-
-- Era : 1980s
-
-#### 13. Level 13
-
-- Name : Summer 1990
-
-- Type : Delivery Shift
-
-- Difficulty Level : Easy
-
-- Map : 3
-
-- Era : 1990s
-
-#### 14. Level 14
-
-- Name : Winter 1990
-
-- Type : Kitchen Shift
-
-- Difficulty Level : Easy
-
-- Menu : 3
-
-- Era : 1990s
-
-#### 15. Level 15
-
-- Name : Winter 1993
-
-- Type : Delivery Shift
-
-- Difficulty Level : Medium
-
-- Map : 3
-
-- Era : 1990s
-
-#### 16. Level 16
-
-- Name : Summer 1993
-
-- Type : Kitchen Shift
-
-- Difficulty Level : Medium
-
-- Menu : 3
-
-- Era : 1990s
-
-#### 17. Level 17
-
-- Name : Winter 1996
-
-- Type : Delivery Shift
-
-- Difficulty Level : Medium
-
-- Map : 3
-
-- Era : 1990s
-
-#### 18. Level 18
-
-- Name : Summer 1996
-
-- Type : Kitchen Shift
-
-- Difficulty Level : Medium
-
-- Menu : 3
-
-- Era : 1990s
-
-#### 19. Level 19
-
-- Name : Summer 1999
-
-- Type : Delivery Shift
-
-- Difficulty Level : Hard
-
-- Map : 3
-
-- Era : 1990s
-
-#### 20. Level 20
-
-- Name : Winter 1999
-
-- Type : Kitchen Shift
-
-- Difficulty Level : Hard
-
-- Menu : 3
-
-- Era : 1990s
+The level table is **`levels.md`**, carried into `content/levels.json`. The level-by-level
+list that used to be here was retired in the 2026-10-25 build, because it had drifted from
+`levels.md` (its seasons for levels 7-12 and 17-18 and its difficulty curve were wrong).
+The authored table wins.
+
+The structure the table follows:
+
+- **Odd levels are Delivery Shifts and even levels are Kitchen Shifts**, so each pair
+  shares a year: 1972, 1975, 1978, then on in three-year steps to 1999.
+- **Era:** levels 1-6 are the 1970s, 7-12 the 1980s, and 13-20 the 1990s.
+- **Map and menu follow the era.** Map 1 and Menu 1 go with the 1970s, Map 2 and Menu 2
+  with the 1980s, Map 3 and Menu 3 with the 1990s.
+- **Difficulty** runs Easy for levels 1-6, Medium for 7-12, Hard for 13-18, and Supreme
+  for the two 1999 finales.
+- **Season** alternates within a year's pair, so every level is either Summer or Winter.
 
 ### H. Characters and Dialog System
 
+One dialogue mechanism serves both halves: the bottom **DIALOGUE STRIP**
+(`src/72_dialog.js`). It has a portrait box, a speech bubble and a slide-in, and it is
+drawn the same way over a live delivery frame and over the kitchen.
+
+- **The lines** are in `content/dialogue.json`, grouped by moment:
+  - Delivery: `delivered`, `late`, `missed`.
+  - Kitchen: `arrive`, `wait`, `queue`, `walkout`, `served`, `wrong`.
+- **A line can carry an era floor.** For example, `2|HELLOOO? MCFLY?` only plays from the
+  1980s on, so nobody quotes a film that has not come out yet.
+- **The strip is rate-limited in the kitchen**, because it covers the lower bins. A
+  walkout always speaks.
+- **It stays silent in attract mode.** A talking head over the demo reads as a cutscene
+  rather than as play.
+
 #### 1. Customers - move to game type
+
+Customers are the only speakers. Each era has its own **cast** of baked portraits:
+
+- six for the 1970s, five for the 1980s and five for the 1990s;
+- baked from the first reference sheet of each era with `tools/render/bake-face.mjs`
+  (`docs/art_pipeline.md`), and stored in `content/faces/c70*`, `c80*` and `c90*`.
+
+Two kinds of reference portrait were left out:
+
+- any whose clothing carries a real trademark;
+- any whose black hair or jacket was lost into the black background when baked.
+
+How each shift uses the cast:
+
+- **Delivery Shift:** a face is picked from the era's cast for each reaction.
+- **Kitchen Shift:** each customer gets a face when they arrive, and keeps it for the life
+  of their ticket.
+
+Era faces do not blink yet. The eye detector misplaced the eyes, so their eye rects were
+cleared in the shipped face data. Setting them by hand brings the blink back.
 
 #### 2.  Drivers - move to game type
 
-#### 2. Taco Shop Staff - move to game type
+Not built. The 2026-10-25 build gave no other driver a voice.
+
+#### 3. Taco Shop Staff - move to game type
+
+Not built. The 2026-10-25 build gave the staff no lines.
 
 ### J. Eras
 
 Over the 20 levels, the game will feature 3 "Eras"; the 1970s, 1980's, and 1990s which will impact the global look and feel of the game by utilizing both an Era-Specific color pallete, as well as changes to the menus, characters, and dialog. 
 
+As built, an era changes:
+
+- **the map:** the same streets and the same shop cell, but different zoning (§III.C.1);
+- **the menu** (§IV.E);
+- **the customer cast** (§II.H.1);
+- **the dialogue:** lines with a later era floor join the pool;
+- **the music:** songs from the level's years (§II.L);
+- **the colour grade:** a per-pixel tone curve over the world (§II.A).
+
 #### 1. 1970s
+
+Levels 1-6, Map 1, Menu 1. The grade is warm and lifted, a little sepia, and the blacks are
+never quite black.
 
 #### 2. 1980s
 
+Levels 7-12, Map 2, Menu 2. The grade is punchy: more saturation and contrast, with magenta
+in the shadows.
+
 #### 3. 1990s
+
+Levels 13-20, Map 3, Menu 3. The grade is cooler and a touch desaturated, with teal in the
+shadows.
 
 ### K. Seasons
 
 The game levels will also specify a Season, either Summer of Winter, which wil dictate both driving conditiions, hazards, and customer dress. 
+
+As built:
+
+- **Summer** is the baseline. Heat shimmer was considered and skipped, because it would
+  cost legibility.
+- **Winter, in the Delivery Shift:**
+  - Snow lies on everything that is not road. The ploughed streets keep a little slush.
+  - Every building roof has snow on it, and snow falls across the screen.
+  - The car's grip drops to x0.62, so the back end steps out. The level card warns
+    `SNOW - THE BACK END STEPS OUT`.
+- **Winter, in the Kitchen Shift:** the customers have snow on their hats. Nothing else
+  changes.
+
+There are no seasonal hazards beyond grip yet.
 
 ### L. Music
 
@@ -365,41 +327,94 @@ By leveraging music from each defined era, the games music will be a direct refl
 
 Songs themselves will be derived from MIDI files, passed thru a Note JS conversion process that will leave us with a JSON song structure file, and instruction as to which model of synthesis and instuments to utilize.
 
-### III. Authored Content
+As built (owner's ruling, 2026-10-25: arrange the real MIDIs):
 
-## A. Attract Mode (attract.md)
+- **The songs are arranged from real MIDI files** in `reference/assets/midi/`.
+- **The conversion:** `tools/music/midi2song.mjs` reduces each MIDI to a bass, a lead, up
+  to two harmony voices and a drum kit, written as one JSON file per song in
+  `content/music/`. The input list, with any part or window overrides, is
+  `tools/music/songs.json`.
+- **Playback:** `src/22_music.js` plays the songs through the game's own chip voices
+  (square, triangle, pulse, noise). M and N still toggle sound and music.
+- **The playlist:** `content/music/playlist.json` gives each level **two songs**, played in
+  order and looped, and gives the title its own pair.
+  - Delivery songs are upbeat.
+  - Kitchen songs are mellow or solo-danceable.
+- **The year rule is a build check, not a note.** A level's song may come from the level's
+  year or up to 2 years before it, never after. `build.mjs` checks each song's release
+  year.
+- **The song list is in `music.md`** (and in `playlist.json`).
+- **Because no agent can listen,** the arrangements were chosen by structural heuristics.
+  `tools/music/preview/*.wav` holds renders to check by ear.
 
-## B. Levels (levels.md)
+### M. Authored Content
 
-## C. Difficulty (difficulty.md)
+The values the rules above use. These are markdown for people. The game reads the
+`content/*.json` files, and `build.mjs` validates each one at build time.
 
-- ## D. Menu (menu.md)
+#### A. Attract Mode (attract.md)
 
-- Era 1
+Screen order and durations, the winners card copy, and the demo overlay text.
+Carried into: `content/attract.json`, `content/winners.json`
 
-- Era 2
+#### B. Levels (levels.md)
 
-- Era 3
+The 20-level table: type, name, era, season, difficulty, music slot.
+Carried into: `content/levels.json`
 
-## E. Characters (characters.md)
+#### C. Difficulty (difficulty.md)
 
-- Era 1 
+Per difficulty, for both shifts:
 
-- Era 2
+- the clock and extensions;
+- the level target;
+- the delivery tip and its decay;
+- the fines;
+- the navigation ladder;
+- the kitchen tip, patience, items per ticket and arrival rate.
 
-- Era 3
+Carried into: `content/difficulty.json`
 
-### F. Dialog (dialog.md)
+#### D. Menu (menu.md)
 
-- Era 1
+The kitchen menu.
+Carried into: `content/menus.json`
 
-- Era 2 
+- Era 1: `menu.md` exactly as authored (owner's ruling, 2026-10-25).
 
-- Era 3
+- Era 2: real Taco Shop items, with Sauce and Chili added in bins 10 and 11.
 
-## G. Music (music.md)
+- Era 3: real Taco Shop items, with Chicken added in bin 12.
+
+#### E. Characters (characters.md)
+
+There is no `characters.md`. The casts are the baked faces in `content/faces/` (their
+sources are `reference/kitchen/faces/`). A face joins its era's cast by its file-name
+prefix (§II.H.1).
+
+- Era 1 : six faces, `c70*`
+
+- Era 2 : five faces, `c80*`
+
+- Era 3 : five faces, `c90*`
+
+#### F. Dialog (dialog.md)
+
+There is no `dialog.md`. The lines are in `content/dialogue.json`, and a line's era floor
+places it (§II.H).
+
+- Era 1 : lines with no floor
+
+- Era 2 : adds lines marked `2|`
+
+- Era 3 : adds lines marked `3|`
+
+#### G. Music (music.md)
 
 To minimize anacronisms, music will be specific to the Year defined in the Level. While songs don't need to come from the exact year of play, they should be current or prior by no more than 1-2 years to add to the time-realism of the game. 
+
+Two songs per level: a delivery pair and a kitchen pair for each year.
+Carried into: `content/music/playlist.json`, `content/music/*.json`
 
 - 1972
 
@@ -421,25 +436,57 @@ To minimize anacronisms, music will be specific to the Year defined in the Level
 
 - 1999
 
-### 
-
-## CONTROL MECHANICS
-
 ## III: The Delivery Shift
 
 ### A. Play Mechanics
+
+The Delivery Shift is the original game, now played as a level against a target
+(§II.D.3). The engine (physics, collision, nav, traffic, the railway) is documented in
+`CLAUDE.md` and `JOURNAL.md`.
+
+- **Orders:** there is one live order at a time, to an address in the era's map.
+- **The tip:** it starts at the difficulty's starting tip and falls at its decay rate.
+  - It **holds at a $2.00 floor** (owner's ruling, 2026-10-25), overriding
+    `difficulty.md`'s "runs out".
+  - Speed is still worth money, but a late delivery always pays something, and on a late
+    job the perfect bonus is most of the payout.
+- **The bag holds 3.** A throw uses a bag immediately. An empty bag sends the nav back to
+  the shop, where a 1-second restock hold refills it. The order and its falling tip stay
+  live while you go.
+- **Throwing:**
+  - A bag on the porch delivers.
+  - A bag on the doorstep is a **perfect** delivery.
+  - Anything else is a splat. A splat costs the $1.50 remake fee and resets the combo.
+  - Throw spread grows with speed.
+- **Heat and Hays PD:**
+  - Bad driving, crashes, pedestrians and running a lowered crossing all build heat.
+  - At full heat a cruiser comes after you. If it catches you, it writes the difficulty's
+    speeding ticket.
+- **The Union Pacific:** a train hit is a wreck. You are thrown clear of the tracks, your
+  bags are spilled, the combo resets, and you pay the difficulty's **train fine**.
 
 ### B. Control Mechanics
 
 #### 1. Mode A : Keyboard/Mouse
 
+As the game always played:
+
+| action | keys |
+|---|---|
+| drive | W A S D / arrows |
+| handbrake | Shift |
+| aim the toss | mouse (without a mouse, the toss goes a fixed distance ahead of the car) |
+| throw | click / Space |
+| sound / music | M / N |
+| pause | P / Esc |
+
 #### 2. Mode B: Arcade Mode
 
 4-Way Joytick Control - DRIVE MODE
 
-- Up: YTBD
+- Up: Accelerate, the same as Button 1 *(was YTBD; settled in the 2026-10-25 build)*
 
-- Down: YTBD
+- Down: Brake / Reverse, the same as Button 2 *(was YTBD; settled in the 2026-10-25 build)*
 
 - Left: Turn Left
 
@@ -455,27 +502,71 @@ There are a total of THREE butons:
 
 HOLDING Button 3 puts the Joysick into Aim Mode; where the joystick no longer moves the car, but instaed allows you to direct the path of the throw, much as the mouse does currently. RELEASING Button 3 tosses the bag.
 
+While aiming, the car coasts. Start pauses, and Back / Select toggles sound. Mode B has no
+handbrake. In menus, Button 1, Button 3 and Start confirm, and Button 2 and Back go back.
+
 #### 3. Mode C: Mobile Mode
 
-### B. UI and Interaction Updates
+- **An on-screen stick** sits bottom left, over the minimap corner. It steers, and pushing
+  it up or down also accelerates or brakes.
+- **Three buttons** sit bottom right:
+  - **GAS**, the largest, nearest the corner, where the right thumb rests.
+  - **REV**.
+  - **TOSS**, up and in from GAS. Hold it to aim and drag on it to move the reticle;
+    release to throw. Unlike Mode B, the stick keeps steering while TOSS is held, because
+    a phone has a thumb free for it.
+- **A PAUSE button** sits at the top centre.
+
+The minimap sits under the stick in this mode.
+
+### C. UI and Interaction Updates
 
 #### 1. Map Expansion
 
+There is one map per era. Each is a `content/hays*.json` against the same schema, with the
+same nine streets per axis, the same shop cell at 333 W 8th St and the same rail corridor,
+parks and civic blocks. Only the zoning moves on. The city regenerates when a level's era
+changes.
+
+- **Map 1, the 1970s** (`content/hays.json`): downtown Hays as the neighbourhood pass
+  built it.
+- **Map 2, the 1980s** (`content/hays-1980s.json`): the oil-boom years put up apartments
+  at four corners, and the retail spine spreads a block east along 10th.
+- **Map 3, the 1990s** (`content/hays-1990s.json`): student housing for Fort Hays State, a
+  strip centre on 8th, and storefronts down Oak.
+
 #### 2. Era Themes
+
+The era's colour grade and winter snow (§II.J, §II.K). The cast speaking in the dialogue
+strip changes with the era (§II.H.1).
 
 #### 3. Music
 
-### C. Maps
+Each delivery level plays its two upbeat songs (§II.L).
 
-#### 1. Map 1
+#### 4. The HUD in a Level
 
-#### 2. Map 2
+Under the clock card:
 
-#### 3. Map 3
+- `ORDERS n/15`, the progress toward the target;
+- the level's stars;
+- the streak (`X1.50 STREAK`) while the combo is above x1.
 
-### C. Control Updates
+Delivery is the original HUD otherwise, minus the navigation pieces the difficulty takes
+away (§III.D).
 
 ### D. Difficulty Schemas
+
+The numbers are in `difficulty.md`. Difficulty works on the Delivery Shift through:
+
+- **the tip's decay rate**, which is faster on harder difficulties, down to the $2.00
+  floor;
+- **the fines**: speeding ticket, pedestrian and train;
+- **the extension length and cap**, and so the level target;
+- **the navigation ladder.** Each step up takes one piece of TACO-NAV away: the
+  turn-by-turn panel, the minimap route line, the minimap dot, the off-screen edge pointer
+  and the beacon over the house. Supreme leaves only the address on the order card and the
+  beacon once the house is in view.
 
 ### E. Scoring
 
@@ -492,21 +583,159 @@ HOLDING Button 3 puts the Joysick into Aim Mode; where the joystick no longer mo
 +$5.00. The combo runs ×1.00 to ×3.00, up 0.25 per delivery, and multiplies everything a
 delivery pays; a missed throw, a crash, a pedestrian or a police ticket resets it.
 
+A delivery pays `(tip + perfect bonus) × combo`.
+
+The combo is reset by:
+
+- a missed throw;
+- a crash into traffic;
+- a pedestrian;
+- a police ticket;
+- **a train hit**, which counts as a crash.
+
+The combo also starts again at x1.00 every level (§II.E).
+
+The **remake fee** of $1.50 per splatted bag is kept from the original game.
+
 ## IV: The Kitchen Shift
 
 ### A. Play Mechanics
 
-## B. UI and Player Interactions
+The core loop is the owner's paragraph and rules under §IV.F.2. The built rules:
 
-### B. Dialog
+- **The screen** uses the regions of the reference art (`reference/kitchen/README.md`):
+  TICKET RAIL, OVERHEAD (the dining room from above, the only place a customer exists),
+  LATTICE, PREP BOARD and the DIALOGUE STRIP. The code is one `Kitchen` object in
+  `src/74_kitchen.js`.
+- **Focus is assigned by the game.** It is always **the oldest ticket on the rail**, and
+  within it the next unfinished item. A ticket's items are built top to bottom. Select,
+  wrap and serve use all three buttons, so there is no input left for choosing focus.
+- **Arrivals:**
+  - The first ticket arrives 1.5s into the shift.
+  - After that, one arrives every *New Ticket Every* seconds, and almost at once whenever
+    the room is empty.
+  - A ticket has 1 to *Maximum Items* items, weighted toward 1 and 2. A five-item ticket
+    is an event, not the norm.
+- **The rail holds 3 tickets. Customers past that queue in the OVERHEAD** (owner's
+  ruling, 2026-10-25: a soft limit).
+  - While anyone is queueing, **every ticket on the rail loses its tip 50% faster**, and a
+    queueing customer complains.
+  - A queued customer's own tip does not start until their ticket goes up on the rail.
+  - The room holds three in the queue. While it is full, no one else comes in.
+- **The tip is the patience** (§IV.F.1). It starts when the ticket goes on the rail.
+  Below 30% the customer says so. At zero they **walk out**: no pay, the combo resets, and
+  they leave the room.
+- **Picking:**
+  - **The right ingredient:** a pip fills, the bin's plate flashes, and a "slot machine"
+    click plays, pitched up a step each time.
+  - **A wrong ingredient:** the plate flashes red and **stays red until the right one is
+    picked** (rule 2). It counts as a mistake. The item loses its star and the ticket
+    loses its clean bonus, and a buzz plays. Progress is never undone.
+  - **On Easy only,** a wrong pick also makes the right bin's plate blink amber for 1.6s.
+    The star and the bonus are lost all the same.
+- **One button, two labels:**
+  - **WRAP IT!** once the last pip is filled. Wrapping puts the item on the tray, and a
+    clean item banks its star.
+  - **SEND IT!** once every item on the focused ticket is wrapped. Sending pays out and
+    clears the ticket.
+  - Pressing either too early is a buzz, not a mistake.
+
+### B. UI and Player Interactions
+
+- **TICKET RAIL:** three dockets. Each shows its items and a tip bar that is also the
+  customer's patience. The rail slides left as tickets come off it.
+- **OVERHEAD:** the dining room. The customers are `Art.ped`, the same sprites that walk
+  the pavements in the Delivery Shift. The person being served stands at the service
+  window, the queue lines up behind them, and anyone who walks out leaves through the
+  front.
+- **LATTICE:** twelve bins in 2 rows × 6, with a base station either side (§IV.E). A
+  cursor frame moves bin to bin.
+- **PREP BOARD:**
+  - The BUILD PROGRESS readout: `NOW BUILDING`, the item's Short name, its pips, and
+    `ITEM n OF m` with the star at stake beside it. That star is lit while the item is
+    clean, and dims after the first wrong pick.
+  - A picture of the item on the assembly board, which builds up stage by stage.
+  - The WRAP IT! / SEND IT! button.
+- **The clock card** has four rows: the clock, the money, `STARS` (the shift's banked
+  tally), and `SERVED n/15` with the streak. In the Delivery Shift those last two sit
+  under the card. In the kitchen that spot is the service window.
+- **Where the menu is shown.** The recipes are hidden during play (rule 1), so they are
+  written down in only two places:
+  - **the kitchen's level card**, before the shift;
+  - **the kitchen pause screen**, at the cost of clock time.
+
+  Each recipe is the ticket name followed by the build in order, each step in its
+  ingredient's colour. Long builds shorten every step to four letters. Learning the menu
+  is still the mastery curve, but a new player never has to guess.
+
+#### 1. Dialog
+
+Customers bark in the shared strip (§II.H), in the era's cast. A customer may bark:
+
+- sometimes on arrival;
+- when their patience drops below 30%;
+- the first time the queue backs up past three;
+- on a walkout (always);
+- sometimes on being served;
+- sometimes after a wrong pick.
+
+A rate limit stops the strip from covering the bins all shift.
 
 ### C. Control Mechanics
+
+| Mode | Move the cursor | Pick | Wrap | Send |
+|---|---|---|---|---|
+| A, keyboard and mouse | arrows / WASD, or hover with the mouse | Space / Z, or click a bin | X, or click the button | Enter / C, or click the button |
+| B, arcade | the stick (4-way, with auto-repeat) | Button 1 | Button 2 | Button 3 |
+| C, touch | tap where you mean | tap a bin or station | tap the button | tap the button |
+
+- In Mode A, the mouse moves the cursor only when it actually moves, so a resting pointer
+  never fights the arrows.
+- Clicking or tapping the button does whichever of wrap or send is next.
+- The clock card is a pause button, because a phone has no Esc. P / Esc pauses in every
+  mode, and Start pauses in Mode B.
 
 ### D. Difficulty Schemas
 
 Difficulty scaled by lengthening recipes, widening the menu pool, adding items per order, and tightening patience.
 
+As built:
+
+- **The menu pool widens with the era:** 9 items, then 13, then 15 (§IV.E).
+- **Per difficulty** (`difficulty.md`): items per ticket, the rate a ticket's tip runs
+  down (which is how long a customer waits), and how often a new ticket arrives.
+
+The kitchen numbers are still the paper estimates of 2026-09-26. The autoplayers clear
+every level, but whether the numbers are fun is a playtest question.
+
 ### E. Menus,  Ingredient Grid, and Assembly
+
+- **The lattice is always twelve bins, and no bin ever moves.** A key set in one era sits
+  at the same index in every later era, and a later era may only fill a slot that was
+  empty. Bins 10-12 fill over time:
+  - bin 10, **SAUCE**, from Era 2;
+  - bin 11, **CHILI**, from Era 2;
+  - bin 12, **CHICKEN**, from Era 3.
+
+  Their art is pixel art recoloured from the same baked sheet, not code-drawn heaps.
+- **The two base stations** hold what an item is built *on*:
+  - The left station stacks the three tortilla and shell bases in three zones, and the
+    cursor visits each zone as its own stop.
+  - The right station is chips.
+- **Each era's menu** is in `menu.md` and `content/menus.json`.
+  - **Era 1 is `menu.md` exactly** (owner's ruling).
+  - **Eras 2 and 3 are real Taco Shop items** (owner's ruling).
+  - Where a real item lists an ingredient with no bin (Monterey Jack, olives, green onion,
+    rice), that ingredient is dropped and the drop is noted on the item.
+  - Items whose base comes mid-build, or that need a second base, are left out.
+    Ingredient 0 is always the base.
+- **`build.mjs` enforces the menu rules**, loudly:
+  - exactly 12 bin slots, and no bin moved;
+  - plate and ticket name widths;
+  - each item's Short-name limit (`12 × chars + 9 × steps ≤ 127`);
+  - 2 to 7 keys per recipe, with the base first and only first;
+  - every key a bin of that era;
+  - prices in integer cents. Prices are flavour only and are never scored.
 
 ### F. Scoring
 
@@ -536,6 +765,12 @@ Difficulty scaled by lengthening recipes, widening the menu pool, adding items p
   The Delivery Shift earns a star for each perfect delivery (bag on the doorstep); see
   §III.E.
 
+*Two additions from the 2026-10-25 build:*
+
+- While customers are queueing past the rail, every live ticket's tip runs down 50%
+  faster (§IV.A).
+- A served ticket pays `(tip + clean bonus) × combo`.
+
 #### 2. Bonus Schema
 
 *Settled 2026-09-26; values in `difficulty.md` → Points Bonus.* A clean ticket (served
@@ -560,9 +795,17 @@ The rules that made it work, in priority order:
    §IV.F.1.*
 5. **Sound is load-bearing.** Ingredient clicks, order arrival, the walkout, and the SERVE moment. The feel I wrote down at the time was **"slot-machine fun"** — that's the target.
 
+*How rule 3 was built (owner's ruling, 2026-10-25):* past three, customers queue in the
+OVERHEAD and every live ticket drains 50% faster while they wait (§IV.A).
+
 ## X. Non-Negotiable Technical Constraints
 
 - **Zero dependencies.** No packages, no asset files, no fetch, no CDN. Sprites, sound and glyphs are generated procedurally at boot — anything you add is drawn in `30_art.js` and voiced in `20_audio.js`.
+  *Since the 2026-10-25 build:*
+  - Music is played by `22_music.js`.
+  - Reference pixel art (faces, lattice wells) is baked by `tools/render/bake-*.mjs` into
+    pixel tables in `content/`. `build.mjs` inlines those tables, and they are decoded at
+    boot. No image or audio file ships.
 - 384×216 virtual screen, 5×7 ASCII-only font, all money in **integer cents**.
 - `src/*.js` are plain scripts sharing one global scope, concatenated in filename-sort order. A new module needs a numeric prefix after everything it uses at load time. Top-level `const` collisions are fatal and surface only in the bundle.
 - Menu data, recipes, abbreviations, bark lines and walkout quotes are **authored content** — they go in `content/*.json`, validated at build time, not hard-coded in `80_game.js`. The build already rejects characters the font can't draw and copy too wide for the screen; extend that validation to cover recipes rather than trusting a comment. A note is not a guard.
@@ -632,6 +875,55 @@ palette fingerprint"*.
   7px glyph at `y` occupies `y..y+6`. Assert a clear row above and below every
   glyph run by reading the rendered frame, not by arithmetic.
 
-## 
+## XI. Invented During the 2026-10-25 Build
 
-*
+The owner asked for every gap to be filled and for each invention to be listed, so that
+any of them can be overruled. The full record, with the owner's rulings, is
+`docs/PURE-CARNAGE-DECISIONS.md`. Each line below gives where the invention now lives in
+this document.
+
+- One map per era (Map 1/2/3 = 1970s/1980s/1990s), the same streets with different zoning,
+  and the 1980s and 1990s zoning changes. See §III.C.1.
+- The run total as the score, with a separate per-level total for the clear card. See
+  §II.E.
+- The combo resets at the start of every level. See §II.E.
+- The flow: mode select, level cards, LEVEL CLEAR, and a victory card after level 20. See
+  §II.D.4.
+- The kitchen level card carries the menu, and so does the kitchen pause screen. See
+  §IV.B.
+- Rank thresholds rescaled for a 20-level run, and the factory board with them. See §II.E.
+- The $1.50 remake fee is kept. See §III.E.2.
+- A train hit resets the combo. See §III.E.2.
+- `?level=N` as a development aid. See §II.D.4.
+- Mode B: stick up and down drive like Buttons 1 and 2, the car coasts while aiming,
+  Start pauses and Back toggles sound. See §III.B.2.
+- The Mode C layout: stick bottom left; GAS, REV and a hold-to-aim TOSS bottom right;
+  PAUSE top centre. See §III.B.3.
+- The mode-select screen and its preselection. See §II.B.4.
+- The kitchen control map for all three modes, and the clock card as a pause button. See
+  §IV.C.
+- Kitchen focus assigned to the oldest ticket, with items built top to bottom. See §IV.A.
+- The left base station as three stacked zones, each its own cursor stop. See §IV.E.
+- The picking feedback: the plate flash, the pitched click, and the red that holds until
+  the right pick. See §IV.A.
+- One button labelled WRAP IT! then SEND IT!, and an early press is a buzz, not a
+  mistake. See §IV.A.
+- The Easy-only amber hint after a wrong pick. See §IV.A.
+- Ticket arrivals: the first at 1.5s, almost at once when the room is empty, and items
+  weighted toward 1-2. See §IV.A.
+- Rail and queue: a queued customer's tip starts only when their ticket reaches the rail,
+  the queue holds three, and the room takes no one else while it is full. See §IV.A.
+- Kitchen pay as `(tip + clean bonus) × combo`. See §IV.F.1.
+- The kitchen clock card's fourth row, `SERVED n/15` with the streak. See §IV.B.
+- When customers bark, and the rate limit. See §IV.B.1.
+- The kitchen autoplayer for the attract demo. See §II.C.
+- The three era grades, and the rule that the grade colours the world but not the cards.
+  See §II.A and §II.J.
+- Winter: grip x0.62, snow on the ground and the roofs, falling flakes, and snow on the
+  kitchen customers' hats. Heat shimmer skipped in summer. See §II.K.
+- The Era 2 and 3 menu selection from the real Taco Shop menu, the dropped ingredients,
+  and bins 10-12 (SAUCE, CHILI, CHICKEN) with their recoloured art. See §IV.E.
+- The era casts (6/5/5), what was skipped, and the face held for a customer's whole
+  ticket. See §II.H.1.
+- The dialogue era floor (`2|`, `3|`). See §II.H.
+- The choice of songs for each level, picked by structural heuristics. See §II.L.
