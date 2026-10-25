@@ -98,8 +98,8 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 - **`RESUME.md` — read this first when starting a session.** Where the last session
   left off, what the next one is for, the state of the repo, and what is still open. A
   snapshot: where it and `ROADMAP.md` disagree, the roadmap wins.
-- `ROADMAP.md` — **starts with the current priority** (as of 2026-10-25: tools around the
-  authored content; the full game was built that day). Then the open
+- `ROADMAP.md` — **starts with the current priority** (as of 2026-10-25: the admin overlay, designed and planned but not
+  started; the full game was built that day). Then the open
   punch list, and the tiered plan for reshaping the city into the real
   neighbourhood. **Read before touching the street grid**: it records which six modules assume a uniform
   block pitch, and which tiers are safe versus which are a rewrite.
@@ -115,6 +115,15 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
   **Built and shipped.** Read it before changing `rank()`, the attract rotation, or anything in
   `78_scores.js`: it records why the score is the money rather than points, and why the
   `localStorage` wrapper is not optional.
+- `docs/superpowers/specs/2026-10-25-admin-overlay-design.md` and
+  `docs/superpowers/plans/2026-10-25-admin-overlay.md` describe the admin overlay, a
+  dev-only content editor and test panel inside the running game. **Designed and planned,
+  not started.** The owner chose subagent-driven execution, and the work waits for them
+  to say go. The design makes two rulings that **do not take effect until the plan's Task
+  17 lands**, so until then this file, as written, governs:
+  - the JSON becomes the master copy, and the `.md` docs become its mirror, which
+    reverses "the authored content wins";
+  - songs gain release months, with a season rule tied to them.
 - `docs/kitchen-minigame-prompt.md` and `docs/kitchen-minigame-prompt1.1.md` — the brief for the
   kitchen. **Not a mini-game, despite the filenames:** as of 2026-08-23 it is the *other half of the
   play*, alternating with delivery driving, not a replacement for the 1.0s restock. **1.1 is the

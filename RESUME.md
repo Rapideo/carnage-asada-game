@@ -1,8 +1,15 @@
 # Resume here
 
-*Written 2026-10-25, after the build that finished the 20-level game.* This is the
-starting point for a fresh session. It is a snapshot: **`ROADMAP.md` is the living plan**,
-and if the two disagree, the roadmap wins.
+*Written 2026-10-25, after the build that finished the 20-level game, and updated the same
+day once the admin overlay had been designed and planned.* This is the starting point for
+a fresh session. It is a snapshot: **`ROADMAP.md` is the living plan**, and if the two
+disagree, the roadmap wins.
+
+**Start here:** the next piece of work is the admin overlay (see **Next** below). It is
+fully designed and planned, and **nothing of it is built**. Do not start it until the
+owner says go. When they do, run the plan with `superpowers:subagent-driven-development`
+on a branch `admin-overlay`. The design and the plan are written for a fresh context, so
+read them before touching code.
 
 ## Where things stand
 
@@ -18,7 +25,10 @@ nothing in it is needed. Every ruling and invention from that day is logged in
 the build; the GDD ends with a list of what was invented.
 
 **Repo state:** `master` is clean apart from the two files untracked on purpose
-(`Migrated/`, `Carnage_Resume.pdf`). It is **ahead of `origin/master` and not pushed**;
+(`Migrated/`, `Carnage_Resume.pdf`). The last commit adds the overlay's design and plan,
+and points `ROADMAP.md`, this file and `CLAUDE.md` at them. Re-checked then:
+`node build.mjs` was clean, reproduced every generated file byte for byte, and
+`node test/headless.mjs` passed. `master` is **ahead of `origin/master` and not pushed**;
 push only when the owner says so. The music previews (`tools/music/preview/`, git-ignored)
 were copied in from the archive, so they are present here.
 
@@ -60,9 +70,14 @@ were copied in from the archive, so they are present here.
 
 ## Next
 
-**Tools around the authored content.** The owner wants tooling for editing, validating and
-previewing `content/*.json` and the `docs/authored content/` files. Not yet designed:
-start with the owner.
+**The admin overlay**, the tooling for the authored content. It was designed and planned
+on 2026-10-25, but **not started**: the owner did not want to begin that day.
+
+- Design: `docs/superpowers/specs/2026-10-25-admin-overlay-design.md`
+- Plan: `docs/superpowers/plans/2026-10-25-admin-overlay.md`
+
+When the owner says go, execute the plan **subagent-driven**, which was the owner's
+choice. See `ROADMAP.md` for the one owner checkpoint.
 
 ## Still open
 

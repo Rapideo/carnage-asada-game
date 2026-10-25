@@ -7,17 +7,40 @@ Checkboxes render as a live task list on GitHub:
 
 ---
 
-## NEXT: tools for the authored content
+## NEXT: the admin overlay (tools for the authored content)
 
-**The owner's next priority.** Build tools around the authored content: editing,
-validating and previewing the `content/*.json` files and the
-`docs/authored content/*.md` files they are carried from.
+**The owner's next priority: the admin overlay.** It is designed and planned, but
+**not started**. The owner said on 2026-10-25 not to begin that day.
 
-*Placeholder.* The design will be worked out with the owner and is deliberately not
-sketched here. Two facts it will start from:
+A dev-only overlay inside the running game:
+- edits every authored content file through forms (levels, menu, attract, music,
+  difficulty, dialogue, faces);
+- checks each edit with the build's own validator;
+- shows each edit live in the game;
+- saves the JSON plus a regenerated `.md` mirror;
+- has a Test panel that reaches any level or state, or lets the game play itself.
 
-- `build.mjs` already validates every content file and fails loudly.
-- `tools/render/` can already render a real frame headless.
+None of it ships in `taco-shop.html`.
+
+- **Design:** `docs/superpowers/specs/2026-10-25-admin-overlay-design.md`. It records
+  which decisions were the owner's and which were Claude's.
+- **Plan:** `docs/superpowers/plans/2026-10-25-admin-overlay.md`, 17 tasks.
+- **How to run it (owner's choice):** subagent-driven
+  (`superpowers:subagent-driven-development`), so each task gets a fresh implementer and
+  a fresh reviewer. Work on a branch `admin-overlay`, never push.
+- **One owner checkpoint, in Task 14.** The season rule removes Bohemian Rhapsody from
+  Level 3. The owner picks its replacement songs by ear in the overlay's Music panel.
+
+Rulings from the design that change standing project rules (recorded in `CLAUDE.md` by
+Task 17, not before):
+- **The JSON becomes the master copy**, and the `.md` docs become its mirror. This
+  reverses the 2026-09-26 ruling.
+- **Song release months** add a season rule:
+  - Summer is July.
+  - Winter is January when it comes before that year's Summer level, and December when
+    it comes after.
+
+- [ ] Build the admin overlay (plan Tasks 1–17)
 
 ---
 
