@@ -10,10 +10,17 @@ The whole game is built: 20 levels alternating the Delivery Shift and the Kitche
 from Summer 1972 to Winter 1999.
 
 The build was done in one session in a copy of this repo, `Desktop\Pure Carnage`, and
-fast-forwarded back onto `master` here. History is one straight line. The copy is
-archived. Every ruling and invention from that day is logged in
+fast-forwarded back onto `master` here. History is one straight line:
+`8e18837` (where the copy was taken) → `89ecd52` (the game) → `aa77007` (the docs).
+The copy is archived as `Desktop\Pure Carnage.zip` (verified) and the folder is deleted;
+nothing in it is needed. Every ruling and invention from that day is logged in
 `docs/PURE-CARNAGE-DECISIONS.md`. The GDD and the authored content were updated to match
 the build; the GDD ends with a list of what was invented.
+
+**Repo state:** `master` is clean apart from the two files untracked on purpose
+(`Migrated/`, `Carnage_Resume.pdf`). It is **ahead of `origin/master` and not pushed**;
+push only when the owner says so. The music previews (`tools/music/preview/`, git-ignored)
+were copied in from the archive, so they are present here.
 
 - **The run:**
   - The level card shows the target, the clock rules and the nav level; the kitchen card

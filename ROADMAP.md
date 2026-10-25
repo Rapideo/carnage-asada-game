@@ -412,9 +412,9 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
 
 - [ ] **Default branch is `master`, not `main`.** GitHub took what the repo had. One command if it
       matters: `git branch -m master main && git push -u origin main`.
-- [ ] **Merge the 2026-10-25 build back.** The build was done in a copy of the repo, on branch
-      `pure-carnage`, and that copy is to be archived once the work is merged into the
-      original project.
+- [x] **Merge the 2026-10-25 build back.** The build was done in a copy of the repo, on branch
+      `pure-carnage`. Fast-forwarded onto `master` here the same day (89ecd52, aa77007) and
+      verified; the copy is archived as `Desktop\Pure Carnage.zip` and the folder deleted.
 
 ### Open questions
 
