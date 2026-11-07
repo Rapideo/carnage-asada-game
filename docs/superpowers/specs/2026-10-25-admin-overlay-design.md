@@ -1,4 +1,17 @@
-# The admin overlay
+# The admin overlay (named Service Mode)
+
+> **Owner rulings, 2026-11-07, before the build started. These override the text below:**
+> - **It is called Service Mode**, after the arcade cabinet's service switch. Every
+>   player-visible and owner-visible label says SERVICE MODE. Code keeps the `Admin`
+>   namespace, `admin.mjs` and `/admin/api`, as the plan defines them.
+> - **The toggle is F2** (MAME's service key), not backtick. The game does not use F2.
+>   Check `Input`/`Pad` don't consume it, and `preventDefault` it so the browser does not.
+> - **It ships as version 0.9.1** (`content/release.json` plus a `CHANGELOG.md` entry), ahead
+>   of the owner's Monday playtest punch list.
+> - **It comes before the punch list**, so the code has moved on since this design was
+>   written (2026-10-25): board frames, weather, kitchen surroundings and `RELEASE` exist
+>   now, and the plan's line numbers are stale. Builders should locate code by name,
+>   not by the plan's line numbers.
 
 *Design, 2026-10-25. Not built. Worked out with the owner in conversation; every
 decision below is marked **owner** (they decided it) or **my call** (proposed during

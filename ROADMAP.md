@@ -11,7 +11,9 @@ Checkboxes render as a live task list on GitHub:
 
 The game is **feature-complete at 0.9.0** (2026-11-07; see `CHANGELOG.md`). The owner
 playtests it in full on Monday 2026-11-09 and brings a punch list. Fixes ship as 0.9.x,
-and 1.0.0 is the owner's call. The admin overlay below waits until then.
+and 1.0.0 is the owner's call. **The owner moved the admin overlay (below) ahead of the
+punch list on 2026-11-07,** as the next version. The open questions and rough edges
+further down are to be settled with the owner the same evening.
 
 ## NEXT: the admin overlay (tools for the authored content)
 
@@ -50,7 +52,7 @@ Task 17, not before):
 
 ---
 
-## NOW: kitchen art (2026-11-06, order set by the owner 2026-11-07)
+## DONE: kitchen art (2026-11-06 to 2026-11-07, all three items)
 
 The owner set the order on 2026-11-07. Details are in `RESUME.md`: "The art director and
 the prep board", and "Pinned: the art". **The owner lifted the art pin on 2026-11-07.**
@@ -447,10 +449,14 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
       settled carried over: menu, ingredients and build order as a **JSON settings file** on the
       `content/` pattern; **concurrent** tickets, up to three live at once; 1–5 items per order.
 
-- [ ] **Seasonal hazards. Partly done 2026-10-25.**
-      - Built for winter: snow on the ground and the roofs, falling flakes, and grip x0.62.
-        In the kitchen, snow on the customers' hats.
-      - Not built: any seasonal hazard beyond grip.
+- [ ] **Seasonal hazards. Partly done 2026-10-25, weather added 2026-11-07.**
+      - Weather is rolled each play (`G.rollWeather`): summer sunny or rainy (an even
+        chance), winter snowy four times in five, sunny the fifth.
+      - Built: snow on the ground and roofs and falling flakes (grip x0.62); rain with
+        wet roads, puddles, splashes and its own sound (grip x0.84); a sunny winter's
+        ploughed roads (grip x0.9). In the kitchen, snow on the customers' hats while
+        it snows.
+      - Not built: any weather hazard beyond grip.
 - [x] **NPC feedback — APB-style character dialogue.** The dialogue strip landed
       2026-08-24. The 2026-10-25 build gave it era casts and lines for both halves
       (`content/dialogue.json`, GDD §II.H). Customers are the only speakers. Drivers and
