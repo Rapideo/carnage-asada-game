@@ -48,5 +48,28 @@ const before = JSON.stringify(files);
 validateContent(memSource(files));
 ok(JSON.stringify(files) === before, 'validating does not mutate the source');
 
+console.log('\n— format —');
+const { formatJSON, formatSongs } = await import('../tools/content/format.mjs');
+const { deepStrictEqual } = await import('node:assert');
+const FORMATTED = ['winners', 'scores', 'attract', 'levels', 'difficulty', 'menus', 'dialogue', 'release']
+  .map((n) => 'content/' + n + '.json').concat(['content/music/playlist.json']);
+const roundTrips = (a, b) => { try { deepStrictEqual(a, b); return true; } catch { return false; } };
+for (const f of FORMATTED) {
+  const x = JSON.parse(readFileSync(f, 'utf8')), t = formatJSON(x);
+  ok(roundTrips(JSON.parse(t), x), f + ' round-trips');
+  ok(formatJSON(JSON.parse(t)) === t, f + ' format is idempotent');
+  ok(readFileSync(f, 'utf8') === t, f + ' on disk is in the writer format');
+}
+{
+  const f = 'tools/music/songs.json', x = JSON.parse(readFileSync(f, 'utf8')), t = formatSongs(x);
+  ok(roundTrips(JSON.parse(t), x), f + ' round-trips');
+  ok(formatSongs(JSON.parse(t)) === t, f + ' format is idempotent');
+  ok(readFileSync(f, 'utf8') === t, f + ' on disk is in the writer format');
+  ok(t.split('\n').filter((l) => l.includes('"id"')).length === x.songs.length, 'one song per line');
+}
+ok(formatJSON({ a: [1, 2], b: [{ c: 1 }], d: [], e: 'é' })
+   === '{\n  "a": [1, 2],\n  "b": [\n    {\n      "c": 1\n    }\n  ],\n  "d": [],\n  "e": "é"\n}\n',
+   'formatJSON follows the pretty rule');
+
 console.log(`\n${fails === 0 ? 'PASS' : 'FAIL (' + fails + ')'}`);
 process.exit(fails ? 1 : 0);

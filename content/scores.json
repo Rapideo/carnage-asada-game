@@ -3,17 +3,46 @@
   "_rules": "Exactly 10 entries, sorted descending by cents. ini is exactly 3 characters drawable by the 5x7 font. cents is a non-negative integer - the game stores all money in cents, so 480000 is $4800.00. build.mjs rejects anything else.",
   "_ranks": "The rank title beside each row is DERIVED from cents at draw time, not stored, so retuning G.rank() reflows the whole board. Thresholds for a 20-level RUN total (PURE-CARNAGE-DECISIONS, invented): under $250 TRAINEE, under $1,000 DRIVER, under $2,500 ACE, under $5,000 SALSA BARON, $5,000 and up LEGEND OF THE ASADA. The factory board deliberately stops short of LEGEND: that title is the player's to take.",
   "_tuning": "[INVENTED] Rescaled 2026-10-25 from a single shift ($96 top) to a whole run. Tenth place, $90, is about one good Easy level, so a first run that clears level 1 places and learns the board; the top, $4,800, is roughly a full 20-level run played well. Two rows sit in each rank below LEGEND.",
-
   "board": [
-    { "ini": "MJS", "cents": 480000 },
-    { "ini": "JAX", "cents": 395000 },
-    { "ini": "RED", "cents": 210000 },
-    { "ini": "TAC", "cents": 155000 },
-    { "ini": "UPX", "cents": 82000 },
-    { "ini": "HAY", "cents": 46000 },
-    { "ini": "ELM", "cents": 23500 },
-    { "ini": "FRT", "cents": 16000 },
-    { "ini": "BOB", "cents": 12500 },
-    { "ini": "KAS", "cents": 9000 }
+    {
+      "ini": "MJS",
+      "cents": 480000
+    },
+    {
+      "ini": "JAX",
+      "cents": 395000
+    },
+    {
+      "ini": "RED",
+      "cents": 210000
+    },
+    {
+      "ini": "TAC",
+      "cents": 155000
+    },
+    {
+      "ini": "UPX",
+      "cents": 82000
+    },
+    {
+      "ini": "HAY",
+      "cents": 46000
+    },
+    {
+      "ini": "ELM",
+      "cents": 23500
+    },
+    {
+      "ini": "FRT",
+      "cents": 16000
+    },
+    {
+      "ini": "BOB",
+      "cents": 12500
+    },
+    {
+      "ini": "KAS",
+      "cents": 9000
+    }
   ]
 }

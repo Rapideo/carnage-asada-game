@@ -1,131 +1,534 @@
 {
-  "_comment": "The kitchen menu per era. build.mjs INLINES this as const MENUS - never fetched at runtime (CSP, file:// CORS). Edit here, then run: node build.mjs",
-  "_rules": "bins is exactly 12 slots (null = empty), and a bin NEVER MOVES: a key set in era N must sit at the same index in every later era; a later era may only fill a slot that was null. plate <= 7 characters (a 44px plate). ticket <= 12 characters (the 72px ticket line). short is the NOW BUILDING readout: 12 x chars + 9 x steps <= 127, steps = recipe length including the base. recipe is [base, ingredient...]: 2..7 keys, base first and only first, then bins of that era. price is integer cents and is flavour only. build.mjs rejects all of it, loudly.",
-  "_keys": "Bin and base keys are what the lattice art in content/lattice/ is named for: BEEF BEANS LETTUCE TOMATO ONION CCQ PEPPERS CREAM CHEESE SAUCE CHILI CHICKEN, bases SMALL SHELL LARGE CHIPS. Do not rename a key without renaming its art.",
-  "_drops": "Where a real Taco Shop item lists an ingredient with no bin (Monterey Jack, olives, green onions, rice, the whole-wheat tortilla), it is dropped from the recipe and noted on the item. Items whose base comes mid-build (Loco Taco, Taco Supreme) and items needing a second tortilla (3 Amigos, Borracho, Mexican Pizza) or a bun (Taco Burger) are left out: ingredient 0 is always the base.",
-
   "1": {
     "_note": "Era 1, the 1970s: docs/authored content/menu.md EXACTLY (owner ruling 9). Do not correct it against the real menu.",
     "bins": [
-      { "key": "BEEF", "name": "GROUND BEEF", "plate": "BEEF" },
-      { "key": "BEANS", "name": "REFRIED BEANS", "plate": "BEANS" },
-      { "key": "LETTUCE", "name": "LETTUCE", "plate": "LETTUCE" },
-      { "key": "TOMATO", "name": "TOMATOES", "plate": "TOMATO" },
-      { "key": "ONION", "name": "ONIONS", "plate": "ONION" },
-      { "key": "CCQ", "name": "CHILI CON QUESO", "plate": "CCQ" },
-      { "key": "PEPPERS", "name": "JALAPENOS", "plate": "PEPPERS" },
-      { "key": "CREAM", "name": "SOUR CREAM", "plate": "CREAM" },
-      { "key": "CHEESE", "name": "CHEESE", "plate": "CHEESE" },
+      {
+        "key": "BEEF",
+        "name": "GROUND BEEF",
+        "plate": "BEEF"
+      },
+      {
+        "key": "BEANS",
+        "name": "REFRIED BEANS",
+        "plate": "BEANS"
+      },
+      {
+        "key": "LETTUCE",
+        "name": "LETTUCE",
+        "plate": "LETTUCE"
+      },
+      {
+        "key": "TOMATO",
+        "name": "TOMATOES",
+        "plate": "TOMATO"
+      },
+      {
+        "key": "ONION",
+        "name": "ONIONS",
+        "plate": "ONION"
+      },
+      {
+        "key": "CCQ",
+        "name": "CHILI CON QUESO",
+        "plate": "CCQ"
+      },
+      {
+        "key": "PEPPERS",
+        "name": "JALAPENOS",
+        "plate": "PEPPERS"
+      },
+      {
+        "key": "CREAM",
+        "name": "SOUR CREAM",
+        "plate": "CREAM"
+      },
+      {
+        "key": "CHEESE",
+        "name": "CHEESE",
+        "plate": "CHEESE"
+      },
       null,
       null,
       null
     ],
     "bases": {
       "left": [
-        { "key": "SMALL", "name": "SMALL TORTILLA", "plate": "SMALL" },
-        { "key": "SHELL", "name": "TACO SHELL", "plate": "SHELL" },
-        { "key": "LARGE", "name": "LARGE TORTILLA", "plate": "LARGE" }
+        {
+          "key": "SMALL",
+          "name": "SMALL TORTILLA",
+          "plate": "SMALL"
+        },
+        {
+          "key": "SHELL",
+          "name": "TACO SHELL",
+          "plate": "SHELL"
+        },
+        {
+          "key": "LARGE",
+          "name": "LARGE TORTILLA",
+          "plate": "LARGE"
+        }
       ],
       "right": [
-        { "key": "CHIPS", "name": "CHIPS", "plate": "CHIPS" }
+        {
+          "key": "CHIPS",
+          "name": "CHIPS",
+          "plate": "CHIPS"
+        }
       ]
     },
     "items": [
-      { "name": "HARD TACO", "ticket": "HARD TACO", "short": "HD TACO", "price": 29, "recipe": ["SHELL", "BEEF", "LETTUCE", "CHEESE"] },
-      { "name": "HARD TACO SUPREME", "ticket": "HT SUPREME", "short": "HTSUP", "price": 39, "recipe": ["SHELL", "BEEF", "LETTUCE", "CHEESE", "ONION", "TOMATO", "CREAM"] },
-      { "name": "SOFT TACO", "ticket": "SOFT TACO", "short": "SF TACO", "price": 39, "recipe": ["SMALL", "BEEF", "LETTUCE", "CHEESE"] },
-      { "name": "SOFT TACO SUPREME", "ticket": "ST SUPREME", "short": "STSUP", "price": 49, "recipe": ["SMALL", "BEEF", "LETTUCE", "CHEESE", "ONION", "TOMATO", "CREAM"] },
-      { "name": "BEEF BURRITO", "ticket": "BEEF BURRITO", "short": "BEEF BUR", "price": 69, "recipe": ["LARGE", "BEEF", "CHEESE"] },
-      { "name": "BEAN BURRITO", "ticket": "BEAN BURRITO", "short": "BEAN BUR", "price": 49, "recipe": ["LARGE", "BEANS", "CHEESE"] },
-      { "name": "COMBO BURRITO", "ticket": "COMBO BURR", "short": "COMBO", "price": 69, "recipe": ["LARGE", "BEEF", "BEANS", "CHEESE"] },
-      { "name": "SANCHO", "ticket": "SANCHO", "short": "SANCHO", "price": 69, "recipe": ["LARGE", "BEEF", "LETTUCE", "CHEESE"] },
-      { "name": "NACHOS", "ticket": "NACHOS", "short": "NACHOS", "price": 49, "recipe": ["CHIPS", "CCQ", "PEPPERS"] }
+      {
+        "name": "HARD TACO",
+        "ticket": "HARD TACO",
+        "short": "HD TACO",
+        "price": 29,
+        "recipe": ["SHELL", "BEEF", "LETTUCE", "CHEESE"]
+      },
+      {
+        "name": "HARD TACO SUPREME",
+        "ticket": "HT SUPREME",
+        "short": "HTSUP",
+        "price": 39,
+        "recipe": ["SHELL", "BEEF", "LETTUCE", "CHEESE", "ONION", "TOMATO", "CREAM"]
+      },
+      {
+        "name": "SOFT TACO",
+        "ticket": "SOFT TACO",
+        "short": "SF TACO",
+        "price": 39,
+        "recipe": ["SMALL", "BEEF", "LETTUCE", "CHEESE"]
+      },
+      {
+        "name": "SOFT TACO SUPREME",
+        "ticket": "ST SUPREME",
+        "short": "STSUP",
+        "price": 49,
+        "recipe": ["SMALL", "BEEF", "LETTUCE", "CHEESE", "ONION", "TOMATO", "CREAM"]
+      },
+      {
+        "name": "BEEF BURRITO",
+        "ticket": "BEEF BURRITO",
+        "short": "BEEF BUR",
+        "price": 69,
+        "recipe": ["LARGE", "BEEF", "CHEESE"]
+      },
+      {
+        "name": "BEAN BURRITO",
+        "ticket": "BEAN BURRITO",
+        "short": "BEAN BUR",
+        "price": 49,
+        "recipe": ["LARGE", "BEANS", "CHEESE"]
+      },
+      {
+        "name": "COMBO BURRITO",
+        "ticket": "COMBO BURR",
+        "short": "COMBO",
+        "price": 69,
+        "recipe": ["LARGE", "BEEF", "BEANS", "CHEESE"]
+      },
+      {
+        "name": "SANCHO",
+        "ticket": "SANCHO",
+        "short": "SANCHO",
+        "price": 69,
+        "recipe": ["LARGE", "BEEF", "LETTUCE", "CHEESE"]
+      },
+      {
+        "name": "NACHOS",
+        "ticket": "NACHOS",
+        "short": "NACHOS",
+        "price": 49,
+        "recipe": ["CHIPS", "CCQ", "PEPPERS"]
+      }
     ]
   },
   "2": {
     "_note": "Era 2, the 1980s. Bin 10 SAUCE and bin 11 CHILI arrive. Classics keep their Era 1 recipes; the rest are real Taco Shop items (Migrated menu files), recipe order from menu-schedule.md. Prices are invented 1980s flavour.",
     "bins": [
-      { "key": "BEEF", "name": "GROUND BEEF", "plate": "BEEF" },
-      { "key": "BEANS", "name": "REFRIED BEANS", "plate": "BEANS" },
-      { "key": "LETTUCE", "name": "LETTUCE", "plate": "LETTUCE" },
-      { "key": "TOMATO", "name": "TOMATOES", "plate": "TOMATO" },
-      { "key": "ONION", "name": "ONIONS", "plate": "ONION" },
-      { "key": "CCQ", "name": "CHILI CON QUESO", "plate": "CCQ" },
-      { "key": "PEPPERS", "name": "JALAPENOS", "plate": "PEPPERS" },
-      { "key": "CREAM", "name": "SOUR CREAM", "plate": "CREAM" },
-      { "key": "CHEESE", "name": "CHEESE", "plate": "CHEESE" },
-      { "key": "SAUCE", "name": "TACO SHOP SAUCE", "plate": "SAUCE" },
-      { "key": "CHILI", "name": "HOUSE CHILI", "plate": "CHILI" },
+      {
+        "key": "BEEF",
+        "name": "GROUND BEEF",
+        "plate": "BEEF"
+      },
+      {
+        "key": "BEANS",
+        "name": "REFRIED BEANS",
+        "plate": "BEANS"
+      },
+      {
+        "key": "LETTUCE",
+        "name": "LETTUCE",
+        "plate": "LETTUCE"
+      },
+      {
+        "key": "TOMATO",
+        "name": "TOMATOES",
+        "plate": "TOMATO"
+      },
+      {
+        "key": "ONION",
+        "name": "ONIONS",
+        "plate": "ONION"
+      },
+      {
+        "key": "CCQ",
+        "name": "CHILI CON QUESO",
+        "plate": "CCQ"
+      },
+      {
+        "key": "PEPPERS",
+        "name": "JALAPENOS",
+        "plate": "PEPPERS"
+      },
+      {
+        "key": "CREAM",
+        "name": "SOUR CREAM",
+        "plate": "CREAM"
+      },
+      {
+        "key": "CHEESE",
+        "name": "CHEESE",
+        "plate": "CHEESE"
+      },
+      {
+        "key": "SAUCE",
+        "name": "TACO SHOP SAUCE",
+        "plate": "SAUCE"
+      },
+      {
+        "key": "CHILI",
+        "name": "HOUSE CHILI",
+        "plate": "CHILI"
+      },
       null
     ],
     "bases": {
       "left": [
-        { "key": "SMALL", "name": "SMALL TORTILLA", "plate": "SMALL" },
-        { "key": "SHELL", "name": "TACO SHELL", "plate": "SHELL" },
-        { "key": "LARGE", "name": "LARGE TORTILLA", "plate": "LARGE" }
+        {
+          "key": "SMALL",
+          "name": "SMALL TORTILLA",
+          "plate": "SMALL"
+        },
+        {
+          "key": "SHELL",
+          "name": "TACO SHELL",
+          "plate": "SHELL"
+        },
+        {
+          "key": "LARGE",
+          "name": "LARGE TORTILLA",
+          "plate": "LARGE"
+        }
       ],
       "right": [
-        { "key": "CHIPS", "name": "CHIPS", "plate": "CHIPS" }
+        {
+          "key": "CHIPS",
+          "name": "CHIPS",
+          "plate": "CHIPS"
+        }
       ]
     },
     "items": [
-      { "name": "HARD TACO", "ticket": "HARD TACO", "short": "HD TACO", "price": 59, "recipe": ["SHELL", "BEEF", "LETTUCE", "CHEESE"] },
-      { "name": "SOFT TACO", "ticket": "SOFT TACO", "short": "SF TACO", "price": 69, "recipe": ["SMALL", "BEEF", "LETTUCE", "CHEESE"] },
-      { "name": "BEAN BURRITO", "ticket": "BEAN BURRITO", "short": "BEAN BUR", "price": 79, "recipe": ["LARGE", "BEANS", "CHEESE"] },
-      { "name": "SANCHO", "ticket": "SANCHO", "short": "SANCHO", "price": 109, "recipe": ["LARGE", "BEEF", "LETTUCE", "CHEESE"] },
-      { "name": "NACHOS", "ticket": "NACHOS", "short": "NACHOS", "price": 89, "recipe": ["CHIPS", "CCQ", "PEPPERS"] },
-      { "name": "ENCHILADA WITH MEAT", "ticket": "MEAT ENCH.", "short": "MT ENCH", "price": 99, "recipe": ["LARGE", "BEEF", "SAUCE", "CHEESE"] },
-      { "name": "CHILI BURRITO", "ticket": "CHILI BURR", "short": "CH BUR", "price": 129, "recipe": ["LARGE", "BEANS", "BEEF", "CHEESE", "SAUCE", "CHILI"] },
-      { "name": "CHILI SANCHO", "ticket": "CHILI SANCHO", "short": "CH SAN", "price": 139, "recipe": ["LARGE", "BEEF", "CHILI", "SAUCE", "CHEESE", "LETTUCE"] },
-      { "name": "CHILI ENCHILADA", "ticket": "CHILI ENCH.", "short": "CH ENC", "price": 119, "recipe": ["LARGE", "BEEF", "SAUCE", "CHILI", "CHEESE"] },
-      { "name": "CHILI CHEESE NACHOS", "ticket": "CHILI NACHOS", "short": "CC NACH", "price": 119, "recipe": ["CHIPS", "CHILI", "CHEESE", "CCQ"] },
-      { "name": "SOUR CREAM SANCHO", "ticket": "SR CR SANCHO", "short": "SC SAN", "price": 139, "recipe": ["LARGE", "BEEF", "CREAM", "SAUCE", "CHEESE", "LETTUCE"] },
-      { "name": "SANCHEZ", "ticket": "SANCHEZ", "short": "SANCHZ", "price": 149, "recipe": ["LARGE", "BEEF", "SAUCE", "CHEESE", "LETTUCE", "CCQ"] },
-      { "name": "BEEF NACHO SUPREME", "ticket": "BF NACHO SUP", "short": "BNSUP", "price": 229, "recipe": ["CHIPS", "BEEF", "BEANS", "CHEESE", "CREAM", "PEPPERS", "CCQ"], "_drops": "MONTEREY JACK, GREEN ONIONS, OLIVES (no bin); TOMATO trimmed to fit the 6-ingredient cap" }
+      {
+        "name": "HARD TACO",
+        "ticket": "HARD TACO",
+        "short": "HD TACO",
+        "price": 59,
+        "recipe": ["SHELL", "BEEF", "LETTUCE", "CHEESE"]
+      },
+      {
+        "name": "SOFT TACO",
+        "ticket": "SOFT TACO",
+        "short": "SF TACO",
+        "price": 69,
+        "recipe": ["SMALL", "BEEF", "LETTUCE", "CHEESE"]
+      },
+      {
+        "name": "BEAN BURRITO",
+        "ticket": "BEAN BURRITO",
+        "short": "BEAN BUR",
+        "price": 79,
+        "recipe": ["LARGE", "BEANS", "CHEESE"]
+      },
+      {
+        "name": "SANCHO",
+        "ticket": "SANCHO",
+        "short": "SANCHO",
+        "price": 109,
+        "recipe": ["LARGE", "BEEF", "LETTUCE", "CHEESE"]
+      },
+      {
+        "name": "NACHOS",
+        "ticket": "NACHOS",
+        "short": "NACHOS",
+        "price": 89,
+        "recipe": ["CHIPS", "CCQ", "PEPPERS"]
+      },
+      {
+        "name": "ENCHILADA WITH MEAT",
+        "ticket": "MEAT ENCH.",
+        "short": "MT ENCH",
+        "price": 99,
+        "recipe": ["LARGE", "BEEF", "SAUCE", "CHEESE"]
+      },
+      {
+        "name": "CHILI BURRITO",
+        "ticket": "CHILI BURR",
+        "short": "CH BUR",
+        "price": 129,
+        "recipe": ["LARGE", "BEANS", "BEEF", "CHEESE", "SAUCE", "CHILI"]
+      },
+      {
+        "name": "CHILI SANCHO",
+        "ticket": "CHILI SANCHO",
+        "short": "CH SAN",
+        "price": 139,
+        "recipe": ["LARGE", "BEEF", "CHILI", "SAUCE", "CHEESE", "LETTUCE"]
+      },
+      {
+        "name": "CHILI ENCHILADA",
+        "ticket": "CHILI ENCH.",
+        "short": "CH ENC",
+        "price": 119,
+        "recipe": ["LARGE", "BEEF", "SAUCE", "CHILI", "CHEESE"]
+      },
+      {
+        "name": "CHILI CHEESE NACHOS",
+        "ticket": "CHILI NACHOS",
+        "short": "CC NACH",
+        "price": 119,
+        "recipe": ["CHIPS", "CHILI", "CHEESE", "CCQ"]
+      },
+      {
+        "name": "SOUR CREAM SANCHO",
+        "ticket": "SR CR SANCHO",
+        "short": "SC SAN",
+        "price": 139,
+        "recipe": ["LARGE", "BEEF", "CREAM", "SAUCE", "CHEESE", "LETTUCE"]
+      },
+      {
+        "name": "SANCHEZ",
+        "ticket": "SANCHEZ",
+        "short": "SANCHZ",
+        "price": 149,
+        "recipe": ["LARGE", "BEEF", "SAUCE", "CHEESE", "LETTUCE", "CCQ"]
+      },
+      {
+        "name": "BEEF NACHO SUPREME",
+        "ticket": "BF NACHO SUP",
+        "short": "BNSUP",
+        "price": 229,
+        "recipe": ["CHIPS", "BEEF", "BEANS", "CHEESE", "CREAM", "PEPPERS", "CCQ"],
+        "_drops": "MONTEREY JACK, GREEN ONIONS, OLIVES (no bin); TOMATO trimmed to fit the 6-ingredient cap"
+      }
     ]
   },
   "3": {
     "_note": "Era 3, the 1990s: the chicken expansion. Bin 12 CHICKEN arrives. Real Taco Shop items; prices are invented 1990s flavour.",
     "bins": [
-      { "key": "BEEF", "name": "GROUND BEEF", "plate": "BEEF" },
-      { "key": "BEANS", "name": "REFRIED BEANS", "plate": "BEANS" },
-      { "key": "LETTUCE", "name": "LETTUCE", "plate": "LETTUCE" },
-      { "key": "TOMATO", "name": "TOMATOES", "plate": "TOMATO" },
-      { "key": "ONION", "name": "ONIONS", "plate": "ONION" },
-      { "key": "CCQ", "name": "CHILI CON QUESO", "plate": "CCQ" },
-      { "key": "PEPPERS", "name": "JALAPENOS", "plate": "PEPPERS" },
-      { "key": "CREAM", "name": "SOUR CREAM", "plate": "CREAM" },
-      { "key": "CHEESE", "name": "CHEESE", "plate": "CHEESE" },
-      { "key": "SAUCE", "name": "TACO SHOP SAUCE", "plate": "SAUCE" },
-      { "key": "CHILI", "name": "HOUSE CHILI", "plate": "CHILI" },
-      { "key": "CHICKEN", "name": "GRILLED CHICKEN", "plate": "CHICKEN" }
+      {
+        "key": "BEEF",
+        "name": "GROUND BEEF",
+        "plate": "BEEF"
+      },
+      {
+        "key": "BEANS",
+        "name": "REFRIED BEANS",
+        "plate": "BEANS"
+      },
+      {
+        "key": "LETTUCE",
+        "name": "LETTUCE",
+        "plate": "LETTUCE"
+      },
+      {
+        "key": "TOMATO",
+        "name": "TOMATOES",
+        "plate": "TOMATO"
+      },
+      {
+        "key": "ONION",
+        "name": "ONIONS",
+        "plate": "ONION"
+      },
+      {
+        "key": "CCQ",
+        "name": "CHILI CON QUESO",
+        "plate": "CCQ"
+      },
+      {
+        "key": "PEPPERS",
+        "name": "JALAPENOS",
+        "plate": "PEPPERS"
+      },
+      {
+        "key": "CREAM",
+        "name": "SOUR CREAM",
+        "plate": "CREAM"
+      },
+      {
+        "key": "CHEESE",
+        "name": "CHEESE",
+        "plate": "CHEESE"
+      },
+      {
+        "key": "SAUCE",
+        "name": "TACO SHOP SAUCE",
+        "plate": "SAUCE"
+      },
+      {
+        "key": "CHILI",
+        "name": "HOUSE CHILI",
+        "plate": "CHILI"
+      },
+      {
+        "key": "CHICKEN",
+        "name": "GRILLED CHICKEN",
+        "plate": "CHICKEN"
+      }
     ],
     "bases": {
       "left": [
-        { "key": "SMALL", "name": "SMALL TORTILLA", "plate": "SMALL" },
-        { "key": "SHELL", "name": "TACO SHELL", "plate": "SHELL" },
-        { "key": "LARGE", "name": "LARGE TORTILLA", "plate": "LARGE" }
+        {
+          "key": "SMALL",
+          "name": "SMALL TORTILLA",
+          "plate": "SMALL"
+        },
+        {
+          "key": "SHELL",
+          "name": "TACO SHELL",
+          "plate": "SHELL"
+        },
+        {
+          "key": "LARGE",
+          "name": "LARGE TORTILLA",
+          "plate": "LARGE"
+        }
       ],
       "right": [
-        { "key": "CHIPS", "name": "CHIPS", "plate": "CHIPS" }
+        {
+          "key": "CHIPS",
+          "name": "CHIPS",
+          "plate": "CHIPS"
+        }
       ]
     },
     "items": [
-      { "name": "HARD TACO", "ticket": "HARD TACO", "short": "HD TACO", "price": 79, "recipe": ["SHELL", "BEEF", "LETTUCE", "CHEESE"] },
-      { "name": "SOFT TACO", "ticket": "SOFT TACO", "short": "SF TACO", "price": 89, "recipe": ["SMALL", "BEEF", "LETTUCE", "CHEESE"] },
-      { "name": "BEAN BURRITO", "ticket": "BEAN BURRITO", "short": "BEAN BUR", "price": 99, "recipe": ["LARGE", "BEANS", "CHEESE"] },
-      { "name": "SANCHO", "ticket": "SANCHO", "short": "SANCHO", "price": 149, "recipe": ["LARGE", "BEEF", "LETTUCE", "CHEESE"] },
-      { "name": "SANCHEZ", "ticket": "SANCHEZ", "short": "SANCHZ", "price": 189, "recipe": ["LARGE", "BEEF", "SAUCE", "CHEESE", "LETTUCE", "CCQ"] },
-      { "name": "CHILI CHEESE NACHOS", "ticket": "CHILI NACHOS", "short": "CC NACH", "price": 169, "recipe": ["CHIPS", "CHILI", "CHEESE", "CCQ"] },
-      { "name": "SOUR CREAM BURRITO", "ticket": "SR CR BURR", "short": "SC BUR", "price": 199, "recipe": ["LARGE", "BEANS", "BEEF", "CREAM", "CHEESE", "SAUCE"] },
-      { "name": "CHICKEN HARD TACO", "ticket": "CHKN HD TACO", "short": "CK TACO", "price": 119, "recipe": ["SHELL", "CHICKEN", "LETTUCE", "CHEESE"] },
-      { "name": "CHICKEN SOFT TACO", "ticket": "CHKN SF TACO", "short": "CK SOFT", "price": 129, "recipe": ["SMALL", "CHICKEN", "LETTUCE", "CHEESE"] },
-      { "name": "CHICKEN ENCHILADA", "ticket": "CHKN ENCH.", "short": "CK ENCH", "price": 179, "recipe": ["LARGE", "CHICKEN", "SAUCE", "TOMATO"], "_drops": "MONTEREY JACK (no bin)" },
-      { "name": "CHICKEN ENCHILADA SUPREME", "ticket": "CK ENCH SUP", "short": "CKESUP", "price": 229, "recipe": ["LARGE", "CHICKEN", "CHEESE", "CREAM", "LETTUCE"], "_drops": "MONTEREY JACK (no bin)" },
-      { "name": "CHICKEN BURRITO", "ticket": "CHKN BURRITO", "short": "CK BURR", "price": 219, "recipe": ["LARGE", "CHICKEN", "CHEESE", "SAUCE"], "_drops": "MEXICALLI RICE (no bin); whole-wheat tortilla built on LARGE" },
-      { "name": "CHICKEN NACHO SUPREME", "ticket": "CK NACHO SUP", "short": "CNSUP", "price": 349, "recipe": ["CHIPS", "CHICKEN", "CHEESE", "CREAM", "TOMATO", "PEPPERS", "CCQ"], "_drops": "MEXICALLI RICE, MONTEREY JACK, GREEN ONIONS, OLIVES (no bin)" },
-      { "name": "SOMBRERO", "ticket": "SOMBRERO", "short": "SOMBRO", "price": 249, "recipe": ["LARGE", "BEEF", "BEANS", "SAUCE", "CHEESE"], "_drops": "MONTEREY JACK, OLIVES (no bin)" },
-      { "name": "QUESO MELT", "ticket": "QUESO MELT", "short": "QUESO MLT", "price": 99, "recipe": ["LARGE", "CHEESE"] }
+      {
+        "name": "HARD TACO",
+        "ticket": "HARD TACO",
+        "short": "HD TACO",
+        "price": 79,
+        "recipe": ["SHELL", "BEEF", "LETTUCE", "CHEESE"]
+      },
+      {
+        "name": "SOFT TACO",
+        "ticket": "SOFT TACO",
+        "short": "SF TACO",
+        "price": 89,
+        "recipe": ["SMALL", "BEEF", "LETTUCE", "CHEESE"]
+      },
+      {
+        "name": "BEAN BURRITO",
+        "ticket": "BEAN BURRITO",
+        "short": "BEAN BUR",
+        "price": 99,
+        "recipe": ["LARGE", "BEANS", "CHEESE"]
+      },
+      {
+        "name": "SANCHO",
+        "ticket": "SANCHO",
+        "short": "SANCHO",
+        "price": 149,
+        "recipe": ["LARGE", "BEEF", "LETTUCE", "CHEESE"]
+      },
+      {
+        "name": "SANCHEZ",
+        "ticket": "SANCHEZ",
+        "short": "SANCHZ",
+        "price": 189,
+        "recipe": ["LARGE", "BEEF", "SAUCE", "CHEESE", "LETTUCE", "CCQ"]
+      },
+      {
+        "name": "CHILI CHEESE NACHOS",
+        "ticket": "CHILI NACHOS",
+        "short": "CC NACH",
+        "price": 169,
+        "recipe": ["CHIPS", "CHILI", "CHEESE", "CCQ"]
+      },
+      {
+        "name": "SOUR CREAM BURRITO",
+        "ticket": "SR CR BURR",
+        "short": "SC BUR",
+        "price": 199,
+        "recipe": ["LARGE", "BEANS", "BEEF", "CREAM", "CHEESE", "SAUCE"]
+      },
+      {
+        "name": "CHICKEN HARD TACO",
+        "ticket": "CHKN HD TACO",
+        "short": "CK TACO",
+        "price": 119,
+        "recipe": ["SHELL", "CHICKEN", "LETTUCE", "CHEESE"]
+      },
+      {
+        "name": "CHICKEN SOFT TACO",
+        "ticket": "CHKN SF TACO",
+        "short": "CK SOFT",
+        "price": 129,
+        "recipe": ["SMALL", "CHICKEN", "LETTUCE", "CHEESE"]
+      },
+      {
+        "name": "CHICKEN ENCHILADA",
+        "ticket": "CHKN ENCH.",
+        "short": "CK ENCH",
+        "price": 179,
+        "recipe": ["LARGE", "CHICKEN", "SAUCE", "TOMATO"],
+        "_drops": "MONTEREY JACK (no bin)"
+      },
+      {
+        "name": "CHICKEN ENCHILADA SUPREME",
+        "ticket": "CK ENCH SUP",
+        "short": "CKESUP",
+        "price": 229,
+        "recipe": ["LARGE", "CHICKEN", "CHEESE", "CREAM", "LETTUCE"],
+        "_drops": "MONTEREY JACK (no bin)"
+      },
+      {
+        "name": "CHICKEN BURRITO",
+        "ticket": "CHKN BURRITO",
+        "short": "CK BURR",
+        "price": 219,
+        "recipe": ["LARGE", "CHICKEN", "CHEESE", "SAUCE"],
+        "_drops": "MEXICALLI RICE (no bin); whole-wheat tortilla built on LARGE"
+      },
+      {
+        "name": "CHICKEN NACHO SUPREME",
+        "ticket": "CK NACHO SUP",
+        "short": "CNSUP",
+        "price": 349,
+        "recipe": ["CHIPS", "CHICKEN", "CHEESE", "CREAM", "TOMATO", "PEPPERS", "CCQ"],
+        "_drops": "MEXICALLI RICE, MONTEREY JACK, GREEN ONIONS, OLIVES (no bin)"
+      },
+      {
+        "name": "SOMBRERO",
+        "ticket": "SOMBRERO",
+        "short": "SOMBRO",
+        "price": 249,
+        "recipe": ["LARGE", "BEEF", "BEANS", "SAUCE", "CHEESE"],
+        "_drops": "MONTEREY JACK, OLIVES (no bin)"
+      },
+      {
+        "name": "QUESO MELT",
+        "ticket": "QUESO MELT",
+        "short": "QUESO MLT",
+        "price": 99,
+        "recipe": ["LARGE", "CHEESE"]
+      }
     ]
-  }
+  },
+  "_comment": "The kitchen menu per era. build.mjs INLINES this as const MENUS - never fetched at runtime (CSP, file:// CORS). Edit here, then run: node build.mjs",
+  "_rules": "bins is exactly 12 slots (null = empty), and a bin NEVER MOVES: a key set in era N must sit at the same index in every later era; a later era may only fill a slot that was null. plate <= 7 characters (a 44px plate). ticket <= 12 characters (the 72px ticket line). short is the NOW BUILDING readout: 12 x chars + 9 x steps <= 127, steps = recipe length including the base. recipe is [base, ingredient...]: 2..7 keys, base first and only first, then bins of that era. price is integer cents and is flavour only. build.mjs rejects all of it, loudly.",
+  "_keys": "Bin and base keys are what the lattice art in content/lattice/ is named for: BEEF BEANS LETTUCE TOMATO ONION CCQ PEPPERS CREAM CHEESE SAUCE CHILI CHICKEN, bases SMALL SHELL LARGE CHIPS. Do not rename a key without renaming its art.",
+  "_drops": "Where a real Taco Shop item lists an ingredient with no bin (Monterey Jack, olives, green onions, rice, the whole-wheat tortilla), it is dropped from the recipe and noted on the item. Items whose base comes mid-build (Loco Taco, Taco Supreme) and items needing a second tortilla (3 Amigos, Borracho, Mexican Pizza) or a bun (Taco Burger) are left out: ingredient 0 is always the base."
 }
