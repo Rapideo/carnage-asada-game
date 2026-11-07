@@ -47,13 +47,11 @@ Task 17, not before):
 ## NOW: kitchen art (2026-11-06, order set by the owner 2026-11-07)
 
 The owner set the order on 2026-11-07. Details are in `RESUME.md`: "The art director and
-the prep board", and "Pinned: the art". **The art pin still holds: nothing is baked into
-the game until the owner lifts it.**
+the prep board", and "Pinned: the art". **The owner lifted the art pin on 2026-11-07.**
 
-1. [ ] **Assembly-board pictures. In progress.** A Codex art-director agent is drawing
-   all 26 dishes as baked frames, one per distinct build state, to the rulings in
-   `docs/art-direction-welcome.md`. The pilot (v2) is approved. Next: review the full
-   set at game size, then plan with the owner how `Kitchen.pic()` loads the frames.
+1. [ ] **Assembly-board pictures.** The art is **done and approved**: all 26 dishes are in
+   `reference/kitchen/board-frames/` (88 frames, `manifest.json`). Next: plan with the
+   owner how `Kitchen.pic()` loads them in place of the procedural drawing, then build it.
 2. [ ] **The owner playtests.**
 3. [ ] **The kitchen levels' surrounding art.** The owner has concept art and wants the
    Kitchen Shift to look better. **The bins' mechanics, look and feel are perfect and

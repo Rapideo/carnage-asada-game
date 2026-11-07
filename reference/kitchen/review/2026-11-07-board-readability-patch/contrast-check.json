@@ -1,0 +1,45 @@
+{
+  "metric": "Pixels with RGB distance >= 60 after 16-color reduction on board color",
+  "picks": [
+    {
+      "id": "LARGE-BEEF-CHILI",
+      "original": 85,
+      "revised": 326
+    },
+    {
+      "id": "LARGE-BEEF-SAUCE-CHILI",
+      "original": 87,
+      "revised": 358
+    },
+    {
+      "id": "LARGE-BEANS-BEEF-CHEESE-SAUCE-CHILI",
+      "original": 145,
+      "revised": 379
+    },
+    {
+      "id": "CHIPS-CHILI",
+      "original": 350,
+      "revised": 405
+    },
+    {
+      "id": "LARGE-BEEF-BEANS",
+      "original": 125,
+      "revised": 186
+    },
+    {
+      "id": "CHIPS-BEEF-BEANS",
+      "original": 87,
+      "revised": 177
+    },
+    {
+      "id": "LARGE-BEANS-BEEF-CHEESE-SAUCE",
+      "original": 135,
+      "revised": 198
+    },
+    {
+      "id": "LARGE-BEANS-BEEF-CREAM-CHEESE-SAUCE",
+      "original": 138,
+      "revised": 201
+    }
+  ]
+}

@@ -1,0 +1,301 @@
+{
+  "metric": "Pixels with RGB distance >= 60 after 16-color reduction on board color",
+  "steps": [
+    {
+      "state": "LARGE-BEEF-CHILI",
+      "strong": 85
+    },
+    {
+      "state": "CHIPS-BEEF-BEANS",
+      "strong": 87
+    },
+    {
+      "state": "LARGE-BEEF-SAUCE-CHILI",
+      "strong": 87
+    },
+    {
+      "state": "SMALL-BEEF-LETTUCE-CHEESE-ONION",
+      "strong": 91
+    },
+    {
+      "state": "SMALL-BEEF-LETTUCE-CHEESE-ONION-TOMATO",
+      "strong": 101
+    },
+    {
+      "state": "LARGE-BEEF-BEANS-SAUCE",
+      "strong": 112
+    },
+    {
+      "state": "SMALL-BEEF-LETTUCE-CHEESE-ONION-TOMATO-CREAM",
+      "strong": 115
+    },
+    {
+      "state": "LARGE-BEEF-SAUCE",
+      "strong": 118
+    },
+    {
+      "state": "LARGE-BEEF-BEANS-CHEESE",
+      "strong": 120
+    },
+    {
+      "state": "LARGE-CHICKEN-SAUCE-TOMATO",
+      "strong": 121
+    },
+    {
+      "state": "LARGE-BEEF-BEANS",
+      "strong": 125
+    },
+    {
+      "state": "LARGE-BEEF-CHILI-SAUCE",
+      "strong": 129
+    },
+    {
+      "state": "LARGE-BEANS-BEEF-CHEESE",
+      "strong": 133
+    },
+    {
+      "state": "LARGE-BEANS-BEEF-CHEESE-SAUCE",
+      "strong": 135
+    },
+    {
+      "state": "LARGE-BEEF-BEANS-SAUCE-CHEESE",
+      "strong": 136
+    },
+    {
+      "state": "LARGE-BEANS-BEEF-CREAM-CHEESE-SAUCE",
+      "strong": 138
+    },
+    {
+      "state": "LARGE-BEEF-CHEESE",
+      "strong": 138
+    },
+    {
+      "state": "LARGE-BEEF-SAUCE-CHILI-CHEESE",
+      "strong": 138
+    },
+    {
+      "state": "LARGE-BEANS-BEEF-CREAM",
+      "strong": 140
+    },
+    {
+      "state": "LARGE-BEEF-CREAM",
+      "strong": 140
+    },
+    {
+      "state": "CHIPS-BEEF-BEANS-CHEESE",
+      "strong": 143
+    },
+    {
+      "state": "LARGE-BEEF-SAUCE-CHEESE",
+      "strong": 143
+    },
+    {
+      "state": "CHIPS-CHILI-CHEESE",
+      "strong": 145
+    },
+    {
+      "state": "LARGE-BEANS-BEEF-CHEESE-SAUCE-CHILI",
+      "strong": 145
+    },
+    {
+      "state": "CHIPS-BEEF-BEANS-CHEESE-CREAM",
+      "strong": 150
+    },
+    {
+      "state": "SMALL-BEEF-LETTUCE-CHEESE",
+      "strong": 152
+    },
+    {
+      "state": "LARGE-BEANS-BEEF",
+      "strong": 154
+    },
+    {
+      "state": "CHIPS-CHICKEN-CHEESE-CREAM",
+      "strong": 157
+    },
+    {
+      "state": "LARGE-BEEF-CHILI-SAUCE-CHEESE",
+      "strong": 163
+    },
+    {
+      "state": "LARGE-CHICKEN-CHEESE-CREAM",
+      "strong": 166
+    },
+    {
+      "state": "LARGE-CHICKEN-CHEESE-SAUCE",
+      "strong": 170
+    },
+    {
+      "state": "LARGE-BEEF-CREAM-SAUCE",
+      "strong": 175
+    },
+    {
+      "state": "SMALL-CHICKEN",
+      "strong": 176
+    },
+    {
+      "state": "LARGE-CHICKEN-SAUCE",
+      "strong": 178
+    },
+    {
+      "state": "CHIPS-CHICKEN-CHEESE",
+      "strong": 179
+    },
+    {
+      "state": "SMALL-CHICKEN-LETTUCE",
+      "strong": 179
+    },
+    {
+      "state": "CHIPS-CHILI-CHEESE-CCQ",
+      "strong": 182
+    },
+    {
+      "state": "LARGE-BEEF-LETTUCE-CHEESE",
+      "strong": 182
+    },
+    {
+      "state": "SMALL-CHICKEN-LETTUCE-CHEESE",
+      "strong": 182
+    },
+    {
+      "state": "LARGE-CHICKEN-CHEESE",
+      "strong": 184
+    },
+    {
+      "state": "SMALL-BEEF-LETTUCE",
+      "strong": 184
+    },
+    {
+      "state": "CHIPS-BEEF-BEANS-CHEESE-CREAM-PEPPERS",
+      "strong": 189
+    },
+    {
+      "state": "LARGE-BEANS-BEEF-CREAM-CHEESE",
+      "strong": 190
+    },
+    {
+      "state": "LARGE-BEEF-CREAM-SAUCE-CHEESE",
+      "strong": 190
+    },
+    {
+      "state": "CHIPS-BEEF-BEANS-CHEESE-CREAM-PEPPERS-CCQ",
+      "strong": 194
+    },
+    {
+      "state": "SHELL-BEEF-LETTUCE-CHEESE-ONION",
+      "strong": 195
+    },
+    {
+      "state": "SHELL-BEEF",
+      "strong": 197
+    },
+    {
+      "state": "CHIPS-CHICKEN-CHEESE-CREAM-TOMATO",
+      "strong": 200
+    },
+    {
+      "state": "LARGE-BEEF-SAUCE-CHEESE-LETTUCE-CCQ",
+      "strong": 202
+    },
+    {
+      "state": "SHELL-CHICKEN",
+      "strong": 203
+    },
+    {
+      "state": "CHIPS-CHICKEN-CHEESE-CREAM-TOMATO-PEPPERS",
+      "strong": 208
+    },
+    {
+      "state": "CHIPS-CHICKEN-CHEESE-CREAM-TOMATO-PEPPERS-CCQ",
+      "strong": 219
+    },
+    {
+      "state": "LARGE-CHEESE",
+      "strong": 220
+    },
+    {
+      "state": "LARGE-BEEF-LETTUCE",
+      "strong": 232
+    },
+    {
+      "state": "SHELL-BEEF-LETTUCE-CHEESE-ONION-TOMATO-CREAM",
+      "strong": 234
+    },
+    {
+      "state": "LARGE-CHICKEN-CHEESE-CREAM-LETTUCE",
+      "strong": 245
+    },
+    {
+      "state": "SHELL-BEEF-LETTUCE",
+      "strong": 246
+    },
+    {
+      "state": "SHELL-BEEF-LETTUCE-CHEESE-ONION-TOMATO",
+      "strong": 249
+    },
+    {
+      "state": "LARGE-BEEF-CHILI-SAUCE-CHEESE-LETTUCE",
+      "strong": 251
+    },
+    {
+      "state": "LARGE-BEEF-SAUCE-CHEESE-LETTUCE",
+      "strong": 253
+    },
+    {
+      "state": "CHIPS-BEEF",
+      "strong": 275
+    },
+    {
+      "state": "SHELL-BEEF-LETTUCE-CHEESE",
+      "strong": 278
+    },
+    {
+      "state": "LARGE-BEEF-CREAM-SAUCE-CHEESE-LETTUCE",
+      "strong": 280
+    },
+    {
+      "state": "CHIPS-CCQ",
+      "strong": 282
+    },
+    {
+      "state": "SMALL-BEEF",
+      "strong": 286
+    },
+    {
+      "state": "LARGE-CHICKEN",
+      "strong": 289
+    },
+    {
+      "state": "CHIPS-CHICKEN",
+      "strong": 297
+    },
+    {
+      "state": "CHIPS-CHILI",
+      "strong": 350
+    },
+    {
+      "state": "SHELL-CHICKEN-LETTUCE-CHEESE",
+      "strong": 358
+    },
+    {
+      "state": "SHELL-CHICKEN-LETTUCE",
+      "strong": 398
+    },
+    {
+      "state": "CHIPS-CCQ-PEPPERS",
+      "strong": 406
+    },
+    {
+      "state": "LARGE-BEANS-CHEESE",
+      "strong": 412
+    },
+    {
+      "state": "LARGE-BEEF",
+      "strong": 458
+    },
+    {
+      "state": "LARGE-BEANS",
+      "strong": 603
+    }
+  ]
+}

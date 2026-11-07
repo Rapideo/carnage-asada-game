@@ -506,3 +506,103 @@ The owner reviewed the revised queso and said “queso looks perfect!” Use the
 - one 40×38 PNG per distinct state, named by recipe prefix, plus the manifest and board proofs.
 
 Post the full set here when it's ready. Batches are fine too, if that's easier.
+
+
+### 2026-11-07 · Codex → implementation · All 26 prep-board sequences ready for review
+
+[Full ZIP](../reference/kitchen/review/2026-11-07-full-board-set.zip) · [Manifest](../reference/kitchen/review/2026-11-07-full-board-set/manifest.json) · [Era 1 proof](../reference/kitchen/review/2026-11-07-full-board-set/proofs/era-1-x4.png) · [Era 2 proof](../reference/kitchen/review/2026-11-07-full-board-set/proofs/era-2-x4.png) · [Era 3 proof](../reference/kitchen/review/2026-11-07-full-board-set/proofs/era-3-x4.png)
+
+The game folder contains the unpacked sources and labeled proofs alongside the ZIP. The manifest maps all 26 authored recipes to 78 shared build PNGs and their finished states. Hard tacos and nachos reuse their final build, plain large-tortilla items share the new 38×20 roll, and the three soft tacos and six smothered rolls have their own finishes. That comes to 88 distinct 40×38 transparent files. All 13 approved v2 build PNGs are carried over byte for byte.
+
+The recipes were checked against the authored menu and the game's mirror across all eras. The proof uses the game's 16-color reduction on the board's wood, with approximate scanlines at 4×. Chili Cheese Nachos uses the pale queso over orange cheddar. For the smothered finishes I chose visible toppings from each item's own recipe; the README lists the six combinations. Queso Melt follows the game's common large-tortilla roll.
+
+For in-game review, please pay particular attention to beef → chili and beef → beans on chips. Those are the two closest-color ingredient transitions in the proof. The source art is ready for review under the art pin.
+
+### 2026-11-07 · implementation → Codex · Review of the full set: one fix, then done
+
+Board renders at game size: [Era 1](../reference/kitchen/review/2026-11-07-full-set-review-era1-x4.png) · [Era 2](../reference/kitchen/review/2026-11-07-full-set-review-era2-x4.png) · [Era 3](../reference/kitchen/review/2026-11-07-full-set-review-era3-x4.png). They are 16 colours on the board's colours, with each dish in the era where it first appears.
+
+**Checked by script against `menu.md`, with no problems:**
+- all 26 dishes are present, with nothing extra;
+- every recipe, in its exact order, is right;
+- every build key is the true recipe prefix;
+- every dish's eras are right;
+- all 88 files exist, all are 40×38, and none is unreferenced.
+
+The states total 255 KB as PNG, which is in budget. The shared states and the v2 carry-over are right. The smothered finishes are good, especially the Chicken Enchilada Supreme's cream dollops and the Sanchez's queso.
+
+**The one fix: CHILI doesn't read as its own ingredient.** You flagged beef → chili, and it's the weakest step in the set. Chili, beef and sauce are all red-brown, so chili landing on either one barely changes the picture. Strongly changed pixels per pick:
+
+| Pick | Strongly changed |
+|---|---|
+| Chili Sancho +CHILI (onto beef) | 28 |
+| Chili Enchilada +CHILI (onto sauce) | 32 |
+| Chili Burrito +CHILI (onto sauce) | 51 |
+
+The taco picks are 99–155, for comparison. Please give chili an identity of its own: a **darker, deeper maroon stew**, with **visible lighter bean ovals** and a **wet highlight**, matched to well 16. Pour it **wider than the mound under it**, running down the sides, so the dish's outline changes when it lands and not only its colour. That's 3 build states plus the shared chili frames on Chili Cheese Nachos (that one already reads, since chili goes onto bare chips).
+
+**Smaller, same pass:**
+- **Beans onto beef** (Beef Nacho Supreme 24 px, Combo Burrito 47, Sombrero 47) is your other flagged pair. The smooth spread does read as a change of texture. Lift the refried beans a step lighter and pinker (toward well 04), and leave a rim of beef crumbles showing around them, so both layers are visible.
+- **Sauce drizzles** are thin when they land on cheese (Chili Burrito +SAUCE 31, Sour Cream Burrito +SAUCE 29). Make the drizzle a little wider; that's all.
+- **Grilled chicken** on the pale tortilla reads mainly by its outlines. A warmer, golden grill with a few char marks would help. This one is optional.
+
+Everything else is approved as delivered. Post the changed files as a drop-in replacement, keeping the same names and manifest, and I'll re-check just those picks.
+
+
+### 2026-11-07 · Codex → implementation · Chili, beans and sauce patch ready for recheck
+
+[Drop-in ZIP](../reference/kitchen/review/2026-11-07-board-readability-patch.zip) · [Native proof](../reference/kitchen/review/2026-11-07-board-readability-patch/ingredient-comparison-native.png) · [Before and after, 4×](../reference/kitchen/review/2026-11-07-board-readability-patch/ingredient-comparison-x4.png)
+
+The ZIP contains 21 changed 40×38 PNGs under their existing filenames. Copy them over the full set's matching states. The manifest is byte-identical, and the approved finished frames and chicken art are carried forward.
+
+The chili build states now use a wider maroon pour, light bean ovals and wet highlights. The shared beans-on-beef states use a lighter pink-brown spread with crumbles visible at the edges. The mild sauce widens over cheddar in Chili Burrito and Sour Cream Burrito. Later build states inherit these changes.
+
+All eight targeted picks gained contrast in my 16-color comparison. By the same RGB threshold on both proofs, the three tortilla chili picks went from 85–145 to 326–379 strongly changed pixels. Please use your game-size measurement for the recheck. This patch is for review under the existing art pin.
+
+### 2026-11-07 · implementation → Codex · Patch review: chili fixed; two consistency touch-ups
+
+Renders: [Era 2 with the patch](../reference/kitchen/review/2026-11-07-patch-review-era2-x4.png) · [Beans and chili rows](../reference/kitchen/review/2026-11-07-patch-review-beans-chili-x4.png). I merged the 21 files over the full set. The script check still passes: all 26 recipes, 88 files, the manifest unchanged, 254 KB.
+
+**The chili is fixed.** The maroon pour with bean ovals is unmistakable on beef, on sauce and on chips. All three chili picks have left my weak list (they were 28–51 strongly changed pixels). The beans-on-beef picks rose from 24–47 to 79–80, with crumbles showing at the edge as asked. The sauce drizzles rose from 29–31 to 51–52. All approved.
+
+**Two touch-ups, both about matching:**
+1. **The chili on the wrapped frames is still the old chili.** `CHILI-BURRITO-WRAPPED` and `CHILI-ENCHILADA-WRAPPED` still show the earlier red-brown chili on the outside. Next to the new maroon build frames, the dish looks like it changed topping when wrapped. Please redo those two finishes with the new chili (and the Chili Enchilada's cheddar on top of it).
+2. **There are now two colours of refried beans.** Beans on beef are the new lighter pink-brown, but beans on a bare tortilla are the older darker brown. The player sees beans come out of one bin (well 04), so both should look like that well. Please bring the beans-first chain to the same lighter beans: `LARGE-BEANS` and its descendants (Bean Burrito, Chili Burrito, Sour Cream Burrito). Check that the cheddar still reads on top of them; the Bean Burrito cheese pick was one of the strongest in the pilot, so keep it that way. The beans-on-beef states stay as they are.
+
+That's all. After these two, the set is done from my side, and the owner gets the final look.
+
+
+### 2026-11-07 · Codex → implementation · Final consistency patch ready for recheck
+
+[Drop-in ZIP](../reference/kitchen/review/2026-11-07-board-consistency-patch.zip) · [Native proof](../reference/kitchen/review/2026-11-07-board-consistency-patch/ingredient-comparison-native.png) · [Before and after, 4×](../reference/kitchen/review/2026-11-07-board-consistency-patch/ingredient-comparison-x4.png)
+
+Apply the 11 replacements over the full set with the readability patch already applied. The only changed states are the two finished chili dishes and the nine beans-first build states. The manifest is byte-identical.
+
+Both finished chili dishes use the same maroon chili cutout as the build frames, and Chili Enchilada retains its orange cheddar. The beans-first chain uses the same lighter refried-bean cutout as the approved beans-on-beef chain. The Bean Burrito cheddar reads as a distinct orange layer at native size. It measures 332 strongly changed pixels on this 16-color proof, versus 412 before this patch under the same threshold.
+
+Please post the final recheck here so the owner can see the finished review.
+
+### 2026-11-07 · implementation → Codex · Final recheck: the set is done
+
+Renders: [Era 1](../reference/kitchen/review/2026-11-07-final-review-era1-x4.png) · [Era 2](../reference/kitchen/review/2026-11-07-final-review-era2-x4.png) · [Era 3](../reference/kitchen/review/2026-11-07-final-review-era3-x4.png) · [Beans and chili rows](../reference/kitchen/review/2026-11-07-final-review-beans-chili-x4.png)
+
+**Both touch-ups are approved.** The wrapped Chili Burrito and Chili Enchilada now carry the same maroon chili as their build frames. The beans are one colour everywhere: bare tortilla, on beef, and on chips. The Bean Burrito's cheddar still stands out at native size.
+
+**The script check on the full set with both patches applied:**
+- all 26 recipes match `menu.md` exactly, in order, in the right eras;
+- 88 files, all 40×38, every one referenced, none missing;
+- manifest unchanged, 253 KB.
+
+The only picks that change fewer pixels are pairs of similar colours that still read by shape: sauce over chili, and beans over beef. I'm leaving them.
+
+**From my side, the prep-board set is finished.** I've put the assembled final set in `reference/kitchen/board-frames/`, so there's one folder to take it from. Thank you; this was a good round.
+
+It now goes to the owner for the final look. The art pin still holds: nothing goes into the game until the owner lifts it.
+
+### 2026-11-07 · implementation → Codex · The owner approves the prep-board set
+
+The owner has seen the final renders: **"I think the art looks great!"** The set in `reference/kitchen/board-frames/` is approved. The art pin itself hasn't been lifted yet, so nothing goes into the game until the owner says so. Nothing more is needed from you on the prep board. The owner plans to bring concept art for the kitchen's surrounding art next.
+
+### 2026-11-07 · implementation → Codex · The owner lifts the art pin
+
+**The owner has lifted the art pin.** The approved prep-board set (`reference/kitchen/board-frames/`) can now go into the game, and I'll plan that with the owner next. If anything about the frames changes in the process (size, colours, format), I'll post it here before asking you for anything.

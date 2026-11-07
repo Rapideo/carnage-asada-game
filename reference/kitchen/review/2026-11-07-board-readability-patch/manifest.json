@@ -1,0 +1,596 @@
+{
+  "source": "docs/authored content/menu.md.md",
+  "canvas": [
+    40,
+    38
+  ],
+  "rows": [
+    "Hard Taco",
+    "Hard Taco Supreme",
+    "Soft Taco",
+    "Soft Taco Supreme",
+    "Beef Burrito",
+    "Bean Burrito",
+    "Combo Burrito",
+    "Sancho",
+    "Nachos",
+    "Enchilada with Meat",
+    "Chili Burrito",
+    "Chili Sancho",
+    "Chili Enchilada",
+    "Chili Cheese Nachos",
+    "Sour Cream Sancho",
+    "Sanchez",
+    "Beef Nacho Supreme",
+    "Sour Cream Burrito",
+    "Chicken Hard Taco",
+    "Chicken Soft Taco",
+    "Chicken Enchilada",
+    "Chicken Enchilada Supreme",
+    "Chicken Burrito",
+    "Chicken Nacho Supreme",
+    "Sombrero",
+    "Queso Melt"
+  ],
+  "recipes": {
+    "Hard Taco": {
+      "recipe": [
+        "SHELL",
+        "BEEF",
+        "LETTUCE",
+        "CHEESE"
+      ],
+      "build": [
+        "SHELL",
+        "SHELL-BEEF",
+        "SHELL-BEEF-LETTUCE",
+        "SHELL-BEEF-LETTUCE-CHEESE"
+      ],
+      "wrapped": "SHELL-BEEF-LETTUCE-CHEESE",
+      "eras": [
+        1,
+        2,
+        3
+      ]
+    },
+    "Hard Taco Supreme": {
+      "recipe": [
+        "SHELL",
+        "BEEF",
+        "LETTUCE",
+        "CHEESE",
+        "ONION",
+        "TOMATO",
+        "CREAM"
+      ],
+      "build": [
+        "SHELL",
+        "SHELL-BEEF",
+        "SHELL-BEEF-LETTUCE",
+        "SHELL-BEEF-LETTUCE-CHEESE",
+        "SHELL-BEEF-LETTUCE-CHEESE-ONION",
+        "SHELL-BEEF-LETTUCE-CHEESE-ONION-TOMATO",
+        "SHELL-BEEF-LETTUCE-CHEESE-ONION-TOMATO-CREAM"
+      ],
+      "wrapped": "SHELL-BEEF-LETTUCE-CHEESE-ONION-TOMATO-CREAM",
+      "eras": [
+        1
+      ]
+    },
+    "Soft Taco": {
+      "recipe": [
+        "SMALL",
+        "BEEF",
+        "LETTUCE",
+        "CHEESE"
+      ],
+      "build": [
+        "SMALL",
+        "SMALL-BEEF",
+        "SMALL-BEEF-LETTUCE",
+        "SMALL-BEEF-LETTUCE-CHEESE"
+      ],
+      "wrapped": "SOFT-TACO-WRAPPED",
+      "eras": [
+        1,
+        2,
+        3
+      ]
+    },
+    "Soft Taco Supreme": {
+      "recipe": [
+        "SMALL",
+        "BEEF",
+        "LETTUCE",
+        "CHEESE",
+        "ONION",
+        "TOMATO",
+        "CREAM"
+      ],
+      "build": [
+        "SMALL",
+        "SMALL-BEEF",
+        "SMALL-BEEF-LETTUCE",
+        "SMALL-BEEF-LETTUCE-CHEESE",
+        "SMALL-BEEF-LETTUCE-CHEESE-ONION",
+        "SMALL-BEEF-LETTUCE-CHEESE-ONION-TOMATO",
+        "SMALL-BEEF-LETTUCE-CHEESE-ONION-TOMATO-CREAM"
+      ],
+      "wrapped": "SOFT-TACO-SUPREME-WRAPPED",
+      "eras": [
+        1
+      ]
+    },
+    "Beef Burrito": {
+      "recipe": [
+        "LARGE",
+        "BEEF",
+        "CHEESE"
+      ],
+      "build": [
+        "LARGE",
+        "LARGE-BEEF",
+        "LARGE-BEEF-CHEESE"
+      ],
+      "wrapped": "BEAN-BURRITO-WRAPPED",
+      "eras": [
+        1
+      ]
+    },
+    "Bean Burrito": {
+      "recipe": [
+        "LARGE",
+        "BEANS",
+        "CHEESE"
+      ],
+      "build": [
+        "LARGE",
+        "LARGE-BEANS",
+        "LARGE-BEANS-CHEESE"
+      ],
+      "wrapped": "BEAN-BURRITO-WRAPPED",
+      "eras": [
+        1,
+        2,
+        3
+      ]
+    },
+    "Combo Burrito": {
+      "recipe": [
+        "LARGE",
+        "BEEF",
+        "BEANS",
+        "CHEESE"
+      ],
+      "build": [
+        "LARGE",
+        "LARGE-BEEF",
+        "LARGE-BEEF-BEANS",
+        "LARGE-BEEF-BEANS-CHEESE"
+      ],
+      "wrapped": "BEAN-BURRITO-WRAPPED",
+      "eras": [
+        1
+      ]
+    },
+    "Sancho": {
+      "recipe": [
+        "LARGE",
+        "BEEF",
+        "LETTUCE",
+        "CHEESE"
+      ],
+      "build": [
+        "LARGE",
+        "LARGE-BEEF",
+        "LARGE-BEEF-LETTUCE",
+        "LARGE-BEEF-LETTUCE-CHEESE"
+      ],
+      "wrapped": "BEAN-BURRITO-WRAPPED",
+      "eras": [
+        1,
+        2,
+        3
+      ]
+    },
+    "Nachos": {
+      "recipe": [
+        "CHIPS",
+        "CCQ",
+        "PEPPERS"
+      ],
+      "build": [
+        "CHIPS",
+        "CHIPS-CCQ",
+        "CHIPS-CCQ-PEPPERS"
+      ],
+      "wrapped": "CHIPS-CCQ-PEPPERS",
+      "eras": [
+        1,
+        2
+      ]
+    },
+    "Enchilada with Meat": {
+      "recipe": [
+        "LARGE",
+        "BEEF",
+        "SAUCE",
+        "CHEESE"
+      ],
+      "build": [
+        "LARGE",
+        "LARGE-BEEF",
+        "LARGE-BEEF-SAUCE",
+        "LARGE-BEEF-SAUCE-CHEESE"
+      ],
+      "wrapped": "ENCHILADA-WITH-MEAT-WRAPPED",
+      "eras": [
+        2
+      ]
+    },
+    "Chili Burrito": {
+      "recipe": [
+        "LARGE",
+        "BEANS",
+        "BEEF",
+        "CHEESE",
+        "SAUCE",
+        "CHILI"
+      ],
+      "build": [
+        "LARGE",
+        "LARGE-BEANS",
+        "LARGE-BEANS-BEEF",
+        "LARGE-BEANS-BEEF-CHEESE",
+        "LARGE-BEANS-BEEF-CHEESE-SAUCE",
+        "LARGE-BEANS-BEEF-CHEESE-SAUCE-CHILI"
+      ],
+      "wrapped": "CHILI-BURRITO-WRAPPED",
+      "eras": [
+        2
+      ]
+    },
+    "Chili Sancho": {
+      "recipe": [
+        "LARGE",
+        "BEEF",
+        "CHILI",
+        "SAUCE",
+        "CHEESE",
+        "LETTUCE"
+      ],
+      "build": [
+        "LARGE",
+        "LARGE-BEEF",
+        "LARGE-BEEF-CHILI",
+        "LARGE-BEEF-CHILI-SAUCE",
+        "LARGE-BEEF-CHILI-SAUCE-CHEESE",
+        "LARGE-BEEF-CHILI-SAUCE-CHEESE-LETTUCE"
+      ],
+      "wrapped": "BEAN-BURRITO-WRAPPED",
+      "eras": [
+        2
+      ]
+    },
+    "Chili Enchilada": {
+      "recipe": [
+        "LARGE",
+        "BEEF",
+        "SAUCE",
+        "CHILI",
+        "CHEESE"
+      ],
+      "build": [
+        "LARGE",
+        "LARGE-BEEF",
+        "LARGE-BEEF-SAUCE",
+        "LARGE-BEEF-SAUCE-CHILI",
+        "LARGE-BEEF-SAUCE-CHILI-CHEESE"
+      ],
+      "wrapped": "CHILI-ENCHILADA-WRAPPED",
+      "eras": [
+        2
+      ]
+    },
+    "Chili Cheese Nachos": {
+      "recipe": [
+        "CHIPS",
+        "CHILI",
+        "CHEESE",
+        "CCQ"
+      ],
+      "build": [
+        "CHIPS",
+        "CHIPS-CHILI",
+        "CHIPS-CHILI-CHEESE",
+        "CHIPS-CHILI-CHEESE-CCQ"
+      ],
+      "wrapped": "CHIPS-CHILI-CHEESE-CCQ",
+      "eras": [
+        2,
+        3
+      ]
+    },
+    "Sour Cream Sancho": {
+      "recipe": [
+        "LARGE",
+        "BEEF",
+        "CREAM",
+        "SAUCE",
+        "CHEESE",
+        "LETTUCE"
+      ],
+      "build": [
+        "LARGE",
+        "LARGE-BEEF",
+        "LARGE-BEEF-CREAM",
+        "LARGE-BEEF-CREAM-SAUCE",
+        "LARGE-BEEF-CREAM-SAUCE-CHEESE",
+        "LARGE-BEEF-CREAM-SAUCE-CHEESE-LETTUCE"
+      ],
+      "wrapped": "BEAN-BURRITO-WRAPPED",
+      "eras": [
+        2
+      ]
+    },
+    "Sanchez": {
+      "recipe": [
+        "LARGE",
+        "BEEF",
+        "SAUCE",
+        "CHEESE",
+        "LETTUCE",
+        "CCQ"
+      ],
+      "build": [
+        "LARGE",
+        "LARGE-BEEF",
+        "LARGE-BEEF-SAUCE",
+        "LARGE-BEEF-SAUCE-CHEESE",
+        "LARGE-BEEF-SAUCE-CHEESE-LETTUCE",
+        "LARGE-BEEF-SAUCE-CHEESE-LETTUCE-CCQ"
+      ],
+      "wrapped": "SANCHEZ-WRAPPED",
+      "eras": [
+        2,
+        3
+      ]
+    },
+    "Beef Nacho Supreme": {
+      "recipe": [
+        "CHIPS",
+        "BEEF",
+        "BEANS",
+        "CHEESE",
+        "CREAM",
+        "PEPPERS",
+        "CCQ"
+      ],
+      "build": [
+        "CHIPS",
+        "CHIPS-BEEF",
+        "CHIPS-BEEF-BEANS",
+        "CHIPS-BEEF-BEANS-CHEESE",
+        "CHIPS-BEEF-BEANS-CHEESE-CREAM",
+        "CHIPS-BEEF-BEANS-CHEESE-CREAM-PEPPERS",
+        "CHIPS-BEEF-BEANS-CHEESE-CREAM-PEPPERS-CCQ"
+      ],
+      "wrapped": "CHIPS-BEEF-BEANS-CHEESE-CREAM-PEPPERS-CCQ",
+      "eras": [
+        2
+      ]
+    },
+    "Sour Cream Burrito": {
+      "recipe": [
+        "LARGE",
+        "BEANS",
+        "BEEF",
+        "CREAM",
+        "CHEESE",
+        "SAUCE"
+      ],
+      "build": [
+        "LARGE",
+        "LARGE-BEANS",
+        "LARGE-BEANS-BEEF",
+        "LARGE-BEANS-BEEF-CREAM",
+        "LARGE-BEANS-BEEF-CREAM-CHEESE",
+        "LARGE-BEANS-BEEF-CREAM-CHEESE-SAUCE"
+      ],
+      "wrapped": "BEAN-BURRITO-WRAPPED",
+      "eras": [
+        3
+      ]
+    },
+    "Chicken Hard Taco": {
+      "recipe": [
+        "SHELL",
+        "CHICKEN",
+        "LETTUCE",
+        "CHEESE"
+      ],
+      "build": [
+        "SHELL",
+        "SHELL-CHICKEN",
+        "SHELL-CHICKEN-LETTUCE",
+        "SHELL-CHICKEN-LETTUCE-CHEESE"
+      ],
+      "wrapped": "SHELL-CHICKEN-LETTUCE-CHEESE",
+      "eras": [
+        3
+      ]
+    },
+    "Chicken Soft Taco": {
+      "recipe": [
+        "SMALL",
+        "CHICKEN",
+        "LETTUCE",
+        "CHEESE"
+      ],
+      "build": [
+        "SMALL",
+        "SMALL-CHICKEN",
+        "SMALL-CHICKEN-LETTUCE",
+        "SMALL-CHICKEN-LETTUCE-CHEESE"
+      ],
+      "wrapped": "CHICKEN-SOFT-TACO-WRAPPED",
+      "eras": [
+        3
+      ]
+    },
+    "Chicken Enchilada": {
+      "recipe": [
+        "LARGE",
+        "CHICKEN",
+        "SAUCE",
+        "TOMATO"
+      ],
+      "build": [
+        "LARGE",
+        "LARGE-CHICKEN",
+        "LARGE-CHICKEN-SAUCE",
+        "LARGE-CHICKEN-SAUCE-TOMATO"
+      ],
+      "wrapped": "CHICKEN-ENCHILADA-WRAPPED",
+      "eras": [
+        3
+      ]
+    },
+    "Chicken Enchilada Supreme": {
+      "recipe": [
+        "LARGE",
+        "CHICKEN",
+        "CHEESE",
+        "CREAM",
+        "LETTUCE"
+      ],
+      "build": [
+        "LARGE",
+        "LARGE-CHICKEN",
+        "LARGE-CHICKEN-CHEESE",
+        "LARGE-CHICKEN-CHEESE-CREAM",
+        "LARGE-CHICKEN-CHEESE-CREAM-LETTUCE"
+      ],
+      "wrapped": "CHICKEN-ENCHILADA-SUPREME-WRAPPED",
+      "eras": [
+        3
+      ]
+    },
+    "Chicken Burrito": {
+      "recipe": [
+        "LARGE",
+        "CHICKEN",
+        "CHEESE",
+        "SAUCE"
+      ],
+      "build": [
+        "LARGE",
+        "LARGE-CHICKEN",
+        "LARGE-CHICKEN-CHEESE",
+        "LARGE-CHICKEN-CHEESE-SAUCE"
+      ],
+      "wrapped": "BEAN-BURRITO-WRAPPED",
+      "eras": [
+        3
+      ]
+    },
+    "Chicken Nacho Supreme": {
+      "recipe": [
+        "CHIPS",
+        "CHICKEN",
+        "CHEESE",
+        "CREAM",
+        "TOMATO",
+        "PEPPERS",
+        "CCQ"
+      ],
+      "build": [
+        "CHIPS",
+        "CHIPS-CHICKEN",
+        "CHIPS-CHICKEN-CHEESE",
+        "CHIPS-CHICKEN-CHEESE-CREAM",
+        "CHIPS-CHICKEN-CHEESE-CREAM-TOMATO",
+        "CHIPS-CHICKEN-CHEESE-CREAM-TOMATO-PEPPERS",
+        "CHIPS-CHICKEN-CHEESE-CREAM-TOMATO-PEPPERS-CCQ"
+      ],
+      "wrapped": "CHIPS-CHICKEN-CHEESE-CREAM-TOMATO-PEPPERS-CCQ",
+      "eras": [
+        3
+      ]
+    },
+    "Sombrero": {
+      "recipe": [
+        "LARGE",
+        "BEEF",
+        "BEANS",
+        "SAUCE",
+        "CHEESE"
+      ],
+      "build": [
+        "LARGE",
+        "LARGE-BEEF",
+        "LARGE-BEEF-BEANS",
+        "LARGE-BEEF-BEANS-SAUCE",
+        "LARGE-BEEF-BEANS-SAUCE-CHEESE"
+      ],
+      "wrapped": "BEAN-BURRITO-WRAPPED",
+      "eras": [
+        3
+      ]
+    },
+    "Queso Melt": {
+      "recipe": [
+        "LARGE",
+        "CHEESE"
+      ],
+      "build": [
+        "LARGE",
+        "LARGE-CHEESE"
+      ],
+      "wrapped": "BEAN-BURRITO-WRAPPED",
+      "eras": [
+        3
+      ]
+    }
+  },
+  "proofRows": {
+    "era-1": [
+      "Hard Taco",
+      "Hard Taco Supreme",
+      "Soft Taco",
+      "Soft Taco Supreme",
+      "Beef Burrito",
+      "Bean Burrito",
+      "Combo Burrito",
+      "Sancho",
+      "Nachos"
+    ],
+    "era-2": [
+      "Enchilada with Meat",
+      "Chili Burrito",
+      "Chili Sancho",
+      "Chili Enchilada",
+      "Chili Cheese Nachos",
+      "Sour Cream Sancho",
+      "Sanchez",
+      "Beef Nacho Supreme"
+    ],
+    "era-3": [
+      "Sour Cream Burrito",
+      "Chicken Hard Taco",
+      "Chicken Soft Taco",
+      "Chicken Enchilada",
+      "Chicken Enchilada Supreme",
+      "Chicken Burrito",
+      "Chicken Nacho Supreme",
+      "Sombrero",
+      "Queso Melt"
+    ]
+  },
+  "fullMenu": {
+    "recipes": 26,
+    "buildStates": 78,
+    "logicalWrapStates": 26,
+    "pngs": 88
+  }
+}

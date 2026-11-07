@@ -8,11 +8,11 @@ living plan**, and if the two disagree, the roadmap wins.
 
 **Start here (2026-11-07):** the owner has set the order.
 
-1. **Finish this art pass: the prep-board (assembly) pictures.** A Codex art-director
-   agent is drawing all 26 dishes right now (see **The art director and the prep board**
-   below). When the full set (or a batch) lands, check it against `menu.md`, render it
-   at game size, and show the owner. **Still pinned: nothing goes into the game until
-   the owner lifts the pin.**
+1. **Finish this art pass: put the prep-board pictures in the game.** The art director's
+   set of all 26 dishes is **done and approved by the owner** (2026-11-07), in
+   `reference/kitchen/board-frames/` (see **The art director and the prep board** below).
+   **The owner lifted the art pin on 2026-11-07.** Next: agree with the owner how
+   `Kitchen.pic()` loads the frames, then build it.
 2. **The owner playtests.**
 3. **Then: the kitchen levels' surrounding art.** The owner thinks the Kitchen Shift
    could look better and **has concept art** for it. **The bin mechanics, look and feel
@@ -63,19 +63,26 @@ The scripts that made them live in the session scratchpad and are gone. The meth
 reduce each state to 15 colours with `reduce.mjs` (`medianCut` + `snap`), centre it in a
 64×42 cell of `PAL.dirt` with a 2-row `PAL.porch` edge, darken alternate rows by 18%,
 and upscale ×5. For the pick test, diff consecutive states and count pixels whose RGB
-distance is over 180. **The full set is being drawn now.**
+distance is over 180.
+
+**Done (2026-11-07).** The full set went through one fix round and two drop-in patches.
+The chili was redrawn as a maroon stew with beans, because it had read the same as the
+beef and sauce. The refried beans were unified to one lighter colour. **The owner
+approved it.** The assembled set, the full pack with both patches applied, is
+**`reference/kitchen/board-frames/`**: 88 transparent 40×38 PNGs plus `manifest.json`
+(each dish's recipe, build keys, finished key and eras), 253 KB as PNG. Every recipe
+matches `menu.md`. The packs and renders behind it are in `reference/kitchen/review/`.
 
 **Not decided yet: how the frames go into the game.** Today `Kitchen.pic()` draws the board
 procedurally. The likely route is `bake-lattice.mjs --keyed --size 40x38` per state into
 `content/lattice/` (see `docs/art_pipeline.md`, "Free objects"), with `pic()` looking up
-the state by recipe prefix. Plan it with the owner when the pin lifts.
+the state by recipe prefix. **The pin is lifted; plan this with the owner next.**
 
 ## Pinned: the art (2026-11-06, updated 2026-11-07)
 
-**Still pinned, by the owner, 2026-11-07: do not bake.** The prep-board frames are in
-progress (above). The well art below is the approved source for the steam-table bins, but
-nothing is baked. When the pin lifts, check against what is measured here (bin shape,
-colour count, key mapping) first.
+**The owner lifted the art pin on 2026-11-07.** The well art below is the approved source
+for the steam-table bins, and nothing of it is baked yet. Before baking, check against
+what is measured here (bin shape, colour count, key mapping).
 
 **Use the approved set, not the grid.** On 2026-11-07 the owner supplied
 `reference/kitchen/ingredients/` ("they are better art, and in the proper orientation"):

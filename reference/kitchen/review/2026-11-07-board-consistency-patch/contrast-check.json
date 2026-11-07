@@ -1,0 +1,25 @@
+{
+  "metric": "Pixels with RGB distance >= 60 after 16-color reduction on board color",
+  "picks": [
+    {
+      "id": "LARGE-BEANS",
+      "original": 603,
+      "revised": 541
+    },
+    {
+      "id": "LARGE-BEANS-CHEESE",
+      "original": 412,
+      "revised": 332
+    },
+    {
+      "id": "CHILI-BURRITO-WRAPPED",
+      "original": 832,
+      "revised": 657
+    },
+    {
+      "id": "CHILI-ENCHILADA-WRAPPED",
+      "original": 865,
+      "revised": 818
+    }
+  ]
+}
