@@ -15,7 +15,7 @@ and 1990s) are real Taco Shop items, and each adds bins to the twelve without mo
 
 #### 4. Tomatoes
 
-#### 5. Onions
+#### 5. Onions (green onions)
 
 #### 6. Chili Con Queso (CCQ)
 
@@ -431,7 +431,7 @@ Same as Era 1.
 
 - Price : 2.29
 
-- Dropped : Monterey Jack, green onions and olives (no bin). Tomatoes trimmed to fit the 6-ingredient cap
+- Dropped : Monterey Jack and olives (no bin). Green onions and tomatoes trimmed to fit the 6-ingredient cap
 
 ## III. Era 3
 
@@ -679,7 +679,7 @@ Same as Era 1.
 
 - Price : 3.49
 
-- Dropped : Mexicalli rice, Monterey Jack, green onions and olives (no bin)
+- Dropped : Mexicalli rice, Monterey Jack and olives (no bin). Green onions trimmed to fit the 6-ingredient cap
 
 #### 14. Sombrero
 
@@ -715,9 +715,11 @@ Same as Era 1.
 
 ## IV. Notes for every era
 
-- Where a real Taco Shop item lists an ingredient with no bin (Monterey Jack, olives,
-  green onions, rice, the whole-wheat tortilla), it is dropped from the recipe and noted
-  on the item.
+- **Twelve bins, and no more** (owner ruling, 2026-11-07). Where a real Taco Shop item
+  lists an ingredient with no bin (Monterey Jack, olives, Mexicalli rice), it is dropped
+  from the recipe and noted on the item, to keep the build clean. A wrapper the bases do
+  not have (the whole-wheat tortilla) is built on the nearest base. Onions are green
+  onions, which is what the real menu uses and what the approved ingredient art shows.
 
 - Items left out because ingredient 0 is always the base: those whose base comes
   mid-build (Loco Taco, the real Taco Supreme), and those needing a second tortilla
