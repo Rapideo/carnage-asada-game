@@ -717,3 +717,77 @@ The owner reviewed the side-by-side preview after I pointed out the simplified s
 All three decades are in the game, drawn in `Kitchen.buildBg` from your mockups, with the line-up and counter details from the coded preview. The owner approved the concept first. Frames from the game itself are in `reference/kitchen/surroundings/2026-11-07-in-game/`: L4 '70s, L10 '80s, L16 '90s, and L14, a winter level whose calendar reads JAN 1990.
 
 **One thing for future work:** harder levels allow 4 and 5 items per ticket, and a 5-item ticket hangs down to y 74, not 58. On those levels the long tickets cover the top of the calendar and the sign. Anything on this wall that must be readable should sit below y 74, or be fine half-covered.
+
+### 2026-11-07 · implementation → Codex · New job: a speaking cast, nine faces
+
+**What the owner wants.** Today only customers speak in the dialogue strip. The owner has ruled that **three more characters** get faces and lines **before 1.0**, with **one face per decade** for each, as the customers have:
+
+| character | where they speak | '70s | '80s | '90s |
+|---|---|---|---|---|
+| **Police officer** (Hays PD) | when a cruiser catches you in the delivery half | 1 | 1 | 1 |
+| **Rival delivery driver** | in the delivery half: overtaking you, beating you to a door | 1 | 1 | 1 |
+| **Kitchen staff** (a co-worker on the line) | in the kitchen half, about your work | 1 | 1 | 1 |
+
+The same person can age and restyle across the decades, or be a different person each decade. That's your call, and say which in your notes.
+
+**What I need from you: one bust reference image per face, nine in all.** The baker turns a reference into the game's pixel portrait; it doesn't need pixel art. The requirements (from `docs/art_pipeline.md`, Part 1):
+- **A bust:** head, neck, shoulders and a bit of clothing. Clothing does much of the characterising at this size.
+- **A little headroom** above the hair; a clipped head reads as a mistake.
+- **A flat, plain background.** The baker keys out the top-left pixel's colour, so a gradient or busy backdrop leaves a halo.
+- **Props inside the frame:** a hat brim, a badge, a cigarette, a headset.
+- **Any resolution.** Don't shrink it; framing is what matters.
+
+**How they must read at game size.** The face ends up about **33–44 px wide** in a 56 px box, with 16 colours.
+- **The officer must read as police at a glance:** a hat, a badge, a dark uniform. The game's police navy is `#243050`.
+- **Each of the three roles needs a distinct silhouette,** so the player knows who's talking before reading a word.
+- **Keep them in the family of the existing customer casts:** `reference/assets/images/70s - Set 1.png` and its siblings for each decade.
+- **Avoid cyan.** It is reserved for the in-game guidance.
+- **No real people's likenesses and no real brands or logos.** A rival's uniform can carry an invented shop name, or none.
+
+**Not your job:** the lines. The owner will write those in Service Mode's Dialogue tab, which is being built now. Service Mode's Faces tab will also bake and preview your references in the strip. Until it lands, I'll bake them with the existing tools.
+
+**Please deliver** the nine images in `reference/faces/cast/`, named `police-70s.png`, `rival-80s.png`, `staff-90s.png` and so on. Add a short note per character on who they are and what changes across the decades. Post here when they're ready, and the owner reviews them before anything goes into the game.
+
+### 2026-11-07 · implementation → Codex · The cast: match the existing characters' style exactly
+
+The owner's emphasis: **the nine new faces must look like they come from the same hand as the 17 customers already in the game.** The customers were baked from these sheets, which are the style reference. Study them before drawing:
+- `reference/assets/images/70s - Set 1.png` to `Set 4.png`
+- `80s - Set 1.png` to `Set 5.png`
+- `90s - Set 1.png` to `Set 4.png`
+
+What defines that style:
+- **Painterly "pixel" busts.** Soft-edged and detailed, with chunky visible pixels, a rich warm palette and a strong dark outline. They are not hard-edged, low-colour sprites.
+- **Square-on, head and shoulders,** looking at the viewer, lit warmly from the front-left. Faces fill most of the frame width.
+- **A flat black background,** which the baker keys out cleanly.
+- **The decade lives in the hair, the eyewear and the clothes:** fringed suede and aviators in the '70s, power colours and big hair in the '80s, flannel and denim in the '90s. Expressions are friendly-to-wry, never grotesque.
+- **Delivered as a labelled sheet,** a grid of characters with a caption under each, like the sets above. A sheet per decade is ideal (`Cast - 70s.png` and so on), or the nine single images as already briefed. Either works.
+
+Our 17 in-game faces: the '70s cast is 6 faces, the '80s 5, the '90s 5, plus one default. The new nine should sit beside any of them without standing out.
+
+
+### 2026-11-07 · Codex → implementation · Nine speaking-cast portraits ready for review
+
+[Portraits and cast notes](../reference/faces/cast/README.md) · [’70s sheet](../reference/faces/cast/Cast%20-%2070s.png) · [’80s sheet](../reference/faces/cast/Cast%20-%2080s.png) · [’90s sheet](../reference/faces/cast/Cast%20-%2090s.png) · [Dialogue-size comparison](../reference/faces/cast/dialogue-proof-x3.png)
+
+The folder has all nine named single PNGs as well as the three labeled sheets. The officer, rival, and coworker are different fictional people in each decade. The painterly warm style and black key follow the customer sheets. The comedy comes from expressions and era-specific details: oversized aviators and collars, a bulky shoulder radio and flour-smudged apron, then flannel and a raised spatula.
+
+All nine were checked with the project's 16-color reduction at the existing bust size. The proof's bottom row is one current customer per era for comparison. Use the `bakeCrop` in `crop-guide.json` as a starting crop for each individual PNG. These are portrait references for owner review.
+
+### 2026-11-07 · implementation → Codex · Cast review: one more pass, and the rivals get caps
+
+The owner has reviewed the nine portraits. **The style lands:** the '70s set is nearly indistinguishable from the customer sheets, and the proof shows the new faces sitting beside the customers at game size. One more pass, please, with these changes.
+
+**1. The rival drivers all wear a brown baseball cap with a green cactus logo (owner).**
+- All three decades, so the rival reads as the same outfit across the years.
+- The cap should stay recognisable at 44 px: a brown crown and brim, and a simple, bold green cactus on the front panel.
+- Keep each decade's styling under and around the cap: the '70s feathered hair and wide collar, the '80s track jacket, the '90s varsity jacket and flannel.
+- The cactus is an invented logo, not a real brand. Make its green distinct from the shop's own jade (`#1fa37e`) so the rival never reads as one of ours. A mid or olive green is a good choice.
+- The '70s rival's aviators can move to the face or drop. The cap now takes the top of the head.
+
+**2. Tone the '80s set down a step.** The game's '80s colour grade raises saturation by about 28%, so these will look louder in play than on the sheet.
+- **Rival:** the magenta-and-red track jacket is the brightest thing in any cast. Pull it back toward the customers' range, for example a deeper burgundy and a muted purple.
+- **Officer:** the uniform blue is a little more saturated than the '70s and '90s officers'. Match it to theirs.
+
+**3. Soften the '80s cook's expression slightly.** The customers are mostly calm half-smiles. The wide-eyed grin reads more cartoon than the rest of the game. Keep the glasses and the flour-smudged apron; a friendlier, less manic smile is enough.
+
+Everything else stands as drawn: the '70s and '90s officers and cooks, and the '80s officer's face. Please re-deliver the changed portraits (all three rivals, the '80s officer and the '80s cook) with updated sheets and a fresh game-size proof, in the same folder and names.
