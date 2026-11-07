@@ -338,6 +338,25 @@ ok(behindHead === 0,
    `route head is always a junction ahead (${behindHead} of ${sampled} behind` +
    (behindHead ? `, worst ${worstBehind.toFixed(0)}px` : '') + ')');
 
+/* CONTINUE counts down to the next real turn, not to the junction you drive
+   straight through: that read "CONTINUE IN 0 M" (playtest 2026-11-07). Same
+   samples; whenever the panel says CONTINUE with route left, its distance must
+   reach past the head junction. */
+let shortContinue = 0, continues = 0;
+for (let nx = 0; nx <= 8; nx++) for (let ny = 0; ny <= 8; ny++) for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+  const h = City.houses[(Math.random() * City.houses.length) | 0];
+  const car = { x: City.nodeX(nx) + dx * 30, y: City.nodeY(ny) + dy * 30, ang: Math.atan2(dy, dx), vx: dx * 90, vy: dy * 90 };
+  if (car.x < 40 || car.y < 40 || car.x > WW - 40 || car.y > WH - 40) continue;
+  Nav.setGoal({ x: h.curb.x, y: h.curb.y, node: h.node, label: 'x' });
+  Nav.update(1 / 60, car);
+  if (Nav.arriving || Nav.turn !== 0 || Nav.route.length < 2) continue;
+  continues++;
+  const r = Nav.route[0], head = Math.hypot(City.nodeX(r[0]) - car.x, City.nodeY(r[1]) - car.y);
+  if (Nav.dist <= head + 1) shortContinue++;
+}
+Nav.clear();
+ok(continues > 0 && shortContinue === 0, `CONTINUE counts to the next turn, past the junction ahead (${shortContinue} of ${continues} short)`);
+
 console.log('\n— simulation —');
 const ctx = makeCtx(makeCanvas());
 G.startShift();

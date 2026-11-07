@@ -4859,6 +4859,21 @@ const Nav = {
       else   exit = cardinal(Math.atan2(gy2 - ay, gx2 - ax));
       const approach = hyp(p.vx, p.vy) > 22 ? cardinal(Math.atan2(p.vy, p.vx)) : cardinal(p.ang);
       this.turn = relTurn(approach, exit);
+      /* Straight on: count down to the next junction where the route actually
+         turns, not to this one. Counting to the junction you drive straight
+         through read "CONTINUE IN 0 M" and then started over for the next
+         (playtest 2026-11-07). */
+      if (this.turn === 0) {
+        let prev = a, dir = exit;
+        for (let i = 1; i < this.route.length; i++) {
+          const n = this.route[i], nx = City.nodeX(n[0]), ny = City.nodeY(n[1]);
+          this.dist += hyp(nx - City.nodeX(prev[0]), ny - City.nodeY(prev[1]));
+          const nn = this.route[i + 1];
+          const out = cardinal(nn ? Math.atan2(City.nodeY(nn[1]) - ny, City.nodeX(nn[0]) - nx) : Math.atan2(gy2 - ny, gx2 - nx));
+          prev = n;
+          if (out !== dir) break;
+        }
+      }
       if (this.dist < 44 && this.turn !== 0 && this.chirp <= 0) { Audio5.sfx('nav'); this.chirp = 1.6; }
     }
 
@@ -7291,7 +7306,10 @@ const G = {
       tip: D.tipStart, max: D.tipStart, floor: D.tipFloor, decay: D.tipDecay,
     };
     this.syncNav();
-    Fx.pop(p.x, p.y - 22, 'NEW ORDER', PAL.amber);
+    /* at the dock -- where every order after a restock starts -- a pop above
+       the car lands on the shop's own sign, so it goes below there */
+    const atDock = hyp(p.x - City.shop.dock.x, p.y - City.shop.dock.y) < 60;
+    Fx.pop(p.x, atDock ? p.y + 16 : p.y - 22, 'NEW ORDER', PAL.amber);
   },
 
   syncNav() {
@@ -8284,9 +8302,12 @@ const G = {
     }
   },
 
+  /* Pinned to the dock, just above the painted bay -- not to the car. Hung
+     26px over the car, it covered the bay's own PICKUP ONLY lettering, which
+     the car is parked on, and the screen read "PICKUP ONLLOADING". */
   drawRestock(x, cam) {
-    const p = this.player;
-    const sx = (p.x - cam.x) | 0, sy = ((p.y - cam.y) | 0) - 26;
+    const d = City.shop.dock;
+    const sx = (d.x - cam.x) | 0, sy = ((d.y - cam.y) | 0) - 26;
     R(x, PAL.ink, sx - 21, sy - 4, 42, 11);
     text(x, 'LOADING', sx, sy - 2, PAL.amber, 1, 1);
     R(x, '#2c2338', sx - 18, sy + 5, 36, 3);

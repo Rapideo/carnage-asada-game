@@ -414,7 +414,10 @@ const G = {
       tip: D.tipStart, max: D.tipStart, floor: D.tipFloor, decay: D.tipDecay,
     };
     this.syncNav();
-    Fx.pop(p.x, p.y - 22, 'NEW ORDER', PAL.amber);
+    /* at the dock -- where every order after a restock starts -- a pop above
+       the car lands on the shop's own sign, so it goes below there */
+    const atDock = hyp(p.x - City.shop.dock.x, p.y - City.shop.dock.y) < 60;
+    Fx.pop(p.x, atDock ? p.y + 16 : p.y - 22, 'NEW ORDER', PAL.amber);
   },
 
   syncNav() {
@@ -1407,9 +1410,12 @@ const G = {
     }
   },
 
+  /* Pinned to the dock, just above the painted bay -- not to the car. Hung
+     26px over the car, it covered the bay's own PICKUP ONLY lettering, which
+     the car is parked on, and the screen read "PICKUP ONLLOADING". */
   drawRestock(x, cam) {
-    const p = this.player;
-    const sx = (p.x - cam.x) | 0, sy = ((p.y - cam.y) | 0) - 26;
+    const d = City.shop.dock;
+    const sx = (d.x - cam.x) | 0, sy = ((d.y - cam.y) | 0) - 26;
     R(x, PAL.ink, sx - 21, sy - 4, 42, 11);
     text(x, 'LOADING', sx, sy - 2, PAL.amber, 1, 1);
     R(x, '#2c2338', sx - 18, sy + 5, 36, 3);

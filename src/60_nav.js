@@ -53,6 +53,21 @@ const Nav = {
       else   exit = cardinal(Math.atan2(gy2 - ay, gx2 - ax));
       const approach = hyp(p.vx, p.vy) > 22 ? cardinal(Math.atan2(p.vy, p.vx)) : cardinal(p.ang);
       this.turn = relTurn(approach, exit);
+      /* Straight on: count down to the next junction where the route actually
+         turns, not to this one. Counting to the junction you drive straight
+         through read "CONTINUE IN 0 M" and then started over for the next
+         (playtest 2026-11-07). */
+      if (this.turn === 0) {
+        let prev = a, dir = exit;
+        for (let i = 1; i < this.route.length; i++) {
+          const n = this.route[i], nx = City.nodeX(n[0]), ny = City.nodeY(n[1]);
+          this.dist += hyp(nx - City.nodeX(prev[0]), ny - City.nodeY(prev[1]));
+          const nn = this.route[i + 1];
+          const out = cardinal(nn ? Math.atan2(City.nodeY(nn[1]) - ny, City.nodeX(nn[0]) - nx) : Math.atan2(gy2 - ny, gx2 - nx));
+          prev = n;
+          if (out !== dir) break;
+        }
+      }
       if (this.dist < 44 && this.turn !== 0 && this.chirp <= 0) { Audio5.sfx('nav'); this.chirp = 1.6; }
     }
 
