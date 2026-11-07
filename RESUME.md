@@ -12,8 +12,24 @@ living plan**, and if the two disagree, the roadmap wins.
    all 26 dishes, are **in the game** (see **The art director and the prep board** below).
    The owner also tried the approved ingredient art in the wells, and **chose to keep
    the old wells.**
-2. **The owner playtests. This is next.**
-3. **Then: the kitchen levels' surrounding art.** The owner thinks the Kitchen Shift
+2. ~~The owner playtests.~~ **Done 2026-11-07,** as an hour of the autoplayers in Chrome
+   with the owner watching. The notes are in **`docs/playtest-2026-11-07.md`**. Everything
+   it found was then fixed, the same day:
+   - the ticket line running into two-digit tickets;
+   - "TOSS THE BAG" at the shop;
+   - the edge label on the order card;
+   - NO ACTIVE ORDER while restocking;
+   - RECALCULATING flashing for 29% of a shift (now about 9%, via `Nav.continues`/`recent`);
+   - "CONTINUE IN 0 M";
+   - two overlaps at the dock.
+
+   The owner also asked for **weather**, now built: a delivery level rolls sunny or rainy
+   in summer, snowy or sunny in winter, each play. There's a **rain sound** too. Police
+   chases were left alone, after the corrected numbers (the notes first said there were
+   none; there were plenty). The rain sound was checked only against a stub
+   AudioContext: Chrome stopped reaching the local server partway through the session.
+   **Have the owner listen to it.**
+3. **Next: the kitchen levels' surrounding art.** The owner thinks the Kitchen Shift
    could look better and **has concept art** for it. **The bin mechanics, look and feel
    are perfect and are not to change.** This is only the art *around* them (the
    rail, the pantry, the overhead, the steam table's surround, the board). Wait for the

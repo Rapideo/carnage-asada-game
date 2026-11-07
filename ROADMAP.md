@@ -52,7 +52,7 @@ the prep board", and "Pinned: the art". **The owner lifted the art pin on 2026-1
 1. [x] **Assembly-board pictures.** Done 2026-11-07. The art director's 88 frames for all
    26 dishes are baked (`tools/render/bake-board.mjs` → `content/board/`), inlined as
    `BOARD`, and drawn by `Kitchen.pic()`. The build fails if any frame is missing.
-2. [ ] **The owner playtests.** Next.
+2. [x] **Playtest.** Done 2026-11-07 (`docs/playtest-2026-11-07.md`). Its bugs are fixed, and weather (rain, sunny winter) plus a rain sound were added on the owner's request.
 3. [ ] **The kitchen levels' surrounding art.** The owner has concept art and wants the
    Kitchen Shift to look better. **The bins' mechanics, look and feel are perfect and
    are not to change**; this is the art around them. Brainstorm with the owner first.
