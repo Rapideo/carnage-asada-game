@@ -150,6 +150,137 @@ console.log('\n— server —');
   } finally { await srv.close(); rmSync(tmp, { recursive: true, force: true }); }
 }
 
+console.log('\n— apply —');
+const { sandbox: SB, runScript } = await import('./sandbox.mjs');
+const diskBuilt = validateContent(fsSource('content'));
+{
+  runScript(readFileSync('admin/apply.js', 'utf8'), 'admin/apply.js');
+  const A = SB.Admin;
+  ok(A && typeof A.applyBuilt === 'function' && typeof A.onApply === 'function' && typeof A.restartScreen === 'function',
+     'apply.js puts applyBuilt, onApply and restartScreen on Admin');
+  const { G, Input } = SB.__x;
+  G.boot(20260816);
+  G.demoPin = 1; G.weatherPin = 'season';
+  const frames = (n) => { for (let i = 0; i < n; i++) { G.update(1 / 60); Input.endFrame(); } };
+  const files2 = () => structuredClone(files);
+
+  /* a kitchen shift with a live ticket, then the item that ticket is for is deleted */
+  G.startRun(2); G.beginShift();
+  const K = SB.__k.Kitchen;
+  frames(240);
+  ok(G.state === 'kitchen' && K.tickets.length > 0, 'a kitchen shift is running with a live ticket');
+  const era = G.level.era, before = SB.__k.MENUS[era].items.length;
+  const f1 = files2(); f1['menus.json'][era].items.shift();
+  const built1 = validateContent(memSource(f1));
+  let threw = null;
+  try { A.applyBuilt(built1, G); frames(120); } catch (x) { threw = x; }
+  ok(!threw, 'deleting a menu item mid-shift, then 120 frames: no throw' + (threw ? ' — ' + threw.stack : ''));
+  ok(SB.__k.MENUS[era].items.length === before - 1 && K.menu.items.length === before - 1,
+     "the live menu, and the kitchen's own copy, lost the item");
+
+  /* a delivery shift, the playlist for its level changes */
+  G.startRun(1); G.beginShift(); frames(30);
+  ok(G.state === 'play', 'a delivery shift is running');
+  const other = Object.keys(diskBuilt.music).find((id) => diskBuilt.music[id].year >= 1970 && diskBuilt.music[id].year <= 1972 && !diskBuilt.playlist['1'].includes(id));
+  ok(!!other, 'there is a 1970-72 song to swap in');
+  const f2 = files2(); f2['music/playlist.json']['1'] = [other];
+  threw = null;
+  try { A.applyBuilt(validateContent(memSource(f2)), G); frames(60); } catch (x) { threw = x; }
+  ok(!threw, "swapping level 1's playlist during play, then 60 frames: no throw" + (threw ? ' — ' + threw.stack : ''));
+  ok(runScript('PLAYLIST["1"].join()') === other, 'PLAYLIST["1"] is the new song');
+
+  /* identity is kept, so every module's captured reference stays good */
+  const L0 = runScript('LEVELS'), D0 = runScript('DIFFICULTY');
+  const f3 = files2(); f3['levels.json'].levels[0].name = '1972 SUMMER'; f3['difficulty.json'].easy.fines.ticket = 123;
+  const built3 = validateContent(memSource(f3));
+  A.applyBuilt(built3, G);
+  ok(runScript('LEVELS') === L0 && runScript('DIFFICULTY') === D0, 'LEVELS and DIFFICULTY are the same objects after applyBuilt');
+  ok(L0[0].name === '1972 SUMMER' && Array.isArray(L0) && L0.length === 20, 'the array was filled in place');
+  ok(D0.easy.fines.ticket === 123 && G.diff === D0[G.diffKey], "the game's difficulty pointer follows the new object");
+  ok(G.level === L0[G.levelN - 1], 'G.level follows the new level object');
+
+  /* refreshers run for exactly the kinds that changed */
+  const seen = [];
+  A.onApply('dialogue', () => seen.push('dialogue')); A.onApply('menus', () => seen.push('menus'));
+  A.applyBuilt(built3, G);
+  ok(seen.length === 0, 'applying identical content runs no refresher');
+  A.applyBuilt({ ...built3, dialogue: { ...built3.dialogue, __probe: 1 } }, G);
+  ok(seen.join() === 'dialogue', 'only the refresher for the changed kind ran (' + seen.join() + ')');
+}
+
+console.log('\n— overlay keys —');
+{
+  const { makeKeyGate } = await import('../admin/overlay.js');
+  const inside = { id: 'field' }, outside = { id: 'canvas' };
+  let active = inside, toggled = 0;
+  const gate = makeKeyGate({ contains: (n) => n === inside }, () => active, () => { toggled++; });
+  const ev = (code, type = 'keydown') => ({ code, type, pd: 0, sip: 0,
+    preventDefault() { this.pd++; }, stopImmediatePropagation() { this.sip++; } });
+  let e = ev('F2');
+  gate(e);
+  ok(toggled === 1 && e.pd === 1 && e.sip === 1, 'F2 toggles, is preventDefaulted and is hidden from the game');
+  e = ev('F2', 'keyup'); gate(e);
+  ok(toggled === 1 && e.sip === 1, 'F2 keyup does not toggle again but is hidden from the game');
+  e = ev('F2'); e.repeat = true; gate(e);
+  ok(toggled === 1 && e.sip === 1, 'a held F2 does not flicker the overlay');
+  e = ev('ArrowLeft'); gate(e);
+  ok(e.sip === 1 && e.pd === 0, 'an arrow key with focus in the overlay never reaches the game, and still types');
+  e = ev('Space', 'keyup'); gate(e);
+  ok(e.sip === 1, 'keyup is isolated too');
+  active = outside; e = ev('ArrowLeft'); gate(e);
+  ok(e.sip === 0 && e.pd === 0, 'with focus on the game, keys pass through untouched');
+  e = ev('F2'); gate(e);
+  ok(toggled === 2, 'F2 toggles from the game as well');
+}
+
+console.log('\n— store —');
+{
+  const { mkdtempSync, cpSync, rmSync, writeFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const tmp = mkdtempSync(join(tmpdir(), 'admin-store-'));
+  for (const f of ['build.mjs', 'shell.html', 'src', 'content', 'tools/content']) cpSync(f, join(tmp, f), { recursive: true });
+  (await import('node:child_process')).execFileSync('node', ['build.mjs'], { cwd: tmp, stdio: 'pipe' });
+  const { startAdmin } = await import('../tools/content/server.mjs');
+  const srv = await startAdmin({ root: tmp, port: 0 });
+  try {
+    const applied = [];
+    globalThis.Admin = globalThis.Admin || {};
+    globalThis.Admin.applyBuilt = (b) => applied.push(b);
+    const { store } = await import('../admin/store.js');
+    store.base = srv.url; store.headers = { origin: srv.url };
+    await store.load();
+    ok(store.get('levels.json', 'levels.0.name') === 'SUMMER 1972', 'get reads a dotted path');
+    ok(store.get('levels.json', ['levels', 0, 'type']) === 'delivery', 'get reads an array path');
+    ok(store.dirty.size === 0 && applied.length === 0, 'nothing is dirty or applied after load');
+
+    const r1 = store.set('levels.json', 'levels.0.name', 'SUMMER 1972!');
+    ok(r1 && r1.built && store.dirty.has('levels.json') && applied.length === 1 && store.error === null,
+       'a valid set marks the file dirty, validates and applies');
+    store.set('levels.json', 'levels.0.season', 'spring');
+    ok(store.error && store.error.file === 'content/levels.json' && store.error.path.join('.') === 'levels.0.season'
+       && applied.length === 1, 'an invalid set records the ContentError and applies nothing');
+    store.set('levels.json', 'levels.0.season', 'summer');
+    ok(store.error === null && applied.length === 2, 'fixing it clears the error and applies again');
+
+    store.set('levels.json', 'levels.0.season', 'spring');
+    const bad = await store.save();
+    ok(!bad.ok && bad.reason === 'invalid' && store.dirty.size === 1, 'save refuses while the content is invalid, and stays dirty');
+    store.set('levels.json', 'levels.0.season', 'summer');
+    const good = await store.save();
+    ok(good.ok && store.dirty.size === 0, 'a valid save succeeds and clears dirty');
+    ok(readFileSync(join(tmp, 'content/levels.json'), 'utf8').includes('SUMMER 1972!'), 'the file on disk has the edit');
+    store.set('levels.json', 'levels.0.name', 'SUMMER 1972');
+    const again = await store.save();
+    ok(again.ok, 'a second save uses the stamp the first returned');
+    // somebody else edits the file behind our back
+    const lv = join(tmp, 'content/levels.json');
+    writeFileSync(lv, readFileSync(lv, 'utf8') + ' ');
+    store.set('levels.json', 'levels.0.name', 'SUMMER 1972 X');
+    const stale = await store.save();
+    ok(!stale.ok && stale.reason === 'changed', 'a file changed on disk is reported, not overwritten');
+  } finally { await srv.close(); rmSync(tmp, { recursive: true, force: true }); }
+}
+
 console.log('\n— artifact —');
 {
   const { execFileSync } = await import('node:child_process');
