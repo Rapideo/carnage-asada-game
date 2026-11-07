@@ -99,7 +99,8 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
   left off, what the next one is for, the state of the repo, and what is still open. A
   snapshot: where it and `ROADMAP.md` disagree, the roadmap wins.
 - `ROADMAP.md` — **starts with the current priority** (as of 2026-10-25: the admin overlay, designed and planned but not
-  started; the full game was built that day). Then the open
+  started; the full game was built that day. On 2026-11-06 two kitchen-art threads were pinned beside it — real
+  ingredient art for the wells, and the rough assembly pictures — and the owner picks the order). Then the open
   punch list, and the tiered plan for reshaping the city into the real
   neighbourhood. **Read before touching the street grid**: it records which six modules assume a uniform
   block pitch, and which tiers are safe versus which are a rewrite.

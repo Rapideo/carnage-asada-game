@@ -1,15 +1,63 @@
 # Resume here
 
 *Written 2026-10-25, after the build that finished the 20-level game, and updated the same
-day once the admin overlay had been designed and planned.* This is the starting point for
-a fresh session. It is a snapshot: **`ROADMAP.md` is the living plan**, and if the two
-disagree, the roadmap wins.
+day once the admin overlay had been designed and planned. Updated 2026-11-06 with two
+pinned art threads (below).* This is the starting point for a fresh session. It is a
+snapshot: **`ROADMAP.md` is the living plan**, and if the two disagree, the roadmap wins.
 
-**Start here:** the next piece of work is the admin overlay (see **Next** below). It is
-fully designed and planned, and **nothing of it is built**. Do not start it until the
-owner says go. When they do, run the plan with `superpowers:subagent-driven-development`
-on a branch `admin-overlay`. The design and the plan are written for a fresh context, so
-read them before touching code.
+**Start here:** three things are waiting, and **the owner picks which goes first.** Ask;
+do not start any of them unprompted.
+
+1. **The admin overlay** (see **Next** below). Fully designed and planned, **nothing of
+   it built**. When the owner says go, run the plan with
+   `superpowers:subagent-driven-development` on a branch `admin-overlay`.
+2. **Real ingredient art for the steam-table wells** (pinned 2026-11-06, see
+   **Pinned: the art** below). The owner confirmed the art is usable; nothing is baked yet.
+3. **The assembly-board pictures are rough** (pinned 2026-11-06, same section). The owner
+   wants them worked on.
+
+## Pinned: the art (2026-11-06)
+
+The owner added **`Pixel-Art Taco Shop Ingredient Grid.png`** to the repo root
+(1536×1024 RGB, 2.6 MB, **untracked**: the owner has not said where it should live, so
+it was left where they put it; `reference/kitchen/` is the obvious home, but ask). It is
+a sheet of **40 pixel-art steam-table trays, 8 columns × 5 rows**. The owner's framing:
+until now the wells were made to match by **recolouring** (`recolor-lattice.mjs` made
+SAUCE and CHILI out of other wells); now there is real art to draw from instead.
+
+The session only checked feasibility, at the owner's request ("i waned to make sure we
+could use the art"), and stopped there. What was found:
+
+- **The pipeline already fits it.** `tools/render/bake-lattice.mjs --tray` cuts a grid
+  of trays into `content/lattice/*.json`, which `build.mjs` inlines as `LATTICE`. Probe
+  first (`--probe`), bake to a contact sheet, look, then build. See
+  `docs/art_pipeline.md`.
+- **Every bin key the three menus use has a tray on the sheet**, read by eye (row,
+  col from 1): BEEF (1,1), CHICKEN (1,2), CHILI (1,7, beans in red), CCQ (1,8, queso),
+  LETTUCE (2,1), CHEESE (2,2, cheddar), TOMATO (2,4), ONION (2,5), PEPPERS (2,6 or
+  3,4), CREAM (3,1), SAUCE (4,4), BEANS (1,4 refried, or 3,8). Bases on row 5: hard
+  shells (5,1), flour tortillas (5,2/5,3), chips (5,8). These identifications are
+  Claude's guesses; confirm any ambiguous one with the owner.
+- **About 20 trays have no menu slot yet** (rice, shredded beef, black beans, jack,
+  pico, guacamole, olives, jalapeños, corn, chorizo, salsa verde, burger buns...).
+  Room for later eras to fill the empty bins; not a request.
+- **Aspect is the real problem.** The trays are near-square; a bin is 42×24 (1.75:1),
+  and the baker squashes to fit. Likely answer: crop **food only** and let the game's
+  steel frame it. Bake a test contact sheet before deciding.
+- **The left base station** is one double-height slot holding three stacked bases; the
+  sheet has three separate square trays. That needs its own treatment.
+- **Open question put to the owner, unanswered:** is the goal every well looking like
+  one artist's set (re-bake them all), or mainly replacing the recoloured ones that look
+  off? This decides the scope. Brainstorm it with them before building.
+
+**Assembly pictures.** The item on the prep board is **drawn procedurally**, not baked:
+`Kitchen.pic()` and `picShell` / `picOpen` / `picBurrito` / `picSoft` / `picNachos` in
+`src/74_kitchen.js`, cached by item × stage, with filling colours from `Kitchen.ING`. The
+owner calls them **rough** and wants them worked on. The roadmap's original intent was
+**baked cutouts, one frame per `<ITEM><STAGE>`** (`--keyed --size 40x38`, see
+`docs/art_pipeline.md`, "Free objects"); `content/lattice/burrito.json` is the one such
+cutout that exists. Nothing was decided beyond "they need work"; ask the owner what bugs
+them before choosing between better drawing code and baked art.
 
 ## Where things stand
 
@@ -24,8 +72,9 @@ nothing in it is needed. Every ruling and invention from that day is logged in
 `docs/PURE-CARNAGE-DECISIONS.md`. The GDD and the authored content were updated to match
 the build; the GDD ends with a list of what was invented.
 
-**Repo state:** `master` is clean apart from the two files untracked on purpose
-(`Migrated/`, `Carnage_Resume.pdf`). The last commit adds the overlay's design and plan,
+**Repo state:** `master` is clean apart from the files untracked on purpose
+(`Migrated/`, `Carnage_Resume.pdf`, and since 2026-11-06
+`Pixel-Art Taco Shop Ingredient Grid.png`). The last commit adds the overlay's design and plan,
 and points `ROADMAP.md`, this file and `CLAUDE.md` at them. Re-checked then:
 `node build.mjs` was clean, reproduced every generated file byte for byte, and
 `node test/headless.mjs` passed. `master` is **ahead of `origin/master` and not pushed**;

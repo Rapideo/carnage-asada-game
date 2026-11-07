@@ -44,6 +44,24 @@ Task 17, not before):
 
 ---
 
+## PINNED: kitchen art (2026-11-06)
+
+Two art threads the owner raised and then pinned for a later session. **Which comes
+first — these or the admin overlay — is the owner's call.** Details, including the tray
+map and the open question, are in `RESUME.md` under "Pinned: the art".
+
+- [ ] **Steam-table wells from real art.** The owner supplied
+  `Pixel-Art Taco Shop Ingredient Grid.png` (repo root, untracked): 40 trays, 8×5,
+  covering every bin key in the menus. Replaces matching-by-recolour
+  (`recolor-lattice.mjs`). Bake with `bake-lattice.mjs --tray`; the near-square trays
+  versus the 1.75:1 bin is the problem to solve first. Scope (all wells, or only the
+  recoloured ones) not yet decided.
+- [ ] **Assembly-board pictures.** The owner calls them rough. Today they are drawn in
+  code (`Kitchen.pic()` in `src/74_kitchen.js`); the original plan was baked
+  `<ITEM><STAGE>` cutouts. Find out what bothers the owner first.
+
+---
+
 ## DONE: the full game (the 2026-10-25 build)
 
 The 2026-10-25 build finished the game the section below planned:
