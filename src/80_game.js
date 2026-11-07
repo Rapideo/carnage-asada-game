@@ -1466,6 +1466,12 @@ const G = {
       x.globalAlpha = 1;
       if (g >= 1 && (t * 2 | 0) % 2) textOut(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 184, PAL.amber, 1, 1);
     }
+    this.versionTag(x, VW - 4, VH - 11);
+  },
+
+  /* the build's version, so a screenshot or a bug report says which build */
+  versionTag(x, rx, y) {
+    if (typeof RELEASE !== 'undefined') text(x, 'V' + RELEASE.version, rx, y, PAL.boneDim, 1, 2);
   },
 
   overlayMode(x) {
@@ -1727,6 +1733,7 @@ const G = {
       text(x, 'THE MENU', px + 12, 46, PAL.amber, 1);
       this.drawRecipes(x, px + 12, 56, 344);
       text(x, 'P OR ESC TO RESUME', VW / 2, 202, PAL.cyan, 1, 1);
+      this.versionTag(x, px + 356, 202);
       return;
     }
     const w = 222, h = 132, px = (VW - w) / 2 | 0, py = 30;
@@ -1752,6 +1759,7 @@ const G = {
       text(x, r[1], 210, y, PAL.boneDim, 1);
     });
     text(x, 'P OR ESC TO RESUME', VW / 2, py + h + 7, PAL.cyan, 1, 1);
+    this.versionTag(x, VW - 4, VH - 11);
   },
 };
 

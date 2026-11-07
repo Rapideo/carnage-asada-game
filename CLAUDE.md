@@ -196,7 +196,7 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 | module | responsibility |
 |---|---|
 | `00_core` | screen/world constants, `PAL`, RNG, `classify()`, `mkCanvas`/`R` helpers, `Input` |
-| `05_content` | **generated** — `CONTENT`, `ATTRACT`, `SCORES`, `MAPS`/`HAYS`, `LEVELS`, `DIFFICULTY`, `MENUS`, `DIALOGUE`, `FACES`, `LATTICE`, `BOARD`/`BOARD_FINISH`, `MUSIC`, `PLAYLIST`, all inlined from `content/` by `build.mjs` |
+| `05_content` | **generated** — `CONTENT`, `RELEASE`, `ATTRACT`, `SCORES`, `MAPS`/`HAYS`, `LEVELS`, `DIFFICULTY`, `MENUS`, `DIALOGUE`, `FACES`, `LATTICE`, `BOARD`/`BOARD_FINISH`, `MUSIC`, `PLAYLIST`, all inlined from `content/` by `build.mjs` |
 | `10_font` | hand-authored 5×7 glyph table; `text()`, `textOut()`, `money()`, `clockStr()` |
 | `20_audio` | `Audio5`: WebAudio SFX (both shifts), engine voice, siren, and the fallback 4-bar loop |
 | `22_music` | `Music` — plays the arranged songs in `MUSIC` through `Audio5.musBus`; `playList()` per level from `PLAYLIST` |
@@ -672,7 +672,7 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. 178 assertions covering city invariants (address
+every drawing call is a no-op but all logic executes. 241 assertions (as of 0.9.0) covering city invariants (address
 uniqueness, porch reachability), HUD text widths, wedge escapability, 250 solved routes, 9000 fuzzed
 simulation frames checked for NaN and out-of-world drift, the attract rotation and 85s of autonomous
 demo driving, the full scoring loop, heat/cop behaviour, and the railway.
@@ -747,6 +747,12 @@ the card.
 
 ## Publishing
 
-`taco-shop.html` is the shippable artifact: one self-contained file, ~760 KB (the music, faces, lattice and board tables are most of it). It must stay free of external
+`taco-shop.html` is the shippable artifact: one self-contained file, ~790 KB (the music, faces, lattice and board tables are most of it).
+
+**Versioning.** The version is `content/release.json` (`version` MAJOR.MINOR.PATCH, `date`
+YYYY-MM-DD), inlined as `RELEASE` and drawn by `G.versionTag` in the corner of the title and
+pause screens. The build rejects a malformed one. To cut a version: bump both fields, add a
+`CHANGELOG.md` entry, rebuild, test, commit, and `git tag v<version>` (local; never push).
+0.9.x is the run-up to release; 1.0.0 is the owner's call. It must stay free of external
 requests. `?seed=<int>` on the URL regenerates the city deterministically (mulberry32); the default seed is
 in `90_main.js`.

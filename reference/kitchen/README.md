@@ -1,6 +1,11 @@
 # Kitchen Shift — reference art
 
-**Status: a kept starting point, not a shipped screen.**
+**Status: a kept starting point, not a shipped screen.** The Kitchen Shift has since
+shipped in `src/74_kitchen.js` (2026-10-25), and what is built there now leads this folder:
+the prep board draws `board-frames/` (2026-11-07), and the surroundings come from
+`surroundings/` (2026-11-07). The owner chose to keep the original wells, so `ingredients/`
+was never baked into the game. Read this file for the look's reasoning and the region
+names, not as a description of the current screen.
 
 The **look** here is approved as the basis for building the Kitchen Shift — the
 palette balance, the silhouette rules, the 44px portrait, the dialogue strip,

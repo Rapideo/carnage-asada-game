@@ -2,11 +2,27 @@
 
 *Written 2026-10-25, after the build that finished the 20-level game, and updated the same
 day once the admin overlay had been designed and planned. Updated 2026-11-06 with two
-pinned art threads, and 2026-11-07 with the art director's prep-board work (below).*
+pinned art threads, and 2026-11-07 with the art director's prep-board work (below), the
+kitchen surroundings, and version 0.9.0.*
 This is the starting point for a fresh session. It is a snapshot: **`ROADMAP.md` is the
 living plan**, and if the two disagree, the roadmap wins.
 
-**Start here (2026-11-07):** the owner has set the order.
+**Start here (2026-11-07): the game is version 0.9.0, feature-complete.** The version is
+`content/release.json`, shown in the corner of the title and pause screens; `CHANGELOG.md`
+says what is in it, and it is tagged `v0.9.0` (local).
+
+**Next: the owner's full playtest (planned for Monday, 2026-11-09) and the punch list it
+produces.** Fix from that list as 0.9.x builds (bump the version and add a changelog entry
+for each). Then, only when the owner says go, the admin overlay.
+
+**Driving Chrome:** two Chromes are connected to the owner's account. **Browser 1 is
+Windows, this machine; Browser 2 is a Mac.** Pick Browser 1 (`select_browser`) before
+loading `localhost`. Both "Chrome can't reach the server" failures on 2026-11-07 were
+Browser 2. The server also has to run in the owner's own terminal: a `node serve.mjs`
+started from this harness runs in a sandbox that Chrome can't see. The Chrome tool won't
+open `file://` URLs at all.
+
+The order the owner set on 2026-11-07, all done:
 
 1. ~~Finish this art pass.~~ **Done 2026-11-07:** the art director's prep-board frames,
    all 26 dishes, are **in the game** (see **The art director and the prep board** below).
@@ -29,7 +45,7 @@ living plan**, and if the two disagree, the roadmap wins.
    none; there were plenty). The rain sound was checked only against a stub
    AudioContext: Chrome stopped reaching the local server partway through the session.
    **Have the owner listen to it.**
-3. **The kitchen levels' surrounding art: built 2026-11-07, not yet committed.** The
+3. **The kitchen levels' surrounding art: done and committed 2026-11-07.** The
    owner's concepts and rulings are in `reference/kitchen/surroundings/` and the
    hand-off log (`docs/art-direction-welcome.md`). The art director mocked up one wall
    per decade, and I redrew them procedurally in `Kitchen.buildBg`:
@@ -44,7 +60,8 @@ living plan**, and if the two disagree, the roadmap wins.
    limit:** a 4- or 5-item ticket (medium and harder) hangs to y 66–74 and covers the
    top of the calendar and the sign. The owner has been told.
 
-Waiting behind those, and only when the owner says go: **the admin overlay** (see **Next**
+Then version 0.9.0 and a cleanup pass (stale docs, the changelog, `git gc`). Waiting
+behind the punch list, and only when the owner says go: **the admin overlay** (see **Next**
 below), fully designed and planned, nothing built.
 
 ## The art director and the prep board (2026-11-07)

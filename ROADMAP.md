@@ -7,6 +7,12 @@ Checkboxes render as a live task list on GitHub:
 
 ---
 
+## NOW: version 0.9.0, and the owner's playtest punch list
+
+The game is **feature-complete at 0.9.0** (2026-11-07; see `CHANGELOG.md`). The owner
+playtests it in full on Monday 2026-11-09 and brings a punch list. Fixes ship as 0.9.x,
+and 1.0.0 is the owner's call. The admin overlay below waits until then.
+
 ## NEXT: the admin overlay (tools for the authored content)
 
 **The owner's next priority: the admin overlay.** It is designed and planned, but

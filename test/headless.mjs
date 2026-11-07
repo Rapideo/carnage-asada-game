@@ -71,7 +71,7 @@ vm.createContext(sandbox);
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, money, MAXTHROW,' +
   ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER };',
   sandbox, { filename: 'bundle.js' });
-vm.runInContext(';globalThis.__k = { Kitchen, LEVELS, DIALOGUE, MENUS, BOARD };', sandbox);
+vm.runInContext(';globalThis.__k = { Kitchen, LEVELS, DIALOGUE, MENUS, BOARD, RELEASE };', sandbox);
 
 const { G, City, Nav, Art, Input, Demo, textW, money, MAXTHROW, VW, VH, WW, WH,
         ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER } = sandbox.__x;
@@ -148,6 +148,13 @@ ok(cardFits(longestAddr), `longest address fits the order card: "${longestAddr}"
 ok(cardFits(longestAddr + ' WAITING'),
    `restock line fits the order card (${textW(longestAddr + ' WAITING', 1)}px)`);
 ok(cardFits('OUT OF TACOS - RESTOCK'), 'restock label fits the order card');
+/* the version tag: right-aligned in the bottom-right corner of the title and
+   pause screens, clear of the title's PRESS ENTER prompt (x 120-264 at y 184) */
+{
+  const REL = sandbox.__k.RELEASE, tag = 'V' + REL.version;
+  ok(/^[0-9]+[.][0-9]+[.][0-9]+$/.test(REL.version) && /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(REL.date), `the release is a version and a date (${REL.version}, ${REL.date})`);
+  ok(VW - 4 - textW(tag, 1) > (VW + textW('PRESS ENTER TO CLOCK IN', 1)) / 2 && VH - 11 + 7 <= VH - 2, `the version tag ${tag} fits the corner`);
+}
 ok(cardFits('HEAD BACK TO THE SHOP'), 'the empty-bag restock line fits the order card');
 
 /* banner boxes are textW(str,2)+16 and must fit the 384px screen */

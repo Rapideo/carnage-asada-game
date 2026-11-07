@@ -16,13 +16,16 @@ one self-contained HTML file.
 **Play:** open `taco-shop.html`. There is no page chrome — the canvas fills the window.
 `?level=N` starts a run at level N.
 
+**Version 0.9.0** (2026-11-07): feature-complete, ahead of release. The version shows in the
+corner of the title and pause screens; `CHANGELOG.md` has what each build contains.
+
 ## The run
 
 | | |
 |---|---|
 | Levels | 20, alternating Delivery and Kitchen, delivery first |
 | Eras | 1970s (levels 1–6), 1980s (7–12), 1990s (13–20) — each with its own colour grade, map, menu, customers and music |
-| Seasons | summer and winter; winter puts snow on Hays and takes the grip out of your tyres |
+| Seasons | summer and winter, with weather rolled each play: summer is sunny or rainy (rain is a little slick), winter is mostly snowy (snow takes the grip out of your tyres) and sometimes sunny |
 | Difficulty | Easy 1–6, Medium 7–12, Hard 13–18, Supreme 19–20 |
 | A level | a checkpoint race: 15 deliveries or 15 tickets served (9 on Supreme) before 0:00 |
 | The clock | 3:00, plus an extension for every third completion (up to 5; 3 on Supreme) |
@@ -88,7 +91,7 @@ node tools/render/frame.mjs <level> [secs] [--card|--clear|--over|--pause|--say]
 `taco-shop.html`, `index.html` and `src/05_content.js` are generated — edit `src/`, `shell.html` and
 `content/`, then rebuild.
 
-Everything authored lives in `content/` and is inlined and validated at build time: the levels, the
+Everything authored lives in `content/` and is inlined and validated at build time: the release version, the levels, the
 difficulties, the three menus, the three maps, the dialogue, the attract card and timings, the factory
 board, the baked faces and ingredient wells, and the arranged music. The build refuses anything the
 bitmap font cannot draw, copy too wide for where it is drawn, a bin that moves between eras, a recipe that
