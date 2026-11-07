@@ -19,6 +19,12 @@ do not start any of them unprompted.
 
 ## Pinned: the art (2026-11-06, updated 2026-11-07)
 
+**Still pinned, by the owner, 2026-11-07: do not bake.** The owner has put a separate
+Codex agent in charge of **art direction and concept generation**, and more art from it
+is coming. Wait for that delivery, and treat the set below as the current approved
+source until it arrives, not as final. When new art lands, check it against what is
+measured here (bin shape, colour count, key mapping) before baking anything.
+
 **Use the approved set, not the grid.** On 2026-11-07 the owner supplied
 `reference/kitchen/ingredients/` ("they are better art, and in the proper orientation"):
 **28 approved assets**, 21 ingredient pans and 7 shells/bread, each as a full-size
