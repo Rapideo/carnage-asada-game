@@ -176,6 +176,7 @@ const DIFFICULTY = {
     "tipStart": 2000,
     "tipFloor": 200,
     "tipDecay": 33.333333333333336,
+    "perfectBonus": 500,
     "fines": {
       "ticket": 500,
       "ped": 200,
@@ -193,7 +194,11 @@ const DIFFICULTY = {
       "tipPerItem": 500,
       "decay": 12.5,
       "maxItems": 3,
-      "every": 25
+      "every": 25,
+      "cleanBonus": 500,
+      "hint": true,
+      "railMax": 3,
+      "queueMax": 3
     }
   },
   "medium": {
@@ -204,6 +209,7 @@ const DIFFICULTY = {
     "tipStart": 2000,
     "tipFloor": 200,
     "tipDecay": 40,
+    "perfectBonus": 500,
     "fines": {
       "ticket": 1000,
       "ped": 400,
@@ -221,7 +227,11 @@ const DIFFICULTY = {
       "tipPerItem": 500,
       "decay": 16.666666666666668,
       "maxItems": 4,
-      "every": 20
+      "every": 20,
+      "cleanBonus": 500,
+      "hint": false,
+      "railMax": 3,
+      "queueMax": 3
     }
   },
   "hard": {
@@ -232,6 +242,7 @@ const DIFFICULTY = {
     "tipStart": 2000,
     "tipFloor": 200,
     "tipDecay": 50,
+    "perfectBonus": 500,
     "fines": {
       "ticket": 1000,
       "ped": 400,
@@ -249,7 +260,11 @@ const DIFFICULTY = {
       "tipPerItem": 500,
       "decay": 20,
       "maxItems": 5,
-      "every": 18
+      "every": 18,
+      "cleanBonus": 500,
+      "hint": false,
+      "railMax": 3,
+      "queueMax": 3
     }
   },
   "supreme": {
@@ -260,6 +275,7 @@ const DIFFICULTY = {
     "tipStart": 2000,
     "tipFloor": 200,
     "tipDecay": 50,
+    "perfectBonus": 500,
     "fines": {
       "ticket": 1500,
       "ped": 600,
@@ -277,7 +293,11 @@ const DIFFICULTY = {
       "tipPerItem": 500,
       "decay": 20,
       "maxItems": 5,
-      "every": 15
+      "every": 15,
+      "cleanBonus": 500,
+      "hint": false,
+      "railMax": 3,
+      "queueMax": 3
     }
   }
 };

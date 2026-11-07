@@ -36,7 +36,8 @@ const Kitchen = {
   CELL_W: 46, CELL_H: 28, COL0: 5, ROW_Y: [105, 135],
   BX: 138, BW: 177,                      // the assembly board
   TICKET_W: 78,
-  RAIL_MAX: 3, QUEUE_MAX: 3,
+  get RAIL_MAX() { return G.diff.kitchen.railMax; },      // difficulty content
+  get QUEUE_MAX() { return G.diff.kitchen.queueMax; },
   COMPLAIN_MUL: 1.5,
   PIP_W: 8, PIP_G: 1,
 
@@ -335,7 +336,7 @@ const Kitchen = {
       this.wrongKey = key;
       this.flashKey = key; this.flashT = 0.32;
       this.stats.mistakes++;
-      if (G.diffKey === 'easy') this.hintT = 1.6;     // easy: show the right bin
+      if (G.diff.kitchen.hint) this.hintT = 1.6;     // easy: show the right bin
       Audio5.sfx('kwrong');
       if (Math.random() < 0.3) this.bark(G, 'wrong', this.focus(), true);
     }

@@ -622,7 +622,7 @@ its decaying tip stay live. Throwing consumes a bag slot immediately, so a miss 
 that coupling is intentional.
 
 **All money is integer cents.** `money()` formats it. The tuning dials are `content/difficulty.json`, per
-difficulty; `80_game.js` keeps only `PERFECT_BONUS`, `CLEAN_BONUS`, `BAG_MAX` and a `DIFF_FALLBACK`.
+difficulty; `80_game.js` keeps only `BAG_MAX` and a `DIFF_FALLBACK`.
 
 **The era grade** (`Post.grade`, owner ruling) is a per-pixel curve over the finished WORLD — it runs after
 the city or kitchen and HUD and before the cards, menus and pause, which keep the game's own colours.

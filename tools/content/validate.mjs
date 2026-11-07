@@ -494,6 +494,7 @@ function buildDifficulty(src) {
     if (d.tipFloor >= d.tipStart) fail(F, [k, 'tipFloor'], `${W}.tipFloor (${d.tipFloor}) must be below tipStart (${d.tipStart})`);
     if (!isNum(d.tipDecay) || d.tipDecay <= 0)
       fail(F, [k, 'tipDecay'], `${W}.tipDecay must be a positive number of cents per second ($1.00 / 3s = 33.33), got ${JSON.stringify(d.tipDecay)}`);
+    if (!isCents(d.perfectBonus)) fail(F, [k, 'perfectBonus'], `${W}.perfectBonus must be integer cents (500 = $5.00), got ${JSON.stringify(d.perfectBonus)}`);
     if (!d.fines || typeof d.fines !== 'object') fail(F, [k, 'fines'], `${W} is missing "fines"`);
     for (const f of ['ticket', 'ped', 'train', 'remake'])
       if (!isCents(d.fines[f])) fail(F, [k, 'fines', f], `${W}.fines.${f} must be integer cents, got ${JSON.stringify(d.fines[f])}`);
@@ -512,6 +513,10 @@ function buildDifficulty(src) {
     if (!isNum(kt.decay) || kt.decay <= 0) fail(F, [k, 'kitchen', 'decay'], `${W}.kitchen.decay must be a positive number of cents per second, got ${JSON.stringify(kt.decay)}`);
     if (!Number.isInteger(kt.maxItems) || kt.maxItems < 1) fail(F, [k, 'kitchen', 'maxItems'], `${W}.kitchen.maxItems must be a whole number >= 1, got ${JSON.stringify(kt.maxItems)}`);
     if (!isNum(kt.every) || kt.every <= 0) fail(F, [k, 'kitchen', 'every'], `${W}.kitchen.every must be a positive number of seconds, got ${JSON.stringify(kt.every)}`);
+    if (!isCents(kt.cleanBonus)) fail(F, [k, 'kitchen', 'cleanBonus'], `${W}.kitchen.cleanBonus must be integer cents, got ${JSON.stringify(kt.cleanBonus)}`);
+    if (typeof kt.hint !== 'boolean') fail(F, [k, 'kitchen', 'hint'], `${W}.kitchen.hint must be true or false, got ${JSON.stringify(kt.hint)}`);
+    if (!Number.isInteger(kt.railMax) || kt.railMax < 1) fail(F, [k, 'kitchen', 'railMax'], `${W}.kitchen.railMax must be a whole number >= 1, got ${JSON.stringify(kt.railMax)}`);
+    if (!Number.isInteger(kt.queueMax) || kt.queueMax < 0) fail(F, [k, 'kitchen', 'queueMax'], `${W}.kitchen.queueMax must be a whole number >= 0, got ${JSON.stringify(kt.queueMax)}`);
   }
   return out;
 }

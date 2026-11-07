@@ -417,6 +417,7 @@ const DIFFICULTY = {
     "tipStart": 2000,
     "tipFloor": 200,
     "tipDecay": 33.333333333333336,
+    "perfectBonus": 500,
     "fines": {
       "ticket": 500,
       "ped": 200,
@@ -434,7 +435,11 @@ const DIFFICULTY = {
       "tipPerItem": 500,
       "decay": 12.5,
       "maxItems": 3,
-      "every": 25
+      "every": 25,
+      "cleanBonus": 500,
+      "hint": true,
+      "railMax": 3,
+      "queueMax": 3
     }
   },
   "medium": {
@@ -445,6 +450,7 @@ const DIFFICULTY = {
     "tipStart": 2000,
     "tipFloor": 200,
     "tipDecay": 40,
+    "perfectBonus": 500,
     "fines": {
       "ticket": 1000,
       "ped": 400,
@@ -462,7 +468,11 @@ const DIFFICULTY = {
       "tipPerItem": 500,
       "decay": 16.666666666666668,
       "maxItems": 4,
-      "every": 20
+      "every": 20,
+      "cleanBonus": 500,
+      "hint": false,
+      "railMax": 3,
+      "queueMax": 3
     }
   },
   "hard": {
@@ -473,6 +483,7 @@ const DIFFICULTY = {
     "tipStart": 2000,
     "tipFloor": 200,
     "tipDecay": 50,
+    "perfectBonus": 500,
     "fines": {
       "ticket": 1000,
       "ped": 400,
@@ -490,7 +501,11 @@ const DIFFICULTY = {
       "tipPerItem": 500,
       "decay": 20,
       "maxItems": 5,
-      "every": 18
+      "every": 18,
+      "cleanBonus": 500,
+      "hint": false,
+      "railMax": 3,
+      "queueMax": 3
     }
   },
   "supreme": {
@@ -501,6 +516,7 @@ const DIFFICULTY = {
     "tipStart": 2000,
     "tipFloor": 200,
     "tipDecay": 50,
+    "perfectBonus": 500,
     "fines": {
       "ticket": 1500,
       "ped": 600,
@@ -518,7 +534,11 @@ const DIFFICULTY = {
       "tipPerItem": 500,
       "decay": 20,
       "maxItems": 5,
-      "every": 15
+      "every": 15,
+      "cleanBonus": 500,
+      "hint": false,
+      "railMax": 3,
+      "queueMax": 3
     }
   }
 };
@@ -5475,7 +5495,8 @@ const Kitchen = {
   CELL_W: 46, CELL_H: 28, COL0: 5, ROW_Y: [105, 135],
   BX: 138, BW: 177,                      // the assembly board
   TICKET_W: 78,
-  RAIL_MAX: 3, QUEUE_MAX: 3,
+  get RAIL_MAX() { return G.diff.kitchen.railMax; },      // difficulty content
+  get QUEUE_MAX() { return G.diff.kitchen.queueMax; },
   COMPLAIN_MUL: 1.5,
   PIP_W: 8, PIP_G: 1,
 
@@ -5774,7 +5795,7 @@ const Kitchen = {
       this.wrongKey = key;
       this.flashKey = key; this.flashT = 0.32;
       this.stats.mistakes++;
-      if (G.diffKey === 'easy') this.hintT = 1.6;     // easy: show the right bin
+      if (G.diff.kitchen.hint) this.hintT = 1.6;     // easy: show the right bin
       Audio5.sfx('kwrong');
       if (Math.random() < 0.3) this.bark(G, 'wrong', this.focus(), true);
     }
@@ -7155,18 +7176,17 @@ const WEATHER_ROADS = {
 const BAG_MAX = 3;
 const RAIL_EJECT = 52;      // px from the corridor centre a wreck throws you
 const THROW_CD = 0.34;
-const PERFECT_BONUS = 500;  // difficulty.md: a perfect delivery, +$5.00
-const CLEAN_BONUS = 500;    // difficulty.md: a clean ticket, +$5.00
 const CONTINUE_SECS = 10;   // GDD II.F
 
 /* Used only if content/difficulty.json fails to load, so a broken content
    file can never blank the game. build.mjs validates the real thing. */
 const DIFF_FALLBACK = {
   start: 180, extend: 90, maxExt: 5, target: 15,
-  tipStart: 2000, tipFloor: 200, tipDecay: 100 / 3,
+  tipStart: 2000, tipFloor: 200, tipDecay: 100 / 3, perfectBonus: 500,
   fines: { ticket: 500, ped: 200, train: 500, remake: 150 },
   nav: { panel: true, line: true, dot: true, edge: true, beacon: true },
-  kitchen: { tipPerItem: 500, decay: 100 / 8, maxItems: 3, every: 25 },
+  kitchen: { tipPerItem: 500, decay: 100 / 8, maxItems: 3, every: 25,
+             cleanBonus: 500, hint: true, railMax: 3, queueMax: 3 },
 };
 const NAV_FULL = { panel: true, line: true, dot: true, edge: true, beacon: true };
 
@@ -7463,7 +7483,7 @@ const G = {
     }
   },
 
-  cleanBonus() { return CLEAN_BONUS; },
+  cleanBonus() { return this.diff.kitchen.cleanBonus; },
 
   levelClear() {
     this.state = 'clear';
@@ -7686,7 +7706,7 @@ const G = {
 
   complete(perfect, z) {
     const o = this.order;
-    const base = Math.round(o.tip) + (perfect ? PERFECT_BONUS : 0);
+    const base = Math.round(o.tip) + (perfect ? this.diff.perfectBonus : 0);
     const paid = Math.round(base * this.combo);
     this.earned += paid; this.levelEarned += paid;
     this.stats.delivered++;
@@ -7697,7 +7717,7 @@ const G = {
 
     Fx.cash(z.x, z.y);
     Fx.pop(z.x, z.y - 10, money(paid), PAL.good, true);
-    if (perfect) Fx.pop(z.x, z.y - 26, 'ON THE DOORSTEP! +' + money(PERFECT_BONUS), PAL.amber);
+    if (perfect) Fx.pop(z.x, z.y - 26, 'ON THE DOORSTEP! +' + money(this.diff.perfectBonus), PAL.amber);
     this.say(perfect ? 'PERFECT TOSS!' : 'DELIVERED!', perfect ? PAL.amber : PAL.good);
     const late = o.tip < (o.floor + (o.max - o.floor) * 0.25);
     this.react(late && DIALOGUE.late ? 'late' : 'delivered', o, late);

@@ -44,6 +44,17 @@ const bad3 = structuredClone(files); delete bad3['levels.json'];
 e = null; try { validateContent(memSource(bad3)); } catch (x) { e = x; }
 ok(e instanceof ContentError && e.file === 'content/levels.json', 'a missing file is a ContentError naming it');
 
+const bad4 = structuredClone(files); bad4['difficulty.json'].easy.kitchen.hint = 'yes';
+e = null; try { validateContent(memSource(bad4)); } catch (x) { e = x; }
+ok(e instanceof ContentError && e.file === 'content/difficulty.json'
+   && e.path.join('.') === 'easy.kitchen.hint', 'kitchen.hint must be true or false');
+const bad5 = structuredClone(files); bad5['difficulty.json'].medium.perfectBonus = 5.5;
+e = null; try { validateContent(memSource(bad5)); } catch (x) { e = x; }
+ok(e && e.path.join('.') === 'medium.perfectBonus', 'perfectBonus is integer cents');
+const bad6 = structuredClone(files); bad6['difficulty.json'].hard.kitchen.railMax = 0;
+e = null; try { validateContent(memSource(bad6)); } catch (x) { e = x; }
+ok(e && e.path.join('.') === 'hard.kitchen.railMax', 'railMax is at least 1');
+
 const before = JSON.stringify(files);
 validateContent(memSource(files));
 ok(JSON.stringify(files) === before, 'validating does not mutate the source');

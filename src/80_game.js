@@ -34,18 +34,17 @@ const WEATHER_ROADS = {
 const BAG_MAX = 3;
 const RAIL_EJECT = 52;      // px from the corridor centre a wreck throws you
 const THROW_CD = 0.34;
-const PERFECT_BONUS = 500;  // difficulty.md: a perfect delivery, +$5.00
-const CLEAN_BONUS = 500;    // difficulty.md: a clean ticket, +$5.00
 const CONTINUE_SECS = 10;   // GDD II.F
 
 /* Used only if content/difficulty.json fails to load, so a broken content
    file can never blank the game. build.mjs validates the real thing. */
 const DIFF_FALLBACK = {
   start: 180, extend: 90, maxExt: 5, target: 15,
-  tipStart: 2000, tipFloor: 200, tipDecay: 100 / 3,
+  tipStart: 2000, tipFloor: 200, tipDecay: 100 / 3, perfectBonus: 500,
   fines: { ticket: 500, ped: 200, train: 500, remake: 150 },
   nav: { panel: true, line: true, dot: true, edge: true, beacon: true },
-  kitchen: { tipPerItem: 500, decay: 100 / 8, maxItems: 3, every: 25 },
+  kitchen: { tipPerItem: 500, decay: 100 / 8, maxItems: 3, every: 25,
+             cleanBonus: 500, hint: true, railMax: 3, queueMax: 3 },
 };
 const NAV_FULL = { panel: true, line: true, dot: true, edge: true, beacon: true };
 
@@ -342,7 +341,7 @@ const G = {
     }
   },
 
-  cleanBonus() { return CLEAN_BONUS; },
+  cleanBonus() { return this.diff.kitchen.cleanBonus; },
 
   levelClear() {
     this.state = 'clear';
@@ -565,7 +564,7 @@ const G = {
 
   complete(perfect, z) {
     const o = this.order;
-    const base = Math.round(o.tip) + (perfect ? PERFECT_BONUS : 0);
+    const base = Math.round(o.tip) + (perfect ? this.diff.perfectBonus : 0);
     const paid = Math.round(base * this.combo);
     this.earned += paid; this.levelEarned += paid;
     this.stats.delivered++;
@@ -576,7 +575,7 @@ const G = {
 
     Fx.cash(z.x, z.y);
     Fx.pop(z.x, z.y - 10, money(paid), PAL.good, true);
-    if (perfect) Fx.pop(z.x, z.y - 26, 'ON THE DOORSTEP! +' + money(PERFECT_BONUS), PAL.amber);
+    if (perfect) Fx.pop(z.x, z.y - 26, 'ON THE DOORSTEP! +' + money(this.diff.perfectBonus), PAL.amber);
     this.say(perfect ? 'PERFECT TOSS!' : 'DELIVERED!', perfect ? PAL.amber : PAL.good);
     const late = o.tip < (o.floor + (o.max - o.floor) * 0.25);
     this.react(late && DIALOGUE.late ? 'late' : 'delivered', o, late);

@@ -71,7 +71,7 @@ vm.createContext(sandbox);
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, money, MAXTHROW,' +
   ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER };',
   sandbox, { filename: 'bundle.js' });
-vm.runInContext(';globalThis.__k = { Kitchen, LEVELS, DIALOGUE, MENUS, BOARD, RELEASE };', sandbox);
+vm.runInContext(';globalThis.__k = { Kitchen, DIFFICULTY, LEVELS, DIALOGUE, MENUS, BOARD, RELEASE };', sandbox);
 
 const { G, City, Nav, Art, Input, Demo, textW, money, MAXTHROW, VW, VH, WW, WH,
         ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER } = sandbox.__x;
@@ -431,6 +431,18 @@ ok(G.earned > before, `tip banked: ${(G.earned / 100).toFixed(2)}`);
 ok(G.stats.delivered === 1, 'delivery counted');
 ok(G.stats.perfect === 1, 'doorstep hit scored as perfect');
 ok(G.order && G.order.house !== target, 'next order issued automatically');
+
+/* the perfect-delivery bonus is difficulty content (G.diff.perfectBonus), not a constant */
+{
+  const keep = G.diff.perfectBonus, z = { x: 0, y: 0 }, pay = (perfect) => {
+    G.combo = 1; G.order.tip = 1000; const e = G.earned; G.complete(perfect, z); return G.earned - e;
+  };
+  ok(Number.isInteger(keep) && keep > 0, `the difficulty carries a perfect bonus (${keep})`);
+  ok(pay(true) - pay(false) === keep, 'a perfect delivery pays perfectBonus more than an imperfect one');
+  G.diff.perfectBonus = 777;
+  ok(pay(true) - pay(false) === 777, 'and retuning the difficulty retunes the payout');
+  G.diff.perfectBonus = keep;
+}
 
 /* empty bag routes you back to the shop */
 G.bag = 1; G.tryThrow();
@@ -1296,6 +1308,27 @@ Kt.update(1, G);
 const drained = before4.map((b, i) => b - Kt.tickets[i].tip);
 ok(drained.every((d) => Math.abs(d - G.diff.kitchen.decay * 1.5) < 0.01), `while they queue, every tip drains at 1.5x (${drained[0].toFixed(2)}c/s)`);
 Kt.tickets.length = 0; Kt.queue.length = 0;
+
+/* hint, ticket limit and clean bonus are difficulty content */
+{
+  const D = KX.DIFFICULTY, lv = (d) => G.levels().find((l) => l.type === 'kitchen' && l.difficulty === d);
+  const wrongPickHint = (d) => {
+    G.diffKey = d; G.diff = D[d]; Kt.enter(lv(d), D[d], true); Kt.arrive(G);
+    const t = Kt.tickets[0], it = t.items[0], rc = it.def.recipe;
+    const bad = Kt.bins.find((b) => b && !rc.includes(b.key)).key;
+    const c = Kt.cellOf(bad); Kt.cur.c = c.c; Kt.cur.r = c.r; Kt.cur.z = c.z; Kt.hintT = 0; Kt.select(G);
+    return Kt.hintT;
+  };
+  ok(wrongPickHint('easy') === 1.6, 'easy: a wrong pick shows the hint for 1.6s');
+  ok(wrongPickHint('medium') === 0, 'medium: a wrong pick shows no hint');
+  const keepR = D.easy.kitchen.railMax, keepQ = D.easy.kitchen.queueMax;
+  D.easy.kitchen.railMax = 2; D.easy.kitchen.queueMax = 1;
+  G.diffKey = 'easy'; G.diff = D.easy; Kt.enter(lv('easy'), D.easy, true);
+  ok(Kt.RAIL_MAX === 2 && Kt.QUEUE_MAX === 1, 'RAIL_MAX and QUEUE_MAX read the difficulty (' + Kt.RAIL_MAX + '/' + Kt.QUEUE_MAX + ')');
+  D.easy.kitchen.railMax = keepR; D.easy.kitchen.queueMax = keepQ;
+  ok(Kt.RAIL_MAX === 3 && Kt.QUEUE_MAX === 3, 'and they restore');
+  G.diffKey = G.level.difficulty; G.diff = D[G.diffKey]; Kt.enter(G.level, G.diff, false);
+}
 
 /* every menu item in every era can be built, and its Short name clears the board */
 let unbuildable = 0, crowded = 0, items = 0;
