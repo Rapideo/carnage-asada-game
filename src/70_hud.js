@@ -66,6 +66,13 @@ const Hud = {
       const bw = Math.round(130 * f);
       R(x, f > 0.5 ? PAL.amber : f > 0.22 ? '#e07a1f' : PAL.bad, 8, 40, bw, 2);
       for (let i = 8; i < 138; i += 6) R(x, 'rgba(0,0,0,0.35)', i, 40, 1, 2);
+    } else if (G.needPickup) {
+      /* The last taco went to the last order, so there is no order to show --
+         but the nav is already driving you to the shop, and a card reading
+         NO ACTIVE ORDER all the way there looked like directions to nowhere
+         (playtest 2026-11-07). */
+      text(x, 'OUT OF TACOS - RESTOCK', 8, 7, PAL.bad, 1);
+      text(x, 'HEAD BACK TO THE SHOP', 8, 15, PAL.bone, 1);
     } else {
       text(x, 'NO ACTIVE ORDER', 8, 15, PAL.boneDim, 1);
     }
@@ -194,7 +201,8 @@ const Hud = {
     const label = Nav.arriving ? 'ARRIVING' : TURN_NAMES[Nav.turn];
     text(x, label, px + 32, py + 4, PAL.cyan, 1);
     const m = Math.max(0, Math.round(Nav.dist / 8 / 5) * 5);
-    text(x, Nav.arriving ? 'TOSS THE BAG' : ('IN ' + m + ' M'), px + 32, py + 13, PAL.cyanLo, 1);
+    /* arriving at the shop you load, you do not toss */
+    text(x, Nav.arriving ? (G.needPickup ? 'STOP TO LOAD' : 'TOSS THE BAG') : ('IN ' + m + ' M'), px + 32, py + 13, PAL.cyanLo, 1);
     if (Nav.arriving) {
       const b = (G.time * 6 | 0) % 2;
       R(x, b ? PAL.cyan : PAL.cyanLo, px + w - 6, py + 3, 3, 3);
@@ -221,7 +229,9 @@ const Hud = {
     triArrow(x, ex, ey, a, 9, PAL.amber, PAL.ink);
     x.globalAlpha = 1;
     const m = Math.round(hyp(Nav.goal.x - G.player.x, Nav.goal.y - G.player.y) / 8);
-    textOut(x, m + 'M', ex, ey - 17, PAL.amber, 1, 1);
+    /* the label goes on the screen-centre side of the arrow: above it, an arrow
+       clamped to the top of the band put "39M" on the order card's tip bar */
+    textOut(x, m + 'M', ex, ey < cy ? ey + 11 : ey - 17, PAL.amber, 1, 1);
   },
 };
 

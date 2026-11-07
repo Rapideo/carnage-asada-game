@@ -94,6 +94,8 @@ console.log(`  city built in ${Date.now() - t0}ms`);
    City expects Map 1, so pin the demo to level 1 here; — kitchen demo —
    exercises the other kind explicitly. */
 G.demoPin = 1;
+G.weatherPin = 'season';   // weather rolls per play; the driving below was tuned in the season's default
+G.setLevel(G.levelN);      // ...and boot has already rolled once, before the pin
 ok(City.houses.length > 100, `addressed houses: ${City.houses.length}`);
 
 /* Every car's shadow is baked through rotFrames like the car itself. It was
@@ -146,6 +148,7 @@ ok(cardFits(longestAddr), `longest address fits the order card: "${longestAddr}"
 ok(cardFits(longestAddr + ' WAITING'),
    `restock line fits the order card (${textW(longestAddr + ' WAITING', 1)}px)`);
 ok(cardFits('OUT OF TACOS - RESTOCK'), 'restock label fits the order card');
+ok(cardFits('HEAD BACK TO THE SHOP'), 'the empty-bag restock line fits the order card');
 
 /* banner boxes are textW(str,2)+16 and must fit the 384px screen */
 const BANNERS = ['CLOCK IN!', 'OUT OF TACOS - BACK TO SHOP', 'THAT IS NOT ' + longestAddr.split(' ')[0],
@@ -164,6 +167,7 @@ const navMidFits = (str, sc) => textW(str, sc) <= NAV_W - NAV_PAD * 2;
 const longestTurn = TURN_NAMES.reduce((a, t) => (t.length > a.length ? t : a), '');
 ok(navLeftFits(longestTurn), `longest turn name fits the nav panel: "${longestTurn}" (${textW(longestTurn, 1)}px)`);
 ok(navLeftFits('TOSS THE BAG'), 'the arriving line fits the nav panel');
+ok(navLeftFits('STOP TO LOAD'), 'the arriving-at-the-shop line fits the nav panel');
 ok(navLeftFits('IN 999 M'), 'the distance line fits the nav panel');
 ok(navMidFits('RETURN TO ROADWAY', 1), `the off-road line fits the nav panel (${textW('RETURN TO ROADWAY', 1)}px in ${NAV_W})`);
 ok(navMidFits('RECALCULATING.', 1), 'the recalculating line fits the nav panel');
@@ -269,6 +273,13 @@ ok(escaped === wedgeSites.length,
 }
 
 console.log('\n— guidance —');
+/* RECALCULATING is for a new route, not the same one further along: passing
+   a junction drops it off the front, swinging round a corner can put it back.
+   Flashing for both had the panel saying it 28% of a shift (playtest 2026-11-07). */
+ok(Nav.continues('1,1|1,2|1,3', '1,2|1,3') && Nav.continues('1,2|1,3', '1,1|1,2|1,3'),
+  'a route with its passed junction dropped (or put back) is not a recalculation');
+ok(!Nav.continues('1,1|1,2|1,3', '1,1|2,1|2,2') && !Nav.continues('11,2|1,3', '1,2|1,3'),
+  'a genuinely different route is, and node keys match whole, not by digit');
 let routeFail = 0, longest = 0;
 for (let i = 0; i < 250; i++) {
   const h = City.houses[(Math.random() * City.houses.length) | 0];
@@ -1156,6 +1167,24 @@ G.render(ctx);
 let cardsOk = 0;
 for (let n = 1; n <= 20; n++) { G.toCard(n); G.render(ctx); for (let i = 0; i < 3; i++) { G.update(1 / 60); Input.endFrame(); } cardsOk++; }
 ok(cardsOk === 20, 'all twenty level cards render');
+
+/* weather: rolled per delivery level, within its season; the kitchen keeps the
+   default. Every weather's card title must clear LEVEL n on the 364px card. */
+const pinW = G.weatherPin; G.weatherPin = null;
+const seen = { summer: new Set(), winter: new Set(), kitchen: new Set() };
+let titleTooWide = 0, rainDraws = true;
+for (let k = 0; k < 40; k++) for (const n of [1, 2, 3, 13]) {
+  G.toCard(n);
+  seen[G.stage === 'kitchen' ? 'kitchen' : G.winter ? 'winter' : 'summer'].add(G.weather);
+  if (textW('LEVEL ' + n, 2) + 12 + textW(G.levelTitle(), 2) > 352 - 12) titleTooWide++;
+  if (G.weather === 'rainy' && k < 3) { G.state = 'play'; G.stage = 'delivery'; try { G.update(1 / 60); G.render(ctx); } catch (e) { rainDraws = false; } G.toCard(n); }
+}
+G.weatherPin = pinW; G.toCard(1);
+ok(seen.summer.has('sunny') && seen.summer.has('rainy') && seen.summer.size === 2, `summer rolls sunny or rainy (${[...seen.summer]})`);
+ok(seen.winter.has('snowy') && seen.winter.has('sunny') && seen.winter.size === 2, `winter rolls snowy or sunny (${[...seen.winter]})`);
+ok(seen.kitchen.size === 1 && !seen.kitchen.has('rainy'), `a kitchen level keeps its season's default (${[...seen.kitchen]})`);
+ok(titleTooWide === 0, 'every weather\'s level-card title fits beside LEVEL n');
+ok(rainDraws, 'a rainy street updates and draws without throwing');
 ok(City.houses.length > 80, `the 1990s map has addresses (${City.houses.length})`);
 
 console.log('\n— kitchen —');

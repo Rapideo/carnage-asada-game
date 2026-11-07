@@ -16,13 +16,26 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
   zoning moves on from era to era.
 
 - Seasons : Summer is the baseline. Winter lays snow over everything but the ploughed
-  roads and on every roof, with falling flakes, and the car grips at 0.62 of normal, so it
-  slides more and the handbrake bites harder. Kitchen customers come in with snow on
-  their hats
+  roads and on every roof. Kitchen customers come in with snow on their hats
+
+- Weather (owner ruling, 2026-11-07) : a Delivery level rolls its weather each time it is
+  played, an even chance either way. Summer is **sunny** or **rainy**; winter is **snowy**
+  or **sunny**. A Kitchen level always has its season's default weather (sunny summer,
+  snowy winter).
+  - Sunny summer : dry roads, normal grip.
+  - Rainy summer : rain falls, the roads are wet and dark with puddles, and the car grips
+    at 0.84 of normal.
+  - Snowy winter : snow falls, and the car grips at 0.62 of normal, so it slides more and
+    the handbrake bites harder.
+  - Sunny winter : the old snow stays on the ground and the roofs, nothing falls, and the
+    ploughed roads grip at 0.9 of normal.
+  - The level card names the weather when it is not the season's default (`RAINY SUMMER
+    1972`, `SUNNY WINTER 1975`), and its ROADS line says what the roads are like.
 
 - Music : names the music.md section the level plays
 
-- Level Card : `LEVEL n` over the season and year, for example `SUMMER 1972`. A Kitchen
+- Level Card : `LEVEL n` over the season and year, for example `SUMMER 1972`, with the
+  weather in front when it is not the season's default (see Weather). A Kitchen
   level's card also carries that era's menu, every recipe in build order, because the
   recipes are hidden during play
 

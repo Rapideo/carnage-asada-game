@@ -12,14 +12,14 @@ const Nav = {
   glitch: 0,           // >0 => panel shows RECALCULATING
   chirp: 0,
   turn: 0, dist: 0, arriving: false, lost: false,
-  lastKey: '',
+  lastKey: '', recent: [],    // recent: route keys held a moment ago, see recompute
 
   setGoal(g) {
     this.goal = g;
     this.route = [];
     this.recalcT = 0;
     this.glitch = 0.85;
-    this.lastKey = '';
+    this.lastKey = ''; this.recent = [];
     Audio5.sfx('recalc');
   },
   clear() { this.goal = null; this.route = []; },
@@ -106,10 +106,29 @@ const Nav = {
 
     const key = path.map((n) => n[0] + ',' + n[1]).join('|');
     if (key !== this.lastKey) {
-      if (this.lastKey && this.route.length > 1) this.glitch = 0.45;
+      if (this.lastKey && this.route.length > 1 && !Nav.continues(this.lastKey, key) &&
+          !this.recent.some((k) => Nav.continues(k, key))) this.glitch = 0.45;
+      /* A car crawling or turning round in a junction reads its heading from
+         a nearly-still velocity, and the search flips between two routes of
+         equal cost: A, B, A, B, every 0.4s. Going back to a route held a
+         moment ago is not news either, so the last few are remembered. */
+      this.recent.push(this.lastKey);
+      if (this.recent.length > 4) this.recent.shift();
       this.lastKey = key;
     }
     this.route = path;
+  },
+
+  /* Is the new route just the old one, further along? Driving through a
+     junction the route goes through drops it off the front, and swinging round
+     a corner can briefly put it back (aheadNode reads the junction ahead from
+     the velocity, which sweeps through both axes mid-turn). Neither is a
+     recalculation, and flashing RECALCULATING for both had the panel saying it
+     -- with the road chevrons hidden -- for 28% of a shift (playtest
+     2026-11-07). Only a route that is not a suffix of the other is news. */
+  continues(oldKey, newKey) {
+    const a = '|' + oldKey, b = '|' + newKey;
+    return a.endsWith(b) || b.endsWith(a);
   },
 
   /* route painted on the tarmac as chunky chevrons */

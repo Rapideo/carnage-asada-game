@@ -19,6 +19,15 @@
 'use strict';
 
 const HEAT_MAX = 100;
+/* Weather, rolled per delivery level (see G.rollWeather). Grip multiplies
+   Player's: snow is the shipped winter at 0.62; rain is a little slick; a
+   sunny winter's ploughed roads keep a little of winter's slip. */
+const WEATHER_CHANCE = 0.5;     // the chance of the season's NON-default: rain in summer, sun in winter
+const WEATHER_GRIP = { summer: { sunny: 1, rainy: 0.84 }, winter: { snowy: 0.62, sunny: 0.9 } };
+const WEATHER_ROADS = {
+  summer: { sunny: 'DRY', rainy: 'WET - A LITTLE SLICK' },
+  winter: { snowy: 'SNOW - THE BACK END STEPS OUT', sunny: 'PLOUGHED - THE ODD ICY PATCH' },
+};
 const BAG_MAX = 3;
 const RAIL_EJECT = 52;      // px from the corridor centre a wreck throws you
 const THROW_CD = 0.34;
@@ -82,10 +91,11 @@ const G = {
 
   /* the run */
   seed: 0, levelN: 1, level: null, diffKey: 'easy', diff: DIFF_FALLBACK, nav: NAV_FULL,
-  era: 1, winter: false, stage: 'delivery', mapN: 0,
+  era: 1, winter: false, weather: 'sunny', weatherPin: null, stage: 'delivery', mapN: 0,
   levelEarned: 0, levelStars: 0, stars: 0, done: 0, extUsed: 0,
   cardT: 0, contT: 0, modeIdx: 0, startLevel: 1,
   snow: [], snowMask: null, snowImgs: null,
+  rain: [], splash: [], rainMask: null,
 
   /* ---------------- setup ------------------------------- */
   boot(seed) {
@@ -95,6 +105,8 @@ const G = {
     Faces.build();       // decode baked likenesses once, like Art.build
     const p = typeof location !== 'undefined' && location.search ? new URLSearchParams(location.search) : null;
     this.startLevel = clamp(parseInt(p && p.get('level'), 10) || 1, 1, this.levels().length);
+    /* ?weather=rainy|snowy|sunny pins the roll, for looking at one on purpose */
+    if (p && p.get('weather')) this.weatherPin = p.get('weather');
     this.setLevel(1);    // builds Map 1, which the title drives over
     Hud.buildMap();
     this.toTitle();
@@ -123,15 +135,43 @@ const G = {
     this.era = this.level.era || 1;
     this.winter = this.level.season === 'winter';
     this.stage = this.level.type === 'kitchen' ? 'kitchen' : 'delivery';
-    Player.gripMul = this.winter ? 0.62 : 1;
+    this.weather = this.rollWeather();
+    Player.gripMul = WEATHER_GRIP[this.winter ? 'winter' : 'summer'][this.weather];
     const map = this.level.map || this.era;
     if (map !== this.mapN) {
       City.map = typeof MAPS !== 'undefined' && MAPS[map] ? MAPS[map] : HAYS;
       City.gen(makeRng(this.seed));
       this.mapN = map;
-      this.snowMask = null; this.snowImgs = null;
+      this.snowMask = null; this.snowImgs = null; this.rainMask = null;
     }
     if (this.winter && !this.snowMask) this.buildSnow();
+    if (this.weather === 'rainy' && !this.rainMask) this.buildRain();
+  },
+
+  /* Weather, the owner's ruling of 2026-11-07: a delivery level rolls its own
+     every time it is played. Summer is sunny or rainy; winter is snowy or
+     sunny, and a sunny winter keeps the old snow on the ground and roofs --
+     the look -- with the roads ploughed and nothing falling. The kitchen keeps
+     the season's default: there is no sky to see from the line, and a level
+     card promising rain over a steam table would be a lie.
+     weatherPin (?weather=, or 'season' for the default) fixes the roll; the
+     test suite pins 'season' so the driving it measures is the summer it was
+     tuned in. */
+  rollWeather() {
+    const pick = this.winter ? ['snowy', 'sunny'] : ['sunny', 'rainy'];
+    const pin = this.weatherPin;
+    if (this.stage === 'kitchen' || pin === 'season') return pick[0];
+    if (pick.includes(pin)) return pin;
+    return Math.random() < WEATHER_CHANCE ? pick[1] : pick[0];
+  },
+
+  /* the level card's title: the weather is news only when it is not the
+     season's default, so a rainy summer and a sunny winter say so */
+  levelTitle() {
+    const n = (this.level && this.level.name) || '';
+    if (this.weather === 'rainy') return 'RAINY ' + n;
+    if (this.winter && this.weather === 'sunny') return 'SUNNY ' + n;
+    return n;
   },
 
   toTitle() {
@@ -670,7 +710,8 @@ const G = {
     this.time += dt;
     this.flash = Math.max(0, this.flash - dt);
     this.bannerT -= dt;
-    if (this.winter) this.updateSnow(dt);
+    if (this.weather === 'snowy' && this.snow.length) this.updateSnow(dt);
+    if (this.weather === 'rainy' && this.rainMask) this.updateRain(dt);
 
     const S = this.state;
 
@@ -1083,6 +1124,68 @@ const G = {
     return t.c;
   },
 
+  /* ---------------- rain -------------------------------- */
+  /* The same shape as winter: one baked layer over the ground canvas -- wet
+     tarmac reads darker and catches pale streaks of sky, with the odd puddle
+     -- plus rain and splashes drawn over the world each frame. Baked once per
+     map, like the snow, because it is the whole 1632px ground. */
+  buildRain() {
+    const t = mkCanvas(WW, WH), x = t.x, rng = makeRng(0x7a1d);
+    for (let ty = 0; ty < GH; ty++) for (let tx = 0; tx < GW; tx++) {
+      const c = classify(tx, ty), px = tx * TS, py = ty * TS;
+      if (c === T_ROAD || c === T_INTER) {
+        x.fillStyle = 'rgba(12,18,42,0.30)'; x.fillRect(px, py, TS, TS);
+        for (let i = 0; i < 2; i++) {
+          x.fillStyle = 'rgba(170,192,228,0.22)';
+          x.fillRect(px + rng.int(TS), py + rng.int(TS - 5), 1, 2 + rng.int(4));
+        }
+        if (rng.chance(0.07)) {                     // a puddle: dark, with a lit far rim
+          const w = 6 + rng.int(7), h = 2 + rng.int(2);
+          const ox = px + rng.int(TS - w + 1), oy = py + 2 + rng.int(TS - h - 3);
+          x.fillStyle = 'rgba(14,22,50,0.42)'; x.fillRect(ox + 1, oy, w - 2, h); x.fillRect(ox, oy + 1, w, h - 1);
+          x.fillStyle = 'rgba(190,206,236,0.35)'; x.fillRect(ox + 2, oy, w - 4, 1);
+        }
+      } else if (c === T_WALK) {
+        x.fillStyle = 'rgba(12,18,42,0.16)'; x.fillRect(px, py, TS, TS);
+      } else {
+        x.fillStyle = 'rgba(8,26,22,0.12)'; x.fillRect(px, py, TS, TS);
+      }
+    }
+    this.rainMask = t.c;
+    this.rain = [];
+    for (let i = 0; i < 170; i++)
+      this.rain.push({ x: Math.random() * VW, y: Math.random() * VH, v: 260 + Math.random() * 110, l: 6 + ((Math.random() * 5) | 0) });
+    this.splash = [];
+  },
+
+  updateRain(dt) {
+    for (const f of this.rain) {
+      f.y += f.v * dt; f.x -= f.v * 0.22 * dt;
+      if (f.y > VH) {
+        if (this.splash.length < 40 && Math.random() < 0.5) this.splash.push({ x: f.x, y: 20 + Math.random() * (VH - 24), t: 0.16 });
+        f.y = -f.l - Math.random() * 20; f.x = Math.random() * (VW + 60);
+      }
+      if (f.x < -4) f.x += VW + 8;
+    }
+    for (let i = this.splash.length - 1; i >= 0; i--) if ((this.splash[i].t -= dt) <= 0) this.splash.splice(i, 1);
+  },
+
+  /* an overcast cast over the whole street, then the rain on top of it */
+  drawRain(x) {
+    x.fillStyle = 'rgba(16,24,52,0.12)'; x.fillRect(0, 0, VW, VH);
+    x.fillStyle = 'rgba(178,198,232,0.55)';
+    for (const f of this.rain) {
+      const h = f.l >> 1;
+      x.fillRect(f.x | 0, f.y | 0, 1, h);
+      x.fillRect((f.x - 1) | 0, (f.y + h) | 0, 1, f.l - h);
+    }
+    x.fillStyle = 'rgba(206,220,244,0.6)';
+    for (const s of this.splash) {
+      const o = s.t > 0.08 ? 1 : 2;
+      x.fillRect((s.x - o) | 0, s.y | 0, 1, 1); x.fillRect((s.x + o) | 0, s.y | 0, 1, 1);
+    }
+  },
+
   updateSnow(dt) {
     for (const f of this.snow) {
       f.w += dt * 1.7;
@@ -1163,6 +1266,8 @@ const G = {
     x.drawImage(City.ground, cx, cy, VW, VH, 0, 0, VW, VH);
     const snowy = this.winter && this.snowMask;
     if (snowy) x.drawImage(this.snowMask, cx, cy, VW, VH, 0, 0, VW, VH);
+    const rainy = this.weather === 'rainy' && this.rainMask;
+    if (rainy) x.drawImage(this.rainMask, cx, cy, VW, VH, 0, 0, VW, VH);
 
     const live = this.state === 'play' || this.state === 'demo';
     const nav = this.state === 'demo' ? NAV_FULL : this.nav;
@@ -1187,7 +1292,8 @@ const G = {
     }
 
     Fx.draw(x, cam);
-    if (this.winter) this.drawSnowfall(x);
+    if (this.weather === 'snowy') this.drawSnowfall(x);
+    if (rainy) this.drawRain(x);
 
     if (live) {
       this.drawAim(x, cam);
@@ -1379,7 +1485,7 @@ const G = {
     const L = this.level, D = this.diff;
     const px = this.card(x, 364, 204, 6);
     text(x, 'LEVEL ' + this.levelN, px + 12, 14, PAL.amber, 2);
-    text(x, L.name || '', px + 352, 14, PAL.bone, 2, 2);
+    text(x, this.levelTitle(), px + 352, 14, PAL.bone, 2, 2);
     const kind = this.shiftName() + '  -  ' + this.diffKey.toUpperCase();
     text(x, kind, px + 12, 34, PAL.boneDim, 1);
     R(x, PAL.red, px + 12, 44, 340, 1);
@@ -1394,7 +1500,7 @@ const G = {
         ['TIPS', money(D.tipStart) + ' FALLING TO ' + money(D.tipFloor)],
         ['FINES', 'TICKET ' + money(D.fines.ticket) + '  PED ' + money(D.fines.ped) + '  TRAIN ' + money(D.fines.train)],
         ['TACO-NAV', this.navName()],
-        ['ROADS', this.winter ? 'SNOW - THE BACK END STEPS OUT' : 'DRY'],
+        ['ROADS', WEATHER_ROADS[this.winter ? 'winter' : 'summer'][this.weather]],
       ];
       rows.forEach((r, i) => {
         text(x, r[0], px + 12, 56 + i * 14, PAL.boneDim, 1);

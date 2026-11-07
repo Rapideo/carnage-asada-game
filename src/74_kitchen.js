@@ -652,7 +652,7 @@ const Kitchen = {
       const dx = c.x | 0, dy = c.y | 0;
       R(x, 'rgba(12,8,20,0.32)', dx + 1, dy + 12, 7, 3);
       x.drawImage(Art.ped[c.i % Art.ped.length][c.dir][c.f], dx, dy);
-      if (G.winter) { R(x, PAL.bone, dx + 3, dy, 4, 1); }   // snow on the hat, winter
+      if (G.weather === 'snowy') { R(x, PAL.bone, dx + 3, dy, 4, 1); }   // snow on the hat, while it snows
     }
     x.restore();
 
@@ -840,15 +840,15 @@ const Kitchen = {
       textOut(x, 'NO TICKETS UP', 6, 200, PAL.boneDim, 1);
     } else if (!it) {
       textOut(x, 'SEND IT', 6, 182, PAL.amber, 2);
-      textOut(x, 'TICKET ' + t.n, 6, 200, PAL.amber, 1);
-      textOut(x, 'ALL BAGGED', 60, 200, PAL.boneDim, 1);
+      const tx = this.afterTicket(x, t);
+      textOut(x, 'ALL BAGGED', tx, 200, PAL.boneDim, 1);
     } else {
       const name = it.def.short || it.def.name;
       textOut(x, name, 6, 182, PAL.bone, 2);
-      textOut(x, 'TICKET ' + t.n, 6, 200, PAL.amber, 1);
-      const idx = t.items.indexOf(it) + 1, lab = 'ITEM ' + idx + ' OF ' + t.items.length;
-      textOut(x, lab, 60, 200, PAL.boneDim, 1);
-      this.star(x, 60 + textW(lab, 1) + 4, 200, it.clean ? PAL.bone : this.STAR_LOST, PAL.ink);
+      const tx = this.afterTicket(x, t);
+      const idx = t.items.indexOf(it) + 1, lab = 'ITEM ' + idx + '/' + t.items.length;
+      textOut(x, lab, tx, 200, PAL.boneDim, 1);
+      this.star(x, tx + textW(lab, 1) + 4, 200, it.clean ? PAL.bone : this.STAR_LOST, PAL.ink);
       /* pips right of the name, derived from its width -- build.mjs holds
          every Short name to 12*chars + 9*steps <= 127 so they clear the board */
       const lx = 6 + textW(name, 2) + 7, cy = 182 + 7 - (this.PIP_W >> 1);
@@ -919,6 +919,17 @@ const Kitchen = {
     if (ink) for (let j = -1; j <= 7; j++) for (let i = -1; i <= 7; i++)
       if (!on(i, j) && (on(i - 1, j) || on(i + 1, j) || on(i, j - 1) || on(i, j + 1))) R(x, ink, sx + i, sy + j, 1, 1);
     for (let j = 0; j < 7; j++) for (let i = 0; i < 7; i++) if (S[j][i] === '#') R(x, col, sx + i, sy + j, 1, 1);
+  },
+
+  /* "TICKET n", and where the next label on that line starts. It used to
+     start at a fixed x60, which "TICKET 9" clears and "TICKET 15" does not:
+     every kitchen level reaches the teens, and the line read "TICKET 15ALL
+     BAGGED". "ITEM 3/3" rather than "ITEM 3 OF 3" so that, with its star, the
+     line still ends clear of the board at x137 for any ticket under 1000. */
+  afterTicket(x, t) {
+    const s = 'TICKET ' + t.n;
+    textOut(x, s, 6, 200, PAL.amber, 1);
+    return 6 + textW(s, 1) + 6;
   },
 
   /* ---------------- the item on the board -------------------------- */

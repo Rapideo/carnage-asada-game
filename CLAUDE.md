@@ -425,6 +425,15 @@ axes and both directions, which is exactly where the old seed failed and where t
 250-routes-are-contiguous assertion could never look. Cyan (`PAL.cyan`) is reserved exclusively for guidance UI so it always reads as
 machine output — don't spend it elsewhere.
 
+**RECALCULATING means a new route, not the same route further along.** `Nav.recompute` re-solves
+every 0.4s, and the route's key changes constantly in normal driving: a passed junction drops off
+the front, and mid-turn `aheadNode` can put it back, because the velocity sweeps through both axes.
+Flashing on every key change had the panel reading RECALCULATING, with the road chevrons hidden,
+for 28% of a shift (playtest 2026-11-07). `Nav.continues` treats a suffix either way as the same
+route, and `Nav.recent` ignores a flip back to a route held a moment ago, which happens when a crawling
+car flips between two equal-cost routes. That brought it to about 9%, most of it the deliberate
+flash on a new order.
+
 ### Title screen and controls
 
 `overlayTitle` is badge, tag, wordmark and blinking prompt, and it stages in that order: the badge alone,
@@ -596,7 +605,8 @@ card, the stage built underneath) → `play` or `kitchen` → `clear` → next `
 (only if the run places) → `cont` (CONTINUE? 10s); after level 20 `victory` → `entry`/`scores`.
 
 **`G.setLevel(n)` is the single switch** for a level's difficulty (`G.diff` from `DIFFICULTY`), era,
-season (`G.winter`, `Player.gripMul`), nav ladder (`G.nav`) and map — it regenerates the city when the
+season (`G.winter`), weather (`G.weather`, rolled per play by `G.rollWeather`: summer sunny|rainy,
+winter snowy|sunny, the kitchen always the default; `Player.gripMul` follows it), nav ladder (`G.nav`) and map — it regenerates the city when the
 era's map changes (`City.map`, read by `City.gen`). `G.stage` is `'delivery'` or `'kitchen'` and decides
 which world renders under the cards. `G.startShift()` is still the direct way into a delivery shift; the
 tests and the demo both use it.

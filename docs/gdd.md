@@ -319,7 +319,18 @@ As built:
 - **Winter, in the Kitchen Shift:** the customers have snow on their hats. Nothing else
   changes.
 
-There are no seasonal hazards beyond grip yet.
+**Weather (owner ruling, 2026-11-07).** A Delivery level rolls its weather each time it
+is played. Summer is sunny or rainy; winter is snowy or sunny. The values are in
+`levels.md`, and the code is `G.rollWeather` and the `WEATHER_*` constants in
+`80_game.js`.
+- **Rain:** a baked wet-road layer (darker tarmac, pale sky streaks, the odd puddle), an
+  overcast tint, falling rain with splashes, and grip x0.84.
+- **Sunny winter:** the snow on the ground and roofs stays, because that is the winter
+  look, but nothing falls and the ploughed roads grip at x0.9.
+- **Kitchen levels** keep the season's default, because there is no sky to see from the
+  line.
+
+There are no weather hazards beyond grip yet.
 
 ### L. Music
 

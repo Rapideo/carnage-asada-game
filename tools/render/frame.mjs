@@ -3,7 +3,7 @@
    --------------------------------------------------------------
    frame.mjs -- a real frame of any level, to a PNG.
 
-       node tools/render/frame.mjs <level> [seconds] [--card|--clear|--over|--pause|--title|--mode|--say] [--out name]
+       node tools/render/frame.mjs <level> [seconds] [--card|--clear|--over|--pause|--title|--mode|--say] [--weather sunny|rainy|snowy] [--out name]
 
    Boots the shipped modules exactly as build.mjs concatenates them, points the
    game at <level> (1-20: era, season, map, menu, difficulty all follow), and
@@ -28,7 +28,7 @@ const code = files.map((f) => `\n//# ${f}\n` + readFileSync(join(SRC, f), 'utf8'
 const argv = process.argv.slice(2);
 const flag = (n) => argv.includes('--' + n);
 const val = (n, d) => { const i = argv.indexOf('--' + n); return i < 0 ? d : argv[i + 1]; };
-const nums = argv.filter((a, i) => !a.startsWith('--') && !(i > 0 && argv[i - 1] === '--out'));
+const nums = argv.filter((a, i) => !a.startsWith('--') && !(i > 0 && (argv[i - 1] === '--out' || argv[i - 1] === '--weather')));
 const LEVEL = Number(nums[0] || 2), SECS = Number(nums[1] || 12);
 const OUT = val('out', 'frame-L' + LEVEL);
 
@@ -50,6 +50,8 @@ const { G, Kitchen, Input, Dialog, Demo, VW, VH } = sandbox.__x;
 const c = new Canvas(VW, VH), ctx = c.getContext('2d');
 const step = (n) => { for (let i = 0; i < n; i++) { G.update(1 / 60); Input.endFrame(); } };
 G.boot(1972);
+/* weather rolls per play; --weather pins it, so a frame can show one on purpose */
+if (val('weather', null)) G.weatherPin = val('weather', null);
 
 if (flag('title')) { G.toTitle(); step(60 * 4); }
 else if (flag('mode')) { G.toMode(); step(10); }
