@@ -2,30 +2,80 @@
 
 *Written 2026-10-25, after the build that finished the 20-level game, and updated the same
 day once the admin overlay had been designed and planned. Updated 2026-11-06 with two
-pinned art threads (below).* This is the starting point for a fresh session. It is a
-snapshot: **`ROADMAP.md` is the living plan**, and if the two disagree, the roadmap wins.
+pinned art threads, and 2026-11-07 with the art director's prep-board work (below).*
+This is the starting point for a fresh session. It is a snapshot: **`ROADMAP.md` is the
+living plan**, and if the two disagree, the roadmap wins.
 
-**Start here:** three things are waiting, and **the owner picks which goes first.** Ask;
-do not start any of them unprompted.
+**Start here (2026-11-07):** the owner has set the order.
 
-1. **The admin overlay** (see **Next** below). Fully designed and planned, **nothing of
-   it built**. When the owner says go, run the plan with
-   `superpowers:subagent-driven-development` on a branch `admin-overlay`.
-2. **Real ingredient art for the steam-table wells** (pinned 2026-11-06, see
-   **Pinned: the art** below). The owner's **approved set** is in
-   `reference/kitchen/ingredients/` (added 2026-11-07); nothing is baked yet.
-3. **The assembly-board pictures are rough** (pinned 2026-11-06, same section). The owner
-   wants them worked on.
+1. **Finish this art pass: the prep-board (assembly) pictures.** A Codex art-director
+   agent is drawing all 26 dishes right now (see **The art director and the prep board**
+   below). When the full set (or a batch) lands, check it against `menu.md`, render it
+   at game size, and show the owner. **Still pinned: nothing goes into the game until
+   the owner lifts the pin.**
+2. **The owner playtests.**
+3. **Then: the kitchen levels' surrounding art.** The owner thinks the Kitchen Shift
+   could look better and **has concept art** for it. **The bin mechanics, look and feel
+   are perfect and are not to change.** This is only the art *around* them (the
+   rail, the pantry, the overhead, the steam table's surround, the board). Wait for the
+   owner's concept art, and brainstorm with them before drawing anything.
+
+Waiting behind those, and only when the owner says go:
+- **the admin overlay** (see **Next** below), fully designed and planned, nothing built;
+- **baking the approved ingredient art into the wells** (see **Pinned: the art**).
+
+## The art director and the prep board (2026-11-07)
+
+The owner put a **Codex agent in charge of art direction and concept generation**. The two
+agents talk only through **`docs/art-direction-welcome.md`**. The top of that file is the
+pipeline briefing. Below it is a dated **hand-off log**: each side appends a
+`### date · sender → receiver · subject` section, and **OWNER** marks the questions only
+the owner can answer. Watch that file for replies. A polling loop over its mtime and
+`git status` works; keep it light, because an earlier watcher was killed for low memory.
+
+**Rulings made 2026-11-07, all by the owner:**
+- **`docs/authored content/menu.md.md` is law** for every dish's ingredients and order.
+  `content/menus.json` mirrors it, and the two agree today. The real restaurant menu
+  (`Migrated/Taco Shop Menu - July 2026.md`, tacoshop.net) is only for how food looks.
+- **Twelve bins, no more.** Monterey Jack, olives and Mexicalli rice are dropped from every
+  dish; `menu.md` notes each drop. **ONION is green onions.**
+- **Hard-shell tacos are drawn side-on**, with the fillings piled above the rim.
+- **Cheddar stays orange. Chili con queso is a pale, creamy yellow**, glossy, with small
+  red flecks. The v2 Nachos are the reference.
+- **Smothered dishes are built open and shown smothered only on the wrapped frame.**
+- **About 250 KB of extra file size** for the board frames is approved.
+
+**The format the art director delivers**, which is what the game will load:
+- one transparent **40×38 PNG per distinct build state**, named by recipe prefix
+  (`LARGE-BEANS-CHEESE.png`), with shared states drawn once;
+- a separate wrapped frame where the dish changes when wrapped (rolls about 38×20);
+- a `manifest.json` mapping each dish's build and finished state.
+
+The full menu is 78 build states plus 26 wrapped frames, 104 frames at most.
+
+**Where it stands:** the pilot (Hard Taco Supreme, Bean Burrito, Nachos) went two rounds
+and **v2 is approved**: `reference/kitchen/review/2026-11-07-board-pilot-v2.zip`. Round 1
+failed on taco fillings too thin to read at 1×, which the 4× proofs hid. Measure each pick
+at 1× on the board's colours: a pick should strongly change roughly 100+ pixels, and
+the v2 taco does 99–155. The renders are `reference/kitchen/review/*-review-x5.png`.
+
+The scripts that made them live in the session scratchpad and are gone. The method:
+reduce each state to 15 colours with `reduce.mjs` (`medianCut` + `snap`), centre it in a
+64×42 cell of `PAL.dirt` with a 2-row `PAL.porch` edge, darken alternate rows by 18%,
+and upscale ×5. For the pick test, diff consecutive states and count pixels whose RGB
+distance is over 180. **The full set is being drawn now.**
+
+**Not decided yet: how the frames go into the game.** Today `Kitchen.pic()` draws the board
+procedurally. The likely route is `bake-lattice.mjs --keyed --size 40x38` per state into
+`content/lattice/` (see `docs/art_pipeline.md`, "Free objects"), with `pic()` looking up
+the state by recipe prefix. Plan it with the owner when the pin lifts.
 
 ## Pinned: the art (2026-11-06, updated 2026-11-07)
 
-**Still pinned, by the owner, 2026-11-07: do not bake.** The owner has put a separate
-Codex agent in charge of **art direction and concept generation**, and more art from it
-is coming. Wait for that delivery, and treat the set below as the current approved
-source until it arrives, not as final. When new art lands, check it against what is
-measured here (bin shape, colour count, key mapping) before baking anything. The art
-agent's orientation is `docs/art-direction-welcome.md`; keep it true if the pipeline
-changes.
+**Still pinned, by the owner, 2026-11-07: do not bake.** The prep-board frames are in
+progress (above). The well art below is the approved source for the steam-table bins, but
+nothing is baked. When the pin lifts, check against what is measured here (bin shape,
+colour count, key mapping) first.
 
 **Use the approved set, not the grid.** On 2026-11-07 the owner supplied
 `reference/kitchen/ingredients/` ("they are better art, and in the proper orientation"):
@@ -46,11 +96,11 @@ Measured on the 45×46 sprites:
 - **The shells and bread are free-standing objects, not pans** (30–41 × 18–29). They suit
   the base stations and the board, not a bin.
 
-Every menu key has a match (Claude's mapping; confirm the doubtful ones): BEEF 01,
-CHICKEN 02, BEANS 04, LETTUCE 05, CHEESE 06, CREAM 08, TOMATO 09, ONION 10 (*green*
-onions; the current well is white), PEPPERS 12 (jalapeños? the current colour is a
-green pepper), CCQ 15, CHILI 16, SAUCE 17 (mild/Taco Shop sauce). Bases: SHELL 31,
-SMALL 32, LARGE 33, CHIPS 36. Unused for now: 03 shredded pork, 07 jack, 11 olives,
+Every menu key has a match, confirmed 2026-11-07: BEEF 01, CHICKEN 02, BEANS 04,
+LETTUCE 05, CHEESE 06, CREAM 08, TOMATO 09, ONION 10 (green onions, the owner's ruling;
+the current well is white), PEPPERS 12 (jalapeños; the current colour is a green
+pepper), CCQ 15, CHILI 16, SAUCE 17 (mild/Taco Shop sauce). Bases: SHELL 31, SMALL 32,
+LARGE 33, CHIPS 36. Unused for now: 03 shredded pork, 07 jack, 11 olives,
 13 guacamole, 14 rice, 18 hot sauce, 19 salsa, 24 black beans, 30 pico, 37 fried flour
 shells, 38 tostada shells, 39 buns.
 
@@ -97,8 +147,8 @@ could use the art"), and stopped there. What was found:
 owner calls them **rough** and wants them worked on. The roadmap's original intent was
 **baked cutouts, one frame per `<ITEM><STAGE>`** (`--keyed --size 40x38`, see
 `docs/art_pipeline.md`, "Free objects"); `content/lattice/burrito.json` is the one such
-cutout that exists. Nothing was decided beyond "they need work"; ask the owner what bugs
-them before choosing between better drawing code and baked art.
+cutout that exists. **Decided 2026-11-07: baked art from the art director**, one frame
+per distinct state (see **The art director and the prep board** above).
 
 ## Where things stand
 
@@ -113,10 +163,11 @@ nothing in it is needed. Every ruling and invention from that day is logged in
 `docs/PURE-CARNAGE-DECISIONS.md`. The GDD and the authored content were updated to match
 the build; the GDD ends with a list of what was invented.
 
-**Repo state:** `master` is clean apart from the files untracked on purpose
+**Repo state (2026-11-07):** `master` is clean apart from the files untracked on purpose
 (`Migrated/`, `Carnage_Resume.pdf`, and since 2026-11-06
-`Pixel-Art Taco Shop Ingredient Grid.png`). The last commit adds the overlay's design and plan,
-and points `ROADMAP.md`, this file and `CLAUDE.md` at them. Re-checked then:
+`Pixel-Art Taco Shop Ingredient Grid.png`). Since 2026-11-06 the commits have been docs,
+reference art and `menu.md` only. **No game code has changed**, so the build and test
+results below still hold. As of the admin overlay's design commit, re-checked:
 `node build.mjs` was clean, reproduced every generated file byte for byte, and
 `node test/headless.mjs` passed. `master` is **ahead of `origin/master` and not pushed**;
 push only when the owner says so. The music previews (`tools/music/preview/`, git-ignored)

@@ -44,21 +44,26 @@ Task 17, not before):
 
 ---
 
-## PINNED: kitchen art (2026-11-06)
+## NOW: kitchen art (2026-11-06, order set by the owner 2026-11-07)
 
-Two art threads the owner raised and then pinned for a later session. **Which comes
-first — these or the admin overlay — is the owner's call.** Details, including the tray
-map and the open question, are in `RESUME.md` under "Pinned: the art".
+The owner set the order on 2026-11-07. Details are in `RESUME.md`: "The art director and
+the prep board", and "Pinned: the art". **The art pin still holds: nothing is baked into
+the game until the owner lifts it.**
 
-- [ ] **Steam-table wells from real art.** The owner's approved set is
+1. [ ] **Assembly-board pictures. In progress.** A Codex art-director agent is drawing
+   all 26 dishes as baked frames, one per distinct build state, to the rulings in
+   `docs/art-direction-welcome.md`. The pilot (v2) is approved. Next: review the full
+   set at game size, then plan with the owner how `Kitchen.pic()` loads the frames.
+2. [ ] **The owner playtests.**
+3. [ ] **The kitchen levels' surrounding art.** The owner has concept art and wants the
+   Kitchen Shift to look better. **The bins' mechanics, look and feel are perfect and
+   are not to change**; this is the art around them. Brainstorm with the owner first.
+
+- [ ] **Steam-table wells from real art.** Pinned, not yet ordered. The owner's approved set is
   `reference/kitchen/ingredients/` (2026-11-07): 21 pans and 7 shells/bread, covering
-  every bin key and base in the menus. The pans are already the bin's 42-wide landscape
-  shape. Replaces matching-by-recolour (`recolor-lattice.mjs`). The open problem is
-  colour: 470–730 per sprite against the 16-colour cap. Scope (all wells, or only the
-  recoloured ones) not yet decided. (The 2026-11-06 grid at the repo root is superseded.)
-- [ ] **Assembly-board pictures.** The owner calls them rough. Today they are drawn in
-  code (`Kitchen.pic()` in `src/74_kitchen.js`); the original plan was baked
-  `<ITEM><STAGE>` cutouts. Find out what bothers the owner first.
+  every bin key and base. The pans are already the bin's 42-wide landscape shape. It
+  replaces matching by recolour (`recolor-lattice.mjs`). The open problem is colour: 470–730 per
+  sprite against the 16-colour cap. The 2026-11-06 grid at the repo root is superseded.
 
 ---
 

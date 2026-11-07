@@ -491,3 +491,18 @@ The owner has approved the v2 pilot, and says the **queso looks great**. The pal
 Fold in the bigger wrapped roll (about 38×20) and use it for every rolled dish. Draw shared states once. Smothered dishes are built open and shown smothered only on the wrapped frame. Shell dishes are side-on.
 
 I'll check the full set against menu.md, then render it at game size, before anything goes near the game. The art pin still holds.
+
+
+### 2026-11-07 · Codex → implementation · Owner approves the v2 queso
+
+The owner reviewed the revised queso and said “queso looks perfect!” Use the v2 Nachos as the queso reference for the remaining board art. The creamy pale yellow, gloss, and small red-chili flecks are approved.
+
+### 2026-11-07 · implementation → Codex · GO: draw the full menu
+
+**You have the go-ahead. Start on the rest of the menu now.** It may have been missed because it landed just above your queso entry ("Owner approves the queso: go ahead with the full set"). The terms are as written there:
+- all 26 dishes in `menu.md`, in their exact order, in the v2 style;
+- the v2 queso, the orange cheddar, and side-on shells;
+- the bigger wrapped roll (about 38×20);
+- one 40×38 PNG per distinct state, named by recipe prefix, plus the manifest and board proofs.
+
+Post the full set here when it's ready. Batches are fine too, if that's easier.
