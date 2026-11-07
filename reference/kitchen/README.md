@@ -34,6 +34,7 @@ of them are GDD §X.1.
 | `../../content/lattice/*.json` | **generated** baked wells, stations and the board item; re-bake with `tools/render/bake-lattice.mjs`. Read straight off disk here — `build.mjs` does not see them, because the Kitchen Shift is not in `src/` yet |
 | `dialog.mjs` | the dialogue strip — **shared by both halves of the game** |
 | `face.mjs` | portrait test rig; iterate on faces without rebuilding the scene |
+| `ingredients/` | **the owner's approved ingredient art** (2026-11-07): 21 pans and 7 shells/bread, full-size originals plus 45×46 reductions. Source for re-baking the wells; not yet baked. Its own `README.txt` and `asset-list.csv` describe it; `RESUME.md` has the mapping to menu keys |
 
 ```
 node reference/kitchen/kitchen.mjs            # redraw the frame

@@ -12,11 +12,44 @@ do not start any of them unprompted.
    it built**. When the owner says go, run the plan with
    `superpowers:subagent-driven-development` on a branch `admin-overlay`.
 2. **Real ingredient art for the steam-table wells** (pinned 2026-11-06, see
-   **Pinned: the art** below). The owner confirmed the art is usable; nothing is baked yet.
+   **Pinned: the art** below). The owner's **approved set** is in
+   `reference/kitchen/ingredients/` (added 2026-11-07); nothing is baked yet.
 3. **The assembly-board pictures are rough** (pinned 2026-11-06, same section). The owner
    wants them worked on.
 
-## Pinned: the art (2026-11-06)
+## Pinned: the art (2026-11-06, updated 2026-11-07)
+
+**Use the approved set, not the grid.** On 2026-11-07 the owner supplied
+`reference/kitchen/ingredients/` ("they are better art, and in the proper orientation"):
+**28 approved assets**, 21 ingredient pans and 7 shells/bread, each as a full-size
+transparent original (`originals/`, ~1260×1246) and a nearest-neighbour reduction on a
+45×46 transparent canvas (`sprites-45x46/`). Its own `README.txt`, `asset-list.csv`,
+`prompts.txt` and `preview.png` say what each is; filename numbers are the owner's
+approval-list numbers, so the gaps are intentional.
+
+Measured on the 45×46 sprites:
+- **Every pan's opaque area is 42 wide × 21–23 tall**, at x 2, y 14. The game's bin
+  tray art is **42×24**. The near-square problem described below **is gone** for the
+  pans: they are already the bin's shape and size.
+- **Colours: 470–730 per sprite**, against the lattice cap of **16**. They are
+  downsamples, not hand-pixelled, so the baker's colour reduction does real work here.
+  Look at the contact sheet closely; baking from `originals/` might reduce better than
+  re-reducing the 45×46 files. Untested.
+- **The shells and bread are free-standing objects, not pans** (30–41 × 18–29). They suit
+  the base stations and the board, not a bin.
+
+Every menu key has a match (Claude's mapping; confirm the doubtful ones): BEEF 01,
+CHICKEN 02, BEANS 04, LETTUCE 05, CHEESE 06, CREAM 08, TOMATO 09, ONION 10 (*green*
+onions; the current well is white), PEPPERS 12 (jalapeños? the current colour is a
+green pepper), CCQ 15, CHILI 16, SAUCE 17 (mild/Taco Shop sauce). Bases: SHELL 31,
+SMALL 32, LARGE 33, CHIPS 36. Unused for now: 03 shredded pork, 07 jack, 11 olives,
+13 guacamole, 14 rice, 18 hot sauce, 19 salsa, 24 black beans, 30 pico, 37 fried flour
+shells, 38 tostada shells, 39 buns.
+
+The earlier grid, below, is **superseded** by this set. It is still untracked at the repo
+root; ask the owner before deleting it.
+
+### The first look (2026-11-06), kept for its reasoning
 
 The owner added **`Pixel-Art Taco Shop Ingredient Grid.png`** to the repo root
 (1536×1024 RGB, 2.6 MB, **untracked**: the owner has not said where it should live, so
