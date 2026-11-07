@@ -86,6 +86,7 @@ const Kitchen = {
   /* Called by G when a kitchen level starts (or the attract demo plays one). */
   enter(level, diff, demo) {
     this.era = level.era || 1;
+    this.year = level.year || 1972; this.winter = level.season === 'winter';   // the wall calendar
     this.diff = diff.kitchen;
     this.demo = !!demo;
     this.menu = (typeof MENUS !== 'undefined' && MENUS[this.era]) || this.fallbackMenu();
@@ -523,46 +524,24 @@ const Kitchen = {
   colX(i) { return this.COL0 + i * (this.CELL_W + 1); },
 
   /* Everything that never changes during a level, baked once: the back
-     wall, the pantry, the dining-room floor and its wall, the steam table
-     under the bins, and the prep counter with its board. */
+     wall and its pantry, the dining room and its line-up, the steam table
+     under the bins, and the prep counter with its board.
+
+     The wall and the room change with the decade (owner, 2026-11-07, from
+     the art director's mockups in reference/kitchen/surroundings/): '70s
+     enamel tile and galvanized shelving, '80s wood paneling, '90s blue
+     laminate and molded plastic. Cool colours, like the driving half -- the
+     colour comes from the stock. The bins, the steam table and the board are
+     the same in every decade. Everything the player reads sits in the band
+     from y 56 to the bins, because the tickets cover the wall above it. */
   buildBg() {
     const t = mkCanvas(VW, VH), x = t.x;
-    const BRICK_H = PAL.roadHi, MORTAR = PAL.roadLo;
     const STEEL_D = PAL.roadLo, STEEL_X = PAL.road, STEEL = PAL.walkLo, STEEL_M = PAL.walk, STEEL_H = PAL.walkHi;
     const WOOD = PAL.walkLo, WOOD_H = PAL.walk, WOOD_L = shade(PAL.curb, -0.12);
+    const era = clamp(this.era || 1, 1, 3);
 
-    /* back wall */
-    R(x, PAL.road, 0, 0, VW, 108);
-    let rng = makeRng(1972);
-    for (let by = 0, row = 0; by < 108; by += 7, row++) {
-      const off = row % 2 ? -7 : 0;
-      for (let bx = off; bx < VW; bx += 15) {
-        if (rng.chance(0.28)) R(x, BRICK_H, bx, by, 14, 6);
-        else if (rng.chance(0.14)) R(x, MORTAR, bx, by, 14, 6);
-      }
-      R(x, MORTAR, 0, by + 6, VW, 1);
-    }
-    for (let i = 0; i < 16; i++) { x.globalAlpha = 0.034 - i * 0.002; R(x, '#cfe0f0', 0, i * 3, VW, 3); }
-    x.globalAlpha = 1;
-
-    /* pantry, behind the tickets */
-    const shelf = (sy) => {
-      R(x, STEEL_X, 4, sy, 244, 3); R(x, STEEL_M, 4, sy, 244, 1);
-      for (let i = 12; i < 250; i += 44) R(x, STEEL_X, i, sy + 3, 2, 10);
-    };
-    const can = (cx, cy, h, col) => {
-      R(x, PAL.ink, cx, cy, 9, h); R(x, col, cx + 1, cy + 1, 7, h - 2);
-      R(x, shade(col, 0.28), cx + 1, cy + 1, 2, h - 2);
-      R(x, PAL.bone, cx + 1, (cy + h / 2 - 2) | 0, 7, 4);
-      R(x, shade(col, -0.35), cx + 1, cy + h - 3, 7, 2);
-    };
-    shelf(72);
-    can(207, 60, 12, '#b8442e'); can(218, 58, 14, '#c98a2a');
-    shelf(96);
-    can(171, 84, 12, PAL.treeLo); can(182, 82, 14, '#c98a2a');
-    R(x, PAL.ink, 234, 82, 17, 14); R(x, PAL.boneDim, 235, 83, 15, 12);
-    R(x, PAL.bone, 235, 83, 15, 2); R(x, shade(PAL.boneDim, -0.28), 235, 93, 15, 2);
-    R(x, PAL.jadeLo, 240, 87, 5, 4);                // the shop's cactus stamp
+    /* back wall, its pantry, the calendar and the sign */
+    this.drawWall(x, era);
 
     /* the rail spans the pass, not the whole kitchen */
     R(x, STEEL_X, 2, 1, 250, 6); R(x, STEEL_H, 2, 1, 250, 1); R(x, STEEL_M, 2, 2, 250, 1);
@@ -570,37 +549,7 @@ const Kitchen = {
     for (const bx of [2, 249]) { R(x, STEEL_D, bx, 0, 3, 10); R(x, STEEL_M, bx, 0, 3, 1); }
 
     /* the dining room, in plan -- the same projection as the driving half */
-    const OX = this.OV_X, OW = VW - OX, OH = this.OV_H;
-    R(x, shade(PAL.walk, -0.26), OX, 0, OW, OH);
-    rng = makeRng(4412);
-    for (let ty = 0; ty < OH; ty += 8)
-      for (let tx = OX; tx < VW; tx += 8) {
-        if (rng.chance(0.42)) R(x, shade(PAL.walk, -0.18), tx, ty, 7, 7);
-        R(x, shade(PAL.walk, -0.32), tx, ty, 8, 1);
-        R(x, shade(PAL.walk, -0.32), tx, ty, 1, 8);
-      }
-    R(x, PAL.ink, OX - 1, 0, 2, OH);
-    const wy = 48, wh = 11, ox = OX + 47, ow = 40;
-    const wall2 = (px, w2) => {
-      R(x, PAL.ink, px, wy, w2, wh);
-      R(x, shade(PAL.wallMd, -0.30), px, wy + 1, w2, wh - 2);
-      R(x, shade(PAL.wallLt, -0.24), px, wy + 1, w2, 2);
-      R(x, shade(PAL.wallDk, -0.24), px, wy + wh - 3, w2, 2);
-    };
-    wall2(OX, ox - OX); wall2(ox + ow, VW - (ox + ow));
-    R(x, shade(PAL.ink, 0.05), ox, wy, ow, 4);
-    R(x, PAL.ink, ox, wy + 4, ow, 8);
-    R(x, STEEL_M, ox, wy + 5, ow, 5); R(x, STEEL_H, ox, wy + 5, ow, 2); R(x, STEEL_X, ox, wy + 10, ow, 2);
-    R(x, 'rgba(12,8,20,0.30)', ox, wy + 12, ow, 4);
-    for (const jx of [ox - 5, ox + ow]) {
-      R(x, PAL.ink, jx, wy + wh, 5, 16);
-      R(x, shade(PAL.wallMd, -0.34), jx + 1, wy + wh, 3, 15);
-      R(x, shade(PAL.wallLt, -0.30), jx + 1, wy + wh, 1, 15);
-      R(x, 'rgba(12,8,20,0.34)', jx + 4, wy + wh, 3, 15);
-    }
-    /* the door customers come in by, bottom right */
-    R(x, shade(PAL.walk, -0.40), VW - 12, 80, 12, 24);
-    R(x, shade(PAL.walk, -0.12), VW - 12, 80, 1, 24);
+    this.drawDining(x, era);
 
     /* steam table */
     R(x, STEEL_D, 0, 104, VW, 60);
@@ -617,14 +566,292 @@ const Kitchen = {
     R(x, PAL.dirt, BX, 171, BW, VH - 174);
     R(x, PAL.porch, BX, 171, BW, 2);
     R(x, PAL.dirtLo, BX, VH - 5, BW, 2);
-    rng = makeRng(88);
+    let rng = makeRng(88);
     for (let i = 0; i < 70; i++) {
       const gy = 174 + rng.int(VH - 183), gx = BX + 2 + rng.int(BW - 14);
       const gw = Math.min(6 + rng.int(22), BX + BW - 2 - gx);
       R(x, rng.chance(0.5) ? shade(PAL.dirt, -0.13) : shade(PAL.dirt, 0.09), gx, gy, gw, 1);
     }
     x.globalAlpha = 0.20; R(x, PAL.ink, 0, VH - 7, VW, 7); x.globalAlpha = 1;
+    /* the counter's front lip is the one place the decade shows on it: the
+       surface stays quiet behind NOW BUILDING */
+    const lip = era === 1 ? ['#b4bac8', '#8b8f9f', '#6a6e80'] :     // brushed steel
+                era === 2 ? ['#5e3d2a', '#3a2418', '#2a1810'] :     // dark laminate
+                            ['#b0a4f0', '#8a7ae0', '#5a4ab0'];      // plastic bumper
+    R(x, PAL.ink, 0, VH - 6, VW, 1);
+    R(x, lip[0], 0, VH - 5, VW, 1); R(x, lip[1], 0, VH - 4, VW, 3); R(x, lip[2], 0, VH - 1, VW, 1);
     return t.c;
+  },
+
+  /* the calendar shows the level's own month and year */
+  calendarText() {
+    return [this.winter ? 'JAN' : 'JUL', String(this.year || 1972)];
+  },
+
+  /* The pieces every shelf is built from. Each is an ink-outlined block with
+     a lit left edge and a shaded right one, standing on a baseline b. */
+  stockKit(x) {
+    const INK = PAL.ink;
+    const blk = (bx, by, w, h, fill, hi, lo) => {
+      R(x, INK, bx, by, w, h);
+      R(x, fill, bx + 1, by + 1, w - 2, h - 2);
+      if (hi) R(x, hi, bx + 1, by + 1, 1, h - 2);
+      if (lo) R(x, lo, bx + w - 2, by + 1, 1, h - 2);
+    };
+    return {
+      blk,
+      can(cx, b, w, h, body, stripe) {
+        blk(cx, b - h, w, h, body, shade(body, 0.25), shade(body, -0.3));
+        R(x, '#a2a8b6', cx + 1, b - h, w - 2, 1);
+        if (stripe) R(x, stripe, cx + 1, b - h + ((h / 2) | 0) - 1, w - 2, 2);
+      },
+      jar(jx, b, w, h, fill, lid) {
+        R(x, INK, jx, b - h, w, h);
+        R(x, lid, jx + 1, b - h + 1, w - 2, 2);
+        R(x, fill, jx + 1, b - h + 3, w - 2, h - 4);
+        R(x, shade(fill, 0.35), jx + 2, b - h + 4, 1, h - 6);
+        for (let i = 0; i < 3; i++) R(x, shade(fill, -0.3), jx + 2 + ((i * 3) % (w - 4)), b - h + 5 + i * 3, 2, 1);
+      },
+      bottle(bx, b, h, fill, cap) {
+        R(x, INK, bx + 2, b - h, 3, 4); R(x, INK, bx, b - h + 4, 7, h - 4);
+        R(x, cap, bx + 3, b - h + 1, 1, 2);
+        R(x, fill, bx + 1, b - h + 5, 5, h - 6); R(x, shade(fill, 0.3), bx + 1, b - h + 5, 1, h - 6);
+      },
+      squeeze(bx, b, h, fill) {
+        R(x, INK, bx + 3, b - h, 2, 3); R(x, INK, bx + 1, b - h + 3, 6, 2); R(x, INK, bx, b - h + 4, 8, h - 4);
+        R(x, '#f2e9d0', bx + 2, b - h + 4, 4, 1);
+        R(x, fill, bx + 1, b - h + 5, 6, h - 6); R(x, shade(fill, 0.3), bx + 1, b - h + 5, 1, h - 6);
+      },
+      carton(bx, b, w, h, fill, stripe) {
+        blk(bx, b - h, w, h, fill, shade(fill, 0.2), shade(fill, -0.22));
+        R(x, shade(fill, -0.12), bx + 1, b - h + 2, w - 2, 1);
+        if (stripe) R(x, stripe, bx + 2, b - ((h / 2) | 0) - 1, w - 4, 2);
+      },
+      shelf(x0, x1, sy, top, face, under) {
+        R(x, PAL.shadow, x0, sy + 4, x1 - x0, 2);
+        R(x, INK, x0 - 1, sy - 1, x1 - x0 + 2, 5);
+        R(x, top, x0, sy, x1 - x0, 1); R(x, face, x0, sy + 1, x1 - x0, 2);
+        R(x, under, x0, sy + 3, x1 - x0, 1);
+      },
+      post(px, y0, y1, col) {
+        R(x, INK, px - 1, y0, 5, y1 - y0);
+        R(x, col, px, y0, 3, y1 - y0); R(x, shade(col, 0.25), px, y0, 1, y1 - y0);
+        for (let py = y0 + 3; py < y1 - 2; py += 4) R(x, shade(col, -0.45), px + 1, py, 1, 2);
+      },
+      grid(y0, h, sz, fill, grout, lit) {
+        R(x, fill, 0, y0, 248, h);
+        for (let gy = y0; gy < y0 + h; gy += sz) { R(x, grout, 0, gy, 248, 1); R(x, lit, 0, gy + 1, 248, 1); }
+        for (let gx = 4; gx < 248; gx += sz) R(x, grout, gx, y0, 1, h);
+      },
+    };
+  },
+
+  drawWall(x, era) {
+    const K = this.stockKit(x), INK = PAL.ink;
+    const CRM = '#ece2c6';
+    let cal, sign;
+    if (era === 1) {
+      /* '70s: cool enamel tile, galvanized shelving */
+      K.grid(0, 104, 10, '#8b9b8c', '#6c7b6e', '#9aab9c');
+      const G0 = '#8f94a0';
+      K.post(40, 56, 102, G0); K.post(195, 56, 102, G0);
+      K.shelf(40, 198, 73, '#b4b9c4', G0, '#6a6e80');
+      K.shelf(40, 198, 97, '#b4b9c4', G0, '#6a6e80');
+      // top: canned goods in a pyramid, jars, a bottle, an enamel coffee pot
+      const RED = '#b8442e', GRN = '#3d6b33';
+      K.can(50, 73, 13, 9, CRM, RED); K.can(63, 73, 13, 9, CRM, RED); K.can(57, 64, 13, 8, CRM, RED);
+      K.can(81, 73, 12, 13, CRM, RED); K.can(93, 73, 12, 13, CRM, RED);
+      K.jar(106, 73, 11, 14, '#8a9a3a', GRN); K.jar(118, 73, 11, 14, '#c0392b', GRN); K.jar(130, 73, 10, 14, '#e0a030', GRN);
+      K.bottle(143, 73, 19, GRN, '#d0b04a');
+      K.can(154, 73, 12, 13, CRM, GRN); R(x, GRN, 155, 67, 10, 1);
+      K.blk(170, 56, 16, 17, CRM, '#fff8e4', '#c4b394');
+      R(x, '#2e4a7a', 171, 56, 14, 2); R(x, INK, 175, 53, 6, 3); R(x, '#2e4a7a', 176, 54, 4, 1);
+      R(x, INK, 186, 59, 4, 9); R(x, CRM, 187, 60, 2, 7); R(x, INK, 186, 61, 2, 5);
+      // bottom: flour sacks, taco-shell cartons, sheet pans, paper goods
+      for (const sx of [48, 70]) {
+        R(x, INK, sx + 1, 78, 19, 19); R(x, INK, sx, 80, 21, 17);
+        R(x, '#d8c7a0', sx + 1, 81, 19, 15); R(x, '#d8c7a0', sx + 2, 79, 17, 2);
+        R(x, '#e6d8b8', sx + 2, 81, 2, 14); R(x, '#b49e78', sx + 17, 81, 2, 15);
+        R(x, RED, sx + 1, 87, 19, 2); R(x, '#b49e78', sx + 4, 79, 13, 1);
+      }
+      for (const by of [78, 87]) {
+        K.blk(93, by, 35, 10, '#c98a4a', '#dca064', '#9e6a38');
+        R(x, '#f0c03a', 107, by + 3, 8, 4); R(x, '#f0c03a', 109, by + 2, 4, 1); R(x, INK, 107, by + 7, 8, 1);
+        for (const dx of [97, 118]) { R(x, RED, dx, by + 4, 6, 1); R(x, RED, dx, by + 6, 6, 1); }
+      }
+      for (let i = 0; i < 3; i++) { const py = 86 + i * 4; R(x, INK, 129, py, 32, 4); R(x, '#c9cede', 130, py, 30, 1); R(x, PAL.walk, 131, py + 1, 28, 2); }
+      K.blk(163, 80, 11, 17, '#d8c09a', '#e8d4b0', '#b49e78'); R(x, PAL.dirtLo, 167, 80, 3, 1);
+      for (let i = 0; i < 4; i++) K.blk(175, 83 + i * 3, 16, i === 3 ? 6 : 4, '#d0b088', '#e0c49c', '#a88a64');
+      cal = { x: 7, y: 63, w: 27, h: 34, band: RED, ink: '#55413b', paper: '#e9d8b4', rings: 1 };
+      sign = { x: 205, y: 69, w: 39 };
+    } else if (era === 2) {
+      /* '80s: tile above, wood paneling below, wooden shelf boards */
+      K.grid(0, 52, 7, '#6e7896', '#57607c', '#7c86a4');
+      const WD = '#8e4c26', WG = '#6e3a1c', WL = '#a05a2e';
+      R(x, WD, 0, 52, 248, 52);
+      for (let px = 0; px < 248; px += 7) { R(x, WG, px, 55, 1, 49); R(x, WL, px + 1, 55, 1, 49); }
+      const rng = makeRng(1984);
+      for (let i = 0; i < 60; i++) R(x, rng.chance(0.5) ? '#7e4220' : '#9a5630', rng.int(248), 57 + rng.int(45), 1, 3 + rng.int(8));
+      R(x, INK, 0, 51, 248, 1); R(x, '#c06a35', 0, 52, 248, 1); R(x, '#a5582a', 0, 53, 248, 2);   // chair rail
+      for (const px of [37, 115, 199]) K.post(px, 55, 102, '#7a84a0');
+      for (const sy of [73, 93]) { K.shelf(40, 115, sy, '#d07a40', '#a5582a', WG); K.shelf(119, 199, sy, '#d07a40', '#a5582a', WG); }
+      const RED = '#d0402c', BLU = '#2f5fc0', YEL = '#f0c030';
+      // top: cans, jars, bottles | cartons, a jug, nested pans, paper
+      K.can(42, 73, 12, 15, RED, CRM); K.can(54, 73, 9, 10, RED, CRM); K.can(63, 73, 12, 14, BLU, CRM); K.can(75, 73, 7, 9, BLU, CRM);
+      K.jar(84, 73, 8, 11, '#b09a30', '#3f3f4e'); K.jar(92, 73, 7, 11, '#d0602c', '#3f3f4e');
+      K.bottle(99, 73, 17, '#c0392b', '#e8d4b0'); K.bottle(106, 73, 17, '#3d8a3d', '#e8d4b0');
+      K.carton(121, 66, 18, 8, '#ecd8b0', RED); K.carton(121, 73, 18, 7, '#ecd8b0', BLU);
+      K.blk(141, 58, 13, 15, '#f2ecdc', '#ffffff', '#c9c0a8'); R(x, '#c0392b', 142, 65, 11, 3); R(x, INK, 146, 56, 5, 3); R(x, '#f2ecdc', 147, 57, 3, 1);
+      for (let i = 0; i < 3; i++) { const w = 22 - i * 4, px = 158 + i * 2, py = 69 - i * 4; R(x, INK, px, py, w, 4); R(x, '#c9cede', px + 1, py, w - 2, 1); R(x, PAL.walkHi, px + 1, py + 1, w - 2, 2); }
+      for (let i = 0; i < 6; i++) { R(x, INK, 185, 59 + i * 2, 12, 2); R(x, i % 2 ? '#c0392b' : '#f2e9d0', 186, 59 + i * 2, 10, 1); }
+      R(x, INK, 185, 71, 12, 2);
+      // bottom: canisters, boxes | cans, a stockpot and a saucepan
+      [['#3d8a3d', 42], ['#c0392b', 53], [BLU, 64], [YEL, 75]].forEach(([col, cx]) => {
+        K.blk(cx, 78, 11, 15, CRM, '#fff8e4', '#c4b394'); R(x, '#c9cede', cx + 1, 78, 9, 1); R(x, col, cx + 1, 84, 9, 3);
+      });
+      K.carton(88, 93, 10, 16, RED, null); R(x, CRM, 90, 81, 6, 2);
+      K.carton(97, 93, 9, 16, BLU, null); R(x, CRM, 99, 81, 5, 2);
+      K.carton(105, 93, 9, 6, YEL, null); K.carton(105, 87, 9, 6, YEL, null);
+      for (const [cx, col] of [[120, RED], [134, BLU], [148, YEL]]) { K.can(cx, 93, 8, 15, col, CRM); K.can(cx + 8, 93, 6, 9, col, CRM); }
+      K.blk(163, 80, 20, 13, '#a2a8b6', '#c9cede', '#7c8292'); R(x, '#c9cede', 162, 79, 22, 2);
+      R(x, INK, 171, 77, 4, 2); R(x, INK, 160, 82, 3, 2); R(x, INK, 183, 82, 3, 2);
+      K.blk(186, 85, 12, 8, '#a2a8b6', '#c9cede', '#7c8292'); R(x, '#c9cede', 185, 84, 14, 2); R(x, INK, 191, 82, 3, 2);
+      cal = { x: 5, y: 61, w: 27, h: 34, band: '#c0392b', ink: '#4e3739', paper: '#e8d7b9', rings: 2 };
+      sign = { x: 205, y: 62, w: 40 };
+    } else {
+      /* '90s: blue laminate, purple epoxy shelving, molded totes, a poster */
+      K.grid(0, 104, 10, '#8d9cc4', '#7484ae', '#9cabd0');
+      for (const px of [33, 95, 163, 199]) K.post(px, 55, 102, '#5a5f74');
+      K.shelf(32, 203, 74, '#c0b4f4', '#9a8ae6', '#5a4ab0');
+      K.shelf(32, 203, 98, '#c0b4f4', '#9a8ae6', '#5a4ab0');
+      const tote = (tx, b, w, h, inside) => {
+        for (const [k, c] of inside) { R(x, INK, tx + 2 + k, b - h - 3, 8, 5); R(x, c, tx + 3 + k, b - h - 2, 6, 3); }
+        K.blk(tx, b - h, w, h, '#7cb4e8', '#a8d0f4', '#5a8ec4'); R(x, '#4a78b0', tx + (w >> 1) - 3, b - h + 4, 6, 1);
+      };
+      const WHT = '#f2ecdc';
+      // top: cans, a tote of packets, squeeze bottles, cartons, two pans
+      K.can(38, 74, 12, 15, WHT, '#c0392b'); K.can(51, 74, 12, 15, WHT, '#3fa35a');
+      tote(67, 74, 27, 9, [[0, '#d0428a'], [10, '#f0c030']]);
+      K.squeeze(99, 74, 18, '#e0402c'); K.squeeze(108, 74, 18, '#f0c030'); K.squeeze(117, 74, 18, '#3fa35a');
+      for (const [cx, col] of [[129, '#4a8fd0'], [140, '#c0392b'], [151, '#3fa35a']]) { K.blk(cx, 59, 11, 15, WHT, '#ffffff', '#c9c0a8'); R(x, col, cx + 1, 63, 9, 2); R(x, INK, cx + 2, 58, 7, 1); }
+      for (let i = 0; i < 2; i++) { const py = 61 + i * 6; R(x, INK, 168, py, 22, 6); R(x, '#c9cede', 169, py, 20, 1); R(x, PAL.walkHi, 169, py + 1, 20, 4); R(x, INK, 190, py + 1, 6, 2); }
+      // bottom: striped cartons, a box, totes of paper and tortillas, bottles, cups
+      for (const [sy, col] of [[80, '#c0392b'], [89, '#3fa35a']]) { K.blk(38, sy, 23, 9, WHT, '#ffffff', '#c9c0a8'); R(x, col, 39, sy + 3, 21, 2); }
+      K.carton(61, 98, 12, 18, '#e8702c', null); for (let i = 0; i < 3; i++) R(x, '#f0a050', 62, 83 + i * 5, 10, 1);
+      tote(76, 98, 23, 11, [[1, WHT], [9, WHT]]);
+      tote(101, 98, 23, 11, [[1, PAL.dirt], [9, PAL.dirt]]);
+      K.squeeze(124, 98, 18, '#e0402c'); K.squeeze(132, 98, 18, '#e8802c'); K.squeeze(140, 98, 18, '#d0405a');
+      for (const [cx, col] of [[151, '#f0c030'], [162, '#4a8fd0']]) { K.blk(cx, 82, 11, 16, WHT, '#ffffff', '#c9c0a8'); R(x, col, cx + 1, 88, 9, 2); }
+      for (const [cx, h] of [[176, 19], [188, 14]]) { K.blk(cx, 98 - h, 11, h, WHT, '#ffffff', '#c9c0a8'); for (let py = 98 - h + 3; py < 97; py += 4) R(x, '#d0428a', cx + 1, py, 9, 1); }
+      // the promo poster: it peeks out under the third ticket on a busy shift
+      K.blk(205, 34, 41, 28, '#f0c030', null, null);
+      for (let i = 0; i < 26; i++) {
+        R(x, '#d0428a', 206, 35 + i, Math.max(0, 22 - i), 1);
+        const bw = Math.max(0, i - 6); R(x, '#3a8ad0', 245 - bw, 35 + i, bw, 1);
+      }
+      R(x, INK, 213, 44, 20, 10); R(x, '#f0c030', 214, 45, 18, 8); R(x, '#3d8a3d', 215, 45, 16, 2);
+      R(x, '#c0392b', 218, 45, 2, 1); R(x, '#c0392b', 225, 45, 2, 1); R(x, '#8a5a2a', 215, 47, 3, 3);
+      cal = { x: 4, y: 60, w: 27, h: 35, band: '#3a78c8', ink: '#364658', paper: '#e9e1cb', rings: 2, stripe: '#f0c030' };
+      sign = { x: 207, y: 69, w: 38 };
+    }
+
+    /* the calendar: the level's own month and year */
+    const [mon, yr] = this.calendarText();
+    R(x, PAL.shadow, cal.x + 2, cal.y + 2, cal.w, cal.h);
+    K.blk(cal.x, cal.y, cal.w, cal.h, cal.paper, null, shade(cal.paper, -0.12));
+    R(x, cal.band, cal.x + 1, cal.y + 1, cal.w - 2, 5);
+    if (cal.stripe) R(x, cal.stripe, cal.x + 1, cal.y + 6, cal.w - 2, 1);
+    for (const rx of cal.rings === 1 ? [cal.x + (cal.w >> 1) - 2] : [cal.x + 5, cal.x + cal.w - 8]) {
+      R(x, INK, rx, cal.y - 3, 4, 5); R(x, '#a2a8b6', rx + 1, cal.y - 2, 2, 3);
+    }
+    text(x, mon, cal.x + cal.w / 2, cal.y + 10, cal.ink, 1, 1);
+    text(x, yr, cal.x + cal.w / 2, cal.y + 19, cal.ink, 1, 1);
+    for (let c = 0; c < 6; c++) R(x, shade(cal.paper, -0.2), cal.x + 3 + c * 4, cal.y + cal.h - 5, 2, 1);
+    this.calRect = cal;
+
+    /* the sign: jade and gold, in the shop's own lettering (the rooftop's) */
+    const sh = 25;
+    R(x, PAL.shadow, sign.x + 2, sign.y + 2, sign.w, sh);
+    R(x, INK, sign.x, sign.y, sign.w, sh);
+    R(x, PAL.goldLo, sign.x + 1, sign.y + 1, sign.w - 2, sh - 2);
+    R(x, PAL.jadeLo, sign.x + 2, sign.y + 2, sign.w - 4, sh - 4);
+    for (const [dx, dy] of [[3, 3], [sign.w - 4, 3], [3, sh - 4], [sign.w - 4, sh - 4]]) R(x, PAL.gold, sign.x + dx, sign.y + dy, 1, 1);
+    const cx = sign.x + sign.w / 2;
+    logoText(x, 'TACO', cx + 1, sign.y + 3, 1, 0, '#0e3d30'); logoText(x, 'SHOP', cx + 1, sign.y + 13, 1, 0, '#0e3d30');
+    logoText(x, 'TACO', cx, sign.y + 2, 1, 0, PAL.gold); logoText(x, 'SHOP', cx, sign.y + 12, 1, 0, PAL.gold);
+    this.signRect = { x: sign.x, y: sign.y, w: sign.w, h: sh };
+  },
+
+  /* The dining room, from directly above. The score card covers it down to
+     y 57, service window included, so everything added here is on the
+     visible floor -- and off the queue spots and the walk paths (spot(),
+     the door at the right, a walkout straight down). */
+  drawDining(x, era) {
+    const OX = this.OV_X, OW = VW - OX, OH = this.OV_H, INK = PAL.ink;
+    const F = era === 1 ? ['#7c7f8c', '#8a8d98'] : era === 2 ? ['#6e7080', '#787a8a'] : ['#8d93a6', '#979db0'];
+    R(x, F[0], OX, 0, OW, OH);
+    for (let ty = 0; ty < OH; ty += 8)
+      for (let tx = OX + 1; tx < VW; tx += 8) {
+        if (era === 1 && ((tx + ty) >> 3) % 2) R(x, F[1], tx, ty, 8, 8);
+        if (era === 2) { R(x, F[1], tx, ty, 7, 7); R(x, '#5a5266', tx + 7, ty, 1, 8); R(x, '#5a5266', tx, ty + 7, 8, 1); }
+      }
+    if (era === 3) {
+      const rng = makeRng(1993);
+      for (let i = 0; i < 26; i++) R(x, rng.pick(['#d0428a', '#4a8fd0', '#e8d24a', '#7c8292']), OX + 2 + rng.int(OW - 3), rng.int(OH), 1, 1);
+    }
+    R(x, INK, OX - 1, 0, 2, OH);
+
+    /* the service wall and its window */
+    const wy = 48, wh = 11, ox = OX + 47, ow = 40;
+    const STEEL_X = PAL.road, STEEL_M = PAL.walk, STEEL_H = PAL.walkHi;
+    const wall2 = (px, w2) => {
+      R(x, INK, px, wy, w2, wh);
+      R(x, shade(PAL.wallMd, -0.30), px, wy + 1, w2, wh - 2);
+      R(x, shade(PAL.wallLt, -0.24), px, wy + 1, w2, 2);
+      R(x, shade(PAL.wallDk, -0.24), px, wy + wh - 3, w2, 2);
+    };
+    wall2(OX, ox - OX); wall2(ox + ow, VW - (ox + ow));
+    R(x, shade(INK, 0.05), ox, wy, ow, 4);
+    R(x, INK, ox, wy + 4, ow, 8);
+    R(x, STEEL_M, ox, wy + 5, ow, 5); R(x, STEEL_H, ox, wy + 5, ow, 2); R(x, STEEL_X, ox, wy + 10, ow, 2);
+    R(x, 'rgba(12,8,20,0.30)', ox, wy + 12, ow, 4);
+    for (const jx of [ox - 5, ox + ow]) {
+      R(x, INK, jx, wy + wh, 5, 16);
+      R(x, shade(PAL.wallMd, -0.34), jx + 1, wy + wh, 3, 15);
+      R(x, shade(PAL.wallLt, -0.30), jx + 1, wy + wh, 1, 15);
+      R(x, 'rgba(12,8,20,0.34)', jx + 4, wy + wh, 3, 15);
+    }
+
+    /* the door customers come in by, bottom right, and a mat inside it */
+    R(x, shade(PAL.walk, -0.40), VW - 12, 80, 12, 24);
+    R(x, shade(PAL.walk, -0.12), VW - 12, 80, 1, 24);
+    const MAT = era === 1 ? '#5c5040' : era === 2 ? '#7a2f3a' : '#3a5a8a';
+    R(x, INK, VW - 26, 84, 13, 16); R(x, MAT, VW - 25, 85, 11, 14);
+    for (let i = 0; i < 6; i++) R(x, shade(MAT, -0.25), VW - 24, 86 + i * 2, 9, 1);
+
+    /* the rope line the queue forms along: a velvet rope, a '90s belt */
+    const ROPE = era === 3 ? '#3a78c8' : '#a02a2a';
+    for (const rx of [286, 345]) {
+      R(x, shade(ROPE, -0.4), rx + 2, 65, 1, 29); R(x, ROPE, rx + 1, 65, 1, 29);
+      for (const sy of [63, 78, 93]) {
+        R(x, PAL.shadow, rx, sy + 2, 4, 2); R(x, INK, rx - 1, sy - 1, 5, 5);
+        R(x, era === 2 ? '#d0a040' : '#c9cede', rx, sy, 3, 3); R(x, '#ffffff', rx, sy, 1, 1);
+      }
+    }
+
+    /* a trash can with the tray stack on top, by the left jamb */
+    R(x, PAL.shadow, 254, 77, 14, 4); R(x, INK, 252, 63, 15, 15);
+    R(x, era === 3 ? '#8a5fc0' : era === 2 ? '#6b4630' : PAL.walk, 253, 64, 13, 13);
+    R(x, INK, 255, 66, 9, 3); R(x, '#c9cede', 253, 64, 13, 1);
+    R(x, era === 3 ? '#b38ae0' : era === 2 ? '#8a5c3e' : '#a2a8b6', 253, 71, 13, 2);
+
+    /* a potted cactus, and the condiment stand by the exit */
+    R(x, PAL.shadow, 358, 70, 11, 3); R(x, INK, 356, 61, 11, 10); R(x, '#a8603a', 357, 62, 9, 8);
+    R(x, INK, 358, 58, 7, 7); R(x, PAL.tree, 359, 59, 5, 5); R(x, PAL.treeHi, 360, 59, 1, 4); R(x, PAL.treeHi, 362, 60, 1, 3);
+    const STAND = era === 1 ? '#a2a8b6' : era === 2 ? '#d8ccb0' : '#3f3f4e';
+    R(x, PAL.shadow, 352, 82, 14, 3); R(x, INK, 350, 76, 14, 8); R(x, STAND, 351, 77, 12, 6);
+    R(x, INK, 352, 74, 5, 5); R(x, '#f2e9d0', 353, 75, 3, 3);
+    R(x, INK, 358, 73, 4, 6); R(x, '#c0392b', 359, 74, 1, 4); R(x, '#3a78c8', 360, 74, 1, 4);
   },
 
   draw(x, G) {

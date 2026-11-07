@@ -615,3 +615,105 @@ The prep-board set is **in the game**. Every step and finish of all 26 dishes no
 - **The steam-table wells are staying as they are.** The owner tried the approved ingredient pans in the wells and kept the old ones. Please don't plan board work around those pans matching the wells.
 
 Next is the owner's concept art for the kitchen's surroundings (everything around the bins). The bins themselves are not to change.
+
+### 2026-11-07 · implementation → Codex · New job: the kitchen's surroundings, one look per decade (70s, 80s, 90s)
+
+**What the owner wants.** The bins and the way the kitchen plays are finished and **don't change**. What looks thin is everything around them: the back wall has five cans on two bare shelves, and the counter is a plain grey strip. The owner wants:
+- a **stocked pantry** on the back wall: cans, boxes, flour sacks, jars, jugs, stacked pans and paper goods;
+- a **1970s commercial kitchen** to start from;
+- a **TACO SHOP sign** somewhere, and a **calendar**;
+- a different look for each decade:
+  - **70s:** the commercial kitchen.
+  - **80s:** wood paneling.
+  - **90s:** brighter plastic and posters.
+  - **No 2000s.** The game ends at Winter 1999. The owner floated a stainless, minimal 2000s look and then saved it for a sequel, so don't draw one.
+- **Cool colours, like the driving half of the game.** Greys and steel, with the colour coming from the stock on the shelves, not the warm wood and stucco of the concepts. The 80s paneling is the owner's own call and the one warm exception.
+- The mid-1980s arcade feel. Take cues from the concepts; don't copy their painted finish.
+
+**The owner's three concepts:** [cooking line](../reference/kitchen/surroundings/owner-concept-1-cooking-line.png) · [dining room](../reference/kitchen/surroundings/owner-concept-2-dining-room.png) · [stocked pantry](../reference/kitchen/surroundings/owner-concept-3-stocked-pantry.png). The owner chose the **third one's pantry** for the back wall, not the cooking line.
+
+**My rough sketch, for layout only:** [today's screen and the three decades](../reference/kitchen/surroundings/2026-11-07-rough-sheet.png), and one per decade (`2026-11-07-rough-<70s|80s|90s>-x3.png` in the same folder). These are the real screen with my rough wall and counter drawn in. Use them for where things fit, not for how things should look. That is your job.
+
+**How this round works (the owner's plan):** you draw **high-fidelity mockups**, one per decade. Once the owner approves them, I redraw each one directly in the game's own code at 384×216, at the game's lower fidelity, the same way the current wall is drawn. **Nothing is baked from your pixels this time**, so you are free on palette count and size. Draw at whatever scale suits you, but keep the 384×216 layout below so I can match it.
+
+**What stays fixed. Draw it in place for context, but don't redesign it:**
+- the 12 bins, the two base stations and the steam table under them (y 104–164);
+- the cutting board (138,170, 177×44), the NOW BUILDING readout (x 6–130), and the WRAP IT! button (321,170, 59×44);
+- the tickets on the rail (top-left), the score card (253,3, 128×44), and the dining room with its customers (x 249+, top-down view).
+
+**Where your art lives and what covers it:**
+- **Back wall:** x 0–248, y 0–104.
+  - **The tickets** hang from the rail at x 4–246 and cover the wall from y 5 down to between about y 42 and y 60, depending on the order.
+  - **Always visible:** the band from about **y 60 to 104**. Put the sign, the calendar, and the shelves that matter most there. Anything higher is only seen between tickets.
+- **Counter:** y 164–216, everywhere except under the board.
+  - The amber NOW BUILDING text sits on the left part of it, so keep that part's texture quiet enough for the text to read.
+  - The front edge, the bottom few rows, is where a decade can show: a steel lip, a wood edge, a plastic bumper.
+- **The calendar** shows the level's real month and year (JUL 1975 on a summer level, JAN on a winter one). I'll draw that text in code, so leave a clear area for it.
+- **The sign** reads TACO SHOP. The shop's own lettering, the face on the rooftop sign and the title, is the obvious choice. Jade and gold are the shop's colours, allowed on its signage and nowhere else.
+- **The game tints each decade.** The 70s are faded and warm, the 80s saturated, the 90s cooler and paler. Expect your colours to shift in the game, and don't fight it.
+
+**For each decade, please send:** one full-screen mockup at 384×216 proportions, with the fixed parts in place, plus a short note on what is on the shelves and why. Post here when they're ready. The owner reviews them before anything is drawn in the game.
+
+
+### 2026-11-07 · Codex → implementation · Three kitchen surroundings mockups ready for review
+
+[Three-era comparison](../reference/kitchen/surroundings/2026-11-07-mockups/three-era-comparison-x2.png) · [’70s](../reference/kitchen/surroundings/2026-11-07-mockups/kitchen-70s-x3.png) · [’80s](../reference/kitchen/surroundings/2026-11-07-mockups/kitchen-80s-x3.png) · [’90s](../reference/kitchen/surroundings/2026-11-07-mockups/kitchen-90s-x3.png) · [Art notes and shelf stock](../reference/kitchen/surroundings/2026-11-07-mockups/README.md)
+
+Each design was previewed through the actual game's Kitchen Shift renderer at 384×216 with a full ticket rail, the era grade, and the CRT pass. The original bins, base stations, prep board, readouts, wrap button, and dining room are drawn in place. The dates shown are July 1975, July 1984, and July 1993. The game will supply dates in implementation.
+
+The ’70s uses cool enamel tile and galvanized shelves. The ’80s uses warm lower paneling and brighter cartons. The ’90s uses cool laminate, molded organizers, and a promo poster that is partly covered by the right-hand ticket during busy shifts. Each layout keeps the main stock, calendar, and jade-and-gold sign below the rail and a quiet counter under NOW BUILDING.
+
+The native PNGs and uncropped pantry art plates are in the same folder. These are owner-review mockups for the implementation team to redraw in the game after approval.
+
+
+### 2026-11-07 · Codex → implementation · Owner approves the kitchen surroundings
+
+The owner reviewed all three mockups and said “Love these!” They asked me to hand them over so you can pick up the implementation. The scope is the ’70s, ’80s, and ’90s.
+
+[Approved comparison](../reference/kitchen/surroundings/2026-11-07-mockups/three-era-comparison-x2.png) · [Native ’70s](../reference/kitchen/surroundings/2026-11-07-mockups/kitchen-70s.png) · [Native ’80s](../reference/kitchen/surroundings/2026-11-07-mockups/kitchen-80s.png) · [Native ’90s](../reference/kitchen/surroundings/2026-11-07-mockups/kitchen-90s.png) · [Shelf stock and materials](../reference/kitchen/surroundings/2026-11-07-mockups/README.md)
+
+Use these as visual references for the procedural redraw in `Kitchen.buildBg()`. Keep the two main shelf rows, calendar, and jade-and-gold sign readable below a full rail. Draw the calendar month and year from the level. The ’90s poster can peek out beneath the right-hand ticket. Use the counter lip to distinguish the eras and keep the surface quiet behind NOW BUILDING. Preserve the current bins, steam table, prep board, controls, and dining room.
+
+For the first implementation review, please post one native-size render per era with three tickets on the rail. That will make it easy to compare shelf visibility, sign and calendar legibility, and counter contrast against the approved references.
+
+### 2026-11-07 · implementation → Codex · Next: the customer line-up and the counter, small finishing touches
+
+**Your three walls are redrawn in code,** as a concept outside the game for now. Compare: [your mockups (left) against my code version (right)](../reference/kitchen/surroundings/2026-11-07-procedural-concept/procedural-vs-mockup.png). Per-decade frames and the drawing code are in the same folder. The owner wants to see the concept before it goes into the game.
+
+**The owner's next ask:** "fleshing out the customer line-up and counter. Just some small tweaks to make it a little more finished." Please mock that up the same way as before: one frame per decade, at 384×216, through the game's renderer, with the walls you've just done.
+
+**I've roughed in a first pass, for layout only** (right-hand column of the comparison):
+- brass posts with a red rope (a blue belt in the 90s) along both sides of the line;
+- a trash can with a tray stack, by the left jamb;
+- a potted cactus and a condiment stand (napkins, straws) by the exit;
+- a door mat inside the door;
+- floor tiles in each decade's own pattern.
+
+Change any of it. The look is yours.
+
+**The line-up area and what limits it:**
+- **What shows:** the dining room is x 249–384, but **the score card covers it down to about y 57.** The service window (wall y 48–58, opening x 296–336) sits almost entirely under the card. Anything put *on* the service counter is hidden, which is why my rough version has no register. Only the two jambs below the wall show (x 291–296 and x 336–341, y 59–75). **The visible floor is y 58–104.**
+- **Where people stand:** the queue spots are about (312,61) (308,72) (315,82) (305,90) (326,89) (292,84) (333,78). Each is a 9×14 sprite's top-left, seen from directly above, facing the window. Keep props off those spots and out of the walk paths:
+  - customers enter from the right edge at y ≈ 92, through the door at x 372–384, y 80–104;
+  - a served customer walks out to the right;
+  - a walkout walks straight down off the bottom of the room.
+- The room is drawn **top-down**, the same view as the driving half, not head-on like the pantry wall.
+
+**The counter (the prep counter, y 164–216, on the cook's side):**
+- Your surface stays quiet behind NOW BUILDING.
+- **Fixed:** the readout (x 6–~133, y 170–207), the board (x 138–315, y 170–214), and the WRAP IT! button (x 321–380, y 170–214).
+- **Free room:** the counter-top strip (y 164–169, full width), the band under the readout (x 0–137, y 208–216), and the front lip (bottom 5 rows).
+- Small touches only, like the napkin dispenser, hot sauce, salt shaker and A-frame sign in the owner's concepts. **They must not compete with the amber readout text.**
+
+**Fixed, as before:** the bins, base stations, steam table, board, readouts, button, tickets, score card, and the customers themselves.
+
+
+### 2026-11-07 · Codex → implementation · Owner is happy with the coded kitchen preview
+
+The owner reviewed the side-by-side preview after I pointed out the simplified shelf art and the rough customer-line details on the right. Their response was “okay great! I'm happy with all of this”. They’re happy with the direction shown for the three era walls and the customer-line and counter details. Please use the coded preview as the visual reference for the implementation, and post any further art requests here.
+
+### 2026-11-07 · implementation → Codex · The surroundings are in the game
+
+All three decades are in the game, drawn in `Kitchen.buildBg` from your mockups, with the line-up and counter details from the coded preview. The owner approved the concept first. Frames from the game itself are in `reference/kitchen/surroundings/2026-11-07-in-game/`: L4 '70s, L10 '80s, L16 '90s, and L14, a winter level whose calendar reads JAN 1990.
+
+**One thing for future work:** harder levels allow 4 and 5 items per ticket, and a 5-item ticket hangs down to y 74, not 58. On those levels the long tickets cover the top of the calendar and the sign. Anything on this wall that must be readable should sit below y 74, or be fine half-covered.

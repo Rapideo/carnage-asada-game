@@ -53,9 +53,9 @@ the prep board", and "Pinned: the art". **The owner lifted the art pin on 2026-1
    26 dishes are baked (`tools/render/bake-board.mjs` → `content/board/`), inlined as
    `BOARD`, and drawn by `Kitchen.pic()`. The build fails if any frame is missing.
 2. [x] **Playtest.** Done 2026-11-07 (`docs/playtest-2026-11-07.md`). Its bugs are fixed, and weather (rain, sunny winter) plus a rain sound were added on the owner's request.
-3. [ ] **The kitchen levels' surrounding art.** The owner has concept art and wants the
-   Kitchen Shift to look better. **The bins' mechanics, look and feel are perfect and
-   are not to change**; this is the art around them. Brainstorm with the owner first.
+3. [x] **The kitchen levels' surrounding art.** Built 2026-11-07: a wall, a dining room
+   and a counter lip per decade, from the art director's mockups, redrawn in
+   `Kitchen.buildBg`. The bins are unchanged. See `reference/kitchen/surroundings/`.
 
 - [x] ~~**Steam-table wells from real art.**~~ **Tried and declined 2026-11-07.** The approved
   pans were baked and rendered in place, and the owner kept the old wells. The reasons are in

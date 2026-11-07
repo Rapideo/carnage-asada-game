@@ -29,11 +29,20 @@ living plan**, and if the two disagree, the roadmap wins.
    none; there were plenty). The rain sound was checked only against a stub
    AudioContext: Chrome stopped reaching the local server partway through the session.
    **Have the owner listen to it.**
-3. **Next: the kitchen levels' surrounding art.** The owner thinks the Kitchen Shift
-   could look better and **has concept art** for it. **The bin mechanics, look and feel
-   are perfect and are not to change.** This is only the art *around* them (the
-   rail, the pantry, the overhead, the steam table's surround, the board). Wait for the
-   owner's concept art, and brainstorm with them before drawing anything.
+3. **The kitchen levels' surrounding art: built 2026-11-07, not yet committed.** The
+   owner's concepts and rulings are in `reference/kitchen/surroundings/` and the
+   hand-off log (`docs/art-direction-welcome.md`). The art director mocked up one wall
+   per decade, and I redrew them procedurally in `Kitchen.buildBg`:
+   - **The wall:** '70s enamel tile, '80s wood paneling, '90s blue laminate and plastic.
+   - **The calendar** shows the level's own month and year.
+   - **The sign** is jade and gold.
+   - **The dining room** gets a rope line, a trash can, a cactus, a condiment stand,
+     a door mat and its own floor per decade.
+   - **The counter** gets a front lip per decade.
+
+   The owner approved the concept. No 2000s look; it's saved for a sequel. **Known
+   limit:** a 4- or 5-item ticket (medium and harder) hangs to y 66–74 and covers the
+   top of the calendar and the sign. The owner has been told.
 
 Waiting behind those, and only when the owner says go: **the admin overlay** (see **Next**
 below), fully designed and planned, nothing built.

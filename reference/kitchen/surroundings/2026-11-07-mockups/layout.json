@@ -1,0 +1,14 @@
+[
+  {
+    "decade": "70s", "level": 4, "active": "BEAN BURRITO",
+    "calendar": [8, 73, 25, 18, "#e9d8b4", "#55413b"]
+  },
+  {
+    "decade": "80s", "level": 10, "active": "CHILI ENCHILADA",
+    "calendar": [7, 71, 23, 18, "#e8d7b9", "#4e3739"]
+  },
+  {
+    "decade": "90s", "level": 16, "active": "CHICKEN ENCHILADA",
+    "calendar": [6, 73, 23, 18, "#e9e1cb", "#364658"]
+  }
+]

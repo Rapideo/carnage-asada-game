@@ -639,6 +639,18 @@ docket goes on the rail; past three tickets customers queue in the OVERHEAD and 
 `COMPLAIN_MUL` (1.5). The recipes are hidden in play; the level card and the pause overlay show the menu.
 Barks are rate-limited to one per 5s (a walkout always speaks), because the strip covers the lower bins.
 
+**The surroundings change with the decade; the bins never do.** `buildBg` bakes, once per level:
+- a back wall (`drawWall`): '70s enamel tile, '80s wood paneling, '90s laminate and plastic;
+- a dining room (`drawDining`);
+- a lip on the prep counter.
+
+They were drawn from the art director's mockups in `reference/kitchen/surroundings/` (owner,
+2026-11-07). The calendar reads the level's month and year (`calendarText`). Keep anything
+that must be read low on the wall: tickets cover it down to y 58 at three items and y 74 at
+five. In the dining room, the score card hides the service window, so props go on the visible
+floor, off the queue spots and walk paths. `— kitchen —` checks that every kitchen level bakes,
+that the calendar is right and fits, and that the calendar and sign clear a 3-item ticket.
+
 ### Loop and input
 
 `90_main` runs a fixed `1/60` step with an accumulator capped at 0.25s and a 5-iteration guard. Browsers
