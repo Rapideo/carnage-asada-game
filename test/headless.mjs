@@ -1198,7 +1198,13 @@ for (let k = 0; k < 40; k++) for (const n of [1, 2, 3, 13]) {
   if (textW('LEVEL ' + n, 2) + 12 + textW(G.levelTitle(), 2) > 352 - 12) titleTooWide++;
   if (G.weather === 'rainy' && k < 3) { G.state = 'play'; G.stage = 'delivery'; try { G.update(1 / 60); G.render(ctx); } catch (e) { rainDraws = false; } G.toCard(n); }
 }
+/* the odds: winter mostly snowy, summer an even chance (owner ruling, 2026-11-07) */
+const wasWinter = G.winter, odds = {};
+for (const w of [false, true]) { G.winter = w; let alt = 0; for (let i = 0; i < 4000; i++) if (G.rollWeather() !== (w ? 'snowy' : 'sunny')) alt++; odds[w ? 'winter' : 'summer'] = alt / 4000; }
+G.winter = wasWinter;
 G.weatherPin = pinW; G.toCard(1);
+ok(odds.winter > 0.14 && odds.winter < 0.26, `winter is mostly snowy (sunny ${(odds.winter * 100).toFixed(1)}%)`);
+ok(odds.summer > 0.44 && odds.summer < 0.56, `summer is an even chance of rain (rainy ${(odds.summer * 100).toFixed(1)}%)`);
 ok(seen.summer.has('sunny') && seen.summer.has('rainy') && seen.summer.size === 2, `summer rolls sunny or rainy (${[...seen.summer]})`);
 ok(seen.winter.has('snowy') && seen.winter.has('sunny') && seen.winter.size === 2, `winter rolls snowy or sunny (${[...seen.winter]})`);
 ok(seen.kitchen.size === 1 && !seen.kitchen.has('rainy'), `a kitchen level keeps its season's default (${[...seen.kitchen]})`);

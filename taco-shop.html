@@ -6914,7 +6914,10 @@ const HEAT_MAX = 100;
 /* Weather, rolled per delivery level (see G.rollWeather). Grip multiplies
    Player's: snow is the shipped winter at 0.62; rain is a little slick; a
    sunny winter's ploughed roads keep a little of winter's slip. */
-const WEATHER_CHANCE = 0.5;     // the chance of the season's NON-default: rain in summer, sun in winter
+/* the chance of the season's NON-default: rain in summer, sun in winter. Winter
+   is mostly snowy (owner ruling, 2026-11-07): snow is the winter the game was
+   tuned in, and an even chance made half of all winters nearly as easy as summer. */
+const WEATHER_CHANCE = { summer: 0.5, winter: 0.2 };
 const WEATHER_GRIP = { summer: { sunny: 1, rainy: 0.84 }, winter: { snowy: 0.62, sunny: 0.9 } };
 const WEATHER_ROADS = {
   summer: { sunny: 'DRY', rainy: 'WET - A LITTLE SLICK' },
@@ -7054,7 +7057,7 @@ const G = {
     const pin = this.weatherPin;
     if (this.stage === 'kitchen' || pin === 'season') return pick[0];
     if (pick.includes(pin)) return pin;
-    return Math.random() < WEATHER_CHANCE ? pick[1] : pick[0];
+    return Math.random() < WEATHER_CHANCE[this.winter ? 'winter' : 'summer'] ? pick[1] : pick[0];
   },
 
   /* the level card's title: the weather is news only when it is not the

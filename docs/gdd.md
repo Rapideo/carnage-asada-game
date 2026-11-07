@@ -320,7 +320,8 @@ As built:
   changes.
 
 **Weather (owner ruling, 2026-11-07).** A Delivery level rolls its weather each time it
-is played. Summer is sunny or rainy; winter is snowy or sunny. The values are in
+is played. Summer is sunny or rainy, an even chance; winter is snowy four times in five
+and sunny the fifth. The values are in
 `levels.md`, and the code is `G.rollWeather` and the `WEATHER_*` constants in
 `80_game.js`.
 - **Rain:** a baked wet-road layer (darker tarmac, pale sky streaks, the odd puddle), an

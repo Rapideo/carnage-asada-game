@@ -19,8 +19,8 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
   roads and on every roof. Kitchen customers come in with snow on their hats
 
 - Weather (owner ruling, 2026-11-07) : a Delivery level rolls its weather each time it is
-  played, an even chance either way. Summer is **sunny** or **rainy**; winter is **snowy**
-  or **sunny**. A Kitchen level always has its season's default weather (sunny summer,
+  played. Summer is **sunny** or **rainy**, an even chance either way; winter is **snowy**
+  four times in five, and **sunny** the fifth (owner ruling, 2026-11-07: mostly snowy). A Kitchen level always has its season's default weather (sunny summer,
   snowy winter).
   - Sunny summer : dry roads, normal grip.
   - Rainy summer : rain falls, the roads are wet and dark with puddles, and the car grips
