@@ -14,11 +14,11 @@ const TYPES = {
 };
 const INJECT = '<link rel="stylesheet" href="/admin/overlay.css"><script type="module" src="/admin/overlay.js"></script>';
 
-let busy = false;
-/* Run a command with cwd; shares the busy lock with save. Resolves, never rejects. */
+/* Raw spawn: resolves, never rejects. It takes NO lock. Inside startAdmin, run
+   jobs through the instance's withBusy/job so they share the lock with save. */
 export function runJob(cmd, { cwd } = {}) {
   return new Promise((done) => {
-    const p = spawn(cmd[0], cmd.slice(1), { cwd });
+    const p = spawn(cmd[0] === 'node' ? process.execPath : cmd[0], cmd.slice(1), { cwd });
     let stdout = '', stderr = '';
     p.stdout.on('data', (d) => { stdout += d; });
     p.stderr.on('data', (d) => { stderr += d; });
@@ -43,8 +43,26 @@ const readBody = (req) => new Promise((ok, no) => {
   req.on('error', no);
 });
 
-export async function startAdmin({ root, host = '127.0.0.1', port = 8124, afterWrite = async () => {} }) {
+/* Later tasks add POST routes through `routes`: { '/admin/api/x': (req, res, api) => ... }
+   where api = { withBusy, job, send, readBody, root }. A route that runs a tool script
+   does:  const r = await api.job(['node', 'tools/x.mjs'], { cwd: root });
+          if (r.busy) return api.send(res, 409, { error: 'busy' });
+   The lock is per instance and is the same one save takes. The returned handle
+   also exposes withBusy and job. Origin is checked before any route runs. */
+export async function startAdmin({ root, host = '127.0.0.1', port = 8124, afterWrite = async () => {}, routes = {} }) {
   const content = join(root, 'content');
+  let busy = false;
+  /* fn runs holding the lock; if it is taken, { busy: true } and fn never runs */
+  const withBusy = async (fn) => {
+    if (busy) return { busy: true };
+    busy = true;
+    try { return { busy: false, value: await fn() }; } finally { busy = false; }
+  };
+  /* a job under the lock: { busy: true } or { busy: false, code, stdout, stderr } */
+  const job = async (cmd, o = {}) => {
+    const r = await withBusy(() => runJob(cmd, { cwd: root, ...o }));
+    return r.busy ? r : { busy: false, ...r.value };
+  };
   const send = (res, code, obj) => {
     res.writeHead(code, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     res.end(JSON.stringify(obj));
@@ -62,8 +80,11 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, afterW
     try { body = JSON.parse(await readBody(req)); } catch { return send(res, 400, { error: 'bad request' }); }
     const posted = body && body.files, stamp = (body && body.stamp) || {};
     if (!posted || typeof posted !== 'object' || !Object.keys(posted).every(safeRel)) return send(res, 400, { error: 'bad request' });
-    if (busy) return send(res, 409, { error: 'busy' });
-    busy = true;
+    const held = await withBusy(() => saveLocked(res, posted, stamp));
+    if (held.busy) send(res, 409, { error: 'busy' });
+  }
+
+  async function saveLocked(res, posted, stamp) {
     try {
       const rels = Object.keys(posted);
       const changed = [];
@@ -97,11 +118,11 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, afterW
       }
       await afterWrite(rels);
       const b = await runJob(['node', 'build.mjs'], { cwd: root });
-      if (b.code !== 0) return send(res, 500, { error: 'build', output: b.stdout + b.stderr });
+      if (b.code !== 0) return send(res, 500, { error: 'build', output: b.stdout + b.stderr, stamp: await stamps(rels) });
       send(res, 200, { ok: true, build: b.stdout, stamp: await stamps(rels) });
     } catch (e) {
       send(res, 500, { error: 'server', message: String(e && e.message || e) });
-    } finally { busy = false; }
+    }
   }
 
   const server = createServer(async (req, res) => {
@@ -112,6 +133,7 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, afterW
         const o = req.headers.origin;
         if (o !== `http://127.0.0.1:${p}` && o !== `http://localhost:${p}`) return send(res, 403, { error: 'origin' });
         if (path === '/admin/api/save') return await save(req, res);
+        if (routes[path]) return await routes[path](req, res, { withBusy, job, send, readBody, root });
         return send(res, 404, { error: 'not found' });
       }
       if (req.method !== 'GET') { res.writeHead(405); return res.end(); }
@@ -141,5 +163,5 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, afterW
 
   await new Promise((ok, no) => { server.once('error', no); server.listen(port, host, ok); });
   const url = `http://${host}:${server.address().port}`;
-  return { url, close: () => new Promise((ok) => { server.close(ok); server.closeAllConnections?.(); }) };
+  return { url, withBusy, job, close: () => new Promise((ok) => { server.close(ok); server.closeAllConnections?.(); }) };
 }

@@ -113,12 +113,14 @@ console.log('\n— server —');
     ok(r.status === 422 && j.error === 'invalid' && j.file === 'content/levels.json' && j.path.join('.') === 'levels.0.season', 'invalid save is 422 naming the path');
     ok(readFileSync(lv, 'utf8') === orig, 'a rejected save writes nothing');
 
-    const goodL = structuredClone(parsed); goodL.levels[0].name = goodL.levels[0].name + ' ';
-    goodL.levels[0].name = goodL.levels[0].name.trim();
+    const goodL = structuredClone(parsed); goodL.levels[0].name = 'SUMMER  1972';
+    ok(parsed.levels[0].name !== goodL.levels[0].name, 'the edit is a real change');
     r = await post({ files: { 'levels.json': JSON.stringify(goodL) }, stamp: { 'levels.json': api.stamp['levels.json'] } });
     j = await r.json();
     ok(r.status === 200 && j.ok && typeof j.stamp['levels.json'] === 'number', 'valid save is 200');
+    ok(readFileSync(lv, 'utf8') !== orig, 'the file on disk changed');
     ok(readFileSync(lv, 'utf8') === formatJSON(goodL), 'the file on disk is formatJSON of the edit');
+    ok(j.stamp['levels.json'] !== api.stamp['levels.json'], 'the returned stamp moved');
 
     r = await post({ files: { 'levels.json': JSON.stringify(goodL) }, stamp: { 'levels.json': api.stamp['levels.json'] } });
     j = await r.json();
@@ -129,6 +131,16 @@ console.log('\n— server —');
     const codes = both.map((x) => x.status).sort();
     const bodies = await Promise.all(both.map((x) => x.json()));
     ok(codes[0] === 200 && codes[1] === 409 && bodies.some((b) => b.error === 'busy'), 'two simultaneous saves: one 200, one 409 busy');
+
+    const st2 = (await (await fetch(srv.url + '/admin/api/content')).json()).stamp;
+    const slow = srv.job(['node', '-e', 'setTimeout(()=>{},800)']);
+    await new Promise((x) => setTimeout(x, 150));
+    r = await post({ files: { 'levels.json': JSON.stringify(goodL) }, stamp: { 'levels.json': st2['levels.json'] } });
+    j = await r.json();
+    ok(r.status === 409 && j.error === 'busy', 'a job in flight makes a save 409 busy');
+    ok((await srv.job(['node', '-e', '0'])).busy === true, 'a second job is refused while one runs');
+    ok((await slow).code === 0, 'the job itself completed');
+    ok((await srv.job(['node', '-e', '0'])).code === 0, 'the lock is released afterwards');
 
     r = await post({ files: {}, stamp: {} }, 'http://evil.example');
     ok(r.status === 403, 'a foreign Origin is refused 403');
