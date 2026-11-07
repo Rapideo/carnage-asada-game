@@ -82,5 +82,69 @@ ok(formatJSON({ a: [1, 2], b: [{ c: 1 }], d: [], e: 'é' })
    === '{\n  "a": [1, 2],\n  "b": [\n    {\n      "c": 1\n    }\n  ],\n  "d": [],\n  "e": "é"\n}\n',
    'formatJSON follows the pretty rule');
 
+console.log('\n— server —');
+{
+  const { mkdtempSync, cpSync, writeFileSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const tmp = mkdtempSync(join(tmpdir(), 'admin-'));
+  for (const f of ['build.mjs', 'shell.html', 'src', 'content', 'tools/content']) cpSync(f, join(tmp, f), { recursive: true });
+  (await import('node:child_process')).execFileSync('node', ['build.mjs'], { cwd: tmp, stdio: 'pipe' });
+  const { startAdmin } = await import('../tools/content/server.mjs');
+  const srv = await startAdmin({ root: tmp, port: 0 });
+  const post = (body, origin) => fetch(srv.url + '/admin/api/save', {
+    method: 'POST', headers: { 'content-type': 'application/json', origin: origin || srv.url },
+    body: JSON.stringify(body) });
+  const lv = join(tmp, 'content/levels.json');
+  try {
+    ok(new URL(srv.url).hostname === '127.0.0.1', 'the server listens on 127.0.0.1');
+    const page = await (await fetch(srv.url + '/')).text();
+    ok(page.includes('/admin/overlay.js') && page.includes('/admin/overlay.css'), 'GET / carries the overlay');
+    ok(!readFileSync(join(tmp, 'index.html'), 'utf8').includes('/admin/overlay.js'), 'index.html on disk is untouched');
+    ok((await fetch(srv.url + '/tools/content/server.mjs')).headers.get('content-type').startsWith('text/javascript'), '.mjs is text/javascript');
+
+    const api = await (await fetch(srv.url + '/admin/api/content')).json();
+    ok(api.files['levels.json'] && api.files['music/playlist.json'] && Object.keys(api.files).some((k) => k.startsWith('board/'))
+       && typeof api.stamp['levels.json'] === 'number', 'GET content lists nested files with stamps');
+
+    const orig = readFileSync(lv, 'utf8'), parsed = JSON.parse(orig);
+    const badL = structuredClone(parsed); badL.levels[0].season = 'spring';
+    let r = await post({ files: { 'levels.json': JSON.stringify(badL) }, stamp: { 'levels.json': api.stamp['levels.json'] } });
+    let j = await r.json();
+    ok(r.status === 422 && j.error === 'invalid' && j.file === 'content/levels.json' && j.path.join('.') === 'levels.0.season', 'invalid save is 422 naming the path');
+    ok(readFileSync(lv, 'utf8') === orig, 'a rejected save writes nothing');
+
+    const goodL = structuredClone(parsed); goodL.levels[0].name = goodL.levels[0].name + ' ';
+    goodL.levels[0].name = goodL.levels[0].name.trim();
+    r = await post({ files: { 'levels.json': JSON.stringify(goodL) }, stamp: { 'levels.json': api.stamp['levels.json'] } });
+    j = await r.json();
+    ok(r.status === 200 && j.ok && typeof j.stamp['levels.json'] === 'number', 'valid save is 200');
+    ok(readFileSync(lv, 'utf8') === formatJSON(goodL), 'the file on disk is formatJSON of the edit');
+
+    r = await post({ files: { 'levels.json': JSON.stringify(goodL) }, stamp: { 'levels.json': api.stamp['levels.json'] } });
+    j = await r.json();
+    ok(r.status === 409 && j.error === 'changed' && j.files.includes('levels.json'), 'a stale stamp is 409 changed');
+
+    const st = (await (await fetch(srv.url + '/admin/api/content')).json()).stamp;
+    const both = await Promise.all([1, 2].map(() => post({ files: { 'levels.json': JSON.stringify(goodL) }, stamp: { 'levels.json': st['levels.json'] } })));
+    const codes = both.map((x) => x.status).sort();
+    const bodies = await Promise.all(both.map((x) => x.json()));
+    ok(codes[0] === 200 && codes[1] === 409 && bodies.some((b) => b.error === 'busy'), 'two simultaneous saves: one 200, one 409 busy');
+
+    r = await post({ files: {}, stamp: {} }, 'http://evil.example');
+    ok(r.status === 403, 'a foreign Origin is refused 403');
+    r = await fetch(srv.url + '/admin/api/save', { method: 'POST', body: '{}' });
+    ok(r.status === 403, 'a POST with no Origin is refused 403');
+    ok((await fetch(srv.url + '/..%2f..%2fetc/passwd')).status === 404, 'the .. guard holds');
+  } finally { await srv.close(); rmSync(tmp, { recursive: true, force: true }); }
+}
+
+console.log('\n— artifact —');
+{
+  const { execFileSync } = await import('node:child_process');
+  execFileSync('node', ['build.mjs'], { stdio: 'pipe' });
+  const shipped = readFileSync('taco-shop.html', 'utf8');
+  for (const s of ['Admin', '/admin/', 'admin.mjs']) ok(!shipped.includes(s), 'taco-shop.html contains no "' + s + '"');
+}
+
 console.log(`\n${fails === 0 ? 'PASS' : 'FAIL (' + fails + ')'}`);
 process.exit(fails ? 1 : 0);
