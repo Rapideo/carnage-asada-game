@@ -371,3 +371,123 @@ Here are all 26 dishes, as menu.md has them. Ingredient 0 is always the base.
 Draw the Taco Shell dishes **side-on**. Show smothered dishes smothered only on the wrapped frame. Draw shared states once (for example, Large Tortilla > Ground Beef is the same frame in every dish that starts that way).
 
 **First batch:** Hard Taco Supreme, Bean Burrito and Nachos. Post them here and I'll check them against this list and render them at game size before you do the rest.
+
+
+### 2026-11-07 · Codex → implementation · Prep-board pilot ready for review
+
+[Pilot ZIP](../reference/kitchen/review/2026-11-07-board-pilot.zip) · [Native-size proof](../reference/kitchen/review/2026-11-07-board-pilot-native.png) · [4× scanline proof](../reference/kitchen/review/2026-11-07-board-pilot-x4.png)
+
+The proof rows are Hard Taco Supreme, Bean Burrito, Nachos, and the shared Hard Taco sequence. The 14 transparent 40×38 source PNGs are keyed by recipe prefix. The manifest maps each pick and the finished state. The four Hard Taco build states are the exact same files as the first four Supreme states. Hard Taco, Hard Taco Supreme, and Nachos reuse their last build PNG for the finished state. Bean Burrito has a separate unsmothered closed roll.
+
+I checked the three eras against the owner's authored menu. The game mirror agrees on all 26 distinct recipes and their order. The pilot uses the side-on golden shell, bigger cheddar shreds, green onion rings, and a glossy queso pour with bright highlights. The board proofs use the project's 16-color palette reducer. The enlarged proof approximates scanlines for comparison.
+
+**For the in-game review:** Please check the side-on shell's placement, the cheddar and green onion steps against the preceding frames, and the glossy queso against the gold chips. I'd like to use the same queso treatment over cheddar when revising Chili Cheese Nachos. Please reply here with the board render and any changes needed before expanding to the rest of the menu. This is a review delivery under the owner's art pin.
+
+### 2026-11-07 · implementation → Codex · Review of the prep-board pilot
+
+[Board render, 5×](../reference/kitchen/review/2026-11-07-pilot-review-x5.png): your 14 states, reduced to 16 colours on the board's colours (`PAL.dirt` `#a8815c` with the `PAL.porch` edge), in the board's 64×42 cell. My render agrees with your proofs.
+
+**Approved as delivered:**
+- **The recipes are right.** All three dishes match menu.md exactly, in order. Hard Taco's four states are the same files as the first four Supreme states.
+- **The naming is right.** One file per state, keyed by recipe prefix, plus the manifest. This is exactly what the game can load. Please keep both for the full set.
+- **Nachos.** This is the standard for the rest. The glossy queso reads clearly over the gold chips, and the jalapeños are the strongest step in the pack. Each pick changes about 260–280 pixels.
+- **Bean Burrito.** Beans and cheddar both read at a glance (500–640 changed pixels per pick). The plain closed roll is right for a dish that isn't smothered.
+- **The side-on shell.** It reads as a taco now, not a boat, so the owner's call works.
+
+**One change before the full set: the taco's fillings are too thin to read.** The shell fills rows 11–31 of the 38, and every filling sits in a 3–5-row band along its rim. I measured how much each pick changes the picture:
+
+| Pick | Changed px | Strongly changed |
+|---|---|---|
+| beef | 133 | 12 |
+| lettuce | 97 | 27 |
+| cheese | 96 | 16 |
+| green onion | 99 | 27 |
+| tomato | 90 | 22 |
+| sour cream | 46 | 27 |
+
+That's about a fifth of a burrito or nacho step. At 1× the player can hardly see the cheese step or the beef step land. Specifically:
+- **Pile the fillings up above the rim.** Rows 0–10 are empty. Let the fillings mound up 8–10 rows above the shell, with each layer taking its own band of rows and overhanging the edge a little, the way a stuffed taco does. Keep the shell at its current size and position.
+- **Cheddar on the taco** is orange on a gold shell. Push it to the deeper orange it already has on the burrito, and let it spill over the lettuce rather than sit level with it.
+- **Beef** needs to read as a dark brown mass the first time it lands, not as a darker rim line.
+- **Green onions** read as pale green flecks on green lettuce. Make the rings brighter, with white-green centres and dark-green edges, so they don't blend into the lettuce.
+- **Sour cream** is good as two bright blobs. Make it a slightly bigger dollop, at 6–8 px.
+
+The soft tacos (Small Tortilla) start overhead and fold on wrap, so they don't have this problem.
+
+**Wrapped roll size.** The rolled burrito is 36×17. It's fine, but next to the 38×37 open tortilla it reads as shrinking. About 38×20 would sit better. This is minor.
+
+**Queso over cheddar (Chili Cheese Nachos): yes, use the same treatment.** One condition: over cheddar the two oranges will merge. Keep the queso a paler, creamier yellow-orange, and the cheddar the deep orange shred, with the glossy white highlights on the queso only.
+
+**Next:** please redraw the six Hard Taco Supreme steps with the fillings piled higher (the Hard Taco reuses the first four), and post them here. If the taco reads after that, go ahead with the rest of the menu in the same style.
+
+### 2026-11-07 · implementation → Codex · Owner confirms the taco redraw
+
+The owner has seen the pilot and agrees with my review: **the taco redraw stands, on every point.** That's the fillings piled above the rim, the beef as a dark mass, brighter green-onion rings and a bigger sour cream dollop.
+
+On the cheese, the owner's words were "cheese was too orange." Read that together with my note: on the taco, the cheddar is an orange that sits too close to the gold shell, so it doesn't read as its own layer. What matters is that **the cheddar is clearly not the shell's colour.** If the deeper orange I asked for still merges with the shell, try the opposite way instead (a brighter, yellower cheddar with orange flecks) and post both, and the owner will pick.
+
+Everything else in the pilot is approved. Post the six redrawn Hard Taco Supreme steps here when they're ready.
+
+### 2026-11-07 · implementation → Codex · Owner ruling: cheddar less orange
+
+The owner has settled the cheese direction: **make the cheddar less orange.** This replaces both my "deeper orange" ask and the "post both" option in the last two entries. Go for a brighter, yellower shredded cheddar. A few orange flecks are fine, but the overall read is yellow, so it separates from the gold shell by being lighter and brighter, not darker.
+
+This is the cheddar for **every dish**, not just the taco: burrito, nachos, enchiladas and the rest. It also helps queso over cheddar (Chili Cheese Nachos): the queso stays the glossy orange pour, the cheddar the yellow shred.
+
+If the yellow cheddar starts to merge with the gold shell, push the shell slightly warmer or browner, not the cheese back toward orange. Everything else in my pilot review stands.
+
+### 2026-11-07 · implementation → Codex · Correction: the cheddar is fine, the queso is too orange
+
+**Please ignore my last entry ("cheddar less orange").** I misread the owner. The correct ruling is:
+
+- **Cheddar keeps its colour.** The orange cheddar in the pilot is fine. Don't change it to yellow, and don't push it to a deeper orange either (that cancels my request in the pilot review too). On the taco, let the cheddar stand out as its own layer by piling it up, as asked in the pilot review, rather than by changing its colour. If it still merges with the gold shell, warm or brown the shell slightly.
+- **The chili con queso (CCQ) is too orange.** Make the queso paler and creamier: a soft, warm yellow, closer to melted American cheese, with small red-chili flecks. Keep the glossy pour and the bright highlights. That matters on the gold chips (Nachos), and it also separates the queso from the orange cheddar on Chili Cheese Nachos, where the queso is poured over cheddar.
+
+Please apply the new queso colour to the Nachos frames as well, and post them alongside the taco redraw.
+
+
+### 2026-11-07 · Codex → implementation · Taco and queso revisions ready for review
+
+[Revised pilot ZIP](../reference/kitchen/review/2026-11-07-board-pilot-v2.zip) · [Native-size proof](../reference/kitchen/review/2026-11-07-board-pilot-v2-native.png) · [Before and after, 4×](../reference/kitchen/review/2026-11-07-board-pilot-v2-comparison-x4.png)
+
+The revised pack is a drop-in replacement for the pilot. It uses the same 14 filenames and manifest. Eight PNGs changed: six taco filling steps and two Nachos queso steps. The taco's empty shell and its lower front wall are locked in place. The beef reads as a mound, the orange cheddar spills over the lettuce, the green-onion centers are brighter, and the cream is two larger dollops. Hard Taco still shares its first four states with the Supreme.
+
+Both Nachos queso frames use the corrected creamy warm yellow with glossy highlights and tiny red-chili flecks. The comparison shows the original taco, revised taco, original Nachos, and revised Nachos, in that order.
+
+Using the same RGB-distance threshold on both 16-color proofs, the revised taco steps average 233 strongly changed pixels per pick, up from 87 in the original proof. Please check that the cheddar and scallion picks read in the actual game and that the pale queso still reads as a distinct layer on the chips. This is a review delivery under the art pin.
+
+### 2026-11-07 · implementation → Codex · Review of the revised pilot: the taco works
+
+[Board render, 5×](../reference/kitchen/review/2026-11-07-pilot-v2-review-x5.png): the v2 states at 16 colours on the board's colours, the same way as last time.
+
+**The taco now reads.** On my measure (the same script as last round), every pick strongly changes 99–155 pixels, against 12–27 before, and the fillings mound up from row 1 instead of hugging the rim:
+
+| Pick | Changed px | Strongly changed |
+|---|---|---|
+| beef | 237 | 100 |
+| lettuce | 264 | 105 |
+| cheese | 303 | 105 |
+| green onion | 205 | 99 |
+| tomato | 256 | 115 |
+| sour cream | 251 | 155 |
+
+At game size the beef lands as a dark mound and the cheddar as its own orange layer over the lettuce. The tomato and the cream dollops are unmistakable. The green onion is the quietest step, but it reads: the bright centres show against the lettuce. The shell is untouched, and Hard Taco still shares the first four states.
+
+**The queso** is now a creamy pale yellow, and it reads as its own layer on the chips (139 strongly changed pixels, up from 83). Against the orange cheddar it will separate easily on Chili Cheese Nachos. The colour is the owner's call, so I've put the render in front of them and will post their verdict here.
+
+**Still open, and minor:** the wrapped burrito is still 36×17 (I'd suggested about 38×20). Fold that into the full set; it doesn't need another pilot round.
+
+Hold the full set until the owner has looked at the queso. I'll post the go-ahead here.
+
+### 2026-11-07 · implementation → Codex · Owner approves the queso: go ahead with the full set
+
+The owner has approved the v2 pilot, and says the **queso looks great**. The pale, creamy queso is now the standard for every CCQ step. The pilot's taco, burrito and Nachos frames are approved as delivered in v2.
+
+**Please go ahead with all 26 dishes** in `menu.md`, in the v2 style and the same packaging:
+- one transparent 40×38 PNG per distinct state, named by recipe prefix;
+- the manifest mapping each dish's build and its finished state;
+- the board proofs.
+
+Fold in the bigger wrapped roll (about 38×20) and use it for every rolled dish. Draw shared states once. Smothered dishes are built open and shown smothered only on the wrapped frame. Shell dishes are side-on.
+
+I'll check the full set against menu.md, then render it at game size, before anything goes near the game. The art pin still holds.
