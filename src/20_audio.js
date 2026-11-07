@@ -6,7 +6,7 @@
 const Audio5 = {
   ctx: null, master: null, sfxBus: null, musBus: null,
   ready: false, muted: false, musicOn: true,
-  engine: null, siren: null,
+  engine: null, siren: null, rainV: null,
   _next: 0, _step: 0, _timer: null,
 
   init() {
@@ -132,6 +132,46 @@ const Audio5 = {
     this.engine.g.gain.setTargetAtTime(0, t, 0.05);
     const e = this.engine; this.engine = null;
     setTimeout(() => { try { e.o1.stop(); e.o2.stop(); } catch (_) {} }, 400);
+  },
+
+  /* ---- rain ---------------------------------------------- */
+  /* A rainy street: a hiss of filtered noise with a slow swell in it, so it
+     reads as weather rather than as a broken speaker. Its own 2s buffer --
+     the shared 0.35s one would loop audibly about three times a second --
+     softened toward pink as it is generated, because white noise through a
+     band-pass is still harsh at this volume. 90_main turns it on and off with
+     the engine: only while a rainy shift is live. */
+  rainOn() {
+    if (!this.ready || this.rainV) return;
+    const ctx = this.ctx, n = 2 * ctx.sampleRate;
+    if (!this._rb) {
+      this._rb = ctx.createBuffer(1, n, ctx.sampleRate);
+      const d = this._rb.getChannelData(0);
+      let b0 = 0, b1 = 0;
+      for (let i = 0; i < n; i++) {
+        const w = Math.random() * 2 - 1;
+        b0 = 0.97 * b0 + w * 0.15; b1 = 0.6 * b1 + w * 0.4;
+        d[i] = (b0 + b1 + w * 0.25) * 0.5;
+      }
+    }
+    const s = ctx.createBufferSource(); s.buffer = this._rb; s.loop = true;
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2400; bp.Q.value = 0.5;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6000;
+    const g = ctx.createGain(); g.gain.value = 0;
+    const lfo = ctx.createOscillator(), lg = ctx.createGain();
+    lfo.type = 'sine'; lfo.frequency.value = 0.13; lg.gain.value = 0.012;
+    lfo.connect(lg); lg.connect(g.gain);
+    s.connect(bp); bp.connect(lp); lp.connect(g); g.connect(this.sfxBus);
+    g.gain.setTargetAtTime(0.05, ctx.currentTime, 0.6);
+    s.start(); lfo.start();
+    this.rainV = { s, lfo, g };
+  },
+  rainOff() {
+    if (!this.rainV) return;
+    const r = this.rainV; this.rainV = null;
+    r.g.gain.cancelScheduledValues(this.ctx.currentTime);
+    r.g.gain.setTargetAtTime(0, this.ctx.currentTime, 0.25);
+    setTimeout(() => { try { r.s.stop(); r.lfo.stop(); } catch (_) {} }, 1500);
   },
 
   sirenOn() {

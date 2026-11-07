@@ -96,6 +96,9 @@
     if (Audio5.ready) {
       if ((G.state === 'play' || G.state === 'demo') && !G.paused) Audio5.engineOn();
       else if (Audio5.engine) Audio5.engineOff();
+      /* the rain, on the same terms: only under a live, rainy shift */
+      if ((G.state === 'play' || G.state === 'demo') && !G.paused && G.weather === 'rainy') Audio5.rainOn();
+      else if (Audio5.rainV) Audio5.rainOff();
     }
     G.render(ctx);
   }
