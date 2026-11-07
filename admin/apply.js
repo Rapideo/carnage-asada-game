@@ -27,10 +27,13 @@
   /* Which kinds differ, compared by value, then replace those in place and run
      their refreshers. Identical content is a no-op, so a keystroke that only
      touches one file does not make every panel think everything changed. */
-  Admin.applyBuilt = function (built, game) {
+  Admin.applyBuilt = function (built, game, opts) {
+    /* G is a lexical const, not a property of globalThis: read it by bare name */
+    game = game || (typeof G !== 'undefined' ? G : undefined);
+    const skip = (opts && opts.skip) || [];
     const changed = [];
     for (const kind of Object.keys(TARGETS)) {
-      if (!(kind in built)) continue;
+      if (!(kind in built) || skip.includes(kind)) continue;
       let dst;
       try { dst = TARGETS[kind](); } catch (e) { continue; }   // that global does not exist in this build
       if (dst == null) continue;
@@ -47,7 +50,7 @@
   /* Re-enter the current screen from scratch, for edits the live state cannot
      absorb. A shift in progress goes back to its level card. */
   Admin.restartScreen = function (game) {
-    const g = game || globalThis.G || G;
+    const g = game || G;
     const n = g.levelN;
     switch (g.state) {
       case 'title': g.toTitle(); break;

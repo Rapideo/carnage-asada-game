@@ -5,6 +5,7 @@ import { store } from './store.js';
 
 const Admin = (globalThis.Admin = globalThis.Admin || {});
 const controls = new Set();
+let nextId = 0;
 
 /* view conversions per kind: toView(stored) -> string, fromView(string) -> { value } | { msg } */
 const KINDS = {
@@ -23,7 +24,8 @@ const KINDS = {
     fromView: (s) => {
       const m = /^(-?)(\d+)(?:\.(\d{1,2}))?$/.exec(s.trim().replace(/^\$/, ''));
       if (!m) return { msg: 'dollars and cents, like 2.50' };
-      return { value: (m[1] ? -1 : 1) * (Number(m[2]) * 100 + Number((m[3] || '').padEnd(2, '0') || 0)) };
+      const c = Number(m[2]) * 100 + Number((m[3] || '').padEnd(2, '0') || 0);
+      return { value: m[1] && c ? -c : c };
     },
     unit: '$',
   },
@@ -64,7 +66,7 @@ Admin.field = function (el, opts) {
   input.dataset.path = path;
   input.dataset.kind = kind;
   if (opts.title) input.title = opts.title;
-  if (opts.label) { const id = 'adm-' + controls.size + '-' + Math.random().toString(36).slice(2, 7); input.id = id; wrap.firstChild.htmlFor = id; }
+  if (opts.label) { const id = 'adm-f' + (nextId++); input.id = id; wrap.firstChild.htmlFor = id; }
   wrap.appendChild(input);
   const conv = KINDS[kind];
   if (conv && conv.unit && conv.unit !== '$') { const u = doc.createElement('span'); u.className = 'adm-unit'; u.textContent = conv.unit; wrap.appendChild(u); }

@@ -57,10 +57,22 @@ export const store = {
     const res = this.validate();
     if (res.built) {
       this.applyError = null;
-      try { Admin.applyBuilt(res.built, globalThis.G); } catch (e) { this.applyError = e; console.error(e); }
+      /* G is a top-level const in a classic script: reachable by bare name, never as globalThis.G */
+      try { Admin.applyBuilt(res.built, typeof G !== 'undefined' ? G : undefined, { skip: this.bigUntouched() }); } catch (e) { this.applyError = e; console.error(e); }
     }
     this.emit();
     return res;
+  },
+
+  /* The big baked tables are most of the build; skip comparing them unless a
+     file that feeds them is dirty. */
+  bigUntouched() {
+    const rels = [...this.dirty], any = (f) => rels.some(f);
+    const skip = [];
+    if (!any((r) => r.startsWith('faces/'))) skip.push('faces');
+    if (!any((r) => r.startsWith('lattice/'))) skip.push('lattice');
+    if (!any((r) => r.startsWith('music/') && r !== 'music/playlist.json')) skip.push('music');
+    return skip;
   },
 
   /* { built } or { error }. Anything that is not a ContentError is a bug, not

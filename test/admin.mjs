@@ -170,10 +170,13 @@ const diskBuilt = validateContent(fsSource('content'));
   frames(240);
   ok(G.state === 'kitchen' && K.tickets.length > 0, 'a kitchen shift is running with a live ticket');
   const era = G.level.era, before = SB.__k.MENUS[era].items.length;
-  const f1 = files2(); f1['menus.json'][era].items.shift();
+  const f1 = files2(); const removed = f1['menus.json'][era].items.shift();
   const built1 = validateContent(memSource(f1));
   let threw = null;
-  try { A.applyBuilt(built1, G); frames(120); } catch (x) { threw = x; }
+  try { A.applyBuilt(built1, G);
+    ok(G.state === 'card' && K.tickets.length === 0 && K.queue.length === 0, 'the kitchen screen restarted: back at the level card with no live tickets (' + G.state + ')');
+    ok(![...K.tickets, ...K.queue].some((t) => t.items.some((it) => it.def.name === removed.name)), 'no ticket still wants the removed item');
+    frames(120); } catch (x) { threw = x; }
   ok(!threw, 'deleting a menu item mid-shift, then 120 frames: no throw' + (threw ? ' — ' + threw.stack : ''));
   ok(SB.__k.MENUS[era].items.length === before - 1 && K.menu.items.length === before - 1,
      "the live menu, and the kitchen's own copy, lost the item");
@@ -273,6 +276,15 @@ console.log('\n— store —');
     const again = await store.save();
     ok(again.ok, 'a second save uses the stamp the first returned');
     // somebody else edits the file behind our back
+    /* the seam the stub bypasses: the REAL applyBuilt, from a store that cannot see G */
+    globalThis.Admin.applyBuilt = SB.Admin.applyBuilt;
+    ok(typeof G === 'undefined' && runScript('typeof globalThis.G') === 'undefined', 'G is not reachable as a global property, as in the browser');
+    runScript('G.setLevel(1)');
+    store.set('difficulty.json', 'easy.fines.ticket', 321);
+    ok(store.applyError === null, 'the real applyBuilt ran from store.set without error' + (store.applyError ? ': ' + store.applyError.stack : ''));
+    ok(runScript('G.diff.fines.ticket') === 321 && runScript('DIFFICULTY.easy.fines.ticket') === 321, 'a difficulty edit through store.set reaches G.diff');
+    store.set('levels.json', 'levels.0.name', 'SUMMER 1972 Y');
+    ok(runScript('G.level.name') === 'SUMMER 1972 Y', 'a level edit through store.set reaches G.level');
     const lv = join(tmp, 'content/levels.json');
     writeFileSync(lv, readFileSync(lv, 'utf8') + ' ');
     store.set('levels.json', 'levels.0.name', 'SUMMER 1972 X');
