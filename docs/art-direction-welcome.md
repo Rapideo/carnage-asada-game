@@ -211,7 +211,7 @@ Things that would help:
 
 | for | read |
 |---|---|
-| the full baking manual, every flag and every past failure | `docs/art_pipeline.md` (its "reference only, for now" note about the wells is out of date: wells ship now) |
+| the full baking manual, every flag and every past failure | `docs/art_pipeline.md` |
 | the kitchen screen's named regions and exact rectangles | `reference/kitchen/README.md` |
 | the measured colour and contrast targets | `docs/gdd.md` §X.1 |
 | why food at 384×216 is hard, learned the hard way | `JOURNAL.md`, "Drawing food at 384×216, six times over" |

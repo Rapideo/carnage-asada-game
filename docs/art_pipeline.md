@@ -13,16 +13,18 @@ that at boot.
 | you have | tool | goes to | target |
 |---|---|---|---|
 | a character | `bake-face.mjs` | `content/faces/` → **ships**, inlined by `build.mjs` | 46×54 head, 60×74 bust |
-| ingredients or a station | `bake-lattice.mjs` | `content/lattice/` → **reference only, for now** | 42×24 bin, 42×54 station |
+| ingredients or a station | `bake-lattice.mjs` | `content/lattice/` → **ships**, inlined by `build.mjs` | 42×24 bin, 42×54 station |
 
 Both share `reduce.mjs`, deliberately, so the picture you approve and the picture
 in the game cannot drift apart. Both round-trip their output through the **shipped**
 decoder and refuse to write a file that does not come back identical.
 
-**Only faces ship today.** `build.mjs` inlines `content/faces/` into `FACES`;
-`content/lattice/` is read straight off disk by `reference/kitchen/kitchen.mjs`,
-because the Kitchen Shift is not in `src/` yet. When it is, the lattice gets the
-same treatment and the same validation.
+**Both ship.** `build.mjs` inlines `content/faces/` into `FACES` and
+`content/lattice/` into `LATTICE`, keyed by each record's own `name` (`BEEF`,
+`CHIPS`...), and `src/74_kitchen.js` decodes the wells at boot with the same
+decoder the faces use. (Until the 2026-10-25 build the Kitchen Shift lived only in
+`reference/kitchen/kitchen.mjs`, which read the lattice straight off disk; that
+mockup still does, so it shows the same wells the game does.)
 
 ---
 
@@ -47,7 +49,10 @@ generated one.
 **Nothing is fetched, ever.** The pixels live in a source literal. The artifact
 runs under a CSP that blocks external hosts, and `fetch()` on a `file://` page is
 blocked by CORS, so an image file would blank the screen on the main distribution
-path. Reference PNGs live *outside* the repo and are authoring input only.
+path. Reference images are authoring input only: the ones worth keeping live under
+`reference/` (the era sets in `reference/assets/images/`, the approved ingredient
+set in `reference/kitchen/ingredients/`), and **nothing under `reference/` reaches
+the build**.
 
 ---
 
@@ -281,8 +286,10 @@ node tools/render/bake-lattice.mjs Ingredients.png --tray --pad 2
 # 3. a single double-height station from a one-tray sheet
 node tools/render/bake-lattice.mjs rack.png --tray --pad 2 --rows 2 --merge --names TORTILLA
 
-# 4. look at it in place
-node reference/kitchen/kitchen.mjs        # HEAPS=1 renders the old drawn wells
+# 4. look at it in place -- in the real game first
+node build.mjs                            # inlines the new wells into LATTICE
+node tools/render/frame.mjs 2 20          # a live Kitchen Shift frame (any even level)
+node reference/kitchen/kitchen.mjs        # the mockup; HEAPS=1 renders the old drawn wells
 node tools/render/measure.mjs reference/kitchen/kitchen.png
 ```
 
@@ -396,8 +403,9 @@ the top of every well. Hence a separate `--top`, defaulting to 26%.
 ## Names: 7 characters
 
 The bin name plate is 44px and the name is centred in it, so **anything over 7
-characters runs off both ends of its own bin**. A guard in `kitchen.mjs` throws at
-render time.
+characters runs off both ends of its own bin**. `build.mjs` refuses a `plate` in
+`content/menus.json` longer than that and says how many to trim (the mockup's
+`kitchen.mjs` has its own guard that throws at render time).
 
 It is a guard rather than a note because the overflow is invisible almost all the
 time: the plate only draws at the instant a bin is picked or mis-picked. `JALAPENO`
@@ -422,15 +430,16 @@ the widest baked face. Swapping in a wider portrait automatically tightens it an
 build names the line to trim. A line that passes a screen-width check can still
 overflow the bubble, and the test suite's drawing stubs cannot see it.
 
-**Lattice wells are not validated at all yet**, because `build.mjs` never sees them
-— `content/lattice/` is read straight off disk by the reference mockup. The same
-checks should move across with the Kitchen Shift when it lands in `src/`. Until
-then the only guard on a well is the baker's own round trip, which catches an
-encoder/decoder disagreement but not a malformed hand edit.
+**Lattice wells get the same checks**, plus two of their own: every record needs an
+upper-case `name` (`BEEF`), no two files may claim the same name, and **every bin
+key in every era of `content/menus.json` must have a well**. That last one matters
+because a missing well draws as an empty bin, which looks deliberate (bins can be
+empty) and so would be the last thing anyone noticed.
 
-**Anything in `content/faces/` ships, wired up or not.** `build.mjs` inlines the
-whole directory, so an experiment you baked and abandoned is still ~3 KB in the
-artifact. Delete the JSON when you drop a character.
+**Anything in `content/faces/` or `content/lattice/` ships, wired up or not.**
+`build.mjs` inlines both whole directories, so an experiment you baked and abandoned
+is still ~2–4 KB in the artifact. Delete the JSON when you drop a character or a
+well.
 
 **Nothing checks whether any of it looks right.** `test/headless.mjs` draws through
 stubs and by design cannot see a pixel. Render it and look — that is not optional
