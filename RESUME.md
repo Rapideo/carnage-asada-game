@@ -23,7 +23,9 @@ do not start any of them unprompted.
 Codex agent in charge of **art direction and concept generation**, and more art from it
 is coming. Wait for that delivery, and treat the set below as the current approved
 source until it arrives, not as final. When new art lands, check it against what is
-measured here (bin shape, colour count, key mapping) before baking anything.
+measured here (bin shape, colour count, key mapping) before baking anything. The art
+agent's orientation is `docs/art-direction-welcome.md`; keep it true if the pipeline
+changes.
 
 **Use the approved set, not the grid.** On 2026-11-07 the owner supplied
 `reference/kitchen/ingredients/` ("they are better art, and in the proper orientation"):
