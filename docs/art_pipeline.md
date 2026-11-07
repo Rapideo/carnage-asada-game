@@ -14,6 +14,7 @@ that at boot.
 |---|---|---|---|
 | a character | `bake-face.mjs` | `content/faces/` → **ships**, inlined by `build.mjs` | 46×54 head, 60×74 bust |
 | ingredients or a station | `bake-lattice.mjs` | `content/lattice/` → **ships**, inlined by `build.mjs` | 42×24 bin, 42×54 station |
+| prep-board frames, already at size | `bake-board.mjs` | `content/board/` → **ships**, inlined by `build.mjs` | 40×38 frame |
 
 Both share `reduce.mjs`, deliberately, so the picture you approve and the picture
 in the game cannot drift apart. Both round-trip their output through the **shipped**
@@ -325,6 +326,35 @@ crop *inside a drawn tray rim*. A free object has no rim to clear, and applying
 them anyway took 12% off its sides and 26% off its top.
 
 ## Build Progress frames
+
+**Built 2026-11-07, and done differently from the plan below.** The art director drew
+every frame **at board size**: 88 transparent 40×38 PNGs plus a manifest, in
+`reference/kitchen/board-frames/`. With nothing to detect, crop or scale, they skip
+`bake-lattice.mjs` and go through their own baker:
+
+```bash
+node tools/render/bake-board.mjs     # reference/kitchen/board-frames/ -> content/board/ + content/board.json
+node build.mjs
+```
+
+- **One frame per recipe prefix, named by it.** `LARGE-BEEF-BEANS` is a large
+  tortilla, then beef, then beans, so dishes that share a start share frames, and
+  `Kitchen.frameKey()` derives the key from the recipe and the step. There is no
+  per-item naming.
+- **Finishes.** `content/board.json` maps each dish whose wrapped picture differs
+  from its last build frame (rolls, folded soft tacos, smothered dishes) to that
+  frame. Every other dish finishes on its last build frame.
+- **The build checks coverage.** `build.mjs` (`checkBoardArt`) fails if any step or
+  finish of any dish on any menu has no frame, so a new dish or a reordered recipe
+  cannot ship with a blank board. `— kitchen —` in the tests looks every one up
+  through the game's own `frameKey`.
+- **The cost** was 88 frames, 145 KB of tables. The game file went from 634 to 763 KB.
+- **Changing a frame:** replace the PNG in `board-frames/states/` (and the manifest,
+  if a recipe changed), then re-run `bake-board.mjs`. It clears `content/board/`
+  first, so a dropped frame cannot linger. The art rules and the review method are
+  in `docs/art-direction-welcome.md`.
+
+The rest of this section is the original plan, kept for its reasoning.
 
 The picture on the assembly board is **one frame of a sequence**, not a one-off.
 The item name, the stage pips and the picture are one readout — **Build Progress** —

@@ -8,21 +8,19 @@ living plan**, and if the two disagree, the roadmap wins.
 
 **Start here (2026-11-07):** the owner has set the order.
 
-1. **Finish this art pass: put the prep-board pictures in the game.** The art director's
-   set of all 26 dishes is **done and approved by the owner** (2026-11-07), in
-   `reference/kitchen/board-frames/` (see **The art director and the prep board** below).
-   **The owner lifted the art pin on 2026-11-07.** Next: agree with the owner how
-   `Kitchen.pic()` loads the frames, then build it.
-2. **The owner playtests.**
+1. ~~Finish this art pass.~~ **Done 2026-11-07:** the art director's prep-board frames,
+   all 26 dishes, are **in the game** (see **The art director and the prep board** below).
+   The owner also tried the approved ingredient art in the wells, and **chose to keep
+   the old wells.**
+2. **The owner playtests. This is next.**
 3. **Then: the kitchen levels' surrounding art.** The owner thinks the Kitchen Shift
    could look better and **has concept art** for it. **The bin mechanics, look and feel
    are perfect and are not to change.** This is only the art *around* them (the
    rail, the pantry, the overhead, the steam table's surround, the board). Wait for the
    owner's concept art, and brainstorm with them before drawing anything.
 
-Waiting behind those, and only when the owner says go:
-- **the admin overlay** (see **Next** below), fully designed and planned, nothing built;
-- **baking the approved ingredient art into the wells** (see **Pinned: the art**).
+Waiting behind those, and only when the owner says go: **the admin overlay** (see **Next**
+below), fully designed and planned, nothing built.
 
 ## The art director and the prep board (2026-11-07)
 
@@ -73,16 +71,33 @@ approved it.** The assembled set, the full pack with both patches applied, is
 (each dish's recipe, build keys, finished key and eras), 253 KB as PNG. Every recipe
 matches `menu.md`. The packs and renders behind it are in `reference/kitchen/review/`.
 
-**Not decided yet: how the frames go into the game.** Today `Kitchen.pic()` draws the board
-procedurally. The likely route is `bake-lattice.mjs --keyed --size 40x38` per state into
-`content/lattice/` (see `docs/art_pipeline.md`, "Free objects"), with `pic()` looking up
-the state by recipe prefix. **The pin is lifted; plan this with the owner next.**
+**In the game (2026-11-07).** `tools/render/bake-board.mjs` bakes `board-frames/` into
+`content/board/` (one 16-colour table per frame) and `content/board.json` (the finishes
+that differ from the last build frame). `build.mjs` inlines them as `BOARD` and
+`BOARD_FINISH`, and **fails if any dish on any menu is missing a step or finish frame**.
+`Kitchen.pic()` now draws `BOARD[Kitchen.frameKey(def, step, done)]`, and the procedural
+board code (`picShell`, `picOpen`, `picBurrito`, `picSoft`, `picNachos`) is deleted. The
+cost: 145 KB of tables, taking `taco-shop.html` from 634 KB to 763 KB. Tests: `— kitchen —`
+looks up all 204 step and finish frames through `frameKey`. **A new dish or a changed
+recipe now needs its frames drawn and baked before the build passes**, which is the
+art director's job (`docs/art-direction-welcome.md`). See `docs/art_pipeline.md`,
+"Build Progress frames".
 
-## Pinned: the art (2026-11-06, updated 2026-11-07)
+## The well art: tried, and the old wells kept (2026-11-07)
 
-**The owner lifted the art pin on 2026-11-07.** The well art below is the approved source
-for the steam-table bins, and nothing of it is baked yet. Before baking, check against
-what is measured here (bin shape, colour count, key mapping).
+**Decided by the owner on 2026-11-07: keep the old wells.** The approved pans were baked
+into `content/lattice/` and rendered in place, then reverted. In place they read worse:
+- **They don't match the table.** They are free-standing silver pans seen at an angle,
+  while the cells, and the EMPTY wells, are sunken wells.
+- **Less food shows.** About half of each pan is its side.
+- **The greens are hard to tell apart.** Lettuce, green onion and jalapeño all read as
+  green piles.
+- **The beans read as a smooth stripe.**
+
+Don't re-bake the wells from this set unless the owner asks. The ONION well is still
+white onion, although the owner ruled ONION is green onions on the board. That is the one
+mismatch; it was raised, and the owner kept the old wells anyway. What follows is the
+earlier analysis, kept for its reasoning.
 
 **Use the approved set, not the grid.** On 2026-11-07 the owner supplied
 `reference/kitchen/ingredients/` ("they are better art, and in the proper orientation"):

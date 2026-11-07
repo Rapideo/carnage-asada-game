@@ -31,6 +31,7 @@ node tools/render/bake-lattice.mjs <sheet.png> --tray --pad 2
 | `palette.mjs` | every `PAL` entry as a sheet, grouped by what it is for |
 | `reduce.mjs` | reference image → small indexed bitmap; shared so the fit test and the bake cannot disagree |
 | `bake-lattice.mjs` | a contact sheet of ingredients → twelve wells; finds the crops rather than being given them |
+| `bake-board.mjs` | the art director's prep-board frames (`reference/kitchen/board-frames/`) → `content/board/` + `content/board.json`; frames are authored at size, so colour reduction only |
 | `bake-face.mjs` | bake a reference into a source data table, round-tripped against the shipped decoder |
 | `png-read.mjs` | decode a PNG we did not write — real filters, so outside reference images load |
 | `fit-portrait.mjs` | reduce an outside reference into the 56×56 box and compare against what ships |

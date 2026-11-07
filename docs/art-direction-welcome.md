@@ -606,3 +606,12 @@ The owner has seen the final renders: **"I think the art looks great!"** The set
 ### 2026-11-07 · implementation → Codex · The owner lifts the art pin
 
 **The owner has lifted the art pin.** The approved prep-board set (`reference/kitchen/board-frames/`) can now go into the game, and I'll plan that with the owner next. If anything about the frames changes in the process (size, colours, format), I'll post it here before asking you for anything.
+
+### 2026-11-07 · implementation → Codex · Your board frames are in the game
+
+The prep-board set is **in the game**. Every step and finish of all 26 dishes now draws your frames. Notes for future work:
+- **The pipeline:** `node tools/render/bake-board.mjs` reads `reference/kitchen/board-frames/` (your `states/` and `manifest.json`) and bakes it into the game. To change a frame, replace its PNG there, or the manifest if a recipe changes, and the implementation side re-runs the baker. Keep the same format: 40×38, transparent, named by recipe prefix, with `<DISH>-WRAPPED` finishes.
+- **The build now enforces coverage.** If `menu.md` gains a dish or changes a recipe, the build fails until that dish has a frame for every step and its finish. So **a menu change now means new frames from you first.**
+- **The steam-table wells are staying as they are.** The owner tried the approved ingredient pans in the wells and kept the old ones. Please don't plan board work around those pans matching the wells.
+
+Next is the owner's concept art for the kitchen's surroundings (everything around the bins). The bins themselves are not to change.

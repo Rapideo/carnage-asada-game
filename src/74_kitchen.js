@@ -40,9 +40,10 @@ const Kitchen = {
   COMPLAIN_MUL: 1.5,
   PIP_W: 8, PIP_G: 1,
 
-  /* Ingredient colours for the drawn layers: pips, and the item on the board.
-     The wells themselves are baked pixel art (LATTICE); these are the same
-     foods' mid / high / low, taken from the reference ING table. */
+  /* Ingredient colours for what is still drawn: the stage pips, and the
+     fallback blob in a well with no baked art. The wells (LATTICE) and the
+     item on the board (BOARD) are baked pixel art; these are the same foods'
+     mid / high / low, taken from the reference ING table. */
   ING: {
     BEEF:    ['#6b4326', '#8a5a33', '#452a15', 'chunk'],
     BEANS:   ['#8d5a33', '#a87243', '#66401f', 'mass'],
@@ -73,7 +74,7 @@ const Kitchen = {
   arriveT: 0, docket: 0,
   flashKey: null, flashT: 0, wrongKey: null, hintT: 0,
   buzzT: 0, barkT: 0, complained: false,
-  bg: null, wells: null, picCache: null,
+  bg: null, wells: null, frames: null, picCache: null,
   lastMx: -1, lastMy: -1,
   bot: null,
   stats: null,
@@ -921,148 +922,39 @@ const Kitchen = {
   },
 
   /* ---------------- the item on the board -------------------------- */
-  /* Drawn, then cached by item x stage: the frame only changes when a pip
-     does. The shapes are the reference's -- the tilted-crescent shell that
-     took five rewrites, the capsule burrito, the nachos plate -- with the
-     ingredient layers scattered on in the order they went in, so a taco at
-     step 2 visibly is not the same taco at step 4. */
+  /* One baked frame per recipe prefix (BOARD, from content/board/): after
+     tortilla, beef and beans the board shows LARGE-BEEF-BEANS, so a pick always
+     changes the picture and a dish at step 2 is visibly not the same dish at
+     step 4. The finished picture is BOARD_FINISH[name] when the dish changes
+     shape on wrapping (a roll, a folded soft taco), and otherwise its last
+     build frame. build.mjs refuses a menu with a frame missing, so a gap here
+     means content failed to load, and the board is left empty rather than the
+     kitchen taken down. Cached by item x stage: it only changes when a pip
+     does. The art came from the art-direction pass of 2026-11-07; the frames,
+     the review renders and the reasoning are in reference/kitchen/. */
   pic(def, step, done) {
-    const key = def.name + '|' + step + '|' + (done ? 1 : 0);
-    if (this.picCache[key]) return this.picCache[key];
-    const t = mkCanvas(64, 42), x = t.x;
-    const base = def.recipe[0], layers = def.recipe.slice(1, Math.max(1, step));
-    const rng = makeRng(def.name.length * 131 + step * 17 + 7);
-    const cx = 32, cy = 22;
-    if (step === 0) {
-      /* nothing yet: an empty board says "pick a base" better than any text */
-    } else if (base === 'SHELL') this.picShell(x, cx, cy + 4, layers, rng);
-    else if (base === 'CHIPS') this.picNachos(x, cx, cy + 10, layers, rng, done);
-    else if (done) base === 'LARGE' ? this.picBurrito(x, cx, cy + 8, rng) : this.picSoft(x, cx, cy + 6, layers, rng);
-    else this.picOpen(x, cx, cy, base === 'LARGE' ? 19 : 14, layers, rng);
-    return (this.picCache[key] = t.c);
+    const ck = def.name + '|' + step + '|' + (done ? 1 : 0);
+    if (this.picCache[ck]) return this.picCache[ck];
+    const t = mkCanvas(64, 42);
+    /* step 0 draws nothing: an empty board says "pick a base" better than text */
+    if (step > 0) {
+      const img = this.frame(this.frameKey(def, step, done));
+      if (img) t.x.drawImage(img, (64 - img.width) >> 1, (42 - img.height) >> 1);
+    }
+    return (this.picCache[ck] = t.c);
   },
 
-  /* weighted toward the latest layer: what went on last is on top */
-  layerCol(layers, rng) {
-    if (!layers.length) return null;
-    let i = layers.length - 1;
-    while (i > 0 && rng() < 0.42) i--;
-    const c = this.ING[layers[i]] || ['#ccc', '#eee', '#999'];
-    return c[rng.chance(0.4) ? 1 : 0];
+  /* LARGE-BEEF-BEANS after three picks; the finish when wrapped */
+  frameKey(def, step, done) {
+    const fin = done && typeof BOARD_FINISH !== 'undefined' && BOARD_FINISH[def.name];
+    return fin || def.recipe.slice(0, step).join('-');
   },
 
-  picShell(x, cx, cy, layers, rng) {
-    const RR = 15, th = -0.32;
-    const dxa = Math.cos(th), dya = Math.sin(th), nx = -Math.sin(th), ny = Math.cos(th);
-    const [sm, sh, sl] = this.ING.SHELL;
-    R(x, 'rgba(12,8,20,0.34)', cx - 11, cy + 14, 23, 3);
-    const shellAt = (px, py, m) => Math.hypot(px, py) <= RR + m && px * nx + py * ny >= -0.5 - m;
-    const fillAt = (px, py, m) => {
-      if (!layers.length) return false;
-      const along = px * dxa + py * dya, off = px * nx + py * ny;
-      const deep = 1.5 + Math.min(7, 2 + layers.length * 1.4);
-      return off < 1.5 + m && off > -deep - m && Math.abs(along) < RR - 1 + m;
-    };
-    for (let py = -RR - 10; py <= RR + 3; py++)
-      for (let px = -RR - 3; px <= RR + 3; px++)
-        if (shellAt(px, py, 1) || fillAt(px, py, 1)) R(x, PAL.ink, cx + px, cy + py, 1, 1);
-    for (let py = -RR - 10; py <= RR + 3; py++)
-      for (let px = -RR - 3; px <= RR + 3; px++) {
-        const d = Math.hypot(px, py), off = px * nx + py * ny, along = px * dxa + py * dya;
-        let col = null;
-        if (shellAt(px, py, 0)) {
-          col = d > RR - 2 ? sl : off < 3 ? sh : sm;
-          if (d > RR - 4 && along > 3) col = sl;
-          if (rng.chance(0.07)) col = sl;
-        }
-        if (fillAt(px, py, 0)) col = this.layerCol(layers, rng);
-        if (col) R(x, col, cx + px, cy + py, 1, 1);
-      }
-  },
-
-  /* a tortilla laid flat with the filling heaped down its middle -- the
-     making_burrito reference, at board size */
-  picOpen(x, cx, cy, r, layers, rng) {
-    const [m, hi, lo] = this.ING.LARGE;
-    R(x, 'rgba(12,8,20,0.30)', cx - r + 2, cy + r - 1, r * 2 - 2, 3);
-    disc(x, cx, cy, r + 1, PAL.ink);
-    disc(x, cx, cy, r, lo);
-    disc(x, cx, cy - 1, r - 1, m);
-    for (let i = 0; i < r * 3; i++) {
-      const a = rng() * TAU, d = rng() * (r - 2);
-      R(x, rng.chance(0.5) ? hi : '#b08a52', (cx + Math.cos(a) * d) | 0, (cy - 1 + Math.sin(a) * d) | 0, 1, 1);
-    }
-    if (!layers.length) return;
-    const fw = r - 4, fh = Math.min(r - 6, 4 + layers.length);
-    for (let py = -fh; py <= fh; py++)
-      for (let px = -fw; px <= fw; px++) {
-        if ((px * px) / (fw * fw) + (py * py) / (fh * fh) > 1) continue;
-        R(x, this.layerCol(layers, rng), cx + px, cy + py, 1, 1);
-      }
-  },
-
-  picBurrito(x, cx, by, rng) {
-    const HW = 17, h = 16, py = by - h, mid = (h - 1) / 2;
-    const TH = '#fff2c8', TU = '#f2dcac', TM = '#e8c894', TL = '#b08a52', TX = '#8a6a3c';
-    const lean = (r) => Math.round((r - mid) * -0.40);
-    const hwAt = (r) => Math.round(HW * Math.sqrt(Math.max(0, 1 - Math.pow(Math.abs((r - mid) / mid), 2.4))));
-    R(x, 'rgba(12,8,20,0.34)', cx - HW + 2, by, HW * 2 - 4, 3);
-    for (let r = 0; r < h; r++) {
-      const hw = hwAt(r); if (hw < 1) continue;
-      const y = py + r, o = cx + lean(r);
-      R(x, PAL.ink, o - hw - 1, y, hw * 2 + 2, 1);
-      R(x, r < 2 ? TH : r < 5 ? TU : r < h - 4 ? TM : TL, o - hw, y, hw * 2, 1);
-      if (hw > 6) { R(x, r < 4 ? TU : TL, o - hw, y, 3, 1); R(x, r < 4 ? TU : TX, o + hw - 3, y, 3, 1); }
-    }
-    for (let r = 3; r < h - 2; r++) {
-      const hw = hwAt(r), o = cx + lean(r);
-      if (hw > 5) R(x, TL, o - hw + 5 + Math.round((r - 3) * 1.1), py + r, 2, 1);
-    }
-    for (let i = 0; i < 5; i++) {
-      const r = 4 + rng.int(h - 9), hw = hwAt(r);
-      if (hw > 8) R(x, TX, cx + lean(r) - hw + 7 + rng.int(hw * 2 - 14), py + r, 2, 1);
-    }
-  },
-
-  /* a soft taco, folded: the crescent again, in tortilla rather than shell */
-  picSoft(x, cx, cy, layers, rng) {
-    const RR = 14, th = -0.20, nx = -Math.sin(th), ny = Math.cos(th);
-    const [m, hi, lo] = this.ING.SMALL;
-    R(x, 'rgba(12,8,20,0.34)', cx - 11, cy + 13, 23, 3);
-    for (let py = -RR - 4; py <= RR + 2; py++)
-      for (let px = -RR - 2; px <= RR + 2; px++) {
-        const d = Math.hypot(px, py), off = px * nx + py * ny;
-        if (d <= RR + 1 && off >= -4.5) R(x, PAL.ink, cx + px, cy + py, 1, 1);
-      }
-    for (let py = -RR - 4; py <= RR + 2; py++)
-      for (let px = -RR - 2; px <= RR + 2; px++) {
-        const d = Math.hypot(px, py), off = px * nx + py * ny;
-        if (d > RR || off < -3.5) continue;
-        let col = off < -0.5 ? this.layerCol(layers, rng) || m : d > RR - 2 ? lo : off < 3 ? hi : m;
-        if (off >= -0.5 && rng.chance(0.06)) col = '#b08a52';
-        R(x, col, cx + px, cy + py, 1, 1);
-      }
-  },
-
-  picNachos(x, cx, by, layers, rng, done) {
-    const [cm, ch, cl] = this.ING.CHIPS;
-    disc(x, cx, by - 6, 17, PAL.ink);
-    disc(x, cx, by - 6, 16, done ? '#d8d0b8' : PAL.bone);
-    disc(x, cx, by - 7, 13, shade(PAL.bone, -0.12));
-    for (let i = 0; i < 24; i++) {
-      const a = rng() * TAU, r = rng() * 13;
-      const px = (cx + Math.cos(a) * r) | 0, py = (by - 10 + Math.sin(a) * 6) | 0;
-      const up = rng.chance(0.5);
-      for (let k = 0; k < 4; k++) {
-        const wq = 7 - k * 2, yy = py + (up ? k : 3 - k);
-        R(x, PAL.ink, px + k - 1, yy, wq + 2, 1);
-        R(x, k === 0 ? ch : k === 3 ? cl : cm, px + k, yy, wq, 1);
-      }
-    }
-    for (let i = 0; i < 14 * layers.length; i++) {
-      const a = rng() * TAU, r = rng() * 11;
-      const px = (cx + Math.cos(a) * r) | 0, py = (by - 10 + Math.sin(a) * 5) | 0;
-      R(x, this.layerCol(layers, rng), px, py, 2, 2);
-    }
+  /* decoded on first use: a shift only ever shows its own menu's frames */
+  frame(key) {
+    if (!this.frames) this.frames = Object.create(null);
+    if (!(key in this.frames))
+      this.frames[key] = typeof BOARD !== 'undefined' && BOARD[key] ? Faces.decode(BOARD[key]) : null;
+    return this.frames[key];
   },
 };

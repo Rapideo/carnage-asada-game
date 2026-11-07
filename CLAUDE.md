@@ -53,8 +53,10 @@ There is no lint step, no test framework, and no watch mode. `build.mjs` must be
 `taco-shop.html` reflects source edits; `index.html` loads `src/*.js` directly so it does not.
 
 There is no `package.json` — nothing to install. `taco-shop.html`, `index.html`, **`src/05_content.js`**
-and **`content/faces/*.json`** are generated; edit `src/`, `shell.html` and `content/` and rebuild rather
-than editing them directly. Face data is re-baked with `node tools/render/bake-face.mjs`, not hand-edited.
+**`content/faces/*.json`**, **`content/board/*.json`** and **`content/board.json`** are generated; edit
+`src/`, `shell.html` and `content/` and rebuild rather than editing them directly. Face data is re-baked with
+`node tools/render/bake-face.mjs`, and board frames with `node tools/render/bake-board.mjs`; neither is
+hand-edited.
 
 ## Authored copy (`content/*.json`)
 
@@ -83,11 +85,19 @@ The dialogue width check is **not** the 384px one every other field uses: the po
 bubble, so the limit is computed from the widest baked face. A line that passes the screen-width check can
 still overflow the bubble, and nothing in the test suite can see it.
 
-**`content/lattice/*.json`** holds the baked steam-table wells, the two base stations and
-the item on the assembly board. It ships: `build.mjs` inlines and validates it as
+**`content/lattice/*.json`** holds the baked steam-table wells and the two base stations. It ships: `build.mjs` inlines and validates it as
 `LATTICE`, the same way it does the faces, and `74_kitchen.js` draws from it. Re-bake with
 `tools/render/bake-lattice.mjs`, and derive a recoloured well (SAUCE, CHILI) from an
-existing one with `tools/render/recolor-lattice.mjs`; see `docs/art_pipeline.md`.
+existing one with `tools/render/recolor-lattice.mjs`; see `docs/art_pipeline.md`. The owner
+approved new pan art for the wells (`reference/kitchen/ingredients/`), but on 2026-11-07,
+having seen it in place, **chose to keep these wells**. Don't re-bake them from that set.
+
+**`content/board/*.json`** and **`content/board.json`** are the item on the assembly board:
+one baked frame per recipe prefix (`LARGE-BEEF-BEANS`), plus the finished picture for dishes
+that change on wrapping. Both are **generated** by `tools/render/bake-board.mjs` from the art
+director's set in `reference/kitchen/board-frames/`, and inlined as `BOARD` and
+`BOARD_FINISH`. `build.mjs` fails if any dish on any menu is missing a frame for a step or
+its finish, so **a new or changed recipe needs its frames drawn before it builds.**
 
 `slogan` and `attribution` each accept a string *or* an array of lines, and `overlayWinners` lays the
 attribution out below whatever the slogan needs, so long copy wraps rather than being cut. If you add copy
@@ -186,7 +196,7 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 | module | responsibility |
 |---|---|
 | `00_core` | screen/world constants, `PAL`, RNG, `classify()`, `mkCanvas`/`R` helpers, `Input` |
-| `05_content` | **generated** — `CONTENT`, `ATTRACT`, `SCORES`, `MAPS`/`HAYS`, `LEVELS`, `DIFFICULTY`, `MENUS`, `DIALOGUE`, `FACES`, `LATTICE`, `MUSIC`, `PLAYLIST`, all inlined from `content/` by `build.mjs` |
+| `05_content` | **generated** — `CONTENT`, `ATTRACT`, `SCORES`, `MAPS`/`HAYS`, `LEVELS`, `DIFFICULTY`, `MENUS`, `DIALOGUE`, `FACES`, `LATTICE`, `BOARD`/`BOARD_FINISH`, `MUSIC`, `PLAYLIST`, all inlined from `content/` by `build.mjs` |
 | `10_font` | hand-authored 5×7 glyph table; `text()`, `textOut()`, `money()`, `clockStr()` |
 | `20_audio` | `Audio5`: WebAudio SFX (both shifts), engine voice, siren, and the fallback 4-bar loop |
 | `22_music` | `Music` — plays the arranged songs in `MUSIC` through `Audio5.musBus`; `playList()` per level from `PLAYLIST` |
@@ -715,6 +725,6 @@ the card.
 
 ## Publishing
 
-`taco-shop.html` is the shippable artifact: one self-contained file, ~620 KB (the music, faces and lattice tables are most of it). It must stay free of external
+`taco-shop.html` is the shippable artifact: one self-contained file, ~760 KB (the music, faces, lattice and board tables are most of it). It must stay free of external
 requests. `?seed=<int>` on the URL regenerates the city deterministically (mulberry32); the default seed is
 in `90_main.js`.

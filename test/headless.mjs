@@ -71,7 +71,7 @@ vm.createContext(sandbox);
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, money, MAXTHROW,' +
   ' ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER };',
   sandbox, { filename: 'bundle.js' });
-vm.runInContext(';globalThis.__k = { Kitchen, LEVELS, DIALOGUE, MENUS };', sandbox);
+vm.runInContext(';globalThis.__k = { Kitchen, LEVELS, DIALOGUE, MENUS, BOARD };', sandbox);
 
 const { G, City, Nav, Art, Input, Demo, textW, money, MAXTHROW, VW, VH, WW, WH,
         ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER } = sandbox.__x;
@@ -1229,6 +1229,24 @@ for (const era of [1, 2, 3]) {
 }
 ok(unbuildable === 0, `every item in all three menus is buildable from the lattice (${items} items)`);
 ok(crowded === 0, 'every Short name leaves its pips clear of the board');
+
+/* every step of every item, and its finish, has a baked board frame. build.mjs
+   refuses a menu with one missing; this checks the game asks for the same keys
+   the build checked, so a change to how pic() names a frame cannot blank the
+   board while the build still passes. */
+let noFrame = [], lookedUp = 0;
+for (const era of [1, 2, 3]) {
+  Kt.enter({ era }, G.diff, true);
+  for (const def of Kt.menu.items)
+    for (let s = 1; s <= def.recipe.length + 1; s++) {
+      const key = Kt.frameKey(def, Math.min(s, def.recipe.length), s > def.recipe.length);
+      lookedUp++;
+      if (!KX.BOARD[key]) noFrame.push(key);
+    }
+}
+ok(noFrame.length === 0, `every build step and finish has a board frame (${lookedUp} looked up${noFrame.length ? ', missing ' + noFrame.slice(0, 3).join(' ') : ''})`);
+ok(KX.BOARD['LARGE-BEANS-CHEESE'] && Kt.frameKey({ name: 'BEAN BURRITO', recipe: ['LARGE', 'BEANS', 'CHEESE'] }, 3, true) === 'BEAN-BURRITO-WRAPPED',
+  'a rolled dish finishes on its roll, not its last build frame');
 
 /* the recipe card fits: ticket name + plates, abbreviated if long */
 let tooWideRecipe = 0;

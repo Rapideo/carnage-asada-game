@@ -49,19 +49,17 @@ Task 17, not before):
 The owner set the order on 2026-11-07. Details are in `RESUME.md`: "The art director and
 the prep board", and "Pinned: the art". **The owner lifted the art pin on 2026-11-07.**
 
-1. [ ] **Assembly-board pictures.** The art is **done and approved**: all 26 dishes are in
-   `reference/kitchen/board-frames/` (88 frames, `manifest.json`). Next: plan with the
-   owner how `Kitchen.pic()` loads them in place of the procedural drawing, then build it.
-2. [ ] **The owner playtests.**
+1. [x] **Assembly-board pictures.** Done 2026-11-07. The art director's 88 frames for all
+   26 dishes are baked (`tools/render/bake-board.mjs` → `content/board/`), inlined as
+   `BOARD`, and drawn by `Kitchen.pic()`. The build fails if any frame is missing.
+2. [ ] **The owner playtests.** Next.
 3. [ ] **The kitchen levels' surrounding art.** The owner has concept art and wants the
    Kitchen Shift to look better. **The bins' mechanics, look and feel are perfect and
    are not to change**; this is the art around them. Brainstorm with the owner first.
 
-- [ ] **Steam-table wells from real art.** Pinned, not yet ordered. The owner's approved set is
-  `reference/kitchen/ingredients/` (2026-11-07): 21 pans and 7 shells/bread, covering
-  every bin key and base. The pans are already the bin's 42-wide landscape shape. It
-  replaces matching by recolour (`recolor-lattice.mjs`). The open problem is colour: 470–730 per
-  sprite against the 16-colour cap. The 2026-11-06 grid at the repo root is superseded.
+- [x] ~~**Steam-table wells from real art.**~~ **Tried and declined 2026-11-07.** The approved
+  pans were baked and rendered in place, and the owner kept the old wells. The reasons are in
+  `RESUME.md`.
 
 ---
 
