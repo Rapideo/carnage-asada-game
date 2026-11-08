@@ -1200,6 +1200,27 @@ console.log('\n— docs —');
       try { validateContent(memSource(gx((d) => { d.delivered[2] = 'HELLO ' + 'O'.repeat(40) + ' THERE'; }))); } catch (x) { word = x; }
       ok(word instanceof ContentError && word.path.join() === 'delivered,2' && /too wide/.test(word.message) && word.message.includes('OOOO'),
          'a 40-letter word is a ContentError naming the line and "too wide" (' + (word && word.message.split('\n')[0]) + ')');
+
+      /* personal lines: DIALOGUE.people[face][moment] = [lines] */
+      const { DLG_MOMENTS } = await import('../tools/content/validate.mjs');
+      ok(Array.isArray(DLG_MOMENTS) && DLG_MOMENTS.join() === DLG_KEYS.filter((k) => k !== 'who').join(), 'DLG_MOMENTS is DLG_KEYS without who');
+      const pe = (people) => { let e = null, r = null; try { r = validateContent(memSource(gx((d) => { d.people = people; }))); } catch (x) { e = x; } return { e, r }; };
+      const good = pe({ c70trucker: { wait: ['ONLY MINE.', 'ME TOO.'] } });
+      ok(good.e === null && JSON.stringify(good.r.dialogue.people) === JSON.stringify({ c70trucker: { wait: ['ONLY MINE.', 'ME TOO.'] } }),
+         'a known face with a known moment validates and is built (' + (good.e && good.e.message.split('\n')[0]) + ')');
+      ok(JSON.stringify(validateContent(memSource(files)).dialogue.people) === '{}', 'with no people key the built people is {}');
+      const bads = [
+        ['an unknown face', { nobody: { wait: ['HI.'] } }, 'nobody'],
+        ['an unknown moment', { c70trucker: { shout: ['HI.'] } }, 'c70trucker,shout'],
+        ['a lowercase line', { c70trucker: { wait: ['hello there'] } }, 'c70trucker,wait,0'],
+        ['an era-prefixed personal line', { c70trucker: { wait: ['HI.', '2|HELLO.'] } }, 'c70trucker,wait,1'],
+        ['a 3-row personal line', { c70trucker: { wait: ['THIS LINE IS FAR TOO WIDE FOR THE SPEECH BUBBLE BESIDE THE PORTRAIT AND IT KEEPS GOING ON'] } }, 'c70trucker,wait,0'],
+        ['an empty list', { c70trucker: { wait: [] } }, 'c70trucker,wait'],
+      ];
+      for (const [name, people, path] of bads) {
+        const { e } = pe(people);
+        ok(e instanceof ContentError && e.file === 'content/dialogue.json' && e.path.join() === 'people,' + path, name + ' is a ContentError on people,' + path + ' (' + (e && e.path.join() + ': ' + e.message.split('\n')[0]) + ')');
+      }
     }
 
     /* faces.md: per era, the cast; each face's name, size and whether its eyes are set */

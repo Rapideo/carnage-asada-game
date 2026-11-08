@@ -377,6 +377,8 @@ const DLG_BUBBLE_PAD = 10;
 export const DLG_MAX_CHARS = 34;
 export const DLG_MAX_ROWS = 2;
 export const DLG_KEYS = ['who', 'delivered', 'missed', 'late', 'arrive', 'wait', 'queue', 'walkout', 'served', 'wrong'];
+/* the moments a customer speaks at (DLG_KEYS minus the speaker's name); personal lines are keyed by these */
+export const DLG_MOMENTS = DLG_KEYS.filter((k) => k !== 'who');
 const ERA_PREFIX = /^([0-9])\|/;
 
 /* Greedy word wrap with the 5x7 font's width. null when one word alone is wider
@@ -412,44 +414,56 @@ function buildDialogue(src, faces) {
     ? `The bubble gives ${bubblePx}px beside a ${widestFace}px portrait`
     : `Lines are capped at ${DLG_MAX_CHARS} characters so they fit the Kitchen Shift's strip`;
 
+  /* one line: caps, drawable, wraps to DLG_MAX_ROWS. `era` false = personal line,
+     which carries no prefix (the face's decade already places it). Returns
+     whether the line is usable in Era 1 (no prefix). */
+  const checkLine = (P, label, s, era) => {
+    if (typeof s !== 'string') fail(F, P, `${F}: ${label} must contain only strings, got ${JSON.stringify(s)}`);
+    let body = s;
+    const m = ERA_PREFIX.exec(s);
+    if (m) {
+      if (era === 'none') fail(F, P, `${F}: ${label} cannot carry an era prefix`);
+      if (!era) fail(F, P, `${F}: ${label} line ${JSON.stringify(s)} carries an era prefix; a personal line is placed by its face's decade. Drop the "${m[1]}|".`);
+      if (m[1] !== '2' && m[1] !== '3')
+        fail(F, P, `${F}: ${label} line ${JSON.stringify(s)} has era floor ${m[1]}; only 2| (1980s on) and 3| (1990s) mean anything. Drop it for every era.`);
+      body = s.slice(2);
+    }
+    if (body.includes('|'))
+      fail(F, P, `${F}: ${label} line ${JSON.stringify(s)} has a "|" that is not an era prefix at the start. The font cannot draw it.`);
+    if (body !== body.toUpperCase())
+      fail(F, P, `${F}: ${label} line ${JSON.stringify(s)} must be ALL CAPS, as it is drawn.`);
+    if (!body.trim()) fail(F, P, `${F}: ${label} has an empty line`);
+    drawable(F, P, `${F}: ${label} line`, body);
+    const rows = wrapRows(body, limitPx);
+    if (!rows) {
+      const big = body.split(' ').reduce((x, y) => (y.length > x.length ? y : x), '');
+      fail(F, P,
+        `${F}: ${label} line ${JSON.stringify(s)} has a word too wide for one row (${JSON.stringify(big)}, ${textPx(big, 1)}px).
+` +
+        `  ${why}, so a row holds ${maxChars} characters. Break it up or shorten the word.`);
+    }
+    if (rows.length > DLG_MAX_ROWS) {
+      fail(F, P,
+        `${F}: ${label} line ${JSON.stringify(s)} needs ${rows.length} rows; the bubble holds ${DLG_MAX_ROWS}.
+` +
+        `  ${why}, so a row holds ${maxChars} characters. Trim it to fit ${DLG_MAX_ROWS} rows.`);
+    }
+    return !m;
+  };
+
   const out = {};
   for (const [k, v] of Object.entries(raw)) {
     if (k.startsWith('_')) continue;
+    if (k === 'people') continue;                       // built below, once the shared pools are in
     if (!DLG_KEYS.includes(k))
-      fail(F, [k], `${F}: unknown key "${k}". The game reads: ${DLG_KEYS.join(' ')}. (Prefix a note with _ to keep it out of the build.)`);
+      fail(F, [k], `${F}: unknown key "${k}". The game reads: ${DLG_KEYS.join(' ')} people. (Prefix a note with _ to keep it out of the build.)`);
     if (k === 'who' ? typeof v !== 'string' : !Array.isArray(v) || !v.length)
       fail(F, [k], `${F}: "${k}" must be ${k === 'who' ? 'a string' : 'a non-empty array of lines'}`);
     const list = Array.isArray(v) ? v : [v];
     let anyEra = false;
     list.forEach((s, li) => {
       const P = Array.isArray(v) ? [k, li] : [k];
-      if (typeof s !== 'string') fail(F, P, `${F}: "${k}" must contain only strings, got ${JSON.stringify(s)}`);
-      let body = s;
-      const m = ERA_PREFIX.exec(s);
-      if (m) {
-        if (k === 'who') fail(F, P, `${F}: "who" cannot carry an era prefix`);
-        if (m[1] !== '2' && m[1] !== '3')
-          fail(F, P, `${F}: "${k}" line ${JSON.stringify(s)} has era floor ${m[1]}; only 2| (1980s on) and 3| (1990s) mean anything. Drop it for every era.`);
-        body = s.slice(2);
-      } else anyEra = true;
-      if (body.includes('|'))
-        fail(F, P, `${F}: "${k}" line ${JSON.stringify(s)} has a "|" that is not an era prefix at the start. The font cannot draw it.`);
-      if (body !== body.toUpperCase())
-        fail(F, P, `${F}: "${k}" line ${JSON.stringify(s)} must be ALL CAPS, as it is drawn.`);
-      if (!body.trim()) fail(F, P, `${F}: "${k}" has an empty line`);
-      drawable(F, P, `${F}: "${k}" line`, body);
-      const rows = wrapRows(body, limitPx);
-      if (!rows) {
-        const big = body.split(' ').reduce((x, y) => (y.length > x.length ? y : x), '');
-        fail(F, P,
-          `${F}: "${k}" line ${JSON.stringify(s)} has a word too wide for one row (${JSON.stringify(big)}, ${textPx(big, 1)}px).\n` +
-          `  ${why}, so a row holds ${maxChars} characters. Break it up or shorten the word.`);
-      }
-      if (rows.length > DLG_MAX_ROWS) {
-        fail(F, P,
-          `${F}: "${k}" line ${JSON.stringify(s)} needs ${rows.length} rows; the bubble holds ${DLG_MAX_ROWS}.\n` +
-          `  ${why}, so a row holds ${maxChars} characters. Trim it to fit ${DLG_MAX_ROWS} rows.`);
-      }
+      if (checkLine(P, `"${k}"`, s, k === 'who' ? 'none' : true)) anyEra = true;
     });
     /* every pool needs a line 1972 can say, or the strip draws nothing in Era 1 */
     if (!anyEra) fail(F, [k], `${F}: every line in "${k}" carries an era prefix, so Era 1 has nothing to say there. Add a line with no prefix.`);
@@ -458,6 +472,32 @@ function buildDialogue(src, faces) {
   for (const need of DLG_KEYS) {
     if (!(need in out)) fail(F, [need], `${F} is missing "${need}"`);
   }
+
+  /* personal lines: people[faceKey][moment] = [lines]. A face with none for a
+     moment falls back to the shared pool at play time, so a short list is fine. */
+  const people = {};
+  const rawPeople = raw.people === undefined ? {} : raw.people;
+  if (!rawPeople || typeof rawPeople !== 'object' || Array.isArray(rawPeople))
+    fail(F, ['people'], `${F}: "people" must be an object of face key to moments`);
+  for (const [face, moments] of Object.entries(rawPeople)) {
+    if (face.startsWith('_')) continue;
+    if (!faces[face])
+      fail(F, ['people', face], `${F}: people: ${JSON.stringify(face)} is not a face in content/faces/ (${Object.keys(faces).join(' ')})`);
+    if (!moments || typeof moments !== 'object' || Array.isArray(moments))
+      fail(F, ['people', face], `${F}: people.${face} must be an object of moment to lines`);
+    const mo = {};
+    for (const [moment, lines] of Object.entries(moments)) {
+      if (moment.startsWith('_')) continue;
+      if (!DLG_MOMENTS.includes(moment))
+        fail(F, ['people', face, moment], `${F}: people.${face}: unknown moment "${moment}". Moments are: ${DLG_MOMENTS.join(' ')}.`);
+      if (!Array.isArray(lines) || !lines.length)
+        fail(F, ['people', face, moment], `${F}: people.${face}.${moment} must be a non-empty array of lines`);
+      lines.forEach((s, li) => checkLine(['people', face, moment, li], `people.${face}.${moment}`, s, false));
+      mo[moment] = lines;
+    }
+    people[face] = mo;
+  }
+  out.people = people;
   return out;
 }
 

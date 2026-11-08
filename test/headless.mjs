@@ -1,7 +1,7 @@
 /* Runs the real game modules against a stub canvas so every code path
    executes without a browser. Catches ReferenceErrors, NaN drift,
    bad indices and dead loops that a syntax check cannot. */
-import { sandbox, deferred, makeCtx, makeCanvas, opCount } from './sandbox.mjs';
+import { sandbox, deferred, makeCtx, makeCanvas, opCount, runScript } from './sandbox.mjs';
 
 
 const { G, City, Nav, Art, Input, Demo, textW, money, MAXTHROW, VW, VH, WW, WH,
@@ -1539,6 +1539,28 @@ console.log('\n— test hooks —');
   ok(G.placed === true, 'victory on a qualifying score places');
   G.toTitle();
   reset();
+}
+
+console.log('\n— personal lines —');
+{
+  const D = KX.DIALOGUE, keep = D.people;
+  const rnd = (v) => runScript('globalThis.__rnd = Math.random; Math.random = () => ' + v + ';');
+  const unrnd = () => runScript('if (globalThis.__rnd) Math.random = globalThis.__rnd;');
+  const shared = (k) => D[k].map((s) => s.replace(/^\d\|/, ''));
+  try {
+    D.people = { c70trucker: { wait: ['ONLY MINE'] } };
+    rnd(0.1); const a = G.lineFor('wait', 'c70trucker'); unrnd();
+    rnd(0.9); const b = G.lineFor('wait', 'c70trucker'); unrnd();
+    ok(a === 'ONLY MINE', 'a personal line plays when the roll is under PERSONAL_ODDS (' + a + ')');
+    ok(b !== 'ONLY MINE' && shared('wait').includes(b), 'and a shared line plays above it (' + b + ')');
+    let allShared = true;
+    for (const v of [0.1, 0.5, 0.9]) { rnd(v); const l = G.lineFor('served', 'c70trucker'); unrnd(); if (!shared('served').includes(l)) allShared = false; }
+    ok(allShared, 'a moment the face has no personal lines for always falls back to shared');
+    rnd(0.1); const n1 = G.lineFor('wait', null), n2 = G.lineFor('wait', 'nobody'); unrnd();
+    ok(shared('wait').includes(n1) && shared('wait').includes(n2), 'no face, or a face with no entry, is shared');
+    D.people = undefined;
+    ok(shared('wait').includes(G.lineFor('wait', 'c70trucker')), 'with no people table at all it is shared');
+  } finally { D.people = keep; unrnd(); }
 }
 
 console.log('\n— copy —');

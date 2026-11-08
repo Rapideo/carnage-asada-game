@@ -534,7 +534,7 @@ const Kitchen = {
   bark(G, kind, t, hostile, force) {
     if (this.demo || typeof DIALOGUE === 'undefined') return;
     if (this.barkT > 0 && !force) return;
-    const line = G.pickLine(kind);
+    const line = G.lineFor(kind, t && t.cust ? t.cust.face : null);
     if (!line) return;
     this.barkT = 5;
     Dialog.say(DIALOGUE.who || 'CUSTOMER', line, {

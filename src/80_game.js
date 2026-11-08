@@ -32,6 +32,8 @@ const WEATHER_ROADS = {
   winter: { snowy: 'SNOW - THE BACK END STEPS OUT', sunny: 'PLOUGHED - THE ODD ICY PATCH' },
 };
 const BAG_MAX = 3;
+/* how often a face with personal lines for a moment uses one instead of the shared pool */
+const PERSONAL_ODDS = 0.75;
 const RAIL_EJECT = 52;      // px from the corridor centre a wreck throws you
 const THROW_CD = 0.34;
 const CONTINUE_SECS = 10;   // GDD II.F
@@ -576,16 +578,27 @@ const G = {
     return ok.length ? ok[(Math.random() * ok.length) | 0] : null;
   },
 
+  /* The line this face says at this moment: its own about 3 times in 4 when it
+     has some for the moment, else the shared pool. A face with personal lines
+     for some moments and not others falls back, moment by moment. */
+  lineFor(kind, face) {
+    if (typeof DIALOGUE === 'undefined') return null;
+    const own = face && DIALOGUE.people && DIALOGUE.people[face] && DIALOGUE.people[face][kind];
+    if (own && own.length && Math.random() < PERSONAL_ODDS) return own[(Math.random() * own.length) | 0];
+    return this.pickLine(kind);
+  },
+
   /* One line from the customer, over the dialogue strip. Kept out of the demo:
      attract mode is a shop window and a talking head over it reads as a
      cutscene rather than as play. */
   react(kind, order, hostile) {
     if (this.state !== 'play' || typeof DIALOGUE === 'undefined') return;
-    const line = this.pickLine(kind);
-    if (!line) return;
     const cast = Kitchen.castFor(this.era, this.level && this.level.year);
+    const face = cast[(Math.random() * cast.length) | 0];
+    const line = this.lineFor(kind, face);
+    if (!line) return;
     Dialog.say(DIALOGUE.who, line, {
-      face: cast[(Math.random() * cast.length) | 0],
+      face: face,
       hostile: hostile,
       hood: hostile ? 3 : 1,
       sub: order && order.house ? order.house.addr : '',
