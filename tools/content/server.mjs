@@ -132,6 +132,34 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
     }
   }
 
+  /* POST /admin/api/recolor { src, name, hue, sat, val }: derive a new well
+     with tools/render/recolor-lattice.mjs, which writes
+     content/lattice/<name>.json. Generated assets are written when generated:
+     the file is inert until a saved menu names it, and nothing overwrites one,
+     so a name that is already a file or a record is 409 exists.
+     -> 200 { rel: 'lattice/<name>.json', json, output } */
+  async function recolor(req, res) {
+    let b;
+    try { b = JSON.parse(await readBody(req)); } catch { return send(res, 400, { error: 'bad request' }); }
+    const { src, name } = b || {};
+    const nums = ['hue', 'sat', 'val'].map((k) => (b && typeof b[k] === 'number' ? b[k] : NaN));
+    /* a bin key is upper-case letters (validate.mjs checkSlot), and the record is named for it */
+    if (typeof src !== 'string' || !/^[A-Z0-9]+$/.test(src) || typeof name !== 'string' || !/^[A-Z]+$/.test(name)
+        || !nums.every(Number.isFinite) || nums[1] < 0 || nums[2] < 0) return send(res, 400, { error: 'bad request' });
+    const dir = join(content, 'lattice'), rel = 'lattice/' + name.toLowerCase() + '.json';
+    const list = (await readdir(dir)).filter((f) => f.endsWith('.json')), names = new Set();
+    for (const f of list) {
+      try { names.add(JSON.parse(await readFile(join(dir, f), 'utf8')).name); } catch { /* the validator reports it */ }
+    }
+    if (list.includes(name.toLowerCase() + '.json') || names.has(name)) return send(res, 409, { error: 'exists', rel });
+    if (!list.includes(src.toLowerCase() + '.json')) return send(res, 400, { error: 'no such well', src });
+    const r = await job(['node', 'tools/render/recolor-lattice.mjs', src, name, ...nums.map(String)]);
+    if (r.busy) return send(res, 409, { error: 'busy' });
+    if (r.code !== 0) return send(res, 500, { error: 'job', output: r.stdout + r.stderr });
+    send(res, 200, { rel, json: JSON.parse(await readFile(join(content, rel), 'utf8')), output: r.stdout.trim() });
+  }
+  const builtin = { '/admin/api/recolor': recolor };
+
   const server = createServer(async (req, res) => {
     try {
       const path = decodeURIComponent(req.url.split('?')[0]);
@@ -140,6 +168,7 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
         const o = req.headers.origin;
         if (o !== `http://127.0.0.1:${p}` && o !== `http://localhost:${p}`) return send(res, 403, { error: 'origin' });
         if (path === '/admin/api/save') return await save(req, res);
+        if (builtin[path]) return await builtin[path](req, res);
         if (routes[path]) return await routes[path](req, res, { withBusy, job, send, readBody, root });
         return send(res, 404, { error: 'not found' });
       }

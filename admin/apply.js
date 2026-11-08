@@ -81,10 +81,21 @@
     game.nav = d.nav || game.nav;
     if (typeof Kitchen !== 'undefined' && Kitchen.diff && d.kitchen) Kitchen.diff = d.kitchen;
   });
-  /* the kitchen keeps its own copy of the era's menu and builds bins from it */
+  /* The kitchen keeps its own copy of the era's menu and builds bins from it,
+     so an edit to its era restarts the screen, with the wells decoded afresh
+     for any bin that changed. An edit to another era's menu only re-points
+     that copy at the new content: no restart per keystroke for a menu that is
+     not on screen. */
   Admin.onApply('menus', function (built, game) {
-    if (game.stage === 'kitchen' && KITCHEN_STATES.includes(game.state)) Admin.restartScreen(game);
+    if (game.stage !== 'kitchen') return;
+    const K = typeof Kitchen !== 'undefined' ? Kitchen : null;
+    if (K) K.buildWells();
+    const now = K && K.menu && typeof MENUS !== 'undefined' ? MENUS[K.era] : null;
+    if (now && JSON.stringify(now) === JSON.stringify(K.menu)) { K.menu = now; return; }
+    if (KITCHEN_STATES.includes(game.state)) Admin.restartScreen(game);
   });
+  /* a new well (a recolour in the Menu panel) is decoded as soon as it exists */
+  Admin.onApply('lattice', function () { if (typeof Kitchen !== 'undefined' && Kitchen.wells) Kitchen.buildWells(); });
   Admin.onApply('playlist', function (built, game) {
     if (game.musicKey != null) game.playMusic(game.musicKey);
   });

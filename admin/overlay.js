@@ -2,6 +2,7 @@
    game's own scripts; F2 opens a panel beside the running game. */
 import './apply.js';
 import './panels/levels.js';
+import './panels/menu.js';
 import './panels/difficulty.js';
 import './panels/attract.js';
 import { store } from './store.js';

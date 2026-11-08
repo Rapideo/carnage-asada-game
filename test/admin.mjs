@@ -96,10 +96,13 @@ console.log('\n— server —');
   const { mkdtempSync, cpSync, writeFileSync, rmSync } = await import('node:fs');
   const { tmpdir } = await import('node:os');
   const tmp = mkdtempSync(join(tmpdir(), 'admin-'));
-  for (const f of ['build.mjs', 'shell.html', 'src', 'content', 'tools/content']) cpSync(f, join(tmp, f), { recursive: true });
+  for (const f of ['build.mjs', 'shell.html', 'src', 'content', 'tools/content', 'tools/render/recolor-lattice.mjs']) cpSync(f, join(tmp, f), { recursive: true });
   (await import('node:child_process')).execFileSync('node', ['build.mjs'], { cwd: tmp, stdio: 'pipe' });
   const { startAdmin } = await import('../tools/content/server.mjs');
   const srv = await startAdmin({ root: tmp, port: 0 });
+  const recolor = (body, origin) => fetch(srv.url + '/admin/api/recolor', {
+    method: 'POST', headers: { 'content-type': 'application/json', origin: origin || srv.url },
+    body: JSON.stringify(body) });
   const post = (body, origin) => fetch(srv.url + '/admin/api/save', {
     method: 'POST', headers: { 'content-type': 'application/json', origin: origin || srv.url },
     body: JSON.stringify(body) });
@@ -151,6 +154,38 @@ console.log('\n— server —');
     ok((await slow).code === 0, 'the job itself completed');
     ok((await srv.job(['node', '-e', '0'])).code === 0, 'the lock is released afterwards');
 
+    /* recolouring a well: generated assets are written when generated, and no endpoint overwrites a file */
+    {
+      const { existsSync } = await import('node:fs');
+      const chili = join(tmp, 'content/lattice/chili.json'), chiliText = readFileSync(chili, 'utf8');
+      r = await recolor({ src: 'BEANS', name: 'CHILI', hue: -20, sat: 1.1, val: 0.8 });
+      j = await r.json();
+      ok(r.status === 409 && j.error === 'exists' && readFileSync(chili, 'utf8') === chiliText, 'recolour into an existing name is 409 exists, and the file is untouched');
+      r = await recolor({ src: 'BEANS', name: 'TESTWELL', hue: -20, sat: 1.1, val: 0.8 });
+      j = await r.json();
+      const made = join(tmp, 'content/lattice/testwell.json');
+      ok(r.status === 200 && j.rel === 'lattice/testwell.json' && j.json && j.json.name === 'TESTWELL' && existsSync(made)
+         && JSON.stringify(JSON.parse(readFileSync(made, 'utf8'))) === JSON.stringify(j.json),
+         'a new name is 200 { rel, json } and writes content/lattice/<name>.json in the temp root (' + r.status + ' ' + JSON.stringify(j).slice(0, 120) + ')');
+      ok(!existsSync('content/lattice/testwell.json'), 'and nothing in the real repo');
+      const beans = JSON.parse(readFileSync(join(tmp, 'content/lattice/beans.json'), 'utf8'));
+      ok(j.json && j.json.w === beans.w && j.json.pix === beans.pix && j.json.pal.length === beans.pal.length && j.json.pal.join() !== beans.pal.join(),
+         'the result is the source well with its food colours moved');
+      r = await recolor({ src: 'BEANS', name: 'TESTWELL', hue: 10, sat: 1, val: 1 });
+      ok(r.status === 409 && (await r.json()).error === 'exists', 'a second recolour under the same name is refused, not overwritten');
+      const bad = [{ src: 'BEANS', name: '../x', hue: 0, sat: 1, val: 1 }, { src: 'BEANS', name: 'lower', hue: 0, sat: 1, val: 1 },
+        { src: 'NOPE', name: 'NEWONE', hue: 0, sat: 1, val: 1 }, { src: 'BEANS', name: 'NEWONE', hue: 'x', sat: 1, val: 1 }];
+      const codes = [];
+      for (const b of bad) codes.push((await recolor(b)).status);
+      ok(codes.every((c) => c === 400) && !existsSync(join(tmp, 'content/lattice/newone.json')), 'a bad name, a missing source or a non-number is 400 (' + codes.join() + ')');
+      const held = srv.job(['node', '-e', 'setTimeout(()=>{},600)']);
+      await new Promise((x) => setTimeout(x, 100));
+      r = await recolor({ src: 'BEANS', name: 'BUSYWELL', hue: 0, sat: 1, val: 1 });
+      ok(r.status === 409 && (await r.json()).error === 'busy' && !existsSync(join(tmp, 'content/lattice/busywell.json')), 'a recolour while a job runs is 409 busy');
+      await held;
+      ok((await recolor({ src: 'BEANS', name: 'X', hue: 0, sat: 1, val: 1 }, 'http://evil.example')).status === 403, 'recolour checks the Origin too');
+    }
+
     r = await post({ files: {}, stamp: {} }, 'http://evil.example');
     ok(r.status === 403, 'a foreign Origin is refused 403');
     r = await fetch(srv.url + '/admin/api/save', { method: 'POST', body: '{}' });
@@ -189,6 +224,38 @@ const diskBuilt = validateContent(fsSource('content'));
   ok(!threw, 'deleting a menu item mid-shift, then 120 frames: no throw' + (threw ? ' — ' + threw.stack : ''));
   ok(SB.__k.MENUS[era].items.length === before - 1 && K.menu.items.length === before - 1,
      "the live menu, and the kitchen's own copy, lost the item");
+
+  /* a bin is emptied mid-shift (and the dishes that use it go with it) */
+  A.applyBuilt(validateContent(memSource(files2())), G);
+  G.startRun(2); G.beginShift(); frames(240);
+  const binEra = G.level.era, bi = SB.__k.MENUS[binEra].bins.findIndex((b) => b && b.key === 'PEPPERS');
+  ok(G.state === 'kitchen' && K.tickets.length > 0 && bi >= 0 && K.bins[bi] && K.bins[bi].key === 'PEPPERS', 'a kitchen shift is running with a PEPPERS bin');
+  const fb = files2(), mb = fb['menus.json'][binEra];
+  mb.bins[bi] = null; mb.items = mb.items.filter((it) => !it.recipe.includes('PEPPERS'));
+  const wellsBefore = K.wells;
+  threw = null;
+  try { A.applyBuilt(validateContent(memSource(fb)), G);
+    ok(G.state === 'card' && K.tickets.length === 0, 'removing a bin mid-shift restarts the kitchen screen (' + G.state + ')');
+    ok(K.wells !== wellsBefore && K.wells.PEPPERS, 'the menus refresher rebuilt the wells');
+    G.beginShift(); frames(240); } catch (x) { threw = x; }
+  ok(!threw, 'removing a bin mid-shift, then a new shift for 240 frames: no throw' + (threw ? ' — ' + threw.stack : ''));
+  ok(K.bins[bi] === null && ![...K.tickets, ...K.queue].some((t) => t.items.some((it) => it.def.recipe.includes('PEPPERS'))),
+     'the kitchen has no PEPPERS bin and no ticket wants it');
+
+  /* an edit to another era's menu re-points the kitchen without restarting it */
+  const fo = files2(); fo['menus.json'][binEra].bins[bi] = null; fo['menus.json'][binEra].items = mb.items;
+  const other3 = String(binEra === 3 ? 2 : 3);
+  fo['menus.json'][other3].items[0].price += 1;
+  const stO = G.state, tkO = K.tickets.length;
+  A.applyBuilt(validateContent(memSource(fo)), G);
+  ok(G.state === stO && stO === 'kitchen' && K.tickets.length === tkO && K.menu === SB.__k.MENUS[binEra],
+     "a price edit in another era leaves the shift running, and the kitchen's menu points at the new content");
+
+  /* a new well (a recolour) reaches the kitchen's decoded wells */
+  const fl = files2(); fl['lattice/testwell.json'] = { ...structuredClone(files['lattice/beans.json']), name: 'TESTWELL' };
+  A.applyBuilt(validateContent(memSource(fl)), G);
+  ok(K.wells.TESTWELL, 'a new lattice record is decoded into Kitchen.wells');
+  A.applyBuilt(validateContent(memSource(files2())), G);
 
   /* a delivery shift, the playlist for its level changes */
   G.startRun(1); G.beginShift(); frames(30);
@@ -617,6 +684,94 @@ console.log('\n— docs —');
       ok(IX.renderAll(files, (f) => f === 'attract.md' ? aold : null)['attract.md'] === aout, 'renderAll renders attract.md');
     }
 
+    /* menu.md, rendered from today's JSON and from edits to it */
+    let MN = null;
+    try { MN = (await import('../tools/content/docs/menu.mjs')).default; } catch (x) { console.error('  (' + x.message + ')'); }
+    ok(MN && MN.file === 'menu.md' && IX.DOCS.includes(MN), 'menu.md is a registered doc');
+    if (MN) {
+      const mold = readFileSync(join(DIR, 'menu.md'), 'utf8').replace(/\r\n/g, '\n');
+      const mfx = (edit) => { const f = structuredClone(files); edit(f['menus.json'], f); return f; };
+      const bare = (hd) => hd.replace(/^[A-Z0-9]+(?:\.\d+)?\.? /, '');
+      const at = (text, ...names) => {
+        let n = parseMd(text).children.find((c) => c.depth === 1);
+        for (const nm of names) n = n && n.children.find((c) => bare(c.heading) === nm);
+        return n || { lines: [], children: [] };
+      };
+      const fields = (n) => n.lines.filter((l) => /^- /.test(l));
+      const mout = MN.render(files, mold);
+      ok(MN.render(files, mout) === mout, 'rendering menu.md is idempotent');
+      const a = mold.split('\n'), b = mout.split('\n');
+      const changed = a.map((l, i) => [l, b[i]]).filter(([x, y]) => x !== y);
+      ok(a.length === b.length && changed.length > 0 && changed.every(([x, y]) => (/^#{2,4} /.test(x) && /^#{2,4} /.test(y)) || (/^- (Short|Ticket|Ingredient \d|Price)\s*:/.test(x) && /^- (Short|Ticket|Ingredient \d|Price) : /.test(y))),
+         'from today\'s JSON only headings and value lines change, line for line (' + JSON.stringify(changed.filter(([x, y]) => !(/^#/.test(x) || /^- (Short|Ticket|Ingredient|Price)/.test(x))).slice(0, 4)) + ')');
+      const eras = parseMd(mout).children[0].children.filter((c) => /^Era \d$/.test(bare(c.heading)));
+      ok(eras.length === 3 && eras.every((e) => e.children.map((c) => c.heading).join('|') === 'A. Bins|A.1 Base Stations|B. Items'),
+         'every era keeps A. Bins, A.1 Base Stations and B. Items, in that order');
+      const e1 = at(mout, 'Era 1');
+      ok(at(mout, 'Era 1', 'Bins').children.map((c) => c.heading).join('|') === files['menus.json']['1'].bins.map((x, i) => (i + 1) + '. ' + (x ? x.name : '[EMPTY]')).join('|'),
+         'Era 1 lists all twelve bins by their JSON names, [EMPTY] for none');
+      ok(at(mout, 'Era 2', 'Bins').children.map((c) => c.heading).join('|') === '10. TACO SHOP SAUCE|11. HOUSE CHILI|12. [EMPTY]'
+         && at(mout, 'Era 3', 'Bins').children.map((c) => c.heading).join('|') === '12. GRILLED CHICKEN',
+         'a later era lists only the slots the era before left empty');
+      ok(at(mout, 'Era 1', 'Base Stations').children.map((c) => c.heading).join('|') === 'Left. SMALL TORTILLA, TACO SHELL, LARGE TORTILLA (stacked, top to bottom)|Right. CHIPS',
+         'the base stations follow the JSON, the "(stacked, top to bottom)" note kept');
+      const ht = at(mout, 'Era 1', 'Items').children[0];
+      ok(ht.heading === '1. HARD TACO' && fields(ht).join('|') === '- Short : HD TACO|- Ingredient 0 : TACO SHELL|- Ingredient 1 : GROUND BEEF|- Ingredient 2 : LETTUCE|- Ingredient 3 : CHEESE|- Price : 0.29',
+         'an item reads Short, the ingredients by their bin names, and the price in dollars (' + JSON.stringify(fields(ht)) + ')');
+      const sizing = ['**Short** is the name the kitchen\'s NOW BUILDING readout shows. The full name is too wide',
+        'the step count: `12 x chars + 9 x steps <= 127`, which allows 8 characters at 3 steps,'];
+      const notesIV = mold.slice(mold.indexOf('## IV. Notes for every era'));
+      const proseOf = (src) => src.split('\n').filter((l) => l.trim() && !/^#/.test(l) && !/^- (Short|Ticket|Ingredient \d|Price)\s*:/.test(l));
+      const lost = (src, o) => { const p = proseOf(src); let j = 0; for (const l of o.split('\n')) if (j < p.length && l === p[j]) j++; return j === p.length ? null : p[j]; };
+
+      /* the brief: an item added to Era 1 */
+      const add = mfx((m) => m['1'].items.push({ name: 'TEST TACO', ticket: 'TEST TACO', short: 'TST', price: 135, recipe: ['SHELL', 'BEEF', 'CHEESE'] }));
+      const ma = MN.render(add, mold), n10 = at(ma, 'Era 1', 'Items').children[9];
+      ok(n10 && n10.heading === '10. TEST TACO' && n10.depth === 4
+         && fields(n10).join('|') === '- Short : TST|- Ingredient 0 : TACO SHELL|- Ingredient 1 : GROUND BEEF|- Ingredient 2 : CHEESE|- Price : 1.35',
+         'adding an item to Era 1 adds "#### 10. TEST TACO" with its fields (' + JSON.stringify(n10 && [n10.heading, fields(n10)]) + ')');
+      ok(ma.includes('\n#### 10. TEST TACO\n\n- Short : TST\n\n') && ma.includes('- Price : 1.35\n\n## II. Era 2'), 'blank-separated, and just before Era 2');
+      ok(sizing.every((l) => ma.split('\n').includes(l)) && lost(mold, ma) === null && ma.endsWith(notesIV),
+         'the sizing note survives, as does every prose line, and the Notes section is byte-identical (' + lost(mold, ma) + ')');
+      ok(MN.render(add, ma) === ma, 'and that render is idempotent');
+
+      /* an item removed: nodes follow their item by name, so a note stays with its dish */
+      const rm = mfx((m) => m['2'].items.shift()), mr = MN.render(rm, mold), it2 = at(mr, 'Era 2', 'Items').children;
+      const bn = it2.find((c) => bare(c.heading) === 'BEEF NACHO SUPREME');
+      ok(it2.length === 12 && it2[0].heading === '1. SOFT TACO' && bn && bn.heading === '12. BEEF NACHO SUPREME'
+         && bn.lines.some((l) => l.startsWith('- Dropped : Monterey Jack and olives (no bin)')) && !it2.slice(0, 11).some((c) => c.lines.some((l) => /Dropped/.test(l))),
+         'removing Era 2\'s first item renumbers the rest, and the Dropped note stays on Beef Nacho Supreme');
+      const sw = mfx((m) => { const x = m['3'].items; [x[9], x[10]] = [x[10], x[9]]; }), ms = at(MN.render(sw, mold), 'Era 3', 'Items').children;
+      ok(ms[9].heading === '10. CHICKEN ENCHILADA SUPREME' && ms[10].heading === '11. CHICKEN ENCHILADA'
+         && ms[9].lines.includes('- Dropped : Monterey Jack (no bin)') && ms[10].lines.includes('- Dropped : Monterey Jack (no bin)'),
+         'reordering items moves their nodes, notes and all');
+
+      /* recipes that shrink and grow, prices and shorts */
+      const rc = mfx((m) => { m['1'].items[1].recipe = ['SHELL', 'BEEF', 'CHEESE']; m['1'].items[0].recipe.push('ONION', 'TOMATO'); m['1'].items[0].price = 35; m['1'].items[0].short = 'HTACO'; });
+      const mrc = MN.render(rc, mold), r0 = at(mrc, 'Era 1', 'Items').children[0], r1 = at(mrc, 'Era 1', 'Items').children[1];
+      ok(fields(r1).join('|') === '- Short : HTSUP|- Ingredient 0 : TACO SHELL|- Ingredient 1 : GROUND BEEF|- Ingredient 2 : CHEESE|- Price : 0.39'
+         && fields(r0).join('|') === '- Short : HTACO|- Ingredient 0 : TACO SHELL|- Ingredient 1 : GROUND BEEF|- Ingredient 2 : LETTUCE|- Ingredient 3 : CHEESE|- Ingredient 4 : ONIONS|- Ingredient 5 : TOMATOES|- Price : 0.35',
+         'a shorter recipe drops its spare Ingredient lines; a longer one adds them before the price (' + JSON.stringify([fields(r0), fields(r1)]) + ')');
+      ok(!/\n\n\n/.test(mrc) && lost(mold, mrc) === null && MN.render(rc, mrc) === mrc, 'with no doubled blank lines, no prose lost, idempotently');
+      const e2t = mfx((m) => { m['2'].items[5].ticket = 'MEAT ENCHI'; }), te = at(MN.render(e2t, mold), 'Era 2', 'Items').children[5];
+      ok(te.lines.includes('- Ticket : MEAT ENCHI') && te.lines.indexOf('- Ticket : MEAT ENCHI') === te.lines.indexOf('- Short : MT ENCH') + 2,
+         'Era 2\'s Ticket line follows the JSON, in place');
+      ok(!fields(e1.children[2].children[0]).some((l) => /Ticket/.test(l)), 'Era 1 items, which never listed a Ticket, are not given one');
+
+      /* bins */
+      const bins = mfx((m) => { m['1'].bins[0].name = 'MINCED BEEF'; m['2'].bins[11] = { key: 'OLIVES', name: 'OLIVES', plate: 'OLIVES' }; });
+      const mbn = MN.render(bins, mold);
+      ok(at(mbn, 'Era 1', 'Bins').children[0].heading === '1. MINCED BEEF' && at(mbn, 'Era 1', 'Items').children[0].lines.includes('- Ingredient 1 : MINCED BEEF')
+         && at(mbn, 'Era 2', 'Bins').children.map((c) => c.heading).join('|') === '10. TACO SHOP SAUCE|11. HOUSE CHILI|12. OLIVES',
+         'a renamed bin renames its heading and the ingredient lines that use it; a filled slot shows its name');
+      ok(lost(mold, mbn) === null, 'and no prose is lost (' + lost(mold, mbn) + ')');
+
+      const mfresh = MN.render(files, null);
+      ok(['## I. Era 1', '### A. Bins', '### A.1 Base Stations', '### B. Items', '#### 15. QUESO MELT', '## III. Era 3'].every((s) => mfresh.includes('\n' + s + '\n'))
+         && MN.render(files, mfresh) === mfresh, 'menu.md renders from nothing, idempotently');
+      ok(IX.renderAll(files, (f) => f === 'menu.md' ? mold : null)['menu.md'] === mout, 'renderAll renders menu.md');
+    }
+
     /* the same-as rule: a Same-as item with a wrapped note */
     {
       const sw = parseMd('### C. P\n\n- Same as Medium : A 1.00,\n  B 2.00. A note\n  that wraps\n').children[0];
@@ -931,6 +1086,169 @@ console.log('\n— attract panel —');
   A.applyBuilt(validateContent(memSource(files)), G);
   ok(Scores.board[0].ini === files['scores.json'].board[0].ini, 'put back');
   G.toTitle();
+}
+
+console.log('\n— menu panel —');
+{
+  const { store } = await import('../admin/store.js');
+  const FL = await import('../admin/fields.js');
+  const { NOW_PX, nowCost, BIN_COUNT } = await import('../tools/content/validate.mjs');
+  const realApply = globalThis.Admin.applyBuilt;
+  globalThis.Admin.applyBuilt = () => {};
+  store.files = structuredClone(files); store.dirty.clear(); store.error = null;
+  let loaded = true;
+  try { await import('../admin/panels/menu.js'); } catch (x) { loaded = false; console.error('  (' + x.message + ')'); }
+  const tab = FL.tabs.get('menu');
+  ok(loaded && tab && tab.title === 'Menu', 'the Menu panel registers its tab');
+  ok(/import '\.\/panels\/menu\.js'/.test(readFileSync('admin/overlay.js', 'utf8')), 'the overlay imports the Menu panel');
+  if (tab) {
+    const realFetch = globalThis.fetch;
+    globalThis.LATTICE = diskBuilt.lattice;
+    globalThis.Faces = { decode: (f) => ({ width: f.w, height: f.h, rec: f }) };
+    try {
+      const doc = fakeDoc(), ce = doc.createElement;
+      doc.createElement = (t) => {
+        const n = ce(t);
+        if (t === 'canvas') { n.draws = []; n.getContext = () => ({ drawImage: (...a) => n.draws.push(a), clearRect() {}, imageSmoothingEnabled: true }); }
+        return n;
+      };
+      const el = doc.createElement('div');
+      doc.body.appendChild(el);
+      tab.render(el);
+      const nodes = () => el.walk();
+      const find = (k, v) => nodes().find((n) => n.dataset[k] === String(v));
+      const all = (k) => nodes().filter((n) => n.dataset[k] !== undefined);
+      const ctl = (p) => nodes().find((n) => n.dataset.rel === 'menus.json' && n.dataset.path === p);
+      const type = (c, v) => { c.value = v; c.fire('input'); FL.paint(); };
+      const pick = (c, label) => { const i = c.kids.findIndex((o) => o.textContent === label); c.value = String(i); c.fire('change'); FL.paint(); };
+      const act = (a, item, j) => nodes().find((n) => n.dataset.act === a && (item === undefined || n.dataset.item === String(item)) && (j === undefined || n.dataset.j === String(j)));
+      const tick = () => new Promise((x) => setTimeout(x, 5));
+      const M = () => store.files['menus.json'];
+
+      ok(all('era').map((n) => n.dataset.era).join() === '1,2,3', 'one tab per era (' + all('era').map((n) => n.dataset.era).join() + ')');
+      const states = () => all('bin').map((n) => n.dataset.state).join();
+      ok(all('bin').length === BIN_COUNT && states() === 'own,own,own,own,own,own,own,own,own,empty,empty,empty'
+         && find('base', 'left') && find('base', 'right'), 'Era 1: twelve bins, nine filled and three empty, with a base station either side (' + states() + ')');
+      const beef = nodes().find((n) => n.tagName === 'CANVAS' && n.dataset.well === 'BEEF');
+      ok(beef && beef.width === 2 * diskBuilt.lattice.BEEF.w && beef.height === 2 * diskBuilt.lattice.BEEF.h && beef.draws.length === 1
+         && beef.draws[0][0].rec === diskBuilt.lattice.BEEF && beef.draws[0][3] === 2 * diskBuilt.lattice.BEEF.w,
+         "each bin shows its well, decoded with Faces.decode(LATTICE[key]) and drawn at 2x");
+      ok(nodes().some((n) => n.tagName === 'CANVAS' && n.dataset.well === 'TORTILLA') && nodes().some((n) => n.tagName === 'CANVAS' && n.dataset.well === 'CHIPS'),
+         'the base stations show the rack and the chips');
+
+      /* era 2: earlier bins are locked, this era's own are editable */
+      find('era', 2).fire('click');
+      ok(states() === 'locked,locked,locked,locked,locked,locked,locked,locked,locked,own,own,empty', 'Era 2: bins 1-9 locked, 10-11 its own, 12 empty (' + states() + ')');
+      find('bin', 0).fire('click');
+      ok(!ctl('2.bins.0.name') && !ctl('2.bins.0.plate') && el.textContent.includes('Filled in Era 1'), 'a locked bin has no controls and says which era filled it');
+      find('bin', 9).fire('click');
+      ok(ctl('2.bins.9.name') && ctl('2.bins.9.plate') && ctl('2.bins.9.name').value === 'TACO SHOP SAUCE', "the era's own bin has its name and plate");
+      type(ctl('2.bins.9.plate'), 'SAUCY');
+      ok(M()['2'].bins[9].plate === 'SAUCY' && M()['3'].bins[9].plate === 'SAUCY' && store.error === null, 'a plate edit carries to the later eras that hold the same bin');
+      type(ctl('2.bins.9.plate'), 'SAUCE PLATE');
+      ok(store.error && store.error.path.join('.') === '2.bins.9.plate' && ctl('2.bins.9.plate').classList.contains('adm-bad'), 'an 11-character plate is refused on the field');
+      type(ctl('2.bins.9.plate'), 'SAUCE');
+
+      /* items */
+      find('era', 1).fire('click');
+      const dishes = () => nodes().filter((n) => n.classList.contains('adm-menuitem'));
+      ok(dishes().length === 9 && dishes().every((n, i) => n.dataset.item === String(i)) && ctl('1.items.0.price').dataset.kind === 'money' && ctl('1.items.0.price').value === '0.29', 'Era 1: nine items, price in dollars');
+      ok(['name', 'ticket', 'short'].every((f) => ctl('1.items.0.' + f) && ctl('1.items.0.' + f).dataset.kind === 'text'), 'each item has name, ticket and short');
+      const base = ctl('1.items.0.recipe.0'), ing1 = ctl('1.items.0.recipe.1');
+      ok(base && base.tagName === 'SELECT' && base.kids.map((o) => o.textContent).join() === 'SMALL TORTILLA,TACO SHELL,LARGE TORTILLA,CHIPS',
+         'the base is a select of the base stations (' + (base && base.kids.map((o) => o.textContent).join()) + ')');
+      ok(ing1 && ing1.kids.map((o) => o.textContent).join() === M()['1'].bins.filter(Boolean).map((b) => b.name).join() && ctl('1.items.0.recipe.3') && !ctl('1.items.0.recipe.4'),
+         "each ingredient is a select of this era's filled bins");
+      const budget = (i) => (find('budget', i) || {}).textContent || '';
+      const it0 = M()['1'].items[0], left0 = NOW_PX - nowCost(it0.short, it0.recipe.length);
+      ok(budget(0).includes(left0 + 'px left') && budget(0).includes('0 characters left'), 'the short shows px and characters left (' + budget(0) + ')');
+      type(ctl('1.items.0.short'), 'HD TACOS');
+      ok(store.error && store.error.path.join('.') === '1.items.0.short' && /Trim 1/.test(ctl('1.items.0.short')._msg.textContent) && /over/.test(budget(0)),
+         'a short past the budget is refused on the field with characters to trim (' + budget(0) + ')');
+      type(ctl('1.items.0.short'), 'HD TACO');
+      type(ctl('1.items.0.price'), '0.35');
+      ok(M()['1'].items[0].price === 35, 'a price is typed in dollars and stored in cents');
+      type(ctl('1.items.0.price'), '0.29');
+      type(ctl('1.items.0.name'), 'HARD TACO X');
+      ok(nodes().some((n) => n.tagName === 'SPAN' && n.textContent === '1. HARD TACO X'), "an item's heading follows its name as you type");
+      type(ctl('1.items.0.name'), 'HARD TACO');
+
+      pick(ing1, 'REFRIED BEANS');
+      const grp = () => nodes().find((n) => n.dataset.rel === 'menus.json' && n.dataset.path === '1.items.0.recipe');
+      ok(M()['1'].items[0].recipe[1] === 'BEANS' && store.error && store.error.path.join('.') === '1.items.0.recipe' && grp() && grp().classList.contains('adm-bad')
+         && /board/.test(grp()._msg.textContent), 'a recipe with no board art is refused, on the recipe (' + (store.error && store.error.message.split('\n')[0]) + ')');
+      pick(ctl('1.items.0.recipe.1'), 'GROUND BEEF');
+      ok(store.error === null && !grp().classList.contains('adm-bad'), 'putting the beef back clears it');
+      act('del-ing', 0, 3).fire('click');
+      ok(M()['1'].items[0].recipe.join() === 'SHELL,BEEF,LETTUCE' && !ctl('1.items.0.recipe.3'), 'an ingredient can be removed');
+      act('add-ing', 0).fire('click');
+      ok(M()['1'].items[0].recipe.length === 4 && ctl('1.items.0.recipe.3'), 'and one added');
+      pick(ctl('1.items.0.recipe.3'), 'CHEESE');
+      ok(M()['1'].items[0].recipe.join() === 'SHELL,BEEF,LETTUCE,CHEESE' && store.error === null, 'back as it was');
+      const full = M()['1'].items[1];
+      ok(full.recipe.length === 7 && !act('add-ing', 1), 'an item with six ingredients offers no more');
+
+      act('add-item').fire('click');
+      const nw = M()['1'].items[9];
+      ok(M()['1'].items.length === 10 && dishes().length === 10 && nw && store.error === null,
+         'Add item adds one that validates as it stands (' + (store.error && store.error.message) + ')');
+      act('up', 9).fire('click');
+      ok(M()['1'].items[8] === nw && M()['1'].items[9].name === 'NACHOS', 'up moves it');
+      act('down', 8).fire('click');
+      ok(M()['1'].items[9] === nw, 'down moves it back');
+      act('remove', 9).fire('click');
+      ok(M()['1'].items.length === 9 && store.error === null, 'remove takes it out');
+      ok(JSON.stringify(M()) === JSON.stringify(files['menus.json']), 'every edit was put back');
+
+      /* a new ingredient in an empty bin: era 3 gives up its slot 12 for the test */
+      const m3 = M()['3'];
+      m3.bins[11] = null; m3.items = m3.items.filter((it) => !it.recipe.includes('CHICKEN'));
+      store.validate(); store.dirty.clear();
+      ok(store.error === null, 'with Era 3 slot 12 empty the content validates');
+      find('era', 2).fire('click');
+      find('bin', 11).fire('click');
+      const ni = (k) => find('ni', k);
+      ok(['key', 'name', 'plate', 'src', 'hue', 'sat', 'val'].every((k) => ni(k)) && act('preview') && act('fill') && act('fill').disabled,
+         'an empty bin offers a new ingredient: key, name, plate, a source well and hue/sat/val; Put in bin waits for a preview');
+      ok(ni('src').kids.some((o) => o.textContent === 'BEANS'), 'the source select lists the wells');
+      const sent = [];
+      const beansRec = { ...structuredClone(files['lattice/beans.json']), name: 'TESTWELL' };
+      globalThis.fetch = async (url, o) => {
+        sent.push({ url, body: JSON.parse(o.body), method: o.method });
+        const exists = JSON.parse(o.body).name === 'CHILI';
+        return { status: exists ? 409 : 200, ok: !exists, json: async () => (exists ? { error: 'exists' } : { rel: 'lattice/testwell.json', json: beansRec }) };
+      };
+      const chiliRec = store.files['lattice/chili.json'];
+      ni('key').value = 'CHILI'; ni('src').value = String(ni('src').kids.findIndex((o) => o.textContent === 'BEANS'));
+      act('preview').fire('click'); await tick();
+      ok(/exists/.test(ni('msg').textContent) && act('fill').disabled && store.files['lattice/chili.json'] === chiliRec,
+         'a name already taken is refused by the server, and said so (' + ni('msg').textContent + ')');
+      ni('key').value = 'TESTWELL'; ni('name').value = 'TEST WELL'; ni('plate').value = 'TEST';
+      ni('hue').value = '-20'; ni('sat').value = '1.1'; ni('val').value = '0.8';
+      act('preview').fire('click'); await tick();
+      const last = sent[sent.length - 1];
+      ok(last && /\/admin\/api\/recolor$/.test(last.url) && last.method === 'POST'
+         && JSON.stringify(last.body) === JSON.stringify({ src: 'BEANS', name: 'TESTWELL', hue: -20, sat: 1.1, val: 0.8 }),
+         'Preview posts { src, name, hue, sat, val } to the recolour endpoint (' + JSON.stringify(last && last.body) + ')');
+      ok(store.files['lattice/testwell.json'] === beansRec && !store.dirty.has('lattice/testwell.json') && !store.dirty.has('menus.json'),
+         'the new well joins the working copy (it is already on disk), and nothing is dirty yet');
+      ok(nodes().some((n) => n.tagName === 'CANVAS' && n.dataset.well === 'TESTWELL' && n.draws.length && n.draws[0][0].rec === beansRec) && !act('fill').disabled,
+         'the preview shows the new well, and Put in bin is ready');
+      act('fill').fire('click');
+      ok(JSON.stringify(M()['2'].bins[11]) === '{"key":"TESTWELL","name":"TEST WELL","plate":"TEST"}' && JSON.stringify(M()['3'].bins[11]) === JSON.stringify(M()['2'].bins[11])
+         && store.error === null && store.dirty.has('menus.json'), 'Put in bin fills the slot here and in the later eras, and validates (' + (store.error && store.error.message) + ')');
+      ok(states().endsWith('own') && find('bin', 11).dataset.state === 'own', 'the slot is now this era\'s own bin');
+      act('empty-bin').fire('click');
+      ok(M()['2'].bins[11] === null && M()['3'].bins[11] && store.error === null, 'Empty this bin empties it in this era only');
+
+      delete globalThis.Faces;
+      let threw = null;
+      try { find('era', 1).fire('click'); find('era', 3).fire('click'); } catch (x) { threw = x; }
+      ok(!threw, 'with no Faces (no game) the panel still draws' + (threw ? ': ' + threw.message : ''));
+    } finally { globalThis.fetch = realFetch; delete globalThis.LATTICE; delete globalThis.Faces; }
+  }
+  store.files = structuredClone(files); store.dirty.clear(); store.error = null;
+  globalThis.Admin.applyBuilt = realApply;
 }
 
 console.log('\n— artifact —');
