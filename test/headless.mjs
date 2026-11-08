@@ -1191,6 +1191,19 @@ const Kt = KX.Kitchen;
 ok(KX.CASTS && KX.CASTS['2'] && KX.CASTS['2'].length > 0 && JSON.stringify(Kt.castFor(2)) === JSON.stringify(KX.CASTS['2']),
    `Kitchen.castFor(2) is CASTS['2'] (${Kt.castFor(2).join()})`);
 ok(Kt.castFor(9).join() === 'smokerbust', 'an era with no cast falls back to the dialogue default');
+/* the crowd grows through the decade: CASTS.from is each face's first year (owner, 2026-11-08) */
+{
+  const F = KX.CASTS.from || {};
+  const at = (era, y) => Kt.castFor(era, y);
+  const grows = [1, 2, 3].every((era) => {
+    const ys = [...new Set(KX.LEVELS.filter((l) => l.era === era).map((l) => l.year))].sort((a, b) => a - b);
+    const n = ys.map((y) => at(era, y).length);
+    return n[0] > 0 && n.every((v, i) => !i || v >= n[i - 1]) && n[n.length - 1] === KX.CASTS[era].length;
+  });
+  ok(grows, `each decade's crowd only grows, from its first level to the whole cast by its last (${[1, 2, 3].map((e) => [1972, 1981, 1990][e - 1] + ':' + at(e, [1972, 1981, 1990][e - 1]).length + '/' + KX.CASTS[e].length).join(' ')})`);
+  ok(!at(1, 1972).some((n) => F[n] > 1972) && at(1, 1978).includes('c70magician') && !at(1, 1975).includes('c70magician'),
+     'nobody appears before their first year: the Magician joins in 1978');
+}
 /* the surroundings: one wall per decade, baked per level (owner, 2026-11-07).
    The stubs cannot see a pixel; what they can check is that every kitchen
    level bakes without a missing colour, that the calendar shows that level's

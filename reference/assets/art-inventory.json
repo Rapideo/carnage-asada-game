@@ -1,0 +1,1740 @@
+[
+ {
+  "file": "70s - Set 1.png",
+  "decade": "70s",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "LONGHAIR DUDE",
+    "status": "baked",
+    "faceKey": "c70longhair",
+    "row": 1,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "BELL BOTTOM GIRL",
+    "status": "baked",
+    "faceKey": "c70bellbottom",
+    "row": 1,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "DISCO KING",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": "Black character in stereotyped role, owner judgment"
+   },
+   {
+    "label": "NEWSMAN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "TRUCKER",
+    "status": "baked",
+    "faceKey": "c70trucker",
+    "row": 1,
+    "col": 5,
+    "note": ""
+   },
+   {
+    "label": "LEISURE SUIT LARRY",
+    "status": "baked",
+    "faceKey": "c70leisure",
+    "row": 2,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "SCHOOL TEACHER",
+    "status": "baked",
+    "faceKey": "c70teacher",
+    "row": 2,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "MILITARY GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "HIPPIE DUDE",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "DINER WAITRESS",
+    "status": "baked",
+    "faceKey": "c70waitress",
+    "row": 2,
+    "col": 5,
+    "note": ""
+   }
+  ]
+ },
+ {
+  "file": "70s - Set 2.png",
+  "decade": "70s",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "PORN STAR",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": "content-sensitive label; open-shirt disco look"
+   },
+   {
+    "label": "MAGICIAN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "JAZZ MUSICIAN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": "Black character in stereotyped role, owner judgment"
+   },
+   {
+    "label": "BOAT CAPTAIN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "BEEKEEPER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 5,
+    "note": ""
+   },
+   {
+    "label": "SURFER DUDE",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "ROLLER SKATER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "AVIATOR",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": "rival-driver candidate"
+   },
+   {
+    "label": "PHOTOGRAPHER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "STAGEHAND",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 5,
+    "note": "coworker candidate"
+   }
+  ]
+ },
+ {
+  "file": "70s - Set 3.png",
+  "decade": "70s",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "RACE CAR DRIVER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": "rival-driver candidate"
+   },
+   {
+    "label": "SOUL TRAIN GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 2,
+    "note": "Black character in stereotyped role, owner judgment"
+   },
+   {
+    "label": "LONGHAIR",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "FLOWER CHILD",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "TAX MAN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 5,
+    "note": ""
+   },
+   {
+    "label": "SPORTS ANNOUNCER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "GREASER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "DISCO QUEEN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "ARTIST",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "EASY RIDER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 5,
+    "note": "rival-driver candidate; \"1%\" outlaw-biker patch"
+   }
+  ]
+ },
+ {
+  "file": "70s - Set 4.png",
+  "decade": "70s",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "DISCO DUDE",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "STONER DUDE",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 2,
+    "note": "drug-culture label"
+   },
+   {
+    "label": "NEWSMAN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "WOMAN WITH BIG SUNGLASSES",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "BELL BOTTOM GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 5,
+    "note": ""
+   },
+   {
+    "label": "POLICE SERGEANT",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": "officer candidate"
+   },
+   {
+    "label": "FOXY LADY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 2,
+    "note": "sexualised label"
+   },
+   {
+    "label": "BOWL CUT KID",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "TRUCK DRIVER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": "rival-driver candidate"
+   },
+   {
+    "label": "FLIGHT ATTENDANT",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 5,
+    "note": ""
+   }
+  ]
+ },
+ {
+  "file": "80s - Set 1.png",
+  "decade": "80s",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "NEW WAVE GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "AEROBICS INSTRUCTOR",
+    "status": "baked",
+    "faceKey": "c80aerobics",
+    "row": 1,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "GI JOE FAN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": "brand/IP shirt (GI Joe)"
+   },
+   {
+    "label": "80s METALHEAD",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": "Iron Maiden shirt (real band)"
+   },
+   {
+    "label": "PREPPY GIRL",
+    "status": "baked",
+    "faceKey": "c80preppy",
+    "row": 1,
+    "col": 5,
+    "note": ""
+   },
+   {
+    "label": "ARCADE KID",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "BREAKDANCER",
+    "status": "baked",
+    "faceKey": "c80breaker",
+    "row": 2,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "TV SITCOM DAD",
+    "status": "baked",
+    "faceKey": "c80dad",
+    "row": 2,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "VALLEY GIRL",
+    "status": "baked",
+    "faceKey": "c80valley",
+    "row": 2,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "VIDEO STORE CLERK",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 5,
+    "note": "kitchen-coworker candidate (name tag/staff polo)"
+   }
+  ]
+ },
+ {
+  "file": "80s - Set 2.png",
+  "decade": "80s",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "VALLEY SURFER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "MTV VJ",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "YUPPIE GIRL",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "NEW ROMANTIC",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "JOCK",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 5,
+    "note": ""
+   },
+   {
+    "label": "80s ACTION HERO",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "GIRL ROCKER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "COMPUTER NERD",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": "nerd caricature (buck teeth, bow tie)"
+   },
+   {
+    "label": "BREAKFAST CLUB KID",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "D.J.",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 5,
+    "note": ""
+   }
+  ]
+ },
+ {
+  "file": "80s - Set 3.png",
+  "decade": "80s",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "PREPPY GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "HEAVY METAL DUDE",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 2,
+    "note": "Iron Maiden shirt (real band)"
+   },
+   {
+    "label": "80s BUSINESSMAN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "PUNK ROCKER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "SKI BUM",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 5,
+    "note": ""
+   },
+   {
+    "label": "80s COP",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": "officer candidate"
+   },
+   {
+    "label": "VALLEY GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "ARCADE KID",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "NEWS ANCHOR",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "MIAMI GIRL",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 5,
+    "note": ""
+   }
+  ]
+ },
+ {
+  "file": "80s - Set 4.png",
+  "decade": "80s",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "80s JOCK",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "80s PREPPY GIRL",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "80s GAMER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": "coworker candidate; Atari logo"
+   },
+   {
+    "label": "80s METALHEAD",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": "Iron Maiden shirt (real band)"
+   },
+   {
+    "label": "80s BUSINESS GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 5,
+    "note": ""
+   },
+   {
+    "label": "80s VALLEY GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "80s PUNK",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "80s BREAKDANCER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "80s SCIENTIST",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "80s COP",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 5,
+    "note": "officer candidate"
+   }
+  ]
+ },
+ {
+  "file": "80s - Set 5.png",
+  "decade": "80s",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "YUPPIE",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "80s BIKER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 2,
+    "note": "rival-driver candidate"
+   },
+   {
+    "label": "NEW WAVE GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "AEROBICS GIRL",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "SKATEBOARDER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 5,
+    "note": "coworker candidate (teen)"
+   },
+   {
+    "label": "VIDEO STORE CLERK",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": "kitchen-coworker candidate (name tag/staff polo)"
+   },
+   {
+    "label": "GIRL WITH LEG WARMERS",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "MIAMI VICE GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "DOCTOR",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "ROCKER CHICK",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 5,
+    "note": ""
+   }
+  ]
+ },
+ {
+  "file": "90s - Set 1.png",
+  "decade": "90s",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "90s HIP HOP KID",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": "Charlotte Hornets gear (ok)"
+   },
+   {
+    "label": "TOMB RAIDER FAN",
+    "status": "baked",
+    "faceKey": "c90raider",
+    "row": 1,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "ALTERNATIVE ROCKER",
+    "status": "baked",
+    "faceKey": "c90rocker",
+    "row": 1,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "GIRL POWER FAN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": "Spice Girls shirt, 1996+, ok"
+   },
+   {
+    "label": "NINTENDO KID",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 5,
+    "note": "brand/IP shirt; N64 is 1996, fine for 1999"
+   },
+   {
+    "label": "JOCK",
+    "status": "baked",
+    "faceKey": "c90jock",
+    "row": 2,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "CLUB KID",
+    "status": "baked",
+    "faceKey": "c90club",
+    "row": 2,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "TEEN SOAP STAR",
+    "status": "baked",
+    "faceKey": "c90soap",
+    "row": 2,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "CYBER CAFE REGULAR",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": "Windows 95 / Intel Inside shirt (ok)"
+   },
+   {
+    "label": "90s R&B SINGER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 5,
+    "note": ""
+   }
+  ]
+ },
+ {
+  "file": "90s - Set 2.png",
+  "decade": "90s",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "GRUNGE CHICK",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": "coworker candidate"
+   },
+   {
+    "label": "BOY BAND HEARTTHROB",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "MIAMI CLUB KID",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "90s SKATER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "ALTERNATIVE GIRL",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 5,
+    "note": ""
+   },
+   {
+    "label": "RAPPER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "GENERATION X GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "IT GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "RAVER GIRL",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "TECH NERD",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 5,
+    "note": "nerd caricature"
+   }
+  ]
+ },
+ {
+  "file": "90s - Set 3.png",
+  "decade": "90s",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "PREPPY COLLEGE KID",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "CLUELESS BLONDE",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 2,
+    "note": "blonde stereotype (Clueless, 1995)"
+   },
+   {
+    "label": "R&B SINGER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "DOPEY BUDDY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": "PERIOD-WRONG: drew-brand smiley shirt is a 2019 brand; \"dopey\" label demeaning"
+   },
+   {
+    "label": "CYBERPUNK HACKER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 5,
+    "note": "Matrix-style code shirt; 1999 at the very edge"
+   },
+   {
+    "label": "HIP HOP HEAD",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "RIOT GRRRL",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "TECH SUPPORT GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": "coworker candidate"
+   },
+   {
+    "label": "SK8TER CHICK",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "90s TV COP",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 5,
+    "note": "officer candidate"
+   }
+  ]
+ },
+ {
+  "file": "90s - Set 4.png",
+  "decade": "90s",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "90s RAVER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "GRUNGE GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 2,
+    "note": "Nirvana shirt, 1991+, ok"
+   },
+   {
+    "label": "GANGSTA RAPPER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": "stereotype risk; real-world \"Compton\" cap and Raiders logo"
+   },
+   {
+    "label": "SPICE GIRL FAN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": "Spice Girls shirt, 1996+, ok"
+   },
+   {
+    "label": "BACKPACKER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 5,
+    "note": ""
+   },
+   {
+    "label": "DARIA",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": "cartoon IP character, not a generic person"
+   },
+   {
+    "label": "SKATER KID",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "BOY BAND MEMBER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "TEEN MOM",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": "label judgment"
+   },
+   {
+    "label": "VIDEO CLERK",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 5,
+    "note": "kitchen-coworker candidate; Blockbuster logo (trademark)"
+   }
+  ]
+ },
+ {
+  "file": "Misc - Set 1.png",
+  "decade": "misc",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "GRUNGE KID",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": "coworker candidate"
+   },
+   {
+    "label": "UPTIGHT KAREN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 2,
+    "note": "PERIOD-WRONG: \"Karen\" is a 2010s meme label; also demeaning"
+   },
+   {
+    "label": "CLOWN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "CHEF",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": "kitchen-coworker candidate"
+   },
+   {
+    "label": "HARE KRISHNA",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 5,
+    "note": "religious depiction (robes, tilaka, beads); owner judgment"
+   },
+   {
+    "label": "GAMER GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": "PERIOD-WRONG (probable): modern gaming headset look"
+   },
+   {
+    "label": "POWER GLOVE LUCAS",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 2,
+    "note": "1989 Nintendo accessory, IP-adjacent"
+   },
+   {
+    "label": "BEATBOX GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "PIMP",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": "stereotype risk (Black character, purple fur, cane)"
+   },
+   {
+    "label": "70s GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 5,
+    "note": ""
+   },
+   {
+    "label": "COOL GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 3,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "INDIE ROCK CHICK",
+    "status": "unused",
+    "faceKey": null,
+    "row": 3,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "PIERCING CHICK",
+    "status": "unused",
+    "faceKey": null,
+    "row": 3,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "FOOD REVIEWER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 3,
+    "col": 4,
+    "note": ""
+   }
+  ]
+ },
+ {
+  "file": "Misc - Set 2.png",
+  "decade": "misc",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "HELL'S ANGEL",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": "rival-driver candidate; real club name and skull, check"
+   },
+   {
+    "label": "CYCLIST",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 2,
+    "note": "rival-driver candidate"
+   },
+   {
+    "label": "MAN WITH VERY WHITE BEARD",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "FRAT BOY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "VALLEY GIRL",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "PROFESSOR",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "BREAK DANCER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "GUY WITH BERET",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": "French stereotype (beret, striped shirt, scarf)"
+   },
+   {
+    "label": "FEMALE TRUCKER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 3,
+    "col": 1,
+    "note": "rival-driver candidate"
+   },
+   {
+    "label": "PSYCHIC",
+    "status": "unused",
+    "faceKey": null,
+    "row": 3,
+    "col": 2,
+    "note": "fortune-teller/gypsy-style stereotype risk (appears twice)"
+   },
+   {
+    "label": "NECK BEARD DUDE",
+    "status": "unused",
+    "faceKey": null,
+    "row": 3,
+    "col": 3,
+    "note": "PERIOD-WRONG: \"neckbeard\" is a 2010s meme term; also demeaning"
+   }
+  ]
+ },
+ {
+  "file": "Misc - Set 3.png",
+  "decade": "misc",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "BLACK KID",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": "label names race"
+   },
+   {
+    "label": "ASIAN MAN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 2,
+    "note": "label names race; plain depiction"
+   },
+   {
+    "label": "BLACK WOMAN IN CHURCH HAT",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": "label names race; church-hat trope"
+   },
+   {
+    "label": "WHITE RAPPER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": "label names race; mildly mocking"
+   },
+   {
+    "label": "NAKED GUY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": "shirtless, cartoon style, comic nudity"
+   },
+   {
+    "label": "MASKED ROBBER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 2,
+    "note": "crime trope"
+   },
+   {
+    "label": "BANKER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "SKINNY SMOKING DUDE",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": "cigarette, drawn gaunt/weary"
+   }
+  ]
+ },
+ {
+  "file": "ChatGPT Image Aug 25, 2026, 12_40_58 AM.png",
+  "decade": "misc",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "PUNK ROCKER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "NUN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 2,
+    "note": "religious figure"
+   },
+   {
+    "label": "DOCTOR",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "NURSE",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "FARMER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "COWBOY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "COP",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": "officer candidate (coarser art style than the decade sheets)"
+   },
+   {
+    "label": "MEN IN BLACK",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": "officer/agent candidate; 1997 film reference, IP-adjacent"
+   },
+   {
+    "label": "PIMPLY TEENAGE NERD",
+    "status": "unused",
+    "faceKey": null,
+    "row": 3,
+    "col": 1,
+    "note": "demeaning depiction (acne, buck teeth)"
+   },
+   {
+    "label": "METAL KID",
+    "status": "unused",
+    "faceKey": null,
+    "row": 3,
+    "col": 2,
+    "note": ""
+   }
+  ]
+ },
+ {
+  "file": "ChatGPT Image Aug 25, 2026, 12_41_10 AM.png",
+  "decade": "misc",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "FIREMAN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "LAWYER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "DENTIST",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "CHEERLEADER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "TEACHER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "ASTRONAUT",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "MILK MAN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "LIBRARIAN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "OLD LADY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 3,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "REALLY OLD LADY",
+    "status": "unused",
+    "faceKey": null,
+    "row": 3,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "OLD MAN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 3,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "GOOFY KID",
+    "status": "unused",
+    "faceKey": null,
+    "row": 3,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "CHUBBY KID",
+    "status": "unused",
+    "faceKey": null,
+    "row": 4,
+    "col": 1,
+    "note": "body-shape caricature"
+   },
+   {
+    "label": "PSYCHIC",
+    "status": "unused",
+    "faceKey": null,
+    "row": 4,
+    "col": 2,
+    "note": "fortune-teller/gypsy-style stereotype risk (appears twice)"
+   }
+  ]
+ },
+ {
+  "file": "ChatGPT Image Aug 25, 2026, 12_42_26 AM.png",
+  "decade": "misc",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "HIPPY CHICK",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "PRIEST",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 2,
+    "note": "religious figure"
+   },
+   {
+    "label": "FISHERMAN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "DITCH DIGGER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 1,
+    "col": 4,
+    "note": ""
+   },
+   {
+    "label": "POLITICIAN",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 1,
+    "note": ""
+   },
+   {
+    "label": "YOUNG FRECKLY GIRL",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 2,
+    "note": ""
+   },
+   {
+    "label": "BRATTY KID",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 3,
+    "note": ""
+   },
+   {
+    "label": "ZOO KEEPER",
+    "status": "unused",
+    "faceKey": null,
+    "row": 2,
+    "col": 4,
+    "note": ""
+   }
+  ]
+ },
+ {
+  "file": "Smoker.png",
+  "decade": "misc",
+  "duplicateOf": null,
+  "characters": [
+   {
+    "label": "(single bust, no label)",
+    "status": "baked",
+    "faceKey": "smokerbust",
+    "row": 1,
+    "col": 1,
+    "note": ""
+   }
+  ]
+ },
+ {
+  "file": "ChatGPT Image Aug 25, 2026, 01_12_35 AM.png",
+  "decade": "misc",
+  "duplicateOf": "Misc - Set 2.png",
+  "characters": []
+ },
+ {
+  "file": "ChatGPT Image Aug 25, 2026, 12_48_37 AM.png",
+  "decade": "misc",
+  "duplicateOf": "Misc - Set 2.png",
+  "characters": []
+ },
+ {
+  "file": "ChatGPT Image Aug 25, 2026, 12_41_21 AM.png",
+  "decade": "misc",
+  "duplicateOf": "Misc - Set 3.png",
+  "characters": []
+ },
+ {
+  "file": "ChatGPT Image Aug 25, 2026, 12_42_41 AM.png",
+  "decade": "misc",
+  "duplicateOf": "Misc - Set 3.png",
+  "characters": []
+ },
+ {
+  "file": "ChatGPT Image Aug 25, 2026, 12_42_11 AM.png",
+  "decade": "misc",
+  "duplicateOf": "ChatGPT Image Aug 25, 2026, 12_41_10 AM.png",
+  "characters": []
+ }
+]

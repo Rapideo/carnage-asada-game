@@ -191,7 +191,7 @@ const Kitchen = {
   },
 
   newCustomer() {
-    const casts = this.castFor(this.era);
+    const casts = this.castFor(this.era, this.year);
     return {
       i: (Math.random() * Art.ped.length) | 0,
       face: casts[(Math.random() * casts.length) | 0],
@@ -200,10 +200,18 @@ const Kitchen = {
   },
 
   /* the era's customers, from content/casts.json (the build checks every name
-     is a face and no era is empty); the dialogue default if there are none */
-  castFor(era) {
+     is a face and no era is empty); the dialogue default if there are none.
+     With a year, only the faces that have arrived by then: CASTS.from holds a
+     face's first year, so the decade's crowd grows level by level. The build
+     guarantees somebody at an era's first level; the full list is the
+     fallback all the same. */
+  castFor(era, year) {
     const c = typeof CASTS !== 'undefined' ? CASTS[era] : null;
-    return c && c.length ? c : [DLG_FACE];
+    if (!c || !c.length) return [DLG_FACE];
+    const from = CASTS.from;
+    if (year === undefined || !from) return c;
+    const now = c.filter((n) => !(n in from) || from[n] <= year);
+    return now.length ? now : c;
   },
 
   /* where the k-th person in line stands: a LINE perpendicular to the window,

@@ -41,6 +41,13 @@ const game = () => (typeof G !== 'undefined' ? G : undefined);
 const relOf = (n) => 'faces/' + n + '.json';
 const names = () => Object.keys(store.files).filter((r) => /^faces\/[^/]+\.json$/.test(r)).map((r) => r.slice(6, -5)).sort();
 const casts = () => store.files[CASTS] || {};
+const fromOf = () => { const f = casts().from; return f && typeof f === 'object' && !Array.isArray(f) ? f : {}; };
+/* the years an era's levels are set in, from levels.json, earliest first */
+function levelYears(era) {
+  const L = store.files['levels.json'];
+  const arr = Array.isArray(L) ? L : L && Array.isArray(L.levels) ? L.levels : [];
+  return [...new Set(arr.filter((l) => String(l.era) === String(era)).map((l) => l.year))].sort((a, b) => a - b);
+}
 const eras = () => Object.keys(casts()).filter((k) => /^\d+$/.test(k)).sort((a, b) => a - b);
 const redraw = () => {
   if (!panel) return;
@@ -114,8 +121,26 @@ function castSection(doc, el, era) {
     tile.dataset.cast = era; tile.dataset.face = n;
     const rm = btn(doc, 'Remove', 'uncast', 'take ' + n + ' out of era ' + era);
     rm.dataset.era = era; rm.dataset.face = n;
-    rm.addEventListener('click', () => { store.set(CASTS, era, list.filter((x) => x !== n)); redraw(); });
-    tile.append(thumb(doc, n), h(doc, 'div', 'adm-tilename', n), rm);
+    rm.addEventListener('click', () => {
+      /* a face that leaves its last cast takes its first year with it: the
+         build refuses a "from" for a face no era casts */
+      const left = eras().some((e) => e !== era && (casts()[e] || []).includes(n));
+      if (!left && fromOf()[n] !== undefined) { const f = { ...fromOf() }; delete f[n]; store.set(CASTS, 'from', f); }
+      store.set(CASTS, era, list.filter((x) => x !== n));
+      redraw();
+    });
+    /* the year this face first appears: the decade's crowd grows level by level */
+    const yr = h(doc, 'select', 'adm-era');
+    yr.dataset.from = n; yr.title = 'the first year ' + n + ' appears';
+    const years = levelYears(era);
+    for (const y of ['', ...years]) { const o = h(doc, 'option', null, y ? 'from ' + y : 'from the start'); o.value = y; yr.appendChild(o); }
+    yr.value = fromOf()[n] !== undefined ? String(fromOf()[n]) : '';
+    yr.addEventListener('change', () => {
+      const f = { ...fromOf() };
+      if (yr.value && Number(yr.value) !== years[0]) f[n] = Number(yr.value); else delete f[n];
+      store.set(CASTS, 'from', f);
+    });
+    tile.append(thumb(doc, n), h(doc, 'div', 'adm-tilename', n), yr, rm);
     grid.appendChild(tile);
   }
   sec.appendChild(grid);

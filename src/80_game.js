@@ -583,7 +583,7 @@ const G = {
     if (this.state !== 'play' || typeof DIALOGUE === 'undefined') return;
     const line = this.pickLine(kind);
     if (!line) return;
-    const cast = Kitchen.castFor(this.era);
+    const cast = Kitchen.castFor(this.era, this.level && this.level.year);
     Dialog.say(DIALOGUE.who, line, {
       face: cast[(Math.random() * cast.length) | 0],
       hostile: hostile,

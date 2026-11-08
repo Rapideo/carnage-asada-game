@@ -17,6 +17,7 @@ node tools/render/audit.mjs              # read pixels back, check label fit
 node tools/render/palette.mjs            # the complete palette as a sheet
 node tools/render/artboard.mjs           # pre-sized canvases for authoring art
 node tools/render/bake-face.mjs <name> <src.png> <x> <y> <w> <h>
+node tools/render/bake-picks.mjs         # the owner's picks off the art sheets -> faces + casts.json
 node tools/render/bake-lattice.mjs <sheet.png> --tray --pad 2
 ```
 
@@ -33,6 +34,7 @@ node tools/render/bake-lattice.mjs <sheet.png> --tray --pad 2
 | `bake-lattice.mjs` | a contact sheet of ingredients → twelve wells; finds the crops rather than being given them |
 | `bake-board.mjs` | the art director's prep-board frames (`reference/kitchen/board-frames/`) → `content/board/` + `content/board.json`; frames are authored at size, so colour reduction only |
 | `bake-face.mjs` | bake a reference into a source data table, round-tripped against the shipped decoder |
+| `bake-picks.mjs` | every pick in `reference/assets/casting-picks.json` off the 5x2 decade sheets: crop by the sheet's own pitch (calibrated on the Set 1 faces), tone-match to the decade, key the black background by flood (dark hair survives), bake with `bake-face`, and cast with its first year. `--dry` lists keys and crops |
 | `png-read.mjs` | decode a PNG we did not write — real filters, so outside reference images load |
 | `fit-portrait.mjs` | reduce an outside reference into the 56×56 box and compare against what ships |
 | `artboard.mjs` | the lattice wells and the 56×56 face box at 6×, with their constraints drawn on |

@@ -39,7 +39,7 @@ export function eyesText(f) {
 
 /* the section's children become one node per name, reusing a child of the
    same name (its prose and all) wherever it was */
-function syncFaces(sec, names, faces, pool, used) {
+function syncFaces(sec, names, faces, pool, used, from) {
   sec.children = names.map((n, i) => {
     let c = sec.children.find((x) => bare(x.heading) === n && !used.has(x)) || (pool.has(n) && !used.has(pool.get(n)) ? pool.get(n) : null);
     if (!c) c = node('', 3, ['']);
@@ -48,6 +48,7 @@ function syncFaces(sec, names, faces, pool, used) {
     const f = faces[n];
     setField(c, 'Size', f ? f.w + 'x' + f.h : 'missing', { match: /^(\d+x\d+|missing)\b/ });
     setField(c, 'Eyes', eyesText(f), { match: /^(set by hand \(\d+\)|detected \(\d+\)|none, set by hand|not set)/ });
+    if (from) setField(c, 'From', from[n] ? String(from[n]) : 'the start of the era', { match: /^(\d{4}|the start of the era)\b/ });
     return c;
   });
 }
@@ -72,12 +73,13 @@ export default {
     for (const s of doc.children) for (const c of s.children) if (!pool.has(bare(c.heading))) pool.set(bare(c.heading), c);
 
     const used = new Set();
-    const want = [...eras.map((k) => ['Era ' + k, casts[k], ERA_NOTE[k] || '']), [UNCAST, uncast, UNCAST_NOTE]];
-    const found = want.map(([title, names, note], i) => {
+    const from = casts.from && typeof casts.from === 'object' ? casts.from : {};
+    const want = [...eras.map((k) => ['Era ' + k, casts[k], ERA_NOTE[k] || '', from]), [UNCAST, uncast, UNCAST_NOTE, null]];
+    const found = want.map(([title, names, note, fr], i) => {
       let s = doc.children.find((c) => bare(c.heading) === title);
       if (!s) s = node('', 2, ['', note, '']);
       s.heading = roman(i + 1) + '. ' + title;
-      syncFaces(s, names, faces, pool, used);
+      syncFaces(s, names, faces, pool, used, fr);
       return s;
     });
     doc.children = [...found, ...doc.children.filter((c) => !found.includes(c))];

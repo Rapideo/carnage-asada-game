@@ -714,7 +714,15 @@ Tabs: Levels, Menu, Attract, Music, Difficulty, Dialogue, Faces, Test. Code keep
 - **The docs mirror** is the seven generated docs listed under Authored copy. Each doc module is
   `{ file, render(files, prevText) }`; `prevText` is how prose is kept.
 - **`content/casts.json`** says which faces are used for which customers per era (`CASTS`); the
-  Faces tab edits it, hand-sets eyes that survive a re-bake, and can add new faces.
+  Faces tab edits it, hand-sets eyes that survive a re-bake, and can add new faces. **`from`** in
+  it is the year a face first appears (none = its era's first level), so a decade's crowd grows
+  level by level: `Kitchen.castFor(era, year)` returns only the faces that have arrived, and
+  `castFor(era)` with no year the whole cast. The build refuses a year no level of that era uses,
+  and an era with nobody at its first level; it drops the year of a face no era casts. The Faces
+  tab sets it per tile. 120 customers since the 2026-11-08 casting (38 / 45 / 37), 104 of them
+  baked from the owner's picks by `tools/render/bake-picks.mjs`
+  (`reference/assets/casting-picks.json`). **Their detected eyes were wrong on most and were
+  cleared**: they do not blink until eyes are set by hand in the Faces tab.
 - **Release months are advice.** Every `content/music/*.json` has a `month`. A level plays songs
   from its own year or up to 2 years before (refused otherwise, the title list excepted); a
   same-year song released after the level's month is a **warning** in the build and the Music tab,
@@ -821,7 +829,7 @@ the card.
 
 ## Publishing
 
-`taco-shop.html` is the shippable artifact: one self-contained file, ~790 KB (the music, faces, lattice and board tables are most of it).
+`taco-shop.html` is the shippable artifact: one self-contained file, about 1.3 MB since the 120 customer faces (2026-11-08; the faces, music, lattice and board tables are most of it).
 
 **Versioning.** The version is `content/release.json` (`version` MAJOR.MINOR.PATCH, `date`
 YYYY-MM-DD), inlined as `RELEASE` and drawn by `G.versionTag` in the corner of the title and

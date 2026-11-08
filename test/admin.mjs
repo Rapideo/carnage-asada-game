@@ -68,10 +68,24 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
    prefix rule (c7 / c8 / c9) picked, in FACES order. */
 {
   const prefix = (p) => Object.keys(files).filter((k) => k.startsWith('faces/' + p)).sort().map((k) => k.slice(6, -5));
+  /* since the 2026-11-08 casting, each era casts every face with its prefix (the original 16
+     and the owner's 104 picks), in casts.json's own order */
   const want = { 1: prefix('c7'), 2: prefix('c8'), 3: prefix('c9') };
-  ok(disk.casts && JSON.stringify(disk.casts) === JSON.stringify(want) && want[1].length === 6 && want[2].length === 5 && want[3].length === 5,
-     'casts.json builds to the prefix result: 6, 5 and 5 faces (' + JSON.stringify(disk.casts) + ')');
+  const same = (a, b) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
+  ok(disk.casts && [1, 2, 3].every((e) => same(disk.casts[e], want[e])) && want[1].length === 38 && want[2].length === 45 && want[3].length === 37,
+     'casts.json casts every face of its era: 38, 45 and 37 (' + [1, 2, 3].map((e) => disk.casts[e] && disk.casts[e].length).join(', ') + ')');
   const castErr = (edit) => { const f = structuredClone(files); edit(f['casts.json'], f); let x = null; try { validateContent(memSource(f)); } catch (y) { x = y; } return x; };
+  const castBuilt = (edit) => { const f = structuredClone(files); edit(f['casts.json'], f); return validateContent(memSource(f)).casts; };
+  /* "from": the year a face first appears, so a decade's crowd grows level by level */
+  ok(disk.casts.from && disk.casts.from.c70magician === 1978 && !('c70discoking' in disk.casts.from),
+     'casts.from carries first years (the Magician from 1978), and none for a face there from the start');
+  const badYear = castErr((c) => { c.from.c70magician = 1977; });
+  ok(badYear && /c70magician/.test(badYear.message) && /1972, 1975, 1978/.test(badYear.message), 'a first year no level of the era uses is refused, naming the face and the years: ' + (badYear && badYear.message));
+  ok(castErr((c) => { c.from.c70magician = 1981; }), 'an era-2 year is refused for an era-1 face');
+  const stale = castBuilt((c) => { c['1'] = c['1'].filter((n) => n !== 'c70magician'); });
+  ok(stale && !('c70magician' in stale.from), 'a face taken out of every cast leaves its year behind, and the build drops it');
+  const empty = castErr((c) => { for (const n of c['1']) c.from[n] = 1975; });
+  ok(empty && /nobody at its first level/.test(empty.message), 'an era with nobody at its first level is refused: ' + (empty && empty.message));
   e = castErr((c) => { c['1'][2] = 'nobody'; });
   ok(e instanceof ContentError && e.file === 'content/casts.json' && e.path.length === 2 && e.path[0] === '1' && e.path[1] === 2 && /nobody/.test(e.message),
      'a cast naming a missing face is refused with path [\'1\', i] (' + (e && e.path.join() + ': ' + e.message) + ')');
@@ -1205,7 +1219,8 @@ console.log('\n— docs —');
       const moved = FC.render(fx((c) => { c['1'] = c['1'].filter((n) => n !== 'c70bellbottom'); c['1'].push('smokerbust'); }), notes);
       const ml = moved.split('\n'), ti = ml.findIndex((l) => /^### [A-Z]\. c70teacher$/.test(l));
       ok(ti > 0 && ml[ti + 2] === NOTE && ml[ti + 4] === '- Size : 60x74', 'when the cast changes, the note stays with its face (' + ml.slice(ti, ti + 5).join(' | ') + ')');
-      ok(sec(moved, 'I. Era 1').includes('. smokerbust\n') && !sec(moved, 'I. Era 1').includes('c70bellbottom') && sec(moved, 'IV. Not in a cast').includes('c70bellbottom'),
+      /* whole headings: since 2026-11-08 there is also a c70bellbottomguy */
+      ok(sec(moved, 'I. Era 1').includes('. smokerbust\n') && !sec(moved, 'I. Era 1').includes('. c70bellbottom\n') && sec(moved, 'IV. Not in a cast').includes('. c70bellbottom\n'),
          'a face cast into an era appears there, and one dropped from every era moves to Not in a cast');
       const pre = fresh.split('\n## I.')[0];
       ok(pre.length > 80 && /^# faces\.md\n\n\S/.test(pre), 'the preamble is a paragraph under the title');

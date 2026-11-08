@@ -83,7 +83,7 @@ console.log(`  levels:  ${levels.length} (${count(levels, (l) => l.type === 'del
 console.log(`  diff:    ${Object.entries(difficulty).map(([k, d]) => `${k} ${d.target}/${d.maxExt}x${d.extend}s`).join(', ')}`);
 console.log(`  menus:   ${Object.entries(menus).map(([e, m]) => `era ${e} ${m.items.length} items/${m.bins.filter(Boolean).length} bins`).join(', ')}`);
 console.log(`  dialog:  ${DLG_KEYS.slice(1).map((k) => `${k} ${dialogue[k].length}`).join(', ')}`);
-console.log(`  casts:   ${Object.entries(casts).map(([e, c]) => `era ${e} ${c.length}`).join(', ')}`);
+console.log(`  casts:   ${Object.entries(casts).filter(([e]) => /^\d+$/.test(e)).map(([e, c]) => `era ${e} ${c.length}`).join(', ')}`);
 console.log(`  baked:   ${Object.keys(faces).length} faces, ${Object.keys(lattice).length} lattice, ${Object.keys(board.frames).length} board`);
 console.log(`  music:   ${Object.keys(music).length} songs, ${Object.keys(playlist).length} playlists${musicNote ? ' (' + musicNote + ')' : ''}`);
 /* the season rule is advice, not a guard (owner, 2026-11-07): a same-year song

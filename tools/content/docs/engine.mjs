@@ -123,7 +123,9 @@ export function roman(n) {
   for (const [v, r] of R) while (n >= v) { s += r; n -= v; }
   return s;
 }
-export const letter = (i) => String.fromCharCode(65 + i);
+/* A..Z, then AA, AB.. like spreadsheet columns: an era casts up to 45 faces since the
+   2026-11-08 casting, and fromCharCode(65 + i) runs into [ \ ] ^ after Z */
+export const letter = (i) => (i >= 26 ? letter(Math.floor(i / 26) - 1) : '') + String.fromCharCode(65 + (i % 26));
 
 /* The same-as rule. A node whose only item is `Same as Easy` (with or without a
    leading `- `) stands for another difficulty's or section's values. The item

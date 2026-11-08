@@ -50,6 +50,63 @@ after Service Mode and not before; the rest are decisions that need no work.
       slots (olive cactus on the rivals' caps; jade #1fa37e and gold #f3bd46 on the staff
       badge) per `reference/faces/cast/crop-guide.json`. The owner writes the lines in
       Service Mode's Dialogue tab.
+      **The cast, as the owner ruled it on 2026-11-08:**
+      - **Each character has a name** on the speech strip:
+
+        | | '70s | '80s | '90s |
+        |---|---|---|---|
+        | Officer | SGT. PFEIFER | OFC. KARLIN | OFC. DREILING |
+        | Rival | DUSTY | ACE | JINX |
+        | Coworker | MARGE | DALE | NIKKI |
+
+        Claude proposed them and the owner approved; all can be renamed in Service Mode.
+      - **The officer (Delivery)** speaks when a chase starts, when you are fined (speeding,
+        a pedestrian, a gate), and when you lose them.
+      - **The rival (Delivery) is a voice only** for now, with no car in the city. They speak
+        on your missed toss and your perfect toss.
+      - **The coworker (Kitchen)** speaks:
+        - the next-ingredient hint ("CHEESE NEXT, HON"; a line takes the ingredient's name);
+        - at clock-in;
+        - after a clean streak;
+        - when there is trouble (the line backs up, or the clock is under 30s).
+      - **More customers, growing through each decade** (owner, 2026-11-08):
+        - 196 characters exist on the art sheets in `reference/assets/images/`; 17 are baked
+          (catalogue: `reference/assets/art-inventory.md`).
+        - Each picked character has a **first-appears year** within its decade and stays to
+          the decade's end, so a decade's crowd grows level by level.
+        - About **12 special regulars** carry on into later decades.
+        - The owner picks them, and reviews every line, in the Casting Call review page
+          (https://claude.ai/artifact/LFMAnoCD9cA4GdK49k6SdS). Claude reads the choices back
+          and applies them.
+        - **Picks, 2026-11-08** (`reference/assets/casting-picks.json`; anything unanswered is
+          a no):
+          - 104 new customers: '70s 32, '80s 40, '90s 32. Each has a first-appears year.
+          - 10 skipped, including every police candidate; the approved cast plays the officers.
+          - Five existing faces now first appear later: c80breaker from 1981; c90rocker and
+            c90soap from 1993; c90raider and c90club from 1999.
+          - **No regulars for now** (owner ruling).
+          - The line review is still to come.
+        - **DONE 2026-11-08: all 104 baked and cast.**
+          - The owner approved the Face proofs and chose **Matched** for all.
+          - The casts are '70s 38, '80s 45, '90s 37, with first years in `casts.json`'s `from`.
+          - **Still to do: eyes.** Detection was wrong on most (boxes on chins and hats), so
+            they were cleared and the new faces do not blink yet. Set them by hand in Service
+            Mode's Faces tab.
+          - **Note:** the '90s start thin. At 1990, 4 faces (c90jock and three picks) are there,
+            because four of the original five were moved to 1993 or 1999.
+        - **Baking them** (Claude's plan, owner agreed 2026-11-08):
+          - crop by head size, not by sheet cell, because the sheets' cells differ by up to 12%;
+          - tone-match each face to a reference face from its decade;
+          - give each decade shared skin, dark and highlight ramps;
+          - make a proof sheet beside the existing faces, with the era grade, for approval
+            before anything ships;
+          - send faces that still clash back to the art director rather than forcing them.
+          - The bundle grows by about 480 KB (about 4.6 KB per face).
+      - *Claude's calls, to settle while building:*
+        - the hinted bin must stay visible above the strip, because the strip covers the
+          lower bins;
+        - one speaker at a time, with customers' walkouts still taking priority;
+        - the existing rate limit covers the whole cast.
 - [ ] **Q8 (B): each address keeps one customer face for the whole run,** picked from that
       decade's cast.
 - [ ] **Eyes on the new faces:** the owner sets eyes by hand in Service Mode's Faces tab for the

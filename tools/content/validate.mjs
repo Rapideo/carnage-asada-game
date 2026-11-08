@@ -494,14 +494,20 @@ function buildFaces(src) {
 
 /* content/casts.json: the customers per era, { "1": [face, ...], ... }. Every
    era a level uses has a cast, every name is a face, and a face is listed once
-   per era; no other key. Kitchen.castFor(era) reads it. */
+   per era. Kitchen.castFor(era, year) reads it.
+
+   `from` (optional) is { face: year }: the year a face first appears, so an
+   era's crowd grows level by level (owner, 2026-11-08). A face with no entry
+   is there from its era's first level. The year must be one a level of an era
+   casting that face uses, and an era may not be left with nobody at its first
+   level. */
 function buildCasts(src, faces, levels) {
   const F = 'content/casts.json';
   const raw = stripNotes(src.readJSON('casts.json'));
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) fail(F, [], `${F} must be an object of eras, { "1": ["c70teacher", ...] }`);
   const eras = [...new Set(levels.map((l) => String(l.era)))].sort();
   for (const k of Object.keys(raw))
-    if (!eras.includes(k)) fail(F, [k], `${F}: "${k}" is not an era any level uses (${eras.join(', ')})`);
+    if (k !== 'from' && !eras.includes(k)) fail(F, [k], `${F}: "${k}" is not an era any level uses (${eras.join(', ')})`);
   const out = {};
   for (const era of eras) {
     const c = raw[era];
@@ -513,6 +519,26 @@ function buildCasts(src, faces, levels) {
     });
     out[era] = c;
   }
+  const from = raw.from === undefined ? {} : raw.from;
+  if (!from || typeof from !== 'object' || Array.isArray(from)) fail(F, ['from'], `${F}: "from" must be an object of { face: year }, got ${JSON.stringify(raw.from)}`);
+  const yearsOf = (era) => [...new Set(levels.filter((l) => String(l.era) === era).map((l) => l.year))].sort((a, b) => a - b);
+  const kept = {};
+  for (const [n, y] of Object.entries(from)) {
+    const inEras = eras.filter((e) => out[e].includes(n));
+    /* a face taken out of every cast leaves its year behind; that is harmless,
+       and refusing it would make every edit that uncasts a face clean up too */
+    if (!inEras.length) continue;
+    const ok = inEras.flatMap(yearsOf);
+    if (!Number.isInteger(y) || !ok.includes(y))
+      fail(F, ['from', n], `${F}: "${n}" first appears in ${JSON.stringify(y)}, which is not a level year of its era (${ok.join(', ')})`);
+    kept[n] = y;
+  }
+  for (const era of eras) {
+    const first = yearsOf(era)[0];
+    if (!out[era].some((n) => !(n in kept) || kept[n] <= first))
+      fail(F, [era], `${F}: era ${era} has nobody at its first level (${first}); give at least one face no "from", or ${first}`);
+  }
+  out.from = kept;
   return out;
 }
 
