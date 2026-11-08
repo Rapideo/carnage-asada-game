@@ -308,8 +308,10 @@ Known soft spots:
 
 ## Deployment
 
-- **<https://carnage-asada.netlify.app>** is public, but it runs the **pre-2026-10-25**
-  game, deployed 2026-10-02 from `5f9700f`.
+- **<https://carnage-asada.netlify.app>** is public and runs **0.9.0**, deployed
+  2026-11-07 from `d717fee` (tag `v0.9.0`, also pushed to GitHub that day). The owner
+  ruled the same day that music clearance is not a concern for deploying; don't raise it
+  again.
   - Netlify project `carnage-asada`, team Rapideo
     ([admin](https://app.netlify.com/projects/carnage-asada)).
 - **It is not wired to GitHub**: a push does not redeploy it.

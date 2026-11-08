@@ -119,10 +119,9 @@ Every owner ruling and every invention is recorded in `docs/PURE-CARNAGE-DECISIO
 
 ### Owner action before any public deploy
 
-- [ ] **Clearance for the MIDI arrangements.** The music arranges real songs, by the
-      owner's ruling, and the owner will get clearance. **This is not a blocker for
-      the work.** It has to be done before this build replaces what the public
-      Netlify site (`carnage-asada`) serves, which is still the original game.
+- [x] ~~**Clearance for the MIDI arrangements.**~~ **Closed 2026-11-07:** the owner ruled
+      music clearance is not a concern and deployed 0.9.0 to the public Netlify site
+      (`carnage-asada`). Don't raise it again.
 
 ### Known soft spots
 
