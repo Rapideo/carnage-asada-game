@@ -98,6 +98,9 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
   ok([[[1, 2, 3]], [[1, 2, 3, 1]], [[-1, 2, 3, 4]], [[1.5, 2, 3, 4]], 'x'].every((v) => { const x = eyeErr(v); return x instanceof ContentError && x.path[0] === 'eyes'; }),
      'and so is a short rect, one row tall, negative, fractional, or not a list');
   ok(eyeErr([]) === null && eyeErr([[1, 1, 3, 2], [10, 1, 3, 2]]) === null, 'no eyes, or two in bounds, are accepted');
+  const fs2 = structuredClone(files); fs2['faces/c70teacher.json'].skin = '#123456';
+  e = null; try { validateContent(memSource(fs2)); } catch (x) { e = x; }
+  ok(e instanceof ContentError && e.file === 'content/faces/c70teacher.json' && e.path.join() === 'skin', 'a lid colour (skin) that is not in the face\'s palette is refused');
 }
 
 const before = JSON.stringify(files);
@@ -277,6 +280,12 @@ console.log('\n— faces —');
     const k4 = BF.keptEyes({ eyes: [], _eyesByHand: true }, [[9, 9, 9, 9]]);
     ok(JSON.stringify(k4.eyes) === '[]' && k4.byHand === true, 'eyes cleared by hand stay cleared');
   }
+  ok(BF && typeof BF.keptSkin === 'function'
+     && BF.keptSkin({ skin: '#222222' }, true, ['#111111', '#222222'], '#111111') === '#222222'
+     && BF.keptSkin({ skin: '#222222' }, false, ['#111111', '#222222'], '#111111') === '#111111'
+     && BF.keptSkin({ skin: '#333333' }, true, ['#111111', '#222222'], '#111111') === '#111111'
+     && BF.keptSkin(null, false, ['#111111'], '#111111') === '#111111',
+     'keptSkin keeps a hand-set lid colour while the palette has it, else the detector\'s');
 
   /* the bake itself, and POST /admin/api/face, in a temp root: no face the
      tests make ever lands in the real content/faces/ */
@@ -298,11 +307,13 @@ console.log('\n— faces —');
     bake('bakeprobe');
     const first = JSON.parse(readFileSync(fj, 'utf8'));
     ok(first.w === 60 && first.h === 74 && Array.isArray(first.eyes) && !('_eyesByHand' in first), 'a first bake writes the detector\'s eyes, with no note');
-    writeFileSync(fj, JSON.stringify({ ...first, eyes: [[3, 4, 5, 6]], _eyesByHand: true }));
+    const lid = first.pal.find((c) => c !== first.skin && c !== first.ink);
+    writeFileSync(fj, JSON.stringify({ ...first, eyes: [[3, 4, 5, 6]], skin: lid, _eyesByHand: true }));
     const log = bake('bakeprobe');
     const again = JSON.parse(readFileSync(fj, 'utf8'));
     ok(JSON.stringify(again.eyes) === '[[3,4,5,6]]' && again._eyesByHand === true && again.pix === first.pix,
        'a re-bake keeps eyes set by hand, and the note (' + JSON.stringify(again.eyes) + ')');
+    ok(again.skin === lid && lid !== first.skin, 'and the lid colour set with them (' + again.skin + ')');
     ok(/by hand/.test(log), 'and says so in its log');
     const mjs = readFileSync(join(tmp, 'reference/kitchen/faces/bakeprobe.mjs'), 'utf8');
     ok(mjs.includes('eyes: [[3,4,5,6]]'), 'the reference copy carries the same eyes');
@@ -1503,6 +1514,8 @@ console.log('\n— faces panel —');
       /* eyes: drag a rectangle per eye on the 4x face */
       const pick = find((x) => x.dataset.pick === 'eyes');
       ok(pick && pick.kids.length === Object.keys(files).filter((k) => k.startsWith('faces/')).length, 'the eye editor offers every face');
+      /* from no eyes, whatever the face on disk has */
+      store.files['faces/c70teacher.json'].eyes = []; delete store.files['faces/c70teacher.json']._eyesByHand;
       pick.value = 'c70teacher'; pick.fire('change');
       const cv = () => find((x) => x.dataset.eyes === 'c70teacher');
       ok(cv(), 'choosing a face draws it for the eyes');
@@ -1524,6 +1537,10 @@ console.log('\n— faces panel —');
       act('clear-eyes').fire('click');
       ok(JSON.stringify(T().eyes) === '[]' && T()._eyesByHand === true, 'Clear empties them, still set by hand');
       ok(act('blink') && act('say-face'), 'the face can be previewed mid-blink and shown in the strip');
+      const lidCol = T().pal.find((c) => c !== T().skin);
+      act('lid', { col: lidCol }).fire('click');
+      ok(T().skin === lidCol && T()._eyesByHand === true && store.error === null && act('lid', { col: lidCol }).className.includes('on'),
+         'a lid colour swatch sets skin from the face\'s own palette, by hand');
 
       /* new face: drop an image, optionally crop, Bake */
       let sent = null, reply = { status: 200, json: { rel: 'faces/newguy.json', json: { ...files['faces/smokerbust.json'], name: 'NEWGUY' }, log: 'faces/newguy.mjs  60x74\n  round trip: identical' } };

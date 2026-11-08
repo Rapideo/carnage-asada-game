@@ -6,11 +6,13 @@
                   name that is not a face, a repeat, or an empty era.
    Eyes           a face drawn at 4x. Drag a rectangle over each eye (corners
                   snap to the face's pixel grid); a third replaces the nearer
-                  of two. Clear empties them. Any edit here also sets the note
-                  "_eyesByHand": true, which tells bake-face.mjs to keep these
-                  eyes when the face is re-baked; Save writes the face file.
-                  Blink shows the face mid-blink through the game's own
-                  Faces.draw; Show in strip puts it in the dialogue strip.
+                  of two. Clear empties them. Lid colour picks the `skin` a
+                  blink paints, from the face's own palette. Any edit here
+                  also sets the note "_eyesByHand": true, which tells
+                  bake-face.mjs to keep these eyes (and that lid colour) when
+                  the face is re-baked; Save writes the face file. Blink shows
+                  the face mid-blink through the game's own Faces.draw; Show
+                  in strip puts it in the dialogue strip.
    New face       drop (or choose) a PNG, name it, optionally give a crop in
                   the image's pixels, and Bake. The server runs fit-portrait
                   and bake-face (POST /admin/api/face); the face is written at
@@ -236,6 +238,20 @@ function eyesSection(doc, el) {
   say.addEventListener('click', () => show(n));
   row.append(clear, blink, say);
   sec.appendChild(row);
+
+  /* the lid colour a blink paints: one of the face's own colours. The bake's
+     guess has picked a lens frame, a jacket and the ink before now. */
+  const lids = h(doc, 'div', 'adm-swatches');
+  lids.appendChild(h(doc, 'span', 'adm-note', 'Lid colour '));
+  for (const col of Array.isArray(f.pal) ? f.pal : []) {
+    const s = btn(doc, '', 'lid', 'paint the closed lid ' + col);
+    s.dataset.col = col;
+    s.className = 'adm-swatch' + (col === f.skin ? ' on' : '');
+    s.style.background = col;
+    s.addEventListener('click', () => { store.set(relOf(n), '_eyesByHand', true); store.set(relOf(n), 'skin', col); redraw(); });
+    lids.appendChild(s);
+  }
+  sec.appendChild(lids);
   el.appendChild(sec);
 }
 

@@ -13,7 +13,8 @@
 
    EYES SET BY HAND SURVIVE A RE-BAKE. A face whose content/faces/<name>.json
    carries `"_eyesByHand": true` (Service Mode's Faces tab sets it) keeps the
-   eyes it has; the detector's guess is only used when nobody has set them.
+   eyes it has, and the lid colour (`skin`) with them while the palette still
+   has it; the detector's guesses are only used when nobody has set them.
    Importing this file runs no bake: the CLI is guarded, so the tests can
    import keptEyes.
 */
@@ -39,6 +40,17 @@ const CONTENT_FACES = _j(HERE, '..', '..', 'content', 'faces');
 export function keptEyes(prev, detected) {
   if (prev && prev._eyesByHand) return { eyes: prev.eyes || [], byHand: true };
   return { eyes: detected, byHand: false };
+}
+
+/**
+ * The lid colour a blink paints (`skin`) belongs with the eyes: the detector's
+ * pick ("the commonest colour that is neither ink nor a white") has chosen a
+ * jacket, a lens frame and the ink itself on real faces. So a face whose eyes
+ * were set by hand keeps its skin too, as long as the new palette still has
+ * that colour; otherwise the detector's.
+ */
+export function keptSkin(prev, byHand, pal, detected) {
+  return byHand && prev && typeof prev.skin === 'string' && pal.includes(prev.skin) ? prev.skin : detected;
 }
 
 async function main() {
@@ -189,8 +201,8 @@ async function main() {
   }
 
   /* skin for the blink fill: the commonest colour that is neither ink nor a white */
-  const skin = pal.find((c, i) => i > 0 && c !== INK && lum(rgbOf(c)) > 110 && !bright.includes(i))
-    || pal[0];
+  const skin = keptSkin(prev, byHand, pal,
+    pal.find((c, i) => i > 0 && c !== INK && lum(rgbOf(c)) > 110 && !bright.includes(i)) || pal[0]);
 
   /* ---- write ------------------------------------------------ */
   mkdirSync(FACES, { recursive: true });

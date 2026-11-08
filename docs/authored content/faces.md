@@ -10,37 +10,37 @@ The 1970s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### B. c70leisure
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### C. c70longhair
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### D. c70teacher
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### E. c70trucker
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### F. c70waitress
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ## II. Era 2
 
@@ -50,31 +50,31 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### B. c80breaker
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### C. c80dad
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### D. c80preppy
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### E. c80valley
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ## III. Era 3
 
@@ -84,31 +84,31 @@ The 1990s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : none, set by hand
 
 ### B. c90jock
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### C. c90raider
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### D. c90rocker
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### E. c90soap
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ## IV. Not in a cast
 

@@ -465,6 +465,9 @@ function checkRuns(where, f) {
    cannot see a pixel would notice. `_eyesByHand` is a note: it tells
    bake-face.mjs to keep them, and never ships. */
 function checkEyes(where, f) {
+  /* skin is the lid colour a blink paints; a colour the face does not have
+     is a typo, and paints a patch nothing else on the face matches */
+  if (!f.pal.includes(f.skin)) fail(where, ['skin'], `${where}: "skin" ${JSON.stringify(f.skin)} is not one of the face's palette colours`);
   if (!('eyes' in f)) return;
   if (!Array.isArray(f.eyes)) fail(where, ['eyes'], `${where}: "eyes" must be a list of [x, y, w, h] rects, got ${JSON.stringify(f.eyes)}`);
   f.eyes.forEach((e, i) => {

@@ -164,6 +164,9 @@ face, check it with **Blink**, and Save. That writes the rects into
 `content/faces/<name>.json` with the note `"_eyesByHand": true` (stripped from the
 ship), and **a re-bake keeps eyes set by hand** instead of writing the detector's
 guess back over them. **Clear** is a hand-set "no eyes" (sunglasses), kept the same way.
+Check **Lid colour** too: it is the `skin` a blink paints, and the baker's guess has
+picked a lens frame, a shirt and the ink itself (6 of the 16 era faces). Pick it from
+the face's own palette; it is kept with the hand-set eyes while the palette has it.
 
 Eye rects are what blink and hood operate on. Wrong rects mean a blink that
 repaints part of the cheek. The build refuses a rect off the bitmap or one row tall.
