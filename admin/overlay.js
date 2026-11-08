@@ -126,6 +126,16 @@ function boot() {
   }
   root.addEventListener('focusin', releaseGameKeys);
 
+  /* And back the other way. The canvas cannot take focus (its mousedown
+     preventDefaults), so clicking the game after a panel field or button left
+     focus in the panel, and the key gate went on hiding every key from the
+     game: X would not wrap, and Enter pressed Save. A press anywhere outside
+     the panel hands the keys back. Capture phase, ahead of the canvas. */
+  doc.addEventListener('pointerdown', (e) => {
+    const a = doc.activeElement;
+    if (a && root.contains(a) && !root.contains(e.target)) a.blur();
+  }, true);
+
   async function open(on) {
     if (isOpen && !on) leave(current);
     isOpen = on;
