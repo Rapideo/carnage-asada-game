@@ -1211,6 +1211,15 @@ console.log('\n— dialogue panel —');
       ok(D().late[8] === '2|TIME IS PRECIOUS, TACO BOY!', 'editing the text keeps the era floor');
       type(ctl('late.8'), 'TIME IS MONEY, TACO BOY!');
 
+      /* lowercase is accepted and stored as drawn; a curly quote is still named */
+      type(ctl('late.8'), 'time is money, taco boy!');
+      ok(D().late[8] === '2|TIME IS MONEY, TACO BOY!' && store.error === null, 'typed lowercase is stored upper case with the era prefix kept');
+      type(ctl('who'), 'patron');
+      ok(D().who === 'PATRON' && store.error === null, 'who is upper-cased too');
+      type(ctl('who'), 'CUSTOMER');
+      type(ctl('late.8'), 'TIME IS MONEY, TACO BOY’S!');
+      ok(store.error && store.error.path.join() === 'late,8' && /’/.test(store.error.message) && ctl('late.8').classList.contains('adm-bad'), 'a curly quote is still flagged by name on its field (' + (store.error && store.error.message.slice(0, 80)) + ')');
+      type(ctl('late.8'), 'TIME IS MONEY, TACO BOY!');
       /* the width check is the validator's */
       type(ctl('missed.1'), 'THIS LINE IS FAR TOO WIDE FOR THE SPEECH BUBBLE BESIDE THE PORTRAIT');
       ok(store.error && store.error.path.join() === 'missed,1' && ctl('missed.1').classList.contains('adm-bad') && /Trim \d+ character/.test(ctl('missed.1')._msg.textContent),

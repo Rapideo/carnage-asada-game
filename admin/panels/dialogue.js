@@ -35,7 +35,13 @@ const game = () => (typeof G !== 'undefined' ? G : null);
 const pre = (s) => { const m = PREFIX.exec(s || ''); return m ? m[0] : ''; };
 const body = (s) => (s || '').slice(pre(s).length);
 const title = (k) => k[0].toUpperCase() + k.slice(1);
-const redraw = () => { if (panel) draw(panel); };
+/* the scrolling box is the panel's parent; keep its place across a rebuild */
+const redraw = () => {
+  if (!panel) return;
+  const sc = panel.parentNode, top = sc && typeof sc.scrollTop === 'number' ? sc.scrollTop : null;
+  draw(panel);
+  if (top !== null) sc.scrollTop = top;
+};
 
 store.onChange(() => {
   for (const c of [...counts]) {
@@ -95,7 +101,7 @@ function lineRow(doc, el, key, i) {
     rel: REL, path: [key, i], kind: 'text',
     title: 'ALL CAPS, the 5x7 font only; the limit is the speech bubble beside the widest face',
     fromJSON: (v) => body(v),
-    toJSON: (t) => pre(store.get(REL, [key, i])) + t,
+    toJSON: (t) => pre(store.get(REL, [key, i])) + t.toUpperCase(),   // lowercase is accepted and stored as the game draws it
   });
 
   const cnt = h(doc, 'span', 'adm-count', body(store.get(REL, [key, i])).length + '/' + DLG_MAX_CHARS);
@@ -125,7 +131,7 @@ function section(doc, el, key) {
   sec.dataset.section = key;
   sec.appendChild(h(doc, 'h3', null, title(key)));
   if (key === 'who') {
-    Admin.field(sec, { rel: REL, path: 'who', kind: 'text', label: 'Name on the bubble', title: 'who is speaking' });
+    Admin.field(sec, { rel: REL, path: 'who', kind: 'text', label: 'Name on the bubble', title: 'who is speaking', toJSON: (t) => t.toUpperCase() });
   } else {
     const list = store.get(REL, key);
     (Array.isArray(list) ? list : []).forEach((_, i) => lineRow(doc, sec, key, i));
