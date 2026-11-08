@@ -163,7 +163,9 @@ Admin.controls = controls;
 export const TAB_ORDER = ['levels', 'menu', 'attract', 'music', 'difficulty', 'dialogue', 'faces', 'test'];
 export const tabs = new Map();
 Admin.tabs = tabs;
-Admin.tab = function (id, title, render) {
-  tabs.set(id, { id, title, render });
+/* opts.leave, optional: run when the overlay moves to another tab or closes
+   while this one is showing (the Music tab stops a song being listened to) */
+Admin.tab = function (id, title, render, opts) {
+  tabs.set(id, { id, title, render, leave: opts && typeof opts.leave === 'function' ? opts.leave : null });
   if (Admin.onTabs) Admin.onTabs();
 };

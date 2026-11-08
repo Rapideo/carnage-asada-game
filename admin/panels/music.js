@@ -321,7 +321,7 @@ function playlist(doc, el, k, lv, all) {
   const list = listOf(k);
   const sec = h(doc, 'div', 'adm-screen adm-playlist');
   sec.dataset.list = k;
-  sec.appendChild(h(doc, 'h3', null, lv ? 'Level ' + lv.n + ' · ' + lv.name + ' · ' + (lv.type === 'kitchen' ? 'Kitchen' : 'Driving') : 'Title'));
+  sec.appendChild(h(doc, 'h3', null, lv ? 'Level ' + lv.n + ' · ' + lv.name + ' · ' + (lv.type === 'kitchen' ? 'Kitchen' : 'Delivery') : 'Title'));
   sec.appendChild(h(doc, 'p', 'adm-note', lv ? 'Songs from ' + (lv.year - MUSIC_LOOKBACK) + '-' + lv.year + ': its own year or up to ' + MUSIC_LOOKBACK + ' before, never after.'
     : 'From the title screen through the winners and high-score screens. The title has no year, so any song can play.'));
   for (let j = 0; j < list.length; j++) songRow(doc, sec, k, j, list, all);
@@ -369,4 +369,11 @@ function draw(el) {
   if (Admin.paintErrors) Admin.paintErrors();
 }
 
-Admin.tab('music', 'Music', draw);
+/* leaving the tab or closing the overlay ends a listen: the level's music
+   comes back and G.playMusic is the game's own again */
+function leave() {
+  if (Admin.music && Admin.music.listening && typeof Admin.music.stop === 'function') Admin.music.stop();
+  nowMsg = '';
+}
+
+Admin.tab('music', 'Music', draw, { leave });

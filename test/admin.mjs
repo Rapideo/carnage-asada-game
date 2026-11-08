@@ -521,6 +521,16 @@ const diskBuilt = validateContent(fsSource('content'));
       const L = A.music;
       ok(L && typeof L.listen === 'function' && typeof L.stop === 'function', 'apply.js puts Admin.music.listen and stop on Admin');
       const orig = G.playMusic;
+      /* a play that fails takes nothing over: no stub, not "listening", the level's music still on */
+      const q0 = MU.queue.join(), realPlay = MU.play;
+      const r0 = L.listen('no-such-song', G);
+      MU.play = () => false;
+      const r1 = L.listen('kashmir', G);
+      MU.play = realPlay;
+      ok(r0 === false && r1 === false && L.listening === null && G.playMusic === orig && MU.queue.join() === q0,
+         'a listen whose play fails (unknown song, or Music.play false) leaves G.playMusic, listening and the music as they were');
+      L.stop(G);
+      ok(G.playMusic === orig && MU.queue.join() === q0, 'and Stop with nothing listened to changes nothing');
       L.listen('kashmir', G); tick(0.5);
       ok(MU.queue.join() === 'kashmir' && MU.now().id === 'kashmir' && L.listening === 'kashmir', 'Listen plays one song through Music (' + MU.queue.join() + ')');
       const f2b = files2(); f2b['music/playlist.json']['1'] = ['immigrant-song', 'black-dog'];
@@ -1176,7 +1186,7 @@ console.log('\n— docs —');
       ok(IX.renderAll(files, (f) => f === 'menu.md' ? mold : null)['menu.md'] === mout, 'renderAll renders menu.md');
     }
 
-    /* music.md: per year, the Driving and Kitchen Shift lists; the title list; the rules as prose */
+    /* music.md: per year, the Delivery and Kitchen Shift lists; the title list; the rules as prose */
     let MU = null;
     try { MU = (await import('../tools/content/docs/music.mjs')).default; } catch (x) { console.error('  (' + x.message + ')'); }
     ok(MU && MU.file === 'music.md' && IX.DOCS.includes(MU), 'music.md is a registered doc');
@@ -1201,21 +1211,34 @@ console.log('\n— docs —');
       ok(MU.render(files, uout) === uout, 'rendering music.md is idempotent');
       const a = uold.split('\n'), b = uout.split('\n');
       const changed = a.map((l, i) => [l, b[i]]).filter(([x, y]) => x !== y);
-      ok(a.length === b.length && changed.length > 0 && changed.every(([x, y]) => (/^### [A-Z]\. \w+ Shift$/.test(x) && /^### [A-Z]\. (Driving|Kitchen) Shift$/.test(y))
+      const headChanges = changed.filter(([x]) => !SONG.test(x));
+      ok(a.length === b.length && changed.length > 0 && changed.every(([x, y]) => (/^### [A-Z]\. Driving Shift$/.test(x) && y === x.replace('Driving Shift', 'Delivery Shift'))
          || (SONG.test(x) && SONG.test(y) && x.toUpperCase() === y.toUpperCase())),
-         'from today\'s JSON only shift headings and song lines change, line for line, and a song line only in case (' + JSON.stringify(changed.filter(([x]) => !SONG.test(x)).slice(0, 4)) + ')');
+         'from today\'s JSON only song lines (in case) and the "Driving Shift" headings (to "Delivery Shift") change, line for line (' + JSON.stringify(headChanges) + ')');
+      const drivingHeads = (t) => t.split('\n').filter((l) => /^#+ .*Driving Shift/.test(l)).length;
+      ok(headChanges.length === drivingHeads(uold) && drivingHeads(uold) > 0 && drivingHeads(uout) === 0
+         && uout.split('\n').filter((l) => /^### [A-Z]\. Delivery Shift$/.test(l)).length === 10 && uout.includes('\nDriving Shift songs are intended to be more upbeat'),
+         'every "Driving Shift" heading becomes "Delivery Shift", the "Delivery Shift" ones are left alone, and the preamble\'s own "Driving Shift songs" is prose, kept (' + headChanges.length + ' changed)');
+      /* the heading names the level's game type, exactly: Delivery Shift or Kitchen Shift */
+      const shiftHeads = parseMd(uout).children[0].children.flatMap((y) => y.children).map((c) => {
+        const n = Number((c.lines.map((l) => /^Level (\d+), /.exec(l)).find(Boolean) || [])[1]);
+        const lv = files['levels.json'].levels.find((l) => l.n === n);
+        return [c.heading.replace(/^[A-Z]\. /, ''), lv ? (lv.type === 'kitchen' ? 'Kitchen Shift' : 'Delivery Shift') : null];
+      });
+      ok(shiftHeads.length === 20 && shiftHeads.every(([got, want]) => got === want),
+         'a delivery level\'s heading is exactly "Delivery Shift" and a kitchen level\'s exactly "Kitchen Shift" (' + JSON.stringify(shiftHeads.filter(([g, w]) => g !== w)) + ')');
       const pn = proseOf(uold).length;
       ok(pn >= 4 && lost(uold, uout) === null && uout.startsWith(uold.slice(0, uold.indexOf('## I. 1972'))), 'all ' + pn + ' prose lines survive in order, the preamble byte for byte (' + lost(uold, uout) + ')');
       const top = parseMd(uout).children[0].children.map((c) => c.heading);
       const years = [...new Set(files['levels.json'].levels.map((l) => l.year))];
       ok(top.join('|') === [...years.map((y, i) => roman(i + 1) + '. ' + y), roman(years.length + 1) + '. Title Screen'].join('|'),
          'one "## <roman>. <year>" per year, then the title section where the doc keeps it (' + top.join('|') + ')');
-      ok(parseMd(uout).children[0].children.slice(0, years.length).every((y) => y.children.map((c) => c.heading).join('|') === 'A. Driving Shift|B. Kitchen Shift'),
-         'every year has A. Driving Shift and B. Kitchen Shift');
-      const d1 = at(uout, '1972', 'Driving Shift');
+      ok(parseMd(uout).children[0].children.slice(0, years.length).every((y) => y.children.map((c) => c.heading).join('|') === 'A. Delivery Shift|B. Kitchen Shift'),
+         'every year has A. Delivery Shift and B. Kitchen Shift');
+      const d1 = at(uout, '1972', 'Delivery Shift');
       ok(d1.lines.includes('Level 1, Summer 1972.') && songs(d1).join('|') === '1. IMMIGRANT SONG - LED ZEPPELIN (1970)|2. BLACK DOG - LED ZEPPELIN (1971)',
          'a shift lists its Level line and its songs as TITLE - ARTIST (year), in the JSON\'s form (' + JSON.stringify(songs(d1)) + ')');
-      ok(songs(at(uout, '1975', 'Driving Shift')).join('|') === '1. BOHEMIAN RHAPSODY (the opera section) - QUEEN (1975)|2. BOHEMIAN RHAPSODY (the hard-rock section) - QUEEN (1975)',
+      ok(songs(at(uout, '1975', 'Delivery Shift')).join('|') === '1. BOHEMIAN RHAPSODY (the opera section) - QUEEN (1975)|2. BOHEMIAN RHAPSODY (the hard-rock section) - QUEEN (1975)',
          'a bracketed note after a title is kept');
       const tt = at(uout, 'Title Screen');
       ok(songs(tt).join('|') === "1. ONE STEP BEYOND - MADNESS (1979)|2. REELIN' IN THE YEARS - STEELY DAN (1972)" && tt.lines.some((l) => /^The title songs play/.test(l)),
@@ -1223,25 +1246,25 @@ console.log('\n— docs —');
 
       /* the brief: a level with 3 songs renders 3 numbered lines */
       const three = ufx((p) => { p['1'] = ['immigrant-song', 'black-dog', 'walk-on-the-wild-side']; });
-      const u3 = MU.render(three, uold), t3 = at(u3, '1972', 'Driving Shift');
+      const u3 = MU.render(three, uold), t3 = at(u3, '1972', 'Delivery Shift');
       ok(songs(t3).join('|') === '1. IMMIGRANT SONG - LED ZEPPELIN (1970)|2. BLACK DOG - LED ZEPPELIN (1971)|3. WALK ON THE WILD SIDE - LOU REED (1972)'
          && u3.includes('\n2. BLACK DOG - LED ZEPPELIN (1971)\n\n3. WALK ON THE WILD SIDE - LOU REED (1972)\n\n### B. Kitchen Shift\n'),
          'a level with 3 songs renders 3 numbered lines, blank-separated (' + JSON.stringify(songs(t3)) + ')');
       ok(lost(uold, u3) === null && !/\n\n\n/.test(u3) && MU.render(three, u3) === u3, 'with no prose lost and no doubled blank line, idempotently');
       const one = ufx((p) => { p['1'] = ['black-dog']; p.title = ['reelin-in-the-years']; });
       const u1 = MU.render(one, u3);
-      ok(songs(at(u1, '1972', 'Driving Shift')).join('|') === '1. BLACK DOG - LED ZEPPELIN (1971)' && songs(at(u1, 'Title Screen')).join('|') === "1. REELIN' IN THE YEARS - STEELY DAN (1972)"
+      ok(songs(at(u1, '1972', 'Delivery Shift')).join('|') === '1. BLACK DOG - LED ZEPPELIN (1971)' && songs(at(u1, 'Title Screen')).join('|') === "1. REELIN' IN THE YEARS - STEELY DAN (1972)"
          && lost(uold, u1) === null && !/\n\n\n/.test(u1) && MU.render(one, u1) === u1, 'shrunk to one song each, the lists follow, the prose stays');
       /* a year that changes keeps the prose under it */
       const noted = uold.replace('## I. 1972\n\n### A.', '## I. 1972\n\nThe first year.\n\n### A.');
       const yr = ufx((p, f) => { f['levels.json'].levels[0].year = 1973; f['levels.json'].levels[1].year = 1973; });
       const uy = MU.render(yr, noted);
-      ok(at(uy, '1973').lines.includes('The first year.') && at(uy, '1973', 'Driving Shift').lines.includes('Level 1, Summer 1973.') && !uy.includes('## I. 1972'),
+      ok(at(uy, '1973').lines.includes('The first year.') && at(uy, '1973', 'Delivery Shift').lines.includes('Level 1, Summer 1973.') && !uy.includes('## I. 1972'),
          'a level year that changes renames its section and keeps its prose');
       /* a note under a song list stays with it */
       const n2 = uold.replace('2. Black Dog - Led Zeppelin (1971)\n', '2. Black Dog - Led Zeppelin (1971)\n\nBoth from the band\'s first run.\n');
       const un = MU.render(three, n2);
-      ok(lost(n2, un) === null && at(un, '1972', 'Driving Shift').lines.includes('Both from the band\'s first run.'), 'prose between songs is kept in its section');
+      ok(lost(n2, un) === null && at(un, '1972', 'Delivery Shift').lines.includes('Both from the band\'s first run.'), 'prose between songs is kept in its section');
 
       /* round trip: reading a render back gives the playlists */
       const rt = (f, prev) => { const t = MU.render(f, prev); return typeof MU.read === 'function' && JSON.stringify(MU.read(t, songsOf(f))) === JSON.stringify(lists(f)); };
@@ -1879,6 +1902,23 @@ console.log('\n— music panel —');
       ok(calls[calls.length - 1] === 'listen:black-dog', 'a song in a list can be listened to');
       store.set('music/playlist.json', '1', ['immigrant-song', 'black-dog']);
       ok(JSON.stringify(PL()) === JSON.stringify(files['music/playlist.json']), 'every playlist edit was put back');
+
+      /* leaving the tab, or closing the overlay, ends a listen */
+      const { leaveTab } = await import('../admin/overlay.js');
+      act('listen', { id: 'kashmir' }).fire('click');
+      ok(globalThis.Admin.music.listening === 'kashmir' && typeof tab.leave === 'function', 'the Music tab has a leave hook');
+      calls.length = 0;
+      leaveTab(FL.tabs, 'music');
+      ok(calls.join() === 'stop' && globalThis.Admin.music.listening === null, 'leaving the Music tab stops the song (' + calls.join() + ')');
+      leaveTab(FL.tabs, 'music');
+      ok(calls.join() === 'stop', 'and leaving it with nothing playing stops nothing');
+      const thrower = new Map([['x', { leave: () => { throw new Error('boom'); } }]]), realErr = console.error;
+      let t2 = null; console.error = () => {};
+      try { leaveTab(thrower, 'x'); leaveTab(thrower, 'nope'); } catch (x) { t2 = x; } finally { console.error = realErr; }
+      ok(!t2, 'a leave hook that throws, or a tab with none, does not stop the overlay');
+      const ovs = readFileSync('admin/overlay.js', 'utf8');
+      ok(/if \(id !== current\) leave\(current\)/.test(ovs) && /if \(isOpen && !on\) leave\(current\)/.test(ovs),
+         'the overlay runs the leave hook on a tab switch and on close');
     } finally { globalThis.fetch = realFetch; globalThis.Admin.music = realMusic; }
   }
   store.files = structuredClone(files); store.dirty.clear(); store.error = null;

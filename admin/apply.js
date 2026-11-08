@@ -118,14 +118,20 @@
       const g = game || (typeof G !== 'undefined' ? G : undefined);
       if (typeof Music === 'undefined' || !Music.has(id)) return false;
       if (typeof Audio5 !== 'undefined' && Audio5.init) { try { Audio5.init(); Audio5.resume(); } catch (e) { /* no WebAudio here */ } }
+      /* the game's music is handed over only once the song is actually on:
+         a play that fails leaves everything as it was */
+      if (!Music.play(id)) return false;
       if (g && !this._orig) {
         this._game = g; this._orig = g.playMusic;
         g.playMusic = function (key) { this.musicKey = key; };
       }
       this.listening = id;
-      return Music.play(id);
+      return true;
     },
+    /* also called when the Music tab is left or the overlay is closed (the
+       tab's leave hook), so the stub never outlives the panel */
     stop() {
+      if (!this.listening && !this._orig) return;
       const g = this._game, orig = this._orig;
       this.listening = null; this._game = null; this._orig = null;
       if (typeof Music !== 'undefined') Music.stop();

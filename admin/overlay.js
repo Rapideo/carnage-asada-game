@@ -32,6 +32,12 @@ export function makeKeyGate(root, getActive, toggle) {
   };
 }
 
+/* a tab's leave hook, if it has one; a hook that throws never stops the overlay moving on */
+export function leaveTab(tabs, id) {
+  const t = tabs.get(id);
+  if (t && t.leave) { try { t.leave(); } catch (e) { console.error(e); } }
+}
+
 const PLACEHOLDER = 'Nothing here yet.';
 
 function boot() {
@@ -58,6 +64,7 @@ function boot() {
   doc.body.appendChild(root);
 
   let current = TAB_ORDER[0], loaded = false, isOpen = false;
+  const leave = (id) => leaveTab(tabs, id);
 
   function drawTabs() {
     tabbar.textContent = '';
@@ -65,7 +72,7 @@ function boot() {
       const t = tabs.get(id);
       const b = h('button', 'adm-tab' + (id === current ? ' on' : ''), t ? t.title : id[0].toUpperCase() + id.slice(1));
       b.type = 'button'; b.setAttribute('role', 'tab'); b.dataset.tab = id;
-      b.addEventListener('click', () => { current = id; drawTabs(); drawPanel(); });
+      b.addEventListener('click', () => { if (id !== current) leave(current); current = id; drawTabs(); drawPanel(); });
       tabbar.appendChild(b);
     }
   }
@@ -118,6 +125,7 @@ function boot() {
   root.addEventListener('focusin', releaseGameKeys);
 
   async function open(on) {
+    if (isOpen && !on) leave(current);
     isOpen = on;
     root.hidden = !on;
     if (!on && root.contains(doc.activeElement)) doc.activeElement.blur();

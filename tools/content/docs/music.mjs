@@ -4,8 +4,8 @@
    The doc is `# music.md` (the rule paragraphs: prose, kept) over
 
      ## <roman>. <year>          one per level year, in level order
-       ### A. Driving Shift      one per level of that year, lettered in level
-       ### B. Kitchen Shift      order: Driving for a delivery level, Kitchen
+       ### A. Delivery Shift     one per level of that year, lettered in level
+       ### B. Kitchen Shift      order: Delivery for a delivery level, Kitchen
                                  for a kitchen one. Each holds
                                    Level <n>, <Season> <year>.
                                    1. <TITLE> - <ARTIST> (<year>)
@@ -47,7 +47,7 @@ const bare = (h) => h.replace(/^[A-Z0-9]+\. /, '');
 const blank = (l) => l === undefined || l.trim() === '';
 const cap = (s) => String(s).charAt(0).toUpperCase() + String(s).slice(1);
 const node = (heading, depth, lines = ['']) => ({ heading, depth, lines, children: [] });
-const shiftName = (lv) => (lv.type === 'kitchen' ? 'Kitchen Shift' : 'Driving Shift');
+const shiftName = (lv) => (lv.type === 'kitchen' ? 'Kitchen Shift' : 'Delivery Shift');
 const levelLine = (lv) => 'Level ' + lv.n + ', ' + cap(lv.season) + ' ' + lv.year + '.';
 const levelOf = (c) => { for (const l of c.lines) { const m = LEVEL.exec(l); if (m) return Number(m[1]); } return null; };
 const isList = (c) => levelOf(c) !== null || c.lines.some((l) => SONG.test(l));
