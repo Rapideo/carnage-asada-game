@@ -60,6 +60,56 @@ after Service Mode and not before; the rest are decisions that need no work.
 - [ ] **Fix: the kitchen wall calendar** shows JAN on every winter level, but by the season
       rule all seven winter kitchen levels are December. (Final wave of this work.)
 
+**Added by the owner, 2026-11-08 (rulings the same day)**
+- [ ] **Windy weather, Delivery Shift only,** because Hays is known for it. This reverses
+      Q2's "weather hazards beyond grip are post-1.0" for wind.
+      - **Wind is its own roll and stacks** with the season's weather: windy and sunny, windy
+        and rainy, a windy snowstorm. (Owner, 2026-11-08.)
+      - **Three challenges:**
+        - a crosswind on the toss, so the bag drifts downwind, with a windsock in the HUD
+          showing direction and strength;
+        - telegraphed gusts that shove the car sideways for about a second;
+        - tumbleweeds rolling across the streets with the wind.
+      - Not chosen: headwind and tailwind on speed, a dust storm, any kitchen effect.
+      - **Weather is set per level, not rolled** (owner, 2026-11-08: weather is part of a
+        level's difficulty). Each level in `levels.json` carries a weather, set in Service
+        Mode's Levels tab: the season's choices (summer sunny or rainy, winter snowy or sunny;
+        the build refuses snow in summer), a **windy** switch that stacks on top, or
+        **Random**, which rolls as today. On kitchen levels weather is decoration only
+        (snow on the door mat, rain on the window); wind stays a Delivery challenge.
+      - **Starting plan (Claude's, the owner adjusts in Service Mode):**
+        - Delivery:
+          - 1 sunny; 3 snowy; 5 sunny + windy;
+          - 7 rainy; 9 snowy + windy; 11 Random;
+          - 13 rainy + windy; 15 snowy + windy; 17 Random;
+          - 19 rainy + windy.
+        - Kitchen: winter levels snowy; summer levels sunny, except 10 and 16 rainy.
+      - *Claude's calls, to confirm in play:*
+        - Random, where a level uses it, rolls windy about 30% in summer and 25% in winter;
+        - wind strength rises with difficulty;
+        - a tumbleweed bursts into twigs and wobbles the car, with no fine;
+        - swaying trees and dust streaks are the telegraph, not extra hazards.
+- [ ] **A much simpler level card:** "LEVEL #" and the date (month and year), text on black.
+      - **Concepts D and B together:** a thin three-colour stripe in the decade's colours,
+        with the date typing on beneath it in the decade colour.
+        (`reference/level-card/2026-11-08-concepts.png`)
+      - **It moves on by itself:** the date types on, holds about 2 seconds, and the shift
+        starts. Any key skips ahead. No prompt text.
+      - **The kitchen menu is not shown** at the start of a level. The next-ingredient hint
+        and trial and error teach the recipes. *Claude's assumption, to confirm:* the pause
+        screen keeps its menu, at the cost of clock time.
+      - The other cards (clear, game over, continue) are unchanged.
+- [ ] **A next-ingredient hint:** the right bin blinks briefly to show what comes next.
+      - It blinks **after a stall** (about 3 seconds with no pick while building) **and after
+        a wrong pick.**
+      - **Easy:** always. **Medium:** only for dishes new to this decade's menu (not on the
+        previous decade's menu, or with a changed recipe). **Hard and Supreme:** off.
+      - **The owner sets it per difficulty in Service Mode's Difficulty tab:** on/off,
+        new-items-only, and the stall delay. There is no player switch.
+      - It replaces today's `kitchen.hint`, which only flashed after a wrong pick on Easy.
+- [x] **Playtest fixes (on `playtest-0.9.2`):** WRAP IT! is reachable with arrows or the stick
+      (Down past the bins), and the tortilla rack's cursor fits each tray.
+
 **Decided, no work**
 - Q1 (A): keep mouse-aim throwing in Mode A.
 - Q3 (A): police cost unchanged; judge Monday by counting tickets per shift.
