@@ -5,7 +5,7 @@ import { sandbox, deferred, makeCtx, makeCanvas, opCount } from './sandbox.mjs';
 
 
 const { G, City, Nav, Art, Input, Demo, textW, money, MAXTHROW, VW, VH, WW, WH,
-        ATTRACT_TITLE, ATTRACT_WINNERS, ATTRACT_DEMO, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TITLE_HOLD, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ATTRACT_SCORES, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER } = sandbox.__x;
+        Player, Cop, Train, Crossing, carBlocked, ATTRACT, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER } = sandbox.__x;
 sandbox.solve = sandbox.__x.solve;
 
 /* ---------- assertions ---------- */
@@ -116,12 +116,10 @@ ok(NAV_Y0 + NAV_H <= VH, `the nav panel fits above the bottom edge (${NAV_Y0 + N
    the TACO BAG it replaced */
 ok(VW - 76 + textW('DELIVERIES', 1) <= VW, `the deliveries label fits the screen (${textW('DELIVERIES', 1)}px from x=${VW - 76})`);
 
-/* attract timings are authored in content/attract.json now, so assert the
-   game actually reads them rather than a stale constant */
-ok(ATTRACT_TITLE === ATTRACT.title.seconds && ATTRACT_WINNERS === ATTRACT.winners.seconds && ATTRACT_DEMO === ATTRACT.demo.seconds,
-   `attract timings come from content: ${ATTRACT_TITLE}/${ATTRACT_WINNERS}/${ATTRACT_DEMO}s`);
-ok(TITLE_HOLD >= 0 && TITLE_HOLD <= ATTRACT_TITLE - 2,
-   `the wordmark lands with time to spare (hold ${TITLE_HOLD}s of ${ATTRACT_TITLE}s)`);
+/* attract timings are authored in content/attract.json; — attract — asserts
+   the game reads them live from ATTRACT rather than from a stale constant */
+ok(ATTRACT.title.wordmarkHold >= 0 && ATTRACT.title.wordmarkHold <= ATTRACT.title.seconds - 2,
+   `the wordmark lands with time to spare (hold ${ATTRACT.title.wordmarkHold}s of ${ATTRACT.title.seconds}s)`);
 
 /* A car whose body overlaps geometry must always be able to drive out.
    carBlocked() is tested at the destination, so before unwedge() existed every
@@ -394,14 +392,35 @@ console.log('\n— attract —');
 const step = (secs) => { for (let i = 0; i < secs * 60; i++) { G.update(1 / 60); G.render(ctx); Input.endFrame(); } };
 
 Input.down = Object.create(null); Input.mhit = false; Input.hasMouse = false;
+/* the rotation reads its durations from ATTRACT each time a screen starts, not
+   from consts captured at load, so Service Mode's edits reach it live */
+{
+  const keep = JSON.stringify(ATTRACT);
+  ATTRACT.title.seconds = 7; ATTRACT.winners.seconds = 6; ATTRACT.scores.seconds = 5; ATTRACT.demo.seconds = 9;
+  ATTRACT.title.wordmarkHold = 3;
+  G.toTitle(); const tT = G.attractT;
+  G.toWinners(); const tW = G.attractT;
+  G.toScores(false); const tS = G.attractT;
+  G.toDemo(); const tD = G.attractT, sh = G.shift;
+  ok(tT === 7 && tW === 6 && tS === 5 && tD === 9 && sh >= 9 + 30,
+     `the rotation reads its durations from ATTRACT (${tT}/${tW}/${tS}/${tD}s, demo clock ${sh | 0}s)`);
+  G.toTitle();
+  for (let i = 0; i < 4.5 * 60; i++) { G.update(1 / 60); Input.endFrame(); }
+  const early = G.titleSlam;
+  for (let i = 0; i < 1 * 60; i++) { G.update(1 / 60); Input.endFrame(); }
+  ok(!early && G.titleSlam, 'the wordmark lands at ATTRACT.title.wordmarkHold + the grow (a 3s hold lands at 5s, not 3s)');
+  const o = JSON.parse(keep);
+  for (const k of Object.keys(o)) Object.assign(ATTRACT[k], o[k]);
+  ok(JSON.stringify(ATTRACT) === keep, 'ATTRACT restored');
+}
 G.toTitle();
 ok(G.state === 'title', 'attract starts on the title');
-step(ATTRACT_TITLE + 0.5);
-ok(G.state === 'winners', `title holds ${ATTRACT_TITLE}s then shows the winners card`);
-step(ATTRACT_WINNERS + 0.5);
-ok(G.state === 'scores', `winners holds ${ATTRACT_WINNERS}s then shows the board`);
-step(ATTRACT_SCORES + 0.5);
-ok(G.state === 'demo', `the board holds ${ATTRACT_SCORES}s then starts the demo`);
+step(ATTRACT.title.seconds + 0.5);
+ok(G.state === 'winners', `title holds ${ATTRACT.title.seconds}s then shows the winners card`);
+step(ATTRACT.winners.seconds + 0.5);
+ok(G.state === 'scores', `winners holds ${ATTRACT.winners.seconds}s then shows the board`);
+step(ATTRACT.scores.seconds + 0.5);
+ok(G.state === 'demo', `the board holds ${ATTRACT.scores.seconds}s then starts the demo`);
 
 /* the demo must actually drive — a car wedged against a wall would still
    satisfy "no NaN", so track distance covered and watch for drift */
@@ -416,7 +435,7 @@ let frames = 0, offTarmac = 0, behind = 0, onTop = 0, laneSum = 0, laneN = 0;
 // runs to 5s short of whatever the content file says, rather than a
 // hard-coded 85 — the durations are authored in content/attract.json and
 // retuning them there should not break the suite
-const DEMO_RUN = ATTRACT_DEMO - 5;
+const DEMO_RUN = ATTRACT.demo.seconds - 5;
 for (let i = 0; i < DEMO_RUN * 60; i++) {
   G.update(1 / 60); G.render(ctx); Input.endFrame();
   const p = G.player;
@@ -502,7 +521,7 @@ void behind;
 
 ok(G.state === 'demo', 'demo still running before its timer expires');
 step(6);
-ok(G.state === 'title', `demo returns to the title after ${ATTRACT_DEMO}s`);
+ok(G.state === 'title', `demo returns to the title after ${ATTRACT.demo.seconds}s`);
 
 /* any key from winners or demo goes back to the title */
 G.toWinners();
@@ -954,7 +973,7 @@ Input.down = Object.create(null); Input.anyKey = false; Input.mhit = false; Inpu
 /* attract.md: four screens in a fixed order, the board as its own slot */
 G.toTitle();
 const seq = [G.state];
-for (let i = 0; i < (ATTRACT_TITLE + ATTRACT_WINNERS + ATTRACT_SCORES + 1.5) * 60; i++) {
+for (let i = 0; i < (ATTRACT.title.seconds + ATTRACT.winners.seconds + ATTRACT.scores.seconds + 1.5) * 60; i++) {
   G.update(1 / 60); Input.endFrame();
   if (seq[seq.length - 1] !== G.state) seq.push(G.state);
 }
@@ -1308,6 +1327,16 @@ for (const era of [1, 2, 3]) {
 ok(tooWideRecipe === 0, 'every recipe line fits the menu card');
 
 console.log('\n— kitchen demo —');
+/* the demo's level set is content: attract.demo.levels, "random" or a list */
+{
+  const pin = G.demoPin, was = ATTRACT.demo.levels;
+  G.demoPin = 0; ATTRACT.demo.levels = [2];
+  const picks = [];
+  try { for (let i = 0; i < 20; i++) { G.toDemo(); picks.push(G.levelN); } }
+  finally { G.demoPin = pin; ATTRACT.demo.levels = was; }
+  ok(picks.length === 20 && picks.every((n) => n === 2), `with demo.levels [2], 20 demos all play level 2 (${picks.join(',')})`);
+  ok(was === 'random', `attract.json ships demo.levels "random" (${JSON.stringify(was)})`);
+}
 G.toDemo(2);
 ok(G.state === 'kdemo', 'the attract demo can play a kitchen level');
 let kBad = 0;

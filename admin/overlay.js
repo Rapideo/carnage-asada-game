@@ -3,6 +3,7 @@
 import './apply.js';
 import './panels/levels.js';
 import './panels/difficulty.js';
+import './panels/attract.js';
 import { store } from './store.js';
 import { TAB_ORDER, tabs, paint, refreshControls } from './fields.js';
 

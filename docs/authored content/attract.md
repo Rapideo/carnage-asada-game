@@ -33,7 +33,7 @@ The game reads these durations from `content/attract.json`.
 
 - Duration : 0:10 seconds
 
-- Message : Winners Don't Use Drugs. They Drink. 
+- Message : "WINNERS DON'T USE DRUGS. / THEY DRINK."
 
 - FBI Director : Kash P.V. Patel
 

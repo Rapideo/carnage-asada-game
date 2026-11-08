@@ -269,6 +269,20 @@ function buildAttract(src) {
       `
   The wordmark would land with under 2s left, or never. Lower the hold, or raise title.seconds.`);
 
+  /* The demo's level set: "random", or the levels it may pick from. An empty
+     list would leave G.toDemo nothing to play. */
+  const lv = out.demo.levels;
+  if (lv !== 'random') {
+    if (!Array.isArray(lv) || !lv.length)
+      fail(F, ['demo', 'levels'], `content/attract.json: "demo.levels" must be "random" or a non-empty list of level numbers, e.g. [1, 2, 9]; got ${JSON.stringify(lv)}`);
+    lv.forEach((n, i) => {
+      if (!Number.isInteger(n) || n < 1 || n > LEVEL_COUNT)
+        fail(F, ['demo', 'levels'], `content/attract.json: "demo.levels" holds ${JSON.stringify(n)}; every entry must be a level number 1-${LEVEL_COUNT}`);
+      if (lv.indexOf(n) !== i)
+        fail(F, ['demo', 'levels'], `content/attract.json: "demo.levels" names level ${n} twice`);
+    });
+  }
+
   return out;
 }
 

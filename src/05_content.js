@@ -81,7 +81,8 @@ const ATTRACT = {
     "seconds": 10
   },
   "demo": {
-    "seconds": 45
+    "seconds": 45,
+    "levels": "random"
   }
 };
 

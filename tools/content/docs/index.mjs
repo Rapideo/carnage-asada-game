@@ -14,9 +14,10 @@ import { join } from 'node:path';
 import { diffLines } from './engine.mjs';
 import levels from './levels.mjs';
 import difficulty from './difficulty.mjs';
+import attract from './attract.mjs';
 
 export const DOCS_DIR = 'docs/authored content';
-export const DOCS = [levels, difficulty];
+export const DOCS = [levels, difficulty, attract];
 
 /* readDoc(file) -> text | null. A CRLF doc is rendered as LF and handed back CRLF. */
 export function renderAll(files, readDoc) {

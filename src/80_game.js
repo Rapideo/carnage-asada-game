@@ -50,13 +50,10 @@ const NAV_FULL = { panel: true, line: true, dot: true, edge: true, beacon: true 
 
 /* Attract rotation, cabinet-style: title -> winners -> scores -> demo. The
    durations are authored in content/attract.json and inlined as ATTRACT by
-   build.mjs. attract.md asks for the board as its own screen (the owner's
-   authored content wins over the old alternating middle slot). */
-const ATTRACT_TITLE = ATTRACT.title.seconds;
-const ATTRACT_WINNERS = ATTRACT.winners.seconds;
-const ATTRACT_DEMO = ATTRACT.demo.seconds;
-const ATTRACT_SCORES = ATTRACT.scores.seconds;
-const TITLE_HOLD = ATTRACT.title.wordmarkHold;   // badge alone, before the slam
+   build.mjs. They are read from ATTRACT where they are used, never copied into
+   consts at load, so Service Mode's edits reach a running game:
+   ATTRACT.<screen>.seconds, ATTRACT.title.wordmarkHold (the badge alone,
+   before the slam) and ATTRACT.demo.levels (the demo's level set). */
 const TITLE_FADE = 0.25;                         // how fast it stops being transparent
 const TITLE_GROW = 2.0;                          // and how long it takes to reach full size
 const TITLE_FROM = 0.28;                         // starting scale of that grow
@@ -181,7 +178,7 @@ const G = {
     this.titleCam = 0;
     this.titleT = 0; this.titleSlam = false;
     this.shake = 0;
-    this.attractT = ATTRACT_TITLE;
+    this.attractT = ATTRACT.title.seconds;
     this.paused = false; this.demoAim = null;
     Audio5.sirenOff();
     Dialog.drop();
@@ -197,7 +194,7 @@ const G = {
 
   toWinners() {
     this.state = 'winners';
-    this.attractT = ATTRACT_WINNERS;
+    this.attractT = ATTRACT.winners.seconds;
   },
 
   /* The board serves twice: an attract screen on a timer, and the screen at
@@ -205,7 +202,7 @@ const G = {
   toScores(fromShift) {
     this.state = 'scores';
     this.scoresFromShift = !!fromShift;
-    this.attractT = ATTRACT_SCORES;
+    this.attractT = ATTRACT.scores.seconds;
     if (!fromShift) this.scoreIdx = -1;
   },
 
@@ -224,12 +221,14 @@ const G = {
     else this.toScores(true);
   },
 
-  /* attract.md: the demo plays a RANDOM level -- a delivery level driven by
-     Demo, or a kitchen level cooked by the Kitchen's autoplayer. The tests
-     pass a level number to pin it. */
+  /* attract.md: the demo plays a level from ATTRACT.demo.levels ("random" is
+     any level) -- a delivery level driven by Demo, or a kitchen level cooked
+     by the Kitchen's autoplayer. The tests pass a level number, or set
+     demoPin, to pin it. */
   toDemo(n) {
-    const L = this.levels();
-    const pick = n || this.demoPin || (1 + ((Math.random() * L.length) | 0));
+    const L = this.levels(), set = ATTRACT.demo.levels;
+    const from = Array.isArray(set) ? set.filter((k) => k >= 1 && k <= L.length) : [];
+    const pick = n || this.demoPin || (from.length ? from[(Math.random() * from.length) | 0] : 1 + ((Math.random() * L.length) | 0));
     this.setLevel(pick);
     this.combo = 1; this.levelEarned = 0; this.levelStars = 0; this.done = 0; this.extUsed = 0;
     this.nav = NAV_FULL;                      // the demo shows the game at its friendliest
@@ -240,12 +239,12 @@ const G = {
     } else {
       this.startShift();
       this.state = 'demo';
-      this.shift = Math.max(this.shift, ATTRACT_DEMO + 30);
+      this.shift = Math.max(this.shift, ATTRACT.demo.seconds + 30);
       this.banner = ''; this.bannerT = 0;
       this.demoAim = null;
       Demo.reset(this.player);
     }
-    this.attractT = ATTRACT_DEMO;
+    this.attractT = ATTRACT.demo.seconds;
     this.playMusic(pick);
   },
 
@@ -725,7 +724,7 @@ const G = {
       /* shake has to be decayed HERE as well as in the play branch -- this
          branch returns early, so a rumble started on the title would never stop */
       this.titleT += dt;
-      if (!this.titleSlam && this.titleT >= TITLE_HOLD + TITLE_GROW) {
+      if (!this.titleSlam && this.titleT >= ATTRACT.title.wordmarkHold + TITLE_GROW) {
         this.titleSlam = true;
         this.shake = 9;                 // the same rumble a collision gives
         Audio5.sfx('bump');
@@ -1449,7 +1448,7 @@ const G = {
 
     /* The wordmark grows into place: quadratic and ACCELERATING, so it
        arrives fast enough to earn the rumble that fires as it lands. */
-    const held = this.titleT - TITLE_HOLD;
+    const held = this.titleT - ATTRACT.title.wordmarkHold;
     if (held >= 0) {
       const g = clamp(held / TITLE_GROW, 0, 1);
       const sc = TITLE_FROM + (1 - TITLE_FROM) * (g * g);

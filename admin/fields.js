@@ -19,6 +19,17 @@ const KINDS = {
     fromView: (s) => (/^\d+(\.\d+)?$/.test(s.trim()) ? { value: Number(s) } : { msg: 'a number of seconds' }),
     unit: 's',
   },
+  /* a string or a list of lines, edited as a textarea, one line per row.
+     Trailing empty rows are not lines. A list stays a list; a string stays a
+     string while it is one line. */
+  lines: {
+    toView: (v) => (v == null ? '' : [].concat(v).join('\n')),
+    fromView: (s, cur) => {
+      const ls = s.replace(/\r/g, '').split('\n');
+      while (ls.length && ls[ls.length - 1] === '') ls.pop();
+      return { value: Array.isArray(cur) || ls.length !== 1 ? ls : ls[0] };
+    },
+  },
   money: {
     toView: (c) => (c == null ? '' : (c < 0 ? '-' : '') + Math.floor(Math.abs(c) / 100) + '.' + String(Math.abs(c) % 100).padStart(2, '0')),
     fromView: (s) => {
@@ -58,6 +69,8 @@ Admin.field = function (el, opts) {
       op.textContent = o !== null && typeof o === 'object' ? (o.label ?? String(o.value)) : String(o);
       input.appendChild(op);
     });
+  } else if (kind === 'lines') {
+    input = doc.createElement('textarea'); input.rows = 3; input.spellcheck = false;
   } else {
     input = doc.createElement('input'); input.type = 'text'; input.autocomplete = 'off'; input.spellcheck = false;
     if (kind === 'int' || kind === 'money' || kind === 'seconds') input.inputMode = 'decimal';
@@ -99,7 +112,7 @@ Admin.field = function (el, opts) {
       try { value = opts.toJSON(text); } catch (e) { input._local = String(e.message || e); paint(); return; }
       input._local = null; store.set(rel, path, value); return;
     }
-    const r = conv.fromView(text);
+    const r = conv.fromView(text, stored());
     if (r.msg) { input._local = 'needs ' + r.msg; paint(); return; }
     input._local = null;
     store.set(rel, path, r.value);

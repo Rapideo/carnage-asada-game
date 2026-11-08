@@ -14,6 +14,8 @@
     "seconds": 10
   },
   "demo": {
-    "seconds": 45
+    "seconds": 45,
+    "_levels": "Which levels the demo may play: \"random\" (any of the 20, each with its own era, season, map, menu and music), or a list of level numbers such as [1, 2, 9], each 1-20 and none twice. build.mjs refuses an empty list.",
+    "levels": "random"
   }
 }

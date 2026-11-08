@@ -89,4 +89,15 @@
     if (game.musicKey != null) game.playMusic(game.musicKey);
   });
   Admin.onApply('faces', function () { if (typeof Faces !== 'undefined') Faces.build(); });
+
+  /* The attract screens set their countdown (and the title its beat) on entry,
+     so an edit shows by re-entering the screen. The post-run board shares the
+     'scores' state but is not an attract screen, and is left alone. */
+  const ATTRACT_STATES = ['title', 'winners', 'demo', 'kdemo'];
+  Admin.onApply('attract', function (built, game) {
+    if (ATTRACT_STATES.includes(game.state) || (game.state === 'scores' && !game.scoresFromShift)) Admin.restartScreen(game);
+  });
+  /* the factory board is read into Scores.board by load(); a stored board,
+     when there is one, still wins over it, as it does at boot */
+  Admin.onApply('scores', function () { if (typeof Scores !== 'undefined') Scores.load(); });
 })();

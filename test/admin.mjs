@@ -54,6 +54,15 @@ ok(e && e.path.join('.') === 'medium.perfectBonus', 'perfectBonus is integer cen
 const bad6 = structuredClone(files); bad6['difficulty.json'].hard.kitchen.railMax = 0;
 e = null; try { validateContent(memSource(bad6)); } catch (x) { e = x; }
 ok(e && e.path.join('.') === 'hard.kitchen.railMax', 'railMax is at least 1');
+/* attract.demo.levels: "random", or a non-empty list of distinct level numbers 1..20 */
+const demoLevels = (v) => { const f = structuredClone(files); f['attract.json'].demo.levels = v; let x = null; try { validateContent(memSource(f)); } catch (y) { x = y; } return x; };
+e = demoLevels([0]);
+ok(e instanceof ContentError && e.file === 'content/attract.json' && e.path.join('.') === 'demo.levels', 'demo.levels [0] is refused on demo.levels' + (e ? ' (' + e.message + ')' : ''));
+ok(['RANDOM', [], [2, 2], [21], [1.5], '3', null].every((v) => { const x = demoLevels(v); return x instanceof ContentError && x.path.join('.') === 'demo.levels'; }),
+   'and so are "RANDOM", [], a repeat, 21, 1.5, "3" and null');
+ok(demoLevels('random') === null && demoLevels([1, 20]) === null && demoLevels([7]) === null, '"random", [1, 20] and [7] are accepted');
+ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(files); f['attract.json'].demo.levels = [3, 1]; return f; })())).attract.demo.levels),
+   'a list reaches the built ATTRACT');
 
 const before = JSON.stringify(files);
 validateContent(memSource(files));
@@ -518,6 +527,96 @@ console.log('\n— docs —');
       ok(IX.renderAll(files, (f) => f === 'difficulty.md' ? dold : null)['difficulty.md'] === dout, 'renderAll renders difficulty.md');
     }
 
+    /* attract.md, rendered from today's JSON and from edits to it */
+    let AT = null;
+    try { AT = (await import('../tools/content/docs/attract.mjs')).default; } catch (x) { console.error('  (' + x.message + ')'); }
+    ok(AT && AT.file === 'attract.md' && IX.DOCS.includes(AT), 'attract.md is a registered doc');
+    if (AT) {
+      const aold = readFileSync(join(DIR, 'attract.md'), 'utf8').replace(/\r\n/g, '\n');
+      const afx = (edit) => { const f = structuredClone(files); edit(f); return f; };
+      const at = (text, ...names) => {
+        let n = parseMd(text).children.find((c) => c.depth === 1);
+        for (const nm of names) n = n && n.children.find((c) => c.heading.replace(/^[A-Z0-9]+\. /, '') === nm);
+        return n || { lines: [], children: [] };
+      };
+      const has = (n, line) => n.lines.includes(line);
+      const aout = AT.render(files, aold);
+      ok(AT.render(files, aout) === aout, 'rendering attract.md is idempotent');
+      const a = aold.split('\n'), b = aout.split('\n');
+      const changed = a.map((l, i) => [l, b[i]]).filter(([x, y]) => x !== y);
+      ok(a.length === b.length && changed.every(([x]) => x.startsWith('- Message : ')) && b.includes('- Message : "WINNERS DON\'T USE DRUGS. / THEY DRINK."'),
+         'from today\'s JSON no line changes but Message, which shows the JSON\'s lines as drawn (' + JSON.stringify(changed) + ')');
+      const W = at(aout, 'Screens', 'Winners Screen'), D = at(aout, 'Screens', 'Auto-Play');
+      ok(has(W, '- FBI Director : Kash P.V. Patel') && has(D, '- Overlay Text : Press ESC to Return to Menu'),
+         'the "FBI Director" and "Overlay Text" notes survive as prose, verbatim, where they were');
+      ok(has(W, '- Attribution as drawn : KASH P.V. PATEL, DIRECTOR, FBI') && has(W, '- Credit : CREDIT: 0') && has(D, '- Levels : RANDOM'),
+         'attribution, credit and the demo levels read the JSON');
+
+      /* the brief: a changed winners.seconds */
+      const w12 = AT.render(afx((f) => { f['attract.json'].winners.seconds = 12; }), aold);
+      ok(has(at(w12, 'Screens', 'Winners Screen'), '- Duration : 0:12 seconds') && has(at(w12, 'Screens', 'Title Screen'), '- Duration : 0:15 seconds'),
+         'winners.seconds = 12 shows as "- Duration : 0:12 seconds" on the Winners screen, and only there');
+      ok(at(w12, 'Sequence').lines.some((l) => l.startsWith('One loop is 1:22. Any key or click')), 'and the loop line follows the cycle total, its sentence intact');
+      ok(AT.render(afx((f) => { f['attract.json'].winners.seconds = 12; }), w12) === w12, 'and that render is idempotent');
+      const t90 = AT.render(afx((f) => { f['attract.json'].title.seconds = 90; }), aold);
+      ok(has(at(t90, 'Screens', 'Title Screen'), '- Duration : 1:30 seconds') && at(t90, 'Sequence').lines.some((l) => l.startsWith('One loop is 2:35.')),
+         'a 90s title reads 1:30, and the loop 2:35');
+      const half = AT.render(afx((f) => { f['attract.json'].scores.seconds = 7.5; }), aold);
+      ok(has(at(half, 'Screens', 'High Scores'), '- Duration : 0:07.5 seconds'), 'a fractional duration reads 0:07.5, as the doc writes the IN beat');
+
+      /* the wordmark hold is the "from 0:01" inside the Wordmark note */
+      const h3 = AT.render(afx((f) => { f['attract.json'].title.wordmarkHold = 3; }), aold);
+      ok(at(h3, 'Screens', 'Title Screen').lines.includes('  from 0:03 over 2 seconds, landing with a rumble. The prompt blinks once it has landed')
+         && has(at(h3, 'Screens', 'Title Screen'), '- Wordmark : the badge stands alone, `IN` appears at 0:00.5, and CARNAGE ASADA grows in'),
+         'wordmarkHold = 3 reads "from 0:03", and the IN beat (game code) is left alone');
+
+      /* the demo's level set */
+      const l25 = AT.render(afx((f) => { f['attract.json'].demo.levels = [2, 5]; }), aold), D25 = at(l25, 'Screens', 'Auto-Play');
+      ok(has(D25, '- Levels : 2, 5') && has(D25, '  - The demo never scores and never reaches the high-score board'),
+         'demo.levels [2, 5] reads "- Levels : 2, 5", and the notes under it stay');
+
+      /* multi-line copy */
+      const ml = AT.render(afx((f) => { f['winners.json'].slogan = 'Just say no'; f['winners.json'].attribution = ['A PERSON', 'A TITLE']; f['winners.json'].credit = 'CREDIT: 9'; }), aold);
+      const Wm = at(ml, 'Screens', 'Winners Screen');
+      ok(has(Wm, '- Message : Just say no') && has(Wm, '- Attribution as drawn : A PERSON / A TITLE') && has(Wm, '- Credit : CREDIT: 9'),
+         'a one-line slogan reads as itself, a two-line attribution as "A / B", the credit as written');
+
+      /* values round-trip: read() of a render gives back what was rendered */
+      if (typeof AT.read === 'function') {
+        const vals = (f) => ({ attract: f['attract.json'], winners: f['winners.json'] });
+        const strip = (o) => JSON.parse(JSON.stringify(o, (k, v) => (k.startsWith('_') ? undefined : v)));
+        const want = (f) => { const v = strip(vals(f)); return { title: v.attract.title, winners: v.attract.winners, scores: v.attract.scores, demo: v.attract.demo,
+          slogan: [].concat(v.winners.slogan), attribution: [].concat(v.winners.attribution), credit: v.winners.credit }; };
+        const cases = { today: files, w12: afx((f) => { f['attract.json'].winners.seconds = 12; }), h3: afx((f) => { f['attract.json'].title.wordmarkHold = 3; }),
+          l25: afx((f) => { f['attract.json'].demo.levels = [2, 5]; }), half: afx((f) => { f['attract.json'].scores.seconds = 7.5; f['attract.json'].title.wordmarkHold = 1.5; }),
+          ml: afx((f) => { f['winners.json'].slogan = 'JUST SAY NO'; f['winners.json'].attribution = ['A PERSON', 'A TITLE']; }) };
+        const bad = Object.entries(cases).filter(([, f]) => JSON.stringify(AT.read(AT.render(f, aold))) !== JSON.stringify(want(f))).map(([n, f]) => n + ': ' + JSON.stringify(AT.read(AT.render(f, aold))));
+        ok(bad.length === 0, 'attract.md round-trips: reading a render back gives the JSON\'s values (' + JSON.stringify(bad) + ')');
+      } else ok(false, 'attract.mjs exports read(text), to read the values back');
+
+      /* prose: every paragraph, heading and wrapped note line survives, and no wrapped line is orphaned */
+      /* the loop line is prose whose leading total follows the JSON: compared without it */
+      const total = (l) => l.replace(/^One loop is \d+:\d\d(?:\.\d+)?/, 'One loop is #');
+      const proseOf = (src) => src.split('\n').filter((l) => l.trim() && !/^- /.test(l) && !/^\s+- /.test(l)).map(total);
+      const lost = (src, o) => { const p = proseOf(src); let j = 0; for (const l of o.split('\n').map(total)) if (j < p.length && l === p[j]) j++; return j === p.length ? null : p[j]; };
+      const BARE = /^\s*- (?:Duration|Levels|Message|Attribution as drawn|Credit) : /;
+      const orphans = (t) => t.split('\n').filter((l, i, L) => BARE.test(l) && /^\s+\S/.test(L[i + 1] || ''));
+      const NOTES = ['- FBI Director : Kash P.V. Patel', '- Overlay Text : Press ESC to Return to Menu', '- Music : the title songs (see music.md). They keep playing through the Winners and High',
+        '  - Any of the 20 levels, with that level\'s era, season, map, menu and music'];
+      const variants = { today: aout, w12, t90, half, l25, ml };
+      const pn = proseOf(aold).length, cn = proseOf(aold).filter((l) => /^\s/.test(l)).length;
+      const abad = Object.entries(variants).flatMap(([n, o]) => [...orphans(o).map((l) => n + ': orphan under ' + l),
+        ...(lost(aold, o) !== null ? [n + ': lost ' + lost(aold, o)] : []), ...NOTES.filter((l) => !o.split('\n').includes(l)).map((l) => n + ': lost note ' + l)]);
+      ok(pn > 15 && cn >= 4 && abad.length === 0,
+         'in every render all ' + pn + ' prose lines (' + cn + ' of them wrapped) and every note line survive, none orphaned (' + JSON.stringify(abad) + ')');
+
+      const afresh = AT.render(files, null);
+      ok(['## I. Sequence', '## II. Screens', '### A. Title Screen', '### B. Winners Screen', '### C. High Scores', '### D. Auto-Play'].every((s) => afresh.includes('\n' + s + '\n'))
+         && afresh.includes('- Duration : 0:45 seconds') && afresh.includes('One loop is 1:20.') && AT.render(files, afresh) === afresh,
+         'attract.md renders from nothing, idempotently');
+      ok(IX.renderAll(files, (f) => f === 'attract.md' ? aold : null)['attract.md'] === aout, 'renderAll renders attract.md');
+    }
+
     /* the same-as rule: a Same-as item with a wrapped note */
     {
       const sw = parseMd('### C. P\n\n- Same as Medium : A 1.00,\n  B 2.00. A note\n  that wraps\n').children[0];
@@ -609,36 +708,36 @@ console.log('\n— docs —');
   ok(ex('admin/panels/levels.js') && /import '\.\/panels\/levels\.js'/.test(ov), 'the Levels panel exists and the overlay imports it');
 }
 
+/* just enough DOM for fields.js and a panel: elements, text, classes, events */
+const fakeDoc = () => {
+  const doc = { activeElement: null };
+  class N {
+    constructor(tag) { this.tagName = String(tag).toUpperCase(); this.kids = []; this.parentNode = null; this.dataset = {}; this.className = ''; this._t = ''; this.on = {}; this.attrs = {}; this.style = {}; }
+    get ownerDocument() { return doc; }
+    get firstChild() { return this.kids[0] || null; }
+    appendChild(c) { if (c.parentNode) c.parentNode.kids.splice(c.parentNode.kids.indexOf(c), 1); c.parentNode = this; this.kids.push(c); return c; }
+    append(...cs) { for (const c of cs) this.appendChild(typeof c === 'string' ? Object.assign(new N('#text'), { _t: c }) : c); }
+    insertBefore(c, ref) { this.appendChild(c); this.kids.pop(); const i = this.kids.indexOf(ref); this.kids.splice(i < 0 ? this.kids.length : i, 0, c); return c; }
+    get textContent() { return this._t + this.kids.map((k) => k.textContent).join(''); }
+    set textContent(s) { for (const k of this.kids) k.parentNode = null; this.kids = []; this._t = String(s); }
+    get isConnected() { let n = this; while (n.parentNode) n = n.parentNode; return n === doc.body; }
+    get classList() {
+      const get = () => new Set(this.className.split(/\s+/).filter(Boolean)), put = (s) => { this.className = [...s].join(' '); };
+      return { contains: (c) => get().has(c), add: (c) => { const s = get(); s.add(c); put(s); }, remove: (c) => { const s = get(); s.delete(c); put(s); },
+        toggle: (c, on) => { const s = get(); if (on === undefined ? !s.has(c) : on) s.add(c); else s.delete(c); put(s); return s.has(c); } };
+    }
+    addEventListener(t, f) { (this.on[t] = this.on[t] || []).push(f); }
+    fire(t) { for (const f of this.on[t] || []) f({ type: t, target: this, preventDefault() {} }); }
+    setAttribute(k, v) { this.attrs[k] = String(v); }
+    walk() { return [this, ...this.kids.flatMap((k) => k.walk())]; }
+  }
+  doc.createElement = (t) => new N(t);
+  doc.body = new N('body');
+  return doc;
+};
+
 console.log('\n— difficulty panel —');
 {
-  /* just enough DOM for fields.js and a panel: elements, text, classes, events */
-  const fakeDoc = () => {
-    const doc = { activeElement: null };
-    class N {
-      constructor(tag) { this.tagName = String(tag).toUpperCase(); this.kids = []; this.parentNode = null; this.dataset = {}; this.className = ''; this._t = ''; this.on = {}; this.attrs = {}; this.style = {}; }
-      get ownerDocument() { return doc; }
-      get firstChild() { return this.kids[0] || null; }
-      appendChild(c) { if (c.parentNode) c.parentNode.kids.splice(c.parentNode.kids.indexOf(c), 1); c.parentNode = this; this.kids.push(c); return c; }
-      append(...cs) { for (const c of cs) this.appendChild(typeof c === 'string' ? Object.assign(new N('#text'), { _t: c }) : c); }
-      insertBefore(c, ref) { this.appendChild(c); this.kids.pop(); const i = this.kids.indexOf(ref); this.kids.splice(i < 0 ? this.kids.length : i, 0, c); return c; }
-      get textContent() { return this._t + this.kids.map((k) => k.textContent).join(''); }
-      set textContent(s) { for (const k of this.kids) k.parentNode = null; this.kids = []; this._t = String(s); }
-      get isConnected() { let n = this; while (n.parentNode) n = n.parentNode; return n === doc.body; }
-      get classList() {
-        const get = () => new Set(this.className.split(/\s+/).filter(Boolean)), put = (s) => { this.className = [...s].join(' '); };
-        return { contains: (c) => get().has(c), add: (c) => { const s = get(); s.add(c); put(s); }, remove: (c) => { const s = get(); s.delete(c); put(s); },
-          toggle: (c, on) => { const s = get(); if (on === undefined ? !s.has(c) : on) s.add(c); else s.delete(c); put(s); return s.has(c); } };
-      }
-      addEventListener(t, f) { (this.on[t] = this.on[t] || []).push(f); }
-      fire(t) { for (const f of this.on[t] || []) f({ type: t, target: this, preventDefault() {} }); }
-      setAttribute(k, v) { this.attrs[k] = String(v); }
-      walk() { return [this, ...this.kids.flatMap((k) => k.walk())]; }
-    }
-    doc.createElement = (t) => new N(t);
-    doc.body = new N('body');
-    return doc;
-  };
-
   const { store } = await import('../admin/store.js');
   const FL = await import('../admin/fields.js');
   const { DIFF_KEYS, NAV_KEYS } = await import('../tools/content/validate.mjs');
@@ -726,6 +825,112 @@ console.log('\n— difficulty panel —');
   ok(G.state === st && st === 'kitchen' && G.weather === wx && G.diff.tipFloor === 150 && K.diff.decay === 7 && G.diff.kitchen === K.diff,
      'a difficulty edit mid-shift reaches G.diff and the kitchen, and neither restarts the shift nor re-rolls the weather');
   A.applyBuilt(validateContent(memSource(files)), G);
+}
+
+console.log('\n— attract panel —');
+{
+  const { store } = await import('../admin/store.js');
+  const FL = await import('../admin/fields.js');
+  const realApply = globalThis.Admin.applyBuilt;
+  globalThis.Admin.applyBuilt = () => {};
+  store.files = structuredClone(files); store.dirty.clear(); store.error = null;
+  let loaded = true;
+  try { await import('../admin/panels/attract.js'); } catch (x) { loaded = false; console.error('  (' + x.message + ')'); }
+  const tab = FL.tabs.get('attract');
+  ok(loaded && tab && tab.title === 'Attract', 'the Attract panel registers its tab');
+  ok(/import '\.\/panels\/attract\.js'/.test(readFileSync('admin/overlay.js', 'utf8')), 'the overlay imports the Attract panel');
+  if (tab) {
+    const calls = [];
+    globalThis.G = { toTitle: () => calls.push('title'), toWinners: () => calls.push('winners'), toScores: (f) => calls.push('scores:' + !!f), toDemo: (n) => calls.push('demo:' + (n || '')) };
+    try {
+      const doc = fakeDoc(), el = doc.createElement('div');
+      doc.body.appendChild(el);
+      tab.render(el);
+      const nodes = () => el.walk();
+      const ctl = (rel, p) => nodes().find((n) => n.dataset.rel === rel && n.dataset.path === p);
+      const screens = nodes().filter((n) => n.dataset.screen).map((n) => n.dataset.screen);
+      ok(screens.join() === 'title,winners,scores,demo', 'the four screens, in loop order (' + screens.join() + ')');
+      ok(['title', 'winners', 'scores', 'demo'].every((s) => ctl('attract.json', s + '.seconds') && ctl('attract.json', s + '.seconds').dataset.kind === 'seconds')
+         && ctl('attract.json', 'title.wordmarkHold').dataset.kind === 'seconds', 'each screen has its seconds, and the title its wordmark hold');
+      const total = () => (nodes().find((n) => n.dataset.cycle) || {}).textContent || '';
+      ok(/1:20/.test(total()), 'the cycle total reads 1:20 (' + total() + ')');
+      const type = (c, v) => { c.value = v; c.fire('input'); FL.paint(); };
+      type(ctl('attract.json', 'winners.seconds'), '12');
+      ok(store.get('attract.json', 'winners.seconds') === 12 && /1:22/.test(total()), 'an edit stores seconds and the total follows live (' + total() + ')');
+      type(ctl('attract.json', 'winners.seconds'), '2');
+      ok(store.error && store.error.path.join('.') === 'winners.seconds' && ctl('attract.json', 'winners.seconds').classList.contains('adm-bad'), '2s is refused on its field');
+      type(ctl('attract.json', 'winners.seconds'), '10');
+      type(ctl('attract.json', 'title.wordmarkHold'), '14');
+      ok(store.error && store.error.path.join('.') === 'title.wordmarkHold', 'a hold past seconds - 2 is refused on the hold');
+      type(ctl('attract.json', 'title.wordmarkHold'), '1');
+      ok(store.error === null, 'and putting it back clears it');
+
+      const slog = ctl('winners.json', 'slogan'), attr = ctl('winners.json', 'attribution'), cred = ctl('winners.json', 'credit');
+      ok(slog && slog.tagName === 'TEXTAREA' && attr && attr.tagName === 'TEXTAREA' && cred && cred.tagName === 'INPUT', 'slogan and attribution are textareas, credit a line');
+      ok(slog.value === '"WINNERS DON\'T USE DRUGS.\nTHEY DRINK."', 'the slogan shows one line per row (' + JSON.stringify(slog.value) + ')');
+      type(slog, 'winners don\'t\nuse drugs');
+      ok(JSON.stringify(store.get('winners.json', 'slogan')) === '["winners don\'t","use drugs"]' && store.error === null, 'two rows store two lines; lowercase is accepted');
+      type(slog, 'WINNERS DON’T');
+      ok(store.error && store.error.path.join('.') === 'slogan' && /’/.test(slog._msg.textContent) && slog.classList.contains('adm-bad'),
+         'a curly apostrophe is refused on the slogan, naming ’ (' + slog._msg.textContent + ')');
+      type(slog, '"WINNERS DON\'T USE DRUGS.\nTHEY DRINK."\n');
+      ok(JSON.stringify(store.get('winners.json', 'slogan')) === JSON.stringify(files['winners.json'].slogan) && store.error === null, 'a trailing empty row is not a line');
+      type(attr, 'ONE LINE');
+      ok(JSON.stringify(store.get('winners.json', 'attribution')) === '["ONE LINE"]', 'an attribution stored as a list stays a list');
+      type(attr, files['winners.json'].attribution.join('\n'));
+
+      const rows = nodes().filter((n) => n.dataset.rel === 'scores.json');
+      ok(rows.length === 20 && Array.from({ length: 10 }, (_, i) => ctl('scores.json', 'board.' + i + '.ini') && ctl('scores.json', 'board.' + i + '.cents').dataset.kind === 'money').every(Boolean),
+         'the factory board: 10 rows of initials and money');
+      ok(ctl('scores.json', 'board.0.cents').value === '4800.00' && ctl('scores.json', 'board.0.ini').value === 'MJS', 'the board shows dollars');
+      type(ctl('scores.json', 'board.1.cents'), '5000');
+      ok(store.error && store.error.path.join('.') === 'board.1.cents', 'an unsorted board is refused on the row that breaks it');
+      type(ctl('scores.json', 'board.1.cents'), '3950');
+
+      const rnd = nodes().find((n) => n.dataset.demo === 'random');
+      const lv = (k) => nodes().find((n) => n.dataset.demo === String(k));
+      const tick = (c, on) => { c.checked = on; c.fire('change'); FL.paint(); };
+      ok(rnd && rnd.checked && lv(1) && lv(20) && !lv(21), 'demo: Random is ticked, with a box per level 1..20');
+      tick(rnd, false);
+      ok(JSON.stringify(store.get('attract.json', 'demo.levels')) === JSON.stringify(Array.from({ length: 20 }, (_, i) => i + 1)), 'unticking Random starts from every level');
+      tick(lv(1), false); tick(lv(7), false);
+      ok(!store.get('attract.json', 'demo.levels').includes(1) && store.get('attract.json', 'demo.levels').length === 18, 'unticking levels removes them');
+      for (let k = 1; k <= 20; k++) if (lv(k).checked) tick(lv(k), false);
+      const grp = nodes().find((n) => n.dataset.rel === 'attract.json' && n.dataset.path === 'demo.levels');
+      ok(store.error && store.error.path.join('.') === 'demo.levels' && grp && grp.classList.contains('adm-bad'), 'no level at all is refused, on the level set');
+      tick(lv(4), true);
+      ok(JSON.stringify(store.get('attract.json', 'demo.levels')) === '[4]' && store.error === null, 'one level is a set of one');
+      tick(rnd, true);
+      ok(store.get('attract.json', 'demo.levels') === 'random', 'ticking Random stores "random"');
+
+      const show = nodes().filter((n) => n.dataset.show);
+      show.forEach((b) => b.fire('click'));
+      ok(calls.join() === 'title,winners,scores:false,demo:', '"Show it" puts the game on each screen (' + calls.join() + ')');
+      ok(JSON.stringify(store.files['attract.json']) === JSON.stringify(files['attract.json']) && JSON.stringify(store.files['winners.json']) === JSON.stringify(files['winners.json'])
+         && JSON.stringify(store.files['scores.json']) === JSON.stringify(files['scores.json']), 'every edit was put back');
+    } finally { delete globalThis.G; }
+  }
+  store.dirty.clear(); store.error = null;
+  globalThis.Admin.applyBuilt = realApply;
+
+  /* the refreshers, in the game: attract restarts an attract screen; scores reloads the board */
+  const A = SB.Admin, { G, Scores } = SB.__x;
+  const fx = (edit) => { const f = structuredClone(files); edit(f); return validateContent(memSource(f)); };
+  G.toWinners(); G.attractT = 3;
+  A.applyBuilt(fx((f) => { f['attract.json'].winners.seconds = 12; }), G);
+  ok(G.state === 'winners' && G.attractT === 12, 'an attract edit on the winners card restarts it with the new duration (' + G.attractT + ')');
+  G.toScores(true); G.scoreIdx = 2;
+  A.applyBuilt(fx((f) => { f['attract.json'].winners.seconds = 11; }), G);
+  ok(G.state === 'scores' && G.scoresFromShift && G.scoreIdx === 2, 'the post-run board is not an attract screen, and is left alone');
+  A.applyBuilt(fx((f) => { f['scores.json'].board[0].ini = 'ZZZ'; }), G);
+  ok(Scores.board[0].ini === 'ZZZ', 'a factory board edit reloads Scores');
+  G.startRun(1); G.beginShift();
+  for (let i = 0; i < 10; i++) G.update(1 / 60);
+  A.applyBuilt(fx((f) => { f['attract.json'].title.seconds = 20; }), G);
+  ok(G.state === 'play', 'an attract edit during a shift leaves the shift alone');
+  A.applyBuilt(validateContent(memSource(files)), G);
+  ok(Scores.board[0].ini === files['scores.json'].board[0].ini, 'put back');
+  G.toTitle();
 }
 
 console.log('\n— artifact —');
