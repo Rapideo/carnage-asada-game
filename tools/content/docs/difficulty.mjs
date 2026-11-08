@@ -37,9 +37,12 @@
      Kitchen Shift    New Ticket Every : 25 Seconds<tail>           kitchen.every
      Kitchen Shift    Ticket Limit : 3 on the rail<tail>, with      kitchen.railMax, and
                       "Up to 3 more customers" in the tail          kitchen.queueMax
-     Kitchen Shift    Hint : <description> | none                   kitchen.hint     (a description, or
+     Kitchen Shift    Hint : <description> | on | none              kitchen.hint     (a description, or
                                                                                       "on", is left as
-                                                                                      written while true)
+                                                                                      written while true;
+                                                                                      off, a description
+                                                                                      is kept as "none.
+                                                                                      When on: <it>")
 
    Same-as items, handled by the engine's same-as rule:
      Medium   Bonus Structure   - Same as Easy                      extend..target, perfectBonus, cleanBonus
@@ -111,14 +114,25 @@ const LIMIT = F((d) => [d.kitchen.railMax, d.kitchen.queueMax], 'Ticket Limit', 
 });
 
 /* Hint: "none" while off. While on, a description of what it does (Easy's) is
-   left as written; only a "none"/"off" is turned into "on". */
+   left as written; only a "none"/"off" is turned into "on".
+   Turning a description off keeps it, as a note: `- Hint : none. When on:
+   <description>`, so its wrapped continuation lines still belong to the item
+   (a bare "none" would leave them orphaned under it, saying the hint is on).
+   Turning it back on strips the "none. When on: " again, so off -> on gives
+   back the line exactly as it was. */
 const NONE = /^(?:none|off|no)\b/i;
+const PARKED = /^(?:none|off|no)\. When on: (.*)$/i;
 const HINT = F((d) => d.kitchen.hint, 'Hint', null, null, {
   write(node, d, at) {
     if (!at) return setField(node, 'Hint', d.kitchen.hint ? 'on' : 'none');
-    const v = /:\s*(.*)$/.exec(node.lines[findField(node, at.key, { indent: at.indent })])[1];
-    if (d.kitchen.hint) { if (NONE.test(v)) setField(node, at.key, 'on', { match: NONE, indent: at.indent }); }
-    else setField(node, at.key, 'none', { match: NONE.test(v) ? NONE : /^.*/, indent: at.indent });
+    const o = { indent: at.indent };
+    const v = /:\s*(.*)$/.exec(node.lines[findField(node, at.key, o)])[1], parked = PARKED.exec(v);
+    if (d.kitchen.hint) {
+      if (parked) setField(node, at.key, parked[1], { ...o, match: /^.*/ });
+      else if (NONE.test(v)) setField(node, at.key, 'on', { ...o, match: NONE });
+    } else if (NONE.test(v)) setField(node, at.key, 'none', { ...o, match: NONE });
+    else if (/^on\b/i.test(v)) setField(node, at.key, 'none', { ...o, match: /^on\b/i });
+    else setField(node, at.key, 'none. When on: ' + v, { ...o, match: /^.*/ });
   },
 });
 

@@ -19,15 +19,20 @@ const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const h = (doc, tag, cls, text) => { const n = doc.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
 
 /* A decay is cents per second; the doc and this panel write it as $1.00 / N s
-   and the field edits N. 100 / 3 round-trips to the shipped 33.333... exactly. */
-const PER_DOLLAR = {
-  fromJSON: (v) => (typeof v === 'number' && v > 0 ? String(Number((100 / v).toFixed(2))) : ''),
+   and the field edits N. 100 / 3 round-trips to the shipped 33.333... exactly.
+   N is shown to 2 decimals, so a rate that is not 100 / (a 2-decimal N), such as
+   30 cents/s ("3.33"), would be stored as 30.03 if the shown text were read back:
+   text equal to what the field shows for the stored value keeps that value. */
+const shown = (v) => (typeof v === 'number' && v > 0 ? String(Number((100 / v).toFixed(2))) : '');
+const perDollar = (path) => ({
+  fromJSON: shown,
   toJSON: (s) => {
-    const t = s.trim();
+    const t = s.trim(), cur = store.get(REL, path);
+    if (t !== '' && t === shown(cur)) return cur;
     if (!/^\d+(\.\d+)?$/.test(t) || !(Number(t) > 0)) throw new Error('needs a number of seconds above 0, like 3');
     return 100 / Number(t);
   },
-};
+});
 
 const NAV_LABEL = { panel: 'Nav panel', line: 'Map route line', dot: 'Map dot', edge: 'Edge pointer', beacon: 'Beacon' };
 
@@ -93,7 +98,7 @@ function draw(el) {
       for (const k of DIFF_KEYS) {
         const td = h(doc, 'td');
         const path = [k, ...p.split('.')];
-        if (kind === 'rate') Admin.field(td, { rel: REL, path, kind: 'seconds', label: '$1.00 /', ...PER_DOLLAR, title: 'cents per second, as $1.00 every N seconds' });
+        if (kind === 'rate') Admin.field(td, { rel: REL, path, kind: 'seconds', label: '$1.00 /', ...perDollar(path), title: 'cents per second, as $1.00 every N seconds' });
         else Admin.field(td, { rel: REL, path, kind });
         tr.appendChild(td);
       }

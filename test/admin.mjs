@@ -426,10 +426,29 @@ console.log('\n— docs —');
          "Hard's \"Same as Medium\" no longer holds: it becomes fields, and its note is kept (" + JSON.stringify(hc.lines) + ')');
       ok(DF.render(dfx((d) => { d.medium.fines.ticket = 1200; }), t12) === t12, 'and that render is idempotent');
       /* prose: every paragraph line and heading of the old doc is still there, in order */
-      const prose = a.filter((l) => l.trim() && !/^\s*- /.test(l) && !/^\s+\S/.test(l) && !/^\|/.test(l));
-      let j = 0; const tl = t12.split('\n');
-      for (const l of tl) if (j < prose.length && l === prose[j]) j++;
-      ok(prose.length > 40 && j === prose.length, 'after that edit every one of the ' + prose.length + ' prose lines and headings survives, in order (' + (prose[j] || '') + ')');
+      /* prose: every paragraph line, heading AND indented continuation line (the
+         wrapped part of a note) of the source, in order. A Same-as item is left
+         out: it is replaced as a whole, and its own assertions cover the note. */
+      const proseOf = (src) => {
+        const L = src.split('\n'), out = [];
+        for (let i = 0; i < L.length; i++) {
+          if (/^(?:- )?Same as /.test(L[i])) { while (/^\s+\S/.test(L[i + 1] || '')) i++; continue; }
+          if (L[i].trim() && !/^- /.test(L[i]) && !/^\s+- /.test(L[i]) && !/^\|/.test(L[i])) out.push(L[i]);
+        }
+        return out;
+      };
+      const lost = (src, outText) => {
+        const p = proseOf(src); let j = 0;
+        for (const l of outText.split('\n')) if (j < p.length && l === p[j]) j++;
+        return j === p.length ? null : p[j];
+      };
+      /* a continuation line hanging under a value the module wrote bare ("none",
+         "3.00", "1.00 / 3 Seconds") belongs to no value: an orphan */
+      const BARE = /^\s*- [^:]+ : (?:none|on|\+?\d+(?:\.\d\d|:\d\d)?(?: Minutes| Seconds| Time Bonus)?|\d+\.\d\d \/ [\d.]+ Seconds)$/;
+      const orphans = (t) => t.split('\n').filter((l, i, L) => BARE.test(l) && /^\s+\S/.test(L[i + 1] || ''));
+      const proseN = proseOf(dold).length, contN = proseOf(dold).filter((l) => /^\s/.test(l)).length;
+      ok(proseN > 50 && contN >= 10 && lost(dold, t12) === null,
+         'after that edit every one of the ' + proseN + ' prose lines, headings and wrapped note lines (' + contN + ') survives, in order (' + lost(dold, t12) + ')');
       const both = DF.render(dfx((d) => { d.medium.fines.ticket = 1200; d.hard.fines.ticket = 1200; }), dold);
       const hb = at(both, 'Hard', 'Penalties');
       ok(hb.lines.some((l) => /^- Same as Medium : Speeding Ticket 12\.00, Hitting Pedestrian 4\.00, Hitting Train 10\.00,$/.test(l))
@@ -462,11 +481,32 @@ console.log('\n— docs —');
       /* nav table, hint, ticket limit */
       const nv = DF.render(dfx((d) => { d.hard.nav.dot = false; }), dold);
       ok(nv.includes('\n| Hard | | | | | x |\n') && nv.includes('\n| Medium | x | | x | | x |\n'), 'the Navigation table rows follow the JSON');
-      const hn = DF.render(dfx((d) => { d.easy.kitchen.hint = false; d.medium.kitchen.hint = true; d.hard.kitchen.hint = false; }), dold);
-      ok(has(at(hn, 'Easy', 'Kitchen Shift'), '- Hint : none') && has(at(hn, 'Medium', 'Kitchen Shift'), '- Hint : on')
-         && has(at(hn, 'Hard', 'Kitchen Shift'), '- Hint : none'), 'Hint reads on / none from the JSON');
+      const hintOff = (d) => { d.easy.kitchen.hint = false; d.medium.kitchen.hint = true; d.hard.kitchen.hint = false; };
+      const hn = DF.render(dfx(hintOff), dold);
+      ok(has(at(hn, 'Medium', 'Kitchen Shift'), '- Hint : on') && has(at(hn, 'Hard', 'Kitchen Shift'), '- Hint : none'), 'Hint reads on / none from the JSON');
       ok(has(at(dout, 'Easy', 'Kitchen Shift'), "- Hint : after a wrong pick, the right bin's plate blinks amber for 1.6s. The star and"),
          "while the hint is on, Easy's description of it is left as written");
+      /* Easy's description wraps: turning it off must not leave its second line hanging under a bare "none" */
+      const ek = at(hn, 'Easy', 'Kitchen Shift').lines, hi = ek.findIndex((l) => /^- Hint :/.test(l));
+      ok(hi >= 0 && ek[hi] === "- Hint : none. When on: after a wrong pick, the right bin's plate blinks amber for 1.6s. The star and"
+         && ek[hi + 1] === '  the clean bonus are lost all the same. Easy only' && !/^\s+\S/.test(ek[hi + 2] || ''),
+         "turning Easy's hint off reads none, and keeps its wrapped description as the item's note (" + JSON.stringify(ek.slice(hi, hi + 3)) + ')');
+      ok(DF.render(dfx(hintOff), hn) === hn, 'the hint-off render is idempotent');
+      /* round trips toggle only the one hint: a value that differs from the level
+         before gets a line of its own, and a line, once written, stays */
+      const eOff = DF.render(dfx((d) => { d.easy.kitchen.hint = false; }), dold), hon = DF.render(files, eOff);
+      ok(eOff.includes('\n- Hint : none. When on: after a wrong pick') && hon === dout && DF.render(files, hon) === hon,
+         "Easy's hint off -> on gives back the doc exactly as it was");
+      const mOn = DF.render(dfx((d) => { d.medium.kitchen.hint = d.hard.kitchen.hint = d.supreme.kitchen.hint = true; }), dold);
+      ok(has(at(mOn, 'Medium', 'Kitchen Shift'), '- Hint : on') && DF.render(files, mOn) === dout, "and Medium's bare none -> on -> none round-trips too");
+
+      /* the blind spot: no render leaves a wrapped line under a bare value, and none loses a note line */
+      const variants = { today: [dold, dout], ticket: [dold, t12], bonus: [dold, pb], tails: [tailed, tp], floor: [dold, fl],
+        nav: [dold, nv], hintOff: [dold, hn], easyHintOff: [dold, eOff], hintOn: [eOff, hon], medHintOn: [dold, mOn], limit: [dold, null] };
+      variants.limit[1] = DF.render(dfx((d) => { d.easy.kitchen.railMax = 4; d.easy.kitchen.queueMax = 2; }), dold);
+      const bad = Object.entries(variants).flatMap(([n, [src, o]]) => [...orphans(o).map((l) => n + ': orphan under ' + l),
+        ...(lost(src, o) !== null ? [n + ': lost ' + lost(src, o)] : [])]);
+      ok(orphans(dold).length === 0 && bad.length === 0, 'in every render no wrapped line is orphaned under a bare value and no note line is lost (' + JSON.stringify(bad) + ')');
       const lm = DF.render(dfx((d) => { d.easy.kitchen.railMax = 4; d.easy.kitchen.queueMax = 2; }), dold);
       ok(has(at(lm, 'Easy', 'Kitchen Shift'), '- Ticket Limit : 4 on the rail, and it is a soft limit. Up to 2 more customers wait in')
          && has(at(lm, 'Medium', 'Kitchen Shift'), '- Ticket Limit : 3 on the rail. Up to 3 more customers wait in the OVERHEAD'),
@@ -647,6 +687,11 @@ console.log('\n— difficulty panel —');
     type(ctl('medium', 'kitchen.decay'), '5');
     ok(store.get('difficulty.json', 'medium.kitchen.decay') === 20, 'the kitchen decay edits the same way');
     type(ctl('medium', 'kitchen.decay'), '6');
+    store.files['difficulty.json'].medium.tipDecay = 30; ctl('medium', 'tipDecay')._show();
+    const m30 = ctl('medium', 'tipDecay').value;
+    type(ctl('medium', 'tipDecay'), m30);
+    ok(m30 === '3.33' && store.get('difficulty.json', 'medium.tipDecay') === 30, 'a rate shown rounded (30 c/s as 3.33) is kept, not re-stored as 30.03, when its shown text is entered');
+    store.files['difficulty.json'].medium.tipDecay = 40; ctl('medium', 'tipDecay')._show();
     type(ctl('easy', 'fines.ticket'), '6.50');
     ok(store.get('difficulty.json', 'easy.fines.ticket') === 650, 'a fine is typed in dollars and stored in cents');
     type(ctl('easy', 'fines.ticket'), '5.00');
