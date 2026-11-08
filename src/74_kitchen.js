@@ -190,12 +190,11 @@ const Kitchen = {
     };
   },
 
+  /* the era's customers, from content/casts.json (the build checks every name
+     is a face and no era is empty); the dialogue default if there are none */
   castFor(era) {
-    const pre = 'c' + (era === 1 ? 7 : era === 2 ? 8 : 9);
-    const out = [];
-    if (typeof FACES !== 'undefined') for (const k in FACES) if (k.startsWith(pre)) out.push(k);
-    if (!out.length) out.push(DLG_FACE);
-    return out;
+    const c = typeof CASTS !== 'undefined' ? CASTS[era] : null;
+    return c && c.length ? c : [DLG_FACE];
   },
 
   /* where the k-th person in line stands: a LINE perpendicular to the window,

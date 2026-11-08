@@ -10,7 +10,7 @@
   /* built key -> the game's global, read lazily so a missing one is skipped */
   const TARGETS = {
     content: () => CONTENT, attract: () => ATTRACT, scores: () => SCORES, levels: () => LEVELS,
-    difficulty: () => DIFFICULTY, menus: () => MENUS, dialogue: () => DIALOGUE, faces: () => FACES,
+    difficulty: () => DIFFICULTY, menus: () => MENUS, dialogue: () => DIALOGUE, faces: () => FACES, casts: () => CASTS,
     lattice: () => LATTICE, music: () => MUSIC, playlist: () => PLAYLIST,
   };
 
@@ -99,7 +99,18 @@
   Admin.onApply('playlist', function (built, game) {
     if (game.musicKey != null) game.playMusic(game.musicKey);
   });
-  Admin.onApply('faces', function () { if (typeof Faces !== 'undefined') Faces.build(); });
+  /* Faces are decoded afresh. A face that is talking, or that a customer in
+     the kitchen holds, and is no longer in FACES falls back to DLG_FACE: the
+     strip would otherwise draw an empty box. (Kitchen.castFor reads CASTS
+     live, so a cast edit needs no refresher.) */
+  Admin.onApply('faces', function () {
+    if (typeof Faces !== 'undefined') Faces.build();
+    if (typeof FACES === 'undefined' || typeof DLG_FACE === 'undefined') return;
+    if (typeof Dialog !== 'undefined' && Dialog.face && !FACES[Dialog.face]) Dialog.face = DLG_FACE;
+    if (typeof Kitchen !== 'undefined') {
+      for (const t of [].concat(Kitchen.tickets || [], Kitchen.queue || [])) if (t && t.cust && t.cust.face && !FACES[t.cust.face]) t.cust.face = DLG_FACE;
+    }
+  });
 
   /* The attract screens set their countdown (and the title its beat) on entry,
      so an edit shows by re-entering the screen. The post-run board shares the

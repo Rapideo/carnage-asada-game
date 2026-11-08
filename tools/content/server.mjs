@@ -3,23 +3,26 @@
    Dev-only; nothing here is bundled into taco-shop.html. */
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
-import { readFile, readdir, stat } from 'node:fs/promises';
+import { readFile, readdir, stat, writeFile, mkdir, rm } from 'node:fs/promises';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { validateContent, memSource, ContentError } from './validate.mjs';
-import { formatJSON } from './format.mjs';
+import { formatJSON, formatLike } from './format.mjs';
 import { renderDocsAt, writeTexts, driftAt } from './docs/index.mjs';
 
 const TYPES = {
   '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
   '.css': 'text/css', '.json': 'application/json',
 };
-const INJECT = '<link rel="stylesheet" href="/admin/overlay.css"><script type="module" src="/admin/overlay.js"></script>';
+const BAKED = ['faces/', 'lattice/', 'board/'];
+/* a face's file name and cast key: lower-case, like c70teacher */
+const FACE_NAME = /^[a-z][a-z0-9]{1,23}$/, FACE_MAX_BYTES = 32 * 1024 * 1024;
+const INJECT ='<link rel="stylesheet" href="/admin/overlay.css"><script type="module" src="/admin/overlay.js"></script>';
 
 /* Raw spawn: resolves, never rejects. It takes NO lock. Inside startAdmin, run
    jobs through the instance's withBusy/job so they share the lock with save. */
-export function runJob(cmd, { cwd } = {}) {
+export function runJob(cmd, { cwd, env } = {}) {
   return new Promise((done) => {
-    const p = spawn(cmd[0] === 'node' ? process.execPath : cmd[0], cmd.slice(1), { cwd });
+    const p = spawn(cmd[0] === 'node' ? process.execPath : cmd[0], cmd.slice(1), { cwd, env: env ? { ...process.env, ...env } : undefined });
     let stdout = '', stderr = '';
     p.stdout.on('data', (d) => { stdout += d; });
     p.stderr.on('data', (d) => { stderr += d; });
@@ -121,8 +124,13 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
       try { docs = await renderDocs(cand); }
       catch (e) { return send(res, 500, { error: 'docs', message: 'docs mirror: ' + String(e && e.message || e) }); }
 
+      /* a baked table keeps the layout its tool wrote (format.mjs formatLike) */
       const texts = {};
-      for (const r of rels) texts['content/' + r] = formatJSON(parsed[r]);
+      for (const r of rels) {
+        let prev = null;
+        if (BAKED.some((d) => r.startsWith(d))) { try { prev = await readFile(join(content, r), 'utf8'); } catch { /* new file */ } }
+        texts['content/' + r] = prev === null ? formatJSON(parsed[r]) : formatLike(prev, parsed[r]);
+      }
       await writeTexts(root, { ...texts, ...docs });
       const b = await runJob(['node', 'build.mjs'], { cwd: root });
       if (b.code !== 0) return send(res, 500, { error: 'build', output: b.stdout + b.stderr, stamp: await stamps(rels) });
@@ -167,7 +175,76 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
     if (held.busy) return send(res, 409, { error: 'busy' });
     send(res, held.value[0], held.value[1]);
   }
-  const builtin = { '/admin/api/recolor': recolor };
+  /* POST /admin/api/face { name, png: base64, crop?: [x, y, w, h] }: a new
+     face, made by the steps docs/art_pipeline.md (Part 1) gives. The image is
+     kept as reference art, reference/assets/images/faces/<name>.png. With no
+     crop, `PROBE=1 fit-portrait.mjs` finds the bust; then bake-face.mjs bakes
+     it to the bust budget (MAXW=60 MAXH=74), writing content/faces/<name>.json
+     and reference/kitchen/faces/<name>.mjs. Like a recolour, the face is
+     written when made: it ships with the next build (everything in
+     content/faces/ does) but no customer wears it until a cast names it.
+     Nothing is overwritten: a name that is already a face file, a record, a
+     reference copy or a kept image is 409 exists. When a step fails, what this
+     request wrote is removed (the name can be tried again) and the steps' output
+     comes back as 422 { log }.
+     -> 200 { rel: 'faces/<name>.json', json, log } */
+  async function newFace(req, res) {
+    let b;
+    try { b = JSON.parse(await readBody(req)); } catch { return send(res, 400, { error: 'bad request' }); }
+    const { name, png, crop } = b || {};
+    const cropOk = crop == null || (Array.isArray(crop) && crop.length === 4 && crop.every((n) => Number.isInteger(n) && n >= 0) && crop[2] > 0 && crop[3] > 0);
+    if (typeof name !== 'string' || !FACE_NAME.test(name) || typeof png !== 'string' || !png || !cropOk) return send(res, 400, { error: 'bad request' });
+    const buf = Buffer.from(png, 'base64');
+    if (!buf.length || buf.length > FACE_MAX_BYTES) return send(res, 400, { error: 'bad request' });
+    const rel = 'faces/' + name + '.json';
+    const R = { json: 'content/' + rel, mjs: 'reference/kitchen/faces/' + name + '.mjs', img: 'reference/assets/images/faces/' + name + '.png' };
+    const abs = (r) => join(root, ...r.split('/'));
+    const exists = async (r) => { try { await stat(abs(r)); return true; } catch { return false; } };
+    /* the check and the jobs hold ONE lock, as the recolour does: runJob, not job */
+    const held = await withBusy(async () => {
+      const names = new Set();
+      for (const f of (await readdir(join(content, 'faces')).catch(() => [])).filter((f) => f.endsWith('.json'))) {
+        try { names.add(JSON.parse(await readFile(join(content, 'faces', f), 'utf8')).name); } catch { /* the validator reports it */ }
+      }
+      for (const r of Object.values(R)) if (await exists(r)) return [409, { error: 'exists', rel, file: r }];
+      if (names.has(name.toUpperCase())) return [409, { error: 'exists', rel }];
+
+      const made = [], log = [];
+      const failed = async (why) => {
+        for (const r of made) await rm(abs(r), { force: true });
+        return [422, { log: log.concat(why ? [why] : []).join('\n') }];
+      };
+      await mkdir(join(root, 'reference', 'assets', 'images', 'faces'), { recursive: true });
+      await writeFile(abs(R.img), buf, { flag: 'wx' });
+      made.push(R.img);
+      let box = crop;
+      if (!box) {
+        const p = await runJob(['node', 'tools/render/fit-portrait.mjs', abs(R.img)], { cwd: root, env: { PROBE: '1' } });
+        log.push('$ PROBE=1 node tools/render/fit-portrait.mjs ' + R.img, (p.stdout + p.stderr).trim());
+        const m = /full bust\s+(\d+) (\d+) (\d+) (\d+)/.exec(p.stdout);
+        if (p.code !== 0 || !m) return failed('fit-portrait found no bust to crop');
+        box = m.slice(1).map(Number);
+        log.push('crop from fit-portrait: ' + box.join(' '));
+      }
+      made.push(R.json, R.mjs);                  // the bake writes these; a failure takes them away
+      const bk = await runJob(['node', 'tools/render/bake-face.mjs', name, abs(R.img), ...box.map(String)], { cwd: root, env: { MAXW: '60', MAXH: '74' } });
+      log.push('$ MAXW=60 MAXH=74 node tools/render/bake-face.mjs ' + name + ' ' + R.img + ' ' + box.join(' '), (bk.stdout + bk.stderr).trim());
+      if (bk.code !== 0) return failed('the bake failed');
+      let json;
+      try { json = JSON.parse(await readFile(abs(R.json), 'utf8')); } catch (e) { return failed('the bake wrote no readable ' + R.json + ': ' + e.message); }
+      /* the content as a whole has to take it: the bubble width, for one, is
+         computed from the widest face */
+      const all = [], cand = {};
+      await walkJSON(content, '', all);
+      for (const r of all) cand[r] = JSON.parse(await readFile(join(content, r), 'utf8'));
+      try { validateContent(memSource(cand)); }
+      catch (e) { if (!(e instanceof ContentError)) throw e; return failed('the content does not validate with this face in it: ' + e.message); }
+      return [200, { rel, json, log: log.join('\n') }];
+    });
+    if (held.busy) return send(res, 409, { error: 'busy' });
+    send(res, held.value[0], held.value[1]);
+  }
+  const builtin = { '/admin/api/recolor': recolor, '/admin/api/face': newFace };
 
   const server = createServer(async (req, res) => {
     try {

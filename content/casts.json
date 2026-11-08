@@ -1,0 +1,6 @@
+{
+  "1": ["c70bellbottom", "c70leisure", "c70longhair", "c70teacher", "c70trucker", "c70waitress"],
+  "2": ["c80aerobics", "c80breaker", "c80dad", "c80preppy", "c80valley"],
+  "3": ["c90club", "c90jock", "c90raider", "c90rocker", "c90soap"],
+  "_comment": "The customers' faces per era: Kitchen.castFor(era) picks from this list. Each name is a file in content/faces/ (without .json). Every era a level uses needs at least one face. Edited in Service Mode (Faces); faces.md mirrors it."
+}

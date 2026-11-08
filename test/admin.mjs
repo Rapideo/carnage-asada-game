@@ -64,6 +64,42 @@ ok(demoLevels('random') === null && demoLevels([1, 20]) === null && demoLevels([
 ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(files); f['attract.json'].demo.levels = [3, 1]; return f; })())).attract.demo.levels),
    'a list reaches the built ATTRACT');
 
+/* casts.json: the explicit cast per era (spec §5.7). Today's is what the old
+   prefix rule (c7 / c8 / c9) picked, in FACES order. */
+{
+  const prefix = (p) => Object.keys(files).filter((k) => k.startsWith('faces/' + p)).sort().map((k) => k.slice(6, -5));
+  const want = { 1: prefix('c7'), 2: prefix('c8'), 3: prefix('c9') };
+  ok(disk.casts && JSON.stringify(disk.casts) === JSON.stringify(want) && want[1].length === 6 && want[2].length === 5 && want[3].length === 5,
+     'casts.json builds to the prefix result: 6, 5 and 5 faces (' + JSON.stringify(disk.casts) + ')');
+  const castErr = (edit) => { const f = structuredClone(files); edit(f['casts.json'], f); let x = null; try { validateContent(memSource(f)); } catch (y) { x = y; } return x; };
+  e = castErr((c) => { c['1'][2] = 'nobody'; });
+  ok(e instanceof ContentError && e.file === 'content/casts.json' && e.path.length === 2 && e.path[0] === '1' && e.path[1] === 2 && /nobody/.test(e.message),
+     'a cast naming a missing face is refused with path [\'1\', i] (' + (e && e.path.join() + ': ' + e.message) + ')');
+  e = castErr((c) => { c['2'] = []; });
+  ok(e instanceof ContentError && e.file === 'content/casts.json' && e.path.join() === '2', 'an empty era is refused on that era');
+  e = castErr((c) => { delete c['3']; });
+  ok(e instanceof ContentError && e.path.join() === '3', 'an era the levels use with no cast is refused (' + (e && e.message) + ')');
+  e = castErr((c) => { c['9'] = ['c70teacher']; });
+  ok(e instanceof ContentError && e.path.join() === '9', 'an era no level uses is refused');
+  e = castErr((c) => { c['1'].push(c['1'][0]); });
+  ok(e instanceof ContentError && e.path.join() === '1,' + (want[1].length), 'a face twice in one era is refused on the repeat');
+  ok(castErr((c) => { c['1'].push('smokerbust'); c['3'].unshift('c70teacher'); }) === null, 'any face may be cast, in any era');
+  e = castErr((c, f) => { delete f['casts.json']; });
+  ok(e instanceof ContentError && e.file === 'content/casts.json', 'a missing casts.json is a ContentError naming it');
+
+  /* hand-set eyes: the note never ships, and an eye has to sit on the bitmap */
+  const fh = structuredClone(files);
+  Object.assign(fh['faces/c70teacher.json'], { eyes: [[20, 28, 6, 4]], _eyesByHand: true });
+  const bh = validateContent(memSource(fh)).faces.c70teacher;
+  ok(bh && !('_eyesByHand' in bh) && JSON.stringify(bh.eyes) === '[[20,28,6,4]]', '_eyesByHand is a note: stripped from the build, the eyes kept');
+  const eyeErr = (eyes) => { const f = structuredClone(files); f['faces/c70teacher.json'].eyes = eyes; let x = null; try { validateContent(memSource(f)); } catch (y) { x = y; } return x; };
+  e = eyeErr([[58, 28, 6, 4]]);
+  ok(e instanceof ContentError && e.file === 'content/faces/c70teacher.json' && e.path.join() === 'eyes,0', 'an eye off the edge of the bitmap is refused on [eyes, i]');
+  ok([[[1, 2, 3]], [[1, 2, 3, 1]], [[-1, 2, 3, 4]], [[1.5, 2, 3, 4]], 'x'].every((v) => { const x = eyeErr(v); return x instanceof ContentError && x.path[0] === 'eyes'; }),
+     'and so is a short rect, one row tall, negative, fractional, or not a list');
+  ok(eyeErr([]) === null && eyeErr([[1, 1, 3, 2], [10, 1, 3, 2]]) === null, 'no eyes, or two in bounds, are accepted');
+}
+
 const before = JSON.stringify(files);
 validateContent(memSource(files));
 ok(JSON.stringify(files) === before, 'validating does not mutate the source');
@@ -86,6 +122,16 @@ for (const f of FORMATTED) {
   ok(formatSongs(JSON.parse(t)) === t, f + ' format is idempotent');
   ok(readFileSync(f, 'utf8') === t, f + ' on disk is in the writer format');
   ok(t.split('\n').filter((l) => l.includes('"id"')).length === x.songs.length, 'one song per line');
+}
+{
+  const { formatLike } = await import('../tools/content/format.mjs');
+  const v = { a: [1, 2], b: 'x' };
+  ok(typeof formatLike === 'function' && formatLike(JSON.stringify({ a: [0] }), v) === JSON.stringify(v)
+     && formatLike(JSON.stringify({ a: [0] }, null, 2) + '\n', v) === JSON.stringify(v, null, 2) + '\n'
+     && formatLike(formatJSON({ a: [0, 1] }), v) === formatJSON(v) && formatLike(null, v) === formatJSON(v),
+     'formatLike keeps a baked file\'s layout: one line, bake-face\'s, or formatJSON');
+  const ft = readFileSync('content/faces/c70teacher.json', 'utf8'), sb = readFileSync('content/faces/smokerbust.json', 'utf8');
+  ok(formatLike(ft, JSON.parse(ft)) === ft && formatLike(sb, JSON.parse(sb)) === sb, 'an era face and smokerbust, rewritten unchanged, are byte-identical');
 }
 ok(formatJSON({ a: [1, 2], b: [{ c: 1 }], d: [], e: 'é' })
    === '{\n  "a": [1, 2],\n  "b": [\n    {\n      "c": 1\n    }\n  ],\n  "d": [],\n  "e": "é"\n}\n',
@@ -200,12 +246,101 @@ console.log('\n— server —');
       ok((await recolor({ src: 'BEANS', name: 'X', hue: 0, sat: 1, val: 1 }, 'http://evil.example')).status === 403, 'recolour checks the Origin too');
     }
 
+    /* a face edit (eyes) is written in the layout the face file already has */
+    {
+      const tf = join(tmp, 'content/faces/c70teacher.json'), tt = readFileSync(tf, 'utf8');
+      const st3 = (await (await fetch(srv.url + '/admin/api/content')).json()).stamp;
+      const ed = { ...JSON.parse(tt), eyes: [[20, 28, 6, 4]], _eyesByHand: true };
+      r = await post({ files: { 'faces/c70teacher.json': JSON.stringify(ed) }, stamp: { 'faces/c70teacher.json': st3['faces/c70teacher.json'] } });
+      ok(r.status === 200 && readFileSync(tf, 'utf8') === JSON.stringify(ed), 'a saved face keeps its one-line layout: the edit and nothing else (' + r.status + ')');
+    }
+
     r = await post({ files: {}, stamp: {} }, 'http://evil.example');
     ok(r.status === 403, 'a foreign Origin is refused 403');
     r = await fetch(srv.url + '/admin/api/save', { method: 'POST', body: '{}' });
     ok(r.status === 403, 'a POST with no Origin is refused 403');
     ok((await fetch(srv.url + '/..%2f..%2fetc/passwd')).status === 404, 'the .. guard holds');
   } finally { await srv.close(); rmSync(tmp, { recursive: true, force: true }); }
+}
+
+console.log('\n— faces —');
+{
+  let BF = null;
+  try { BF = await import('../tools/render/bake-face.mjs'); } catch (x) { console.error('  (' + x.message + ')'); }
+  ok(BF && typeof BF.keptEyes === 'function', 'bake-face.mjs exports keptEyes, and importing it runs no bake');
+  if (BF && typeof BF.keptEyes === 'function') {
+    const k1 = BF.keptEyes({ eyes: [[1, 2, 3, 4]], _eyesByHand: true }, [[9, 9, 9, 9]]);
+    ok(JSON.stringify(k1.eyes) === '[[1,2,3,4]]' && k1.byHand === true, 'keptEyes keeps eyes set by hand');
+    const k2 = BF.keptEyes({ eyes: [] }, [[9, 9, 9, 9]]), k3 = BF.keptEyes(null, [[9, 9, 9, 9]]);
+    ok(JSON.stringify(k2.eyes) === '[[9,9,9,9]]' && k2.byHand === false && JSON.stringify(k3.eyes) === '[[9,9,9,9]]' && k3.byHand === false,
+       'and takes the detector\'s when they were not, or there is no file yet');
+    const k4 = BF.keptEyes({ eyes: [], _eyesByHand: true }, [[9, 9, 9, 9]]);
+    ok(JSON.stringify(k4.eyes) === '[]' && k4.byHand === true, 'eyes cleared by hand stay cleared');
+  }
+
+  /* the bake itself, and POST /admin/api/face, in a temp root: no face the
+     tests make ever lands in the real content/faces/ */
+  const { mkdtempSync, cpSync, rmSync, existsSync, writeFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { execFileSync } = await import('node:child_process');
+  const tmp = mkdtempSync(join(tmpdir(), 'admin-faces-'));
+  for (const f of ['build.mjs', 'shell.html', 'src', 'content', 'tools/content', 'tools/render', 'reference/kitchen/facedata.mjs', 'reference/kitchen/portrait.mjs'])
+    cpSync(f, join(tmp, f), { recursive: true });
+  const SRC_PNG = join(tmp, 'smoker.png');
+  cpSync('reference/assets/images/Smoker.png', SRC_PNG);
+  const realFaces = readdirSync('content/faces').join();
+  const bake = (name) => execFileSync(process.execPath, ['tools/render/bake-face.mjs', name, SRC_PNG, '268', '100', '862', '1071'],
+    { cwd: tmp, stdio: 'pipe', env: { ...process.env, MAXW: '60', MAXH: '74' } }).toString();
+  const { startAdmin } = await import('../tools/content/server.mjs');
+  let srv = null;
+  try {
+    const fj = join(tmp, 'content/faces/bakeprobe.json');
+    bake('bakeprobe');
+    const first = JSON.parse(readFileSync(fj, 'utf8'));
+    ok(first.w === 60 && first.h === 74 && Array.isArray(first.eyes) && !('_eyesByHand' in first), 'a first bake writes the detector\'s eyes, with no note');
+    writeFileSync(fj, JSON.stringify({ ...first, eyes: [[3, 4, 5, 6]], _eyesByHand: true }));
+    const log = bake('bakeprobe');
+    const again = JSON.parse(readFileSync(fj, 'utf8'));
+    ok(JSON.stringify(again.eyes) === '[[3,4,5,6]]' && again._eyesByHand === true && again.pix === first.pix,
+       'a re-bake keeps eyes set by hand, and the note (' + JSON.stringify(again.eyes) + ')');
+    ok(/by hand/.test(log), 'and says so in its log');
+    const mjs = readFileSync(join(tmp, 'reference/kitchen/faces/bakeprobe.mjs'), 'utf8');
+    ok(mjs.includes('eyes: [[3,4,5,6]]'), 'the reference copy carries the same eyes');
+    ok(readdirSync('content/faces').join() === realFaces, 'nothing was baked into the real content/faces/');
+
+    /* the route */
+    srv = await startAdmin({ root: tmp, port: 0 });
+    const png = readFileSync(SRC_PNG).toString('base64');
+    const face = (body, origin) => fetch(srv.url + '/admin/api/face', {
+      method: 'POST', headers: { 'content-type': 'application/json', origin: origin || srv.url }, body: JSON.stringify(body) });
+    const teacher = readFileSync(join(tmp, 'content/faces/c70teacher.json'), 'utf8');
+    let r = await face({ name: 'c70teacher', png, crop: [268, 100, 862, 1071] }), j = await r.json();
+    ok(r.status === 409 && j.error === 'exists' && readFileSync(join(tmp, 'content/faces/c70teacher.json'), 'utf8') === teacher,
+       'baking over an existing face is 409 exists, and the file is untouched');
+    const bad = [{ name: '../x', png }, { name: 'Upper', png }, { name: 'ok1', png: 42 }, { name: 'ok2', png, crop: [1, 2, 3] }, { name: 'ok3', png, crop: [0, 0, 0, 10] }];
+    const codes = [];
+    for (const b of bad) codes.push((await face(b)).status);
+    ok(codes.every((c) => c === 400), 'a bad name, a png that is not a string, or a bad crop is 400 (' + codes.join() + ')');
+    r = await face({ name: 'testface', png, crop: [268, 100, 862, 1071] }); j = await r.json();
+    const made = join(tmp, 'content/faces/testface.json'), refImg = join(tmp, 'reference/assets/images/faces/testface.png');
+    ok(r.status === 200 && j.rel === 'faces/testface.json' && j.json && j.json.name === 'TESTFACE' && existsSync(made)
+       && JSON.stringify(JSON.parse(readFileSync(made, 'utf8'))) === JSON.stringify(j.json) && typeof j.log === 'string' && /round trip/.test(j.log),
+       'a new face is 200 { rel, json, log } and writes content/faces/<name>.json in the temp root (' + r.status + ' ' + JSON.stringify(j).slice(0, 160) + ')');
+    ok(j.json && j.json.w <= 60 && j.json.h <= 74, 'baked to the bust budget, 60x74 (' + (j.json && j.json.w + 'x' + j.json.h) + ')');
+    ok(existsSync(refImg) && readFileSync(refImg).equals(readFileSync(SRC_PNG)), 'the reference image is kept under reference/assets/images/faces/');
+    ok(!existsSync('content/faces/testface.json') && !existsSync('reference/assets/images/faces/testface.png'), 'and nothing in the real repo');
+    r = await face({ name: 'testface', png, crop: [268, 100, 862, 1071] });
+    ok(r.status === 409 && (await r.json()).error === 'exists', 'a second bake under the same name is refused, not overwritten');
+    r = await face({ name: 'probeface', png }); j = await r.json();
+    ok(r.status === 200 && j.json && j.json.w <= 60 && j.json.h <= 74 && /fit-portrait/.test(j.log),'with no crop, fit-portrait finds the bust and the bake uses it (' + r.status + ')');
+    r = await face({ name: 'junkface', png: Buffer.from('not a png at all').toString('base64') }); j = await r.json();
+    ok(r.status === 422 && typeof j.log === 'string' && j.log.length > 0, 'a pipeline that fails is 422 { log } (' + r.status + ')');
+    ok(!existsSync(join(tmp, 'content/faces/junkface.json')) && !existsSync(join(tmp, 'reference/assets/images/faces/junkface.png')),
+       'and leaves nothing behind, so the name can be tried again');
+    ok((await face({ name: 'evilface', png }, 'http://evil.example')).status === 403, 'the face route checks the Origin too');
+    let built = null; try { built = validateContent(fsSource(join(tmp, 'content'))); } catch (x) { built = x; }
+    ok(built && built.faces && built.faces.testface, 'the temp content still validates with the new faces in it');
+  } finally { if (srv) await srv.close(); rmSync(tmp, { recursive: true, force: true }); }
 }
 
 console.log('\n— apply —');
@@ -299,6 +434,26 @@ const diskBuilt = validateContent(fsSource('content'));
   ok(seen.length === 0, 'applying identical content runs no refresher');
   A.applyBuilt({ ...built3, dialogue: { ...built3.dialogue, __probe: 1 } }, G);
   ok(seen.join() === 'dialogue', 'only the refresher for the changed kind ran (' + seen.join() + ')');
+
+  /* casts: replaced in place, and castFor reads them live */
+  let C0 = null;
+  try { C0 = runScript('CASTS'); } catch (x) { C0 = null; }
+  ok(C0 && C0['1'], 'the game has CASTS');
+  if (C0) {
+    const f4 = files2(); f4['casts.json']['1'] = ['c70teacher', 'smokerbust'];
+    A.applyBuilt(validateContent(memSource(f4)), G);
+    ok(runScript('CASTS') === C0 && SB.__k.Kitchen.castFor(1).join() === 'c70teacher,smokerbust', 'a cast edit reaches Kitchen.castFor, CASTS kept in place');
+    A.applyBuilt(diskBuilt, G);
+  }
+  /* faces: a face that is talking and then removed falls back to DLG_FACE */
+  const DL = runScript('Dialog'), DF = runScript('DLG_FACE');
+  const noTeacher = { ...diskBuilt.faces }; delete noTeacher.c70teacher;
+  DL.say('X', 'HI', { face: 'c70teacher' });
+  A.applyBuilt({ ...diskBuilt, faces: noTeacher }, G);
+  ok(DL.face === DF && !runScript('FACES').c70teacher, 'the talking face removed, the strip falls back to ' + DF + ' (' + DL.face + ')');
+  A.applyBuilt(diskBuilt, G);
+  DL.drop();
+  ok(runScript('FACES').c70teacher && runScript('Faces').img.c70teacher, 'and put back, it is decoded again');
 }
 
 console.log('\n— overlay keys —');
@@ -387,9 +542,9 @@ console.log('\n— docs —');
 {
   const { existsSync, mkdtempSync, cpSync, rmSync, writeFileSync } = await import('node:fs');
   const { tmpdir } = await import('node:os');
-  const DIR = 'docs/authored content', NAMES = ['attract', 'dialogue', 'difficulty', 'levels', 'menu', 'music'];
+  const DIR = 'docs/authored content', NAMES = ['attract', 'dialogue', 'difficulty', 'faces', 'levels', 'menu', 'music'];
   ok(NAMES.every((n) => existsSync(join(DIR, n + '.md')) && !existsSync(join(DIR, n + '.md.md'))),
-     'the six docs are named *.md, not *.md.md');
+     'the seven docs are named *.md, not *.md.md');
   let E = null, LV = null, IX = null;
   try {
     E = await import('../tools/content/docs/engine.mjs');
@@ -746,6 +901,53 @@ console.log('\n— docs —');
       try { validateContent(memSource(gx((d) => { d.delivered[2] = 'THIS LINE IS FAR TOO WIDE FOR THE SPEECH BUBBLE BESIDE THE PORTRAIT'; }))); } catch (x) { wide = x; }
       ok(wide instanceof ContentError && wide.file === 'content/dialogue.json' && wide.path.join() === 'delivered,2' && /Trim \d+ character/.test(wide.message),
          'an over-wide line is a ContentError with path [key, index] (' + (wide && wide.path.join()) + ')');
+    }
+
+    /* faces.md: per era, the cast; each face's name, size and whether its eyes are set */
+    let FC = null;
+    try { FC = (await import('../tools/content/docs/faces.mjs')).default; } catch (x) { console.error('  (' + x.message + ')'); }
+    ok(FC && FC.file === 'faces.md' && IX.DOCS.includes(FC), 'faces.md is a registered doc');
+    if (FC) {
+      const fx = (edit) => { const f = structuredClone(files); edit(f['casts.json'], f); return f; };
+      const fold = existsSync(join(DIR, 'faces.md')) ? readFileSync(join(DIR, 'faces.md'), 'utf8').replace(/\r\n/g, '\n') : null;
+      const fresh = FC.render(files, null);
+      const casts = files['casts.json'], eraKeys = Object.keys(casts).filter((k) => /^\d+$/.test(k)).sort((a, b) => a - b);
+      ok(eraKeys.every((k, i) => fresh.includes('\n## ' + roman(i + 1) + '. Era ' + k + '\n')) && fresh.includes('\n## ' + roman(eraKeys.length + 1) + '. Not in a cast\n'),
+         'faces.md has one "## <roman>. Era <n>" section per era of casts.json, then "Not in a cast"');
+      const sec = (t, head) => t.split('\n## ').find((s) => s.startsWith(head)) || '';
+      const era1 = sec(fresh, 'I. Era 1');
+      ok(casts['1'].every((n, i) => era1.includes('\n### ' + letter(i) + '. ' + n + '\n')), 'the era\'s cast, in order, one "### <letter>. <name>" each');
+      ok(/### A\. c70bellbottom\n\n- Size : 60x74\n\n- Eyes : [a-z]/.test(fresh), 'each face has its size and its eyes');
+      ok(sec(fresh, roman(eraKeys.length + 1) + '. Not in a cast').includes('. smokerbust\n'), 'a face in no cast is listed under Not in a cast');
+      const eyesOf = (t, n) => { const m = new RegExp('\\. ' + n + '\\n\\n- Size : \\d+x\\d+\\n\\n- Eyes : (.*)\\n').exec(t); return m && m[1]; };
+      ok(eyesOf(fresh, 'smokerbust') === 'detected (2)', 'detected eyes read "detected (2)" (' + eyesOf(fresh, 'smokerbust') + ')');
+      const ev = (eyes, byHand) => eyesOf(FC.render(fx((c, f) => { f['faces/c70trucker.json'].eyes = eyes; if (byHand) f['faces/c70trucker.json']._eyesByHand = true; else delete f['faces/c70trucker.json']._eyesByHand; }), fresh), 'c70trucker');
+      ok(ev([[1, 1, 3, 2]], true) === 'set by hand (1)' && ev([], false) === 'not set' && ev([], true) === 'none, set by hand',
+         'and "set by hand (n)", "not set" or "none, set by hand" (' + [ev([[1, 1, 3, 2]], true), ev([], false), ev([], true)].join(' / ') + ')');
+      ok(FC.render(files, fresh) === fresh, 'rendering faces.md is idempotent');
+      ok(fold !== null && FC.render(files, fold) === fold, 'the committed faces.md is what today\'s JSON renders to');
+      ok(IX.renderAll(files, (f) => f === 'faces.md' ? fresh : null)['faces.md'] === fresh, 'renderAll renders faces.md');
+
+      /* prose: the preamble, an era's note and a note under a face survive, and the face's note follows the face */
+      const NOTE = 'MY NOTE ABOUT THE TEACHER.';
+      const notes = fresh.replace(/(### [A-Z]\. c70teacher\n)/, '$1\n' + NOTE + '\n');
+      ok(notes !== fresh && FC.render(files, notes) === notes, 'a note under a face survives an unchanged render');
+      const moved = FC.render(fx((c) => { c['1'] = c['1'].filter((n) => n !== 'c70bellbottom'); c['1'].push('smokerbust'); }), notes);
+      const ml = moved.split('\n'), ti = ml.findIndex((l) => /^### [A-Z]\. c70teacher$/.test(l));
+      ok(ti > 0 && ml[ti + 2] === NOTE && ml[ti + 4] === '- Size : 60x74', 'when the cast changes, the note stays with its face (' + ml.slice(ti, ti + 5).join(' | ') + ')');
+      ok(sec(moved, 'I. Era 1').includes('. smokerbust\n') && !sec(moved, 'I. Era 1').includes('c70bellbottom') && sec(moved, 'IV. Not in a cast').includes('c70bellbottom'),
+         'a face cast into an era appears there, and one dropped from every era moves to Not in a cast');
+      const pre = fresh.split('\n## I.')[0];
+      ok(pre.length > 80 && /^# faces\.md\n\n\S/.test(pre), 'the preamble is a paragraph under the title');
+      const custom = FC.render(files, fresh.replace(pre, '# faces.md\n\nMY PREAMBLE.\n'));
+      ok(custom.startsWith('# faces.md\n\nMY PREAMBLE.\n'), 'a rewritten preamble is kept');
+      if (typeof FC.read === 'function') {
+        const want = (f) => { const c = f['casts.json'], o = {}; for (const k of Object.keys(c).filter((k) => /^\d+$/.test(k))) o[k] = c[k]; return o; };
+        const cases = { today: files, moved: fx((c) => { c['2'].reverse(); c['3'].push('c70teacher'); }) };
+        const badRT = Object.entries(cases).filter(([, f]) => JSON.stringify(FC.read(FC.render(f, fold)).casts) !== JSON.stringify(want(f))).map(([n]) => n);
+        const sizes = FC.read(fresh).faces;
+        ok(badRT.length === 0 && sizes.c90soap && sizes.c90soap.size === '60x74', 'faces.md round-trips: reading a render back gives the casts and sizes (' + badRT + ')');
+      } else ok(false, 'faces.mjs exports read(text)');
     }
 
     /* menu.md, rendered from today's JSON and from edits to it */
@@ -1256,6 +1458,105 @@ console.log('\n— dialogue panel —');
       try { act('say', 'late', 0).fire('click'); } catch (x) { threw = x; }
       ok(!threw && !act('say', 'who'), 'with no game, Say it is harmless; who has no Say it');
     } finally { delete globalThis.G; delete globalThis.DIALOGUE; }
+  }
+  store.files = structuredClone(files); store.dirty.clear(); store.error = null;
+  globalThis.Admin.applyBuilt = realApply;
+}
+
+console.log('\n— faces panel —');
+{
+  const { store } = await import('../admin/store.js');
+  const FL = await import('../admin/fields.js');
+  const realApply = globalThis.Admin.applyBuilt, realFetch = globalThis.fetch;
+  const applied = [];
+  globalThis.Admin.applyBuilt = (b) => { applied.push(b); return []; };
+  store.files = structuredClone(files); store.dirty.clear(); store.error = null;
+  let loaded = true;
+  try { await import('../admin/panels/faces.js'); } catch (x) { loaded = false; console.error('  (' + x.message + ')'); }
+  const tab = FL.tabs.get('faces');
+  ok(loaded && tab && tab.title === 'Faces', 'the Faces panel registers its tab');
+  ok(/import '\.\/panels\/faces\.js'/.test(readFileSync('admin/overlay.js', 'utf8')), 'the overlay imports the Faces panel');
+  if (tab) {
+    const tick = (ms = 0) => new Promise((x) => setTimeout(x, ms));
+    try {
+      const doc = fakeDoc(), el = doc.createElement('div');
+      doc.body.appendChild(el);
+      tab.render(el);
+      const nodes = () => el.walk(), find = (f) => nodes().find(f);
+      const act = (a, extra = {}) => find((n) => n.dataset.act === a && Object.entries(extra).every(([k, v]) => n.dataset[k] === v));
+      const C = () => store.files['casts.json'];
+      const eras = Object.keys(C()).filter((k) => /^\d+$/.test(k));
+
+      /* cast per era */
+      ok(eras.length === 3 && eras.every((k) => C()[k].every((n) => find((x) => x.dataset.cast === k && x.dataset.face === n))), 'each era lists its cast');
+      act('uncast', { era: '1', face: 'c70trucker' }).fire('click');
+      ok(!C()['1'].includes('c70trucker') && store.dirty.has('casts.json') && !find((x) => x.dataset.cast === '1' && x.dataset.face === 'c70trucker'),
+         'Remove drops a face from that era\'s cast');
+      const add = find((x) => x.dataset.add === '1');
+      const offered = add ? add.kids.map((o) => o.value) : [];
+      ok(offered.includes('c70trucker') && offered.includes('smokerbust') && offered.includes('c90soap') && !offered.includes('c70teacher'),
+         '"add from all faces" offers every face not already in the era (' + offered.join() + ')');
+      add.value = 'c70trucker'; act('cast', { era: '1' }).fire('click');
+      ok(C()['1'][C()['1'].length - 1] === 'c70trucker' && store.error === null && find((x) => x.dataset.cast === '1' && x.dataset.face === 'c70trucker'),
+         'Add puts it at the end of the era\'s cast');
+
+      /* eyes: drag a rectangle per eye on the 4x face */
+      const pick = find((x) => x.dataset.pick === 'eyes');
+      ok(pick && pick.kids.length === Object.keys(files).filter((k) => k.startsWith('faces/')).length, 'the eye editor offers every face');
+      pick.value = 'c70teacher'; pick.fire('change');
+      const cv = () => find((x) => x.dataset.eyes === 'c70teacher');
+      ok(cv(), 'choosing a face draws it for the eyes');
+      const drag = (x0, y0, x1, y1) => {
+        const c = cv(), ev = (x, y) => ({ offsetX: x * 4 + 1, offsetY: y * 4 + 1, button: 0, pointerId: 1, target: c, preventDefault() {} });
+        c.on.pointerdown[0](ev(x0, y0)); c.on.pointermove[0](ev(x1, y1)); c.on.pointerup[0](ev(x1, y1));
+      };
+      const T = () => store.files['faces/c70teacher.json'];
+      drag(20, 28, 26, 32);
+      ok(JSON.stringify(T().eyes) === '[[20,28,6,4]]' && T()._eyesByHand === true && store.dirty.has('faces/c70teacher.json') && store.error === null,
+         'a drag sets an eye in face pixels and marks it set by hand (' + JSON.stringify(T().eyes) + ')');
+      drag(36, 32, 30, 28);
+      ok(JSON.stringify(T().eyes) === '[[20,28,6,4],[30,28,6,4]]', 'a second, dragged backwards, is normalised; eyes are kept left to right (' + JSON.stringify(T().eyes) + ')');
+      drag(31, 29, 35, 32);
+      ok(JSON.stringify(T().eyes) === '[[20,28,6,4],[31,29,4,3]]', 'a third replaces the nearer of the two (' + JSON.stringify(T().eyes) + ')');
+      drag(5, 5, 5, 5);
+      ok(T().eyes.length === 2, 'a click with no drag sets nothing');
+      ok(/20,28,6,4/.test((find((x) => x.dataset.eyelist !== undefined) || {}).textContent || ''), 'the rects are listed under the face');
+      act('clear-eyes').fire('click');
+      ok(JSON.stringify(T().eyes) === '[]' && T()._eyesByHand === true, 'Clear empties them, still set by hand');
+      ok(act('blink') && act('say-face'), 'the face can be previewed mid-blink and shown in the strip');
+
+      /* new face: drop an image, optionally crop, Bake */
+      let sent = null, reply = { status: 200, json: { rel: 'faces/newguy.json', json: { ...files['faces/smokerbust.json'], name: 'NEWGUY' }, log: 'faces/newguy.mjs  60x74\n  round trip: identical' } };
+      globalThis.fetch = async (url, o) => { sent = { url, body: JSON.parse(o.body) }; return { status: reply.status, json: async () => reply.json }; };
+      const said = [];
+      globalThis.Admin.test = { say: (t, f) => said.push(f) };
+      const nf = (k) => find((x) => x.dataset.new === k);
+      nf('name').value = 'newguy'; nf('name').fire('input');
+      nf('file').files = [{ name: 'n.png', arrayBuffer: async () => new Uint8Array([137, 80, 78, 71]).buffer }];
+      nf('file').fire('change'); await tick(10);
+      nf('crop').value = '1 2 30 40'; nf('crop').fire('input');
+      act('bake').fire('click'); await tick(20);
+      ok(sent && sent.url.endsWith('/admin/api/face') && sent.body.name === 'newguy' && sent.body.png === 'iVBORw==' && JSON.stringify(sent.body.crop) === '[1,2,30,40]',
+         'Bake posts the name, the image as base64 and the crop (' + JSON.stringify(sent && { ...sent.body, png: sent.body.png.slice(0, 12) }) + ')');
+      ok(store.files['faces/newguy.json'] && store.files['faces/newguy.json'].name === 'NEWGUY' && !store.dirty.has('faces/newguy.json'),
+         'the baked face is in the working copy, not dirty (it is on disk)');
+      ok(said.join() === 'newguy', 'and is shown in the dialogue strip through Admin.test.say (' + said.join() + ')');
+      ok(/round trip/.test(nf('msg').textContent), 'the bake log reaches the panel');
+      ok(find((x) => x.dataset.add === '2').kids.some((o) => o.value === 'newguy'), 'the new face can be cast');
+      sent = null; nf('crop').value = ''; nf('crop').fire('input');
+      reply = { status: 409, json: { error: 'exists', rel: 'faces/newguy.json' } };
+      act('bake').fire('click'); await tick(20);
+      ok(sent && !('crop' in sent.body) && /already/.test(nf('msg').textContent), 'no crop sends none; an existing name is reported (' + nf('msg').textContent + ')');
+      reply = { status: 422, json: { log: 'bake-face: it went wrong here' } };
+      act('bake').fire('click'); await tick(20);
+      ok(/it went wrong here/.test(nf('msg').textContent), 'a failed pipeline shows its log');
+      sent = null; nf('name').value = 'Bad Name'; nf('name').fire('input');
+      act('bake').fire('click'); await tick(20);
+      ok(sent === null && /lower-case/.test(nf('msg').textContent), 'a bad name is refused before anything is sent');
+      nf('name').value = 'okname'; nf('name').fire('input'); nf('crop').value = '1 2 3'; nf('crop').fire('input');
+      act('bake').fire('click'); await tick(20);
+      ok(sent === null && /x y w h/.test(nf('msg').textContent), 'and so is a crop that is not four numbers');
+    } finally { globalThis.fetch = realFetch; delete globalThis.Admin.test; }
   }
   store.files = structuredClone(files); store.dirty.clear(); store.error = null;
   globalThis.Admin.applyBuilt = realApply;

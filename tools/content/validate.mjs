@@ -459,12 +459,54 @@ function checkRuns(where, f) {
     fail(where, ['pix'], `${where}: runs cover ${covered}px but the bitmap is ${f.w}x${f.h} = ${f.w * f.h}`);
 }
 
+/* A face's `eyes` are what blink and hood paint over: [x, y, w, h] rects in
+   face pixels. One off the bitmap, or one row tall (the lash line sits at
+   y + h - 2), paints across the cheek or nothing at all, and no assertion that
+   cannot see a pixel would notice. `_eyesByHand` is a note: it tells
+   bake-face.mjs to keep them, and never ships. */
+function checkEyes(where, f) {
+  if (!('eyes' in f)) return;
+  if (!Array.isArray(f.eyes)) fail(where, ['eyes'], `${where}: "eyes" must be a list of [x, y, w, h] rects, got ${JSON.stringify(f.eyes)}`);
+  f.eyes.forEach((e, i) => {
+    const ok = Array.isArray(e) && e.length === 4 && e.every((n) => Number.isInteger(n) && n >= 0) && e[2] >= 1 && e[3] >= 2;
+    if (!ok) fail(where, ['eyes', i], `${where}: eye ${i + 1} must be [x, y, w, h] in whole face pixels, at least 1 wide and 2 tall, got ${JSON.stringify(e)}`);
+    if (e[0] + e[2] > f.w || e[1] + e[3] > f.h)
+      fail(where, ['eyes', i], `${where}: eye ${i + 1} ${JSON.stringify(e)} runs off the ${f.w}x${f.h} bitmap`);
+  });
+}
+
 function buildFaces(src) {
   const out = {};
   for (const file of src.list('faces') || []) {
-    const f = src.readJSON(`faces/${file}`);
-    checkRuns(`content/faces/${file}`, f);
+    const where = `content/faces/${file}`;
+    const f = stripNotes(src.readJSON(`faces/${file}`));
+    checkRuns(where, f);
+    checkEyes(where, f);
     out[file.replace(/\.json$/, '')] = f;
+  }
+  return out;
+}
+
+/* content/casts.json: the customers per era, { "1": [face, ...], ... }. Every
+   era a level uses has a cast, every name is a face, and a face is listed once
+   per era; no other key. Kitchen.castFor(era) reads it. */
+function buildCasts(src, faces, levels) {
+  const F = 'content/casts.json';
+  const raw = stripNotes(src.readJSON('casts.json'));
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) fail(F, [], `${F} must be an object of eras, { "1": ["c70teacher", ...] }`);
+  const eras = [...new Set(levels.map((l) => String(l.era)))].sort();
+  for (const k of Object.keys(raw))
+    if (!eras.includes(k)) fail(F, [k], `${F}: "${k}" is not an era any level uses (${eras.join(', ')})`);
+  const out = {};
+  for (const era of eras) {
+    const c = raw[era];
+    if (!Array.isArray(c) || !c.length) fail(F, [era], `${F}: era ${era} needs a cast of at least one face, got ${JSON.stringify(c)}`);
+    c.forEach((n, i) => {
+      if (typeof n !== 'string' || !faces[n])
+        fail(F, [era, i], `${F}: era ${era}, face ${i + 1} ${JSON.stringify(n)} is not a face in content/faces/ (${Object.keys(faces).join(' ')})`);
+      if (c.indexOf(n) !== i) fail(F, [era, i], `${F}: era ${era} lists "${n}" twice`);
+    });
+    out[era] = c;
   }
   return out;
 }
@@ -776,10 +818,11 @@ export function validateContent(src) {
   const difficulty = buildDifficulty(src);
   const menus = buildMenus(src);
   const levels = buildLevels(src, difficulty, maps, menus);
+  const casts = buildCasts(src, faces, levels);
   const lattice = buildLattice(src);
   checkMenuArt(menus, lattice);
   const board = buildBoard(src);
   checkBoardArt(menus, board);
   const { music, playlist, note: musicNote } = buildMusic(src, levels);
-  return { content, maps, attract, release, scores, faces, dialogue, difficulty, menus, levels, lattice, board, music, playlist, musicNote };
+  return { content, maps, attract, release, scores, faces, casts, dialogue, difficulty, menus, levels, lattice, board, music, playlist, musicNote };
 }

@@ -158,30 +158,34 @@ rather than as a bug.
 
 The baker prints them, e.g. `eyes [[9,27,5,6],[20,27,7,6]]`. They should be **level**
 (same `y`) and a sensible distance apart. If it warns, or the numbers look wrong,
-override them in `reference/kitchen/cast.mjs` — detection is a convenience, not a
-contract.
+set them by hand — detection is a convenience, not a contract. In Service Mode
+(`node admin.mjs`, F2, the **Faces** tab) drag a rectangle over each eye on the 4×
+face, check it with **Blink**, and Save. That writes the rects into
+`content/faces/<name>.json` with the note `"_eyesByHand": true` (stripped from the
+ship), and **a re-bake keeps eyes set by hand** instead of writing the detector's
+guess back over them. **Clear** is a hand-set "no eyes" (sunglasses), kept the same way.
 
 Eye rects are what blink and hood operate on. Wrong rects mean a blink that
-repaints part of the cheek.
+repaints part of the cheek. The build refuses a rect off the bitmap or one row tall.
 
 ### 5. Wire it up
 
-Build, then point the strip at it:
+Build, then cast it:
 
 ```bash
 node build.mjs
 ```
 
-Right now `src/72_dialog.js` has a single constant:
+Customers are drawn from their era's cast in `content/casts.json` (`{ "1": [...],
+"2": [...], "3": [...] }`, edited in the Faces tab), which `Kitchen.castFor(era)`
+reads. A face no cast names still ships (everything in `content/faces/` does) but
+nobody wears it. `DLG_FACE` in `src/72_dialog.js` (`smokerbust`) is the fallback
+when an era has no cast or a talking face is gone.
 
-```js
-const DLG_FACE = 'smokerbust';
-```
-
-**This is the extension point.** One character exists, so it is a constant. With a
-cast, the face becomes a property of whoever is speaking — pass it through
-`Dialog.say(who, line, { face: '<name>', ... })`, which already accepts it, and have
-`G.react()` choose. Do not add a second face by adding a second constant.
+The Faces tab can also do steps 1 to 3 for you: drop a PNG, name it, optionally give
+a crop, and **Bake** runs `fit-portrait.mjs` (`PROBE=1`, for the bust) and
+`bake-face.mjs` at the bust budget on the server. It keeps the image as
+`reference/assets/images/faces/<name>.png` and never overwrites an existing face.
 
 ### 6. Look at it running
 

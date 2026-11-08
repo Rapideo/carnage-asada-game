@@ -17,9 +17,10 @@ import difficulty from './difficulty.mjs';
 import attract from './attract.mjs';
 import menu from './menu.mjs';
 import dialogue from './dialogue.mjs';
+import faces from './faces.mjs';
 
 export const DOCS_DIR = 'docs/authored content';
-export const DOCS = [levels, difficulty, attract, menu, dialogue];
+export const DOCS = [levels, difficulty, attract, menu, dialogue, faces];
 
 /* readDoc(file) -> text | null. A CRLF doc is rendered as LF and handed back CRLF. */
 export function renderAll(files, readDoc) {

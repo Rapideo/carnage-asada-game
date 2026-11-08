@@ -104,3 +104,13 @@
 .adm-dlgline .adm-field input[type=text] { width: 100%; }
 .adm-era { background: #120d1a; color: inherit; border: 1px solid #3a3150; border-radius: 3px; font: inherit; font-size: 12px; padding: 2px; }
 .adm-count { font: 11px/22px ui-monospace, Consolas, monospace; color: #bdb3cf; min-width: 3.2em; text-align: right; }
+/* Faces: the cast as tiles, the eye editor at 4x, the new-face form */
+.adm-cast { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 6px; }
+.adm-tile { display: flex; flex-direction: column; align-items: center; gap: 2px; background: #2a2338; border: 1px solid #3a3150; border-radius: 4px; padding: 4px; }
+.adm-tile canvas, .adm-eyes { image-rendering: pixelated; background: #2a2438; }
+.adm-tilename { font-size: 11px; opacity: .85; }
+.adm-eyes { display: block; margin: 6px 0; cursor: crosshair; max-width: 100%; touch-action: none; }
+.adm-note { font-size: 12px; opacity: .75; margin: 4px 0; }
+.adm-src { display: block; max-width: 100%; max-height: 220px; margin: 6px 0; }
+.adm-log { white-space: pre-wrap; font: 11px/1.35 ui-monospace, Consolas, monospace; color: #bdb3cf; max-height: 14em; overflow: auto; margin: 6px 0 0; }
+.adm-log:empty { display: none; }

@@ -1187,6 +1187,10 @@ for (let i = 0; i < 40; i++) { G.update(1 / 60); Input.endFrame(); }
 Input.hit['Enter'] = true; G.update(1 / 60); Input.endFrame();
 ok(G.state === 'kitchen', 'enter on a kitchen card starts the kitchen');
 const Kt = KX.Kitchen;
+/* the cast is data (content/casts.json), not a filename prefix */
+ok(KX.CASTS && KX.CASTS['2'] && KX.CASTS['2'].length > 0 && JSON.stringify(Kt.castFor(2)) === JSON.stringify(KX.CASTS['2']),
+   `Kitchen.castFor(2) is CASTS['2'] (${Kt.castFor(2).join()})`);
+ok(Kt.castFor(9).join() === 'smokerbust', 'an era with no cast falls back to the dialogue default');
 /* the surroundings: one wall per decade, baked per level (owner, 2026-11-07).
    The stubs cannot see a pixel; what they can check is that every kitchen
    level bakes without a missing colour, that the calendar shows that level's

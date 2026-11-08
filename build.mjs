@@ -19,7 +19,7 @@ const pretty = (v) => JSON.stringify(v, null, 2)
    a module into src/ means the dev page picks it up too, with no second path.
    Every check lives in tools/content/validate.mjs, which the in-game Service
    Mode shares; this file only reads the result and writes it out. */
-const { content, maps, attract, release, scores, faces, dialogue, difficulty,
+const { content, maps, attract, release, scores, faces, casts, dialogue, difficulty,
   menus, levels, lattice, board, music, playlist, musicNote } = validateContent(fsSource('content'));
 const city = maps[1];
 
@@ -45,6 +45,8 @@ writeFileSync(join(SRC, '05_content.js'),
   'const DIFFICULTY = ' + pretty(difficulty) + ';\n\n' +
   'const MENUS = ' + pretty(menus).replace(/\{\n\s+"(key|name)"[^{}]*?\}/g, (m) => m.replace(/\n\s*/g, ' ')) + ';\n\n' +
   'const FACES = ' + oneLineEach(faces) + ';\n\n' +
+  '/* the customers per era, from content/casts.json: Kitchen.castFor(era) */\n' +
+  'const CASTS = ' + pretty(casts) + ';\n\n' +
   'const LATTICE = ' + oneLineEach(lattice) + ';\n\n' +
   '/* the prep board: one frame per recipe prefix, and the finishes that differ */\n' +
   'const BOARD = ' + oneLineEach(board.frames) + ';\n' +
@@ -81,5 +83,6 @@ console.log(`  levels:  ${levels.length} (${count(levels, (l) => l.type === 'del
 console.log(`  diff:    ${Object.entries(difficulty).map(([k, d]) => `${k} ${d.target}/${d.maxExt}x${d.extend}s`).join(', ')}`);
 console.log(`  menus:   ${Object.entries(menus).map(([e, m]) => `era ${e} ${m.items.length} items/${m.bins.filter(Boolean).length} bins`).join(', ')}`);
 console.log(`  dialog:  ${DLG_KEYS.slice(1).map((k) => `${k} ${dialogue[k].length}`).join(', ')}`);
+console.log(`  casts:   ${Object.entries(casts).map(([e, c]) => `era ${e} ${c.length}`).join(', ')}`);
 console.log(`  baked:   ${Object.keys(faces).length} faces, ${Object.keys(lattice).length} lattice, ${Object.keys(board.frames).length} board`);
 console.log(`  music:   ${Object.keys(music).length} songs, ${Object.keys(playlist).length} playlists${musicNote ? ' (' + musicNote + ')' : ''}`);
