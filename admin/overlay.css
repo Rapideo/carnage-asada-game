@@ -10,6 +10,19 @@
   font: 14px/1.4 system-ui, "Segoe UI", Roboto, sans-serif;
 }
 .adm-root[hidden] { display: none; }
+/* A flex item's min-width defaults to its content's width, and the stage's
+   content is the canvas, sized to fill the whole viewport. Without this the
+   stage never shrinks, so the panel is pushed off the right edge instead of
+   the canvas refitting beside it. Dev-only: this file never ships. */
+#stage { min-width: 0; }
+/* The same default, the other way: the panel's own min-width would be its
+   widest content, and a song dropdown sizes itself to its longest title, which
+   widened the panel by 200px on the Music tab. Hold it to its basis instead. */
+.adm-root { min-width: 0; max-width: min(460px, 42vw); }
+.adm-root select { max-width: 100%; }
+/* In a row, a select or a long name gives way so its button stays on screen. */
+.adm-row > select, .adm-tune > :first-child { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.adm-row > button, .adm-tune > button { flex: 0 0 auto; }
 .adm-root * { box-sizing: border-box; }
 .adm-head { display: flex; align-items: baseline; justify-content: space-between; padding: 10px 14px 6px; }
 .adm-title { font-weight: 700; letter-spacing: .12em; color: #f5c453; }
@@ -99,8 +112,11 @@
 .adm-recipe > .adm-msg { margin-left: 9em; }
 .adm-bindetail .adm-row { margin: 6px 0; }
 /* Dialogue: a line is an era dropdown, its text, a count and two buttons */
-.adm-dlgline { display: flex; align-items: flex-start; gap: 4px; margin: 2px 0; }
-.adm-dlgline .adm-field { flex: 1 1 auto; margin: 0; }
+/* A line gets the whole width (a 34-character line needs ~300px, and beside its
+   controls it had 176), with its era, count and buttons on a row beneath. */
+.adm-dlgline { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 2px 0 8px; }
+.adm-dlgline .adm-field { order: -1; flex: 1 1 100%; display: block; margin: 0; }
+.adm-dlgline .adm-count { margin-right: auto; text-align: left; padding-left: 4px; }
 .adm-dlgline .adm-field input[type=text] { width: 100%; }
 .adm-era { background: #120d1a; color: inherit; border: 1px solid #3a3150; border-radius: 3px; font: inherit; font-size: 12px; padding: 2px; }
 .adm-count { font: 11px/22px ui-monospace, Consolas, monospace; color: #bdb3cf; min-width: 3.2em; text-align: right; }
@@ -130,7 +146,7 @@
 .adm-playlist .adm-song { flex-wrap: wrap; }
 .adm-playlist .adm-warn { flex: 1 0 100%; color: #ffc861; font-size: 11px; padding-left: 1.4em; }
 .adm-grip { opacity: .6; }
-.adm-songname { flex: 1 1 auto; }
+.adm-songname { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
 .adm-show:disabled { opacity: .4; cursor: default; }
 /* Test: titled groups of rows of buttons */
 .adm-teststatus { font-size: 12px; color: #3fb8b0; margin-bottom: 8px; min-height: 1.4em; }
@@ -141,8 +157,8 @@
 .adm-btn { background: #2a2338; color: inherit; border: 1px solid #4a4062; border-radius: 4px; padding: 3px 10px; font: inherit; font-size: 13px; cursor: pointer; }
 .adm-btn:hover { background: #342b46; }
 .adm-btn.on { background: #3fb8b0; color: #10242a; border-color: #3fb8b0; }
-.adm-num { width: 5.5em; background: #120d1a; color: inherit; border: 1px solid #4a4062; border-radius: 4px; padding: 3px 6px; font: inherit; }
-.adm-text { width: 13em; background: #120d1a; color: inherit; border: 1px solid #4a4062; border-radius: 4px; padding: 3px 6px; font: inherit; }
+input.adm-num { width: 5.5em; background: #120d1a; color: inherit; border: 1px solid #4a4062; border-radius: 4px; padding: 3px 6px; font: inherit; }
+input.adm-text { width: 13em; background: #120d1a; color: inherit; border: 1px solid #4a4062; border-radius: 4px; padding: 3px 6px; font: inherit; }
 .adm-fps { font-variant-numeric: tabular-nums; }
 .adm-sel { flex: 1 1 10em; min-width: 0; background: #120d1a; color: inherit; border: 1px solid #4a4062; border-radius: 4px; padding: 3px 6px; font: inherit; }
 .adm-check { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
