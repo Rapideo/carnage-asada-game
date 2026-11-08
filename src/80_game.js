@@ -97,7 +97,7 @@ const G = {
      90_main feeds the fixed step; testPaused stops it (P/Esc pause is
      `paused`, which has its own overlay). apFor: the car the autopilot last
      took over, so Demo is reset for each new one. */
-  test: null, autopilot: false, testRun: false, speed: 1, testPaused: false, apFor: null, debugDraw: null,
+  test: null, autopilot: false, testRun: false, speed: 1, testPaused: false, apFor: null, debugDraw: null, testSay: false,
 
   /* the run */
   seed: 0, levelN: 1, level: null, diffKey: 'easy', diff: DIFF_FALLBACK, nav: NAV_FULL,
@@ -742,6 +742,11 @@ const G = {
 
   /* ---------------- update ------------------------------- */
   update(dt) {
+    /* Service Mode: a previewed line outside a shift needs the strip advanced; a shift runs its own */
+    if (this.testSay) {
+      if (this.state === 'play' || this.state === 'kitchen' || this.state === 'demo' || this.state === 'kdemo') this.testSay = false;
+      else { Dialog.update(dt); if (!Dialog.active) this.testSay = false; }
+    }
     this.time += dt;
     this.flash = Math.max(0, this.flash - dt);
     this.bannerT -= dt;
@@ -1267,6 +1272,8 @@ const G = {
     if (S === 'over')    this.overlayOver(x);
     if (S === 'cont')    this.overlayCont(x);
     if (S === 'victory') this.overlayVictory(x);
+
+    if (this.testSay && S !== 'play' && S !== 'kitchen' && S !== 'demo' && S !== 'kdemo') Dialog.draw(x);   // Service Mode preview
 
     if (this.flash > 0) {
       x.globalAlpha = this.flash * 2.4;

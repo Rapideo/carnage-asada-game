@@ -1723,7 +1723,7 @@ console.log('\n— dialogue panel —');
       try { act('say', 'late', 0).fire('click'); } catch (x) { threw = x; }
       ok(!threw && !act('say', 'who'), 'with no game, Say it is harmless; who has no Say it');
       if (realSayFn) globalThis.Admin.test.say = realSayFn;
-    } finally { delete globalThis.G; delete globalThis.DIALOGUE }
+    } finally { delete globalThis.G; delete globalThis.DIALOGUE; }
   }
   store.files = structuredClone(files); store.dirty.clear(); store.error = null;
   globalThis.Admin.applyBuilt = realApply;
@@ -2316,6 +2316,20 @@ console.log('\n— test harness —');
       G.toTitle(); Dialog.drop();
       T.say('A TEST LINE', 'nonesuch');
       ok(Dialog.active && Dialog.lines.join() === 'A TEST LINE' && Dialog.face === 'nonesuch', 'say() raises the strip with that line and face outside play (' + G.state + ')');
+      /* outside a shift the strip is updated and drawn by G itself, then clears */
+      const { makeCtx, makeCanvas } = await import('./sandbox.mjs'); const ctxStub = makeCtx(makeCanvas());
+      let drew = 0; const dd0 = Dialog.draw; Dialog.draw = function (x) { drew++; return dd0.call(this, x); };
+      G.toTitle(); Dialog.drop(); G.testSay = false;
+      G.render(ctxStub); ok(drew === 0, 'nothing is drawn from the title before a say');
+      T.say('SAY ME', null);
+      for (let i = 0; i < 20; i++) { G.update(1 / 60); G.render(ctxStub); }
+      ok(drew >= 20 && Dialog.active && G.testSay, 'say() from the title: the strip is drawn each frame (' + drew + ')');
+      for (let i = 0; i < 60 * 6; i++) { G.update(1 / 60); G.render(ctxStub); }
+      ok(!Dialog.active && G.testSay === false, 'and times out, clearing the flag');
+      const dn = drew; G.render(ctxStub); ok(drew === dn, 'with the flag false nothing is drawn outside a shift');
+      T.say('IN A SHIFT'); T.jump(1, 'play'); frames(2);
+      ok(G.testSay === false, 'a shift starting takes the strip over and clears the flag');
+      Dialog.draw = dd0; G.toTitle(); Dialog.drop();
       Dialog.drop();
       T.say('NO FACE');
       ok(Dialog.active && Dialog.face === null, 'and a face is optional');

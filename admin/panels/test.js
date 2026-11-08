@@ -7,6 +7,7 @@
    happen, debug views (with the FPS counter), housekeeping. */
 import '../fields.js';
 import { store } from '../store.js';
+import { DLG_MAX_CHARS } from '../../tools/content/validate.mjs';
 
 const Admin = (globalThis.Admin = globalThis.Admin || {});
 
@@ -187,7 +188,7 @@ function draw(el) {
   const heatIn = input(e1, 'heat', 20, 'heat to add');
   button(e1, 'heat', 'Add heat', (e) => call(e, 'heat', Number(heatIn.value)));
   const e2 = rowIn(ev, 'Say');
-  const sayIn = h(doc, 'input', 'adm-text'); sayIn.type = 'text'; sayIn.dataset.input = 'say'; sayIn.value = 'ONE LINE FOR THE STRIP'; sayIn.maxLength = 34;
+  const sayIn = h(doc, 'input', 'adm-text'); sayIn.type = 'text'; sayIn.dataset.input = 'say'; sayIn.value = 'ONE LINE FOR THE STRIP'; sayIn.maxLength = DLG_MAX_CHARS;
   const faceIn = h(doc, 'input', 'adm-text'); faceIn.type = 'text'; faceIn.dataset.input = 'face'; faceIn.placeholder = 'face key'; faceIn.title = 'a face key, e.g. one from the Faces tab; empty for none';
   e2.append(sayIn, faceIn);
   button(e2, 'say', 'Show', (e) => call(e, 'say', sayIn.value, faceIn.value.trim() || null));

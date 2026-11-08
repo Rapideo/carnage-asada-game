@@ -3,6 +3,8 @@
    ============================================================ */
 'use strict';
 
+/* the bus levels, named so Service Mode's mute can put them back exactly */
+const SFX_GAIN = 0.9, MUS_GAIN = 0.30;
 const Audio5 = {
   ctx: null, master: null, sfxBus: null, musBus: null,
   ready: false, muted: false, musicOn: true,
@@ -16,8 +18,8 @@ const Audio5 = {
     const ctx = this.ctx = new AC();
     this.master = ctx.createGain(); this.master.gain.value = 0.85;
     this.master.connect(ctx.destination);
-    this.sfxBus = ctx.createGain(); this.sfxBus.gain.value = 0.9;  this.sfxBus.connect(this.master);
-    this.musBus = ctx.createGain(); this.musBus.gain.value = 0.30; this.musBus.connect(this.master);
+    this.sfxBus = ctx.createGain(); this.sfxBus.gain.value = SFX_GAIN;  this.sfxBus.connect(this.master);
+    this.musBus = ctx.createGain(); this.musBus.gain.value = MUS_GAIN; this.musBus.connect(this.master);
     this.ready = true;
     this.startMusic();
   },
@@ -205,7 +207,7 @@ const Audio5 = {
   },
   toggleMusic() {
     this.musicOn = !this.musicOn;
-    if (this.musBus) this.musBus.gain.setTargetAtTime(this.musicOn ? 0.30 : 0, this.ctx.currentTime, 0.05);
+    if (this.musBus) this.musBus.gain.setTargetAtTime(this.musicOn ? MUS_GAIN : 0, this.ctx.currentTime, 0.05);
     return this.musicOn;
   },
   _sched() {

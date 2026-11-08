@@ -58,6 +58,7 @@
      cam the render pass hands over. Cyan is the guidance colour and stays out
      of it: red for solid ground, amber for the keep-clear mask, bone for the
      nav nodes, magenta for the live route. */
+  const SHIPPED = { get sfx() { return SFX_GAIN; }, get music() { return Audio5.musicOn === false ? 0 : MUS_GAIN; } };
   const MUTED = { music: false, sfx: false };
   const VIEWS = { solid: false, keep: false, nodes: false, route: false };
   const MAGENTA = '#ff3fd0';
@@ -91,7 +92,7 @@
         }
       }
     }
-    if (VIEWS.route && Nav && Nav.route && Nav.route.length) {
+    if (VIEWS.route && Nav && Nav.route && Nav.route.length && G.player) {
       x.strokeStyle = MAGENTA; x.lineWidth = 2;
       x.beginPath();
       x.moveTo(G.player.x - cam.x, G.player.y - cam.y);
@@ -185,6 +186,7 @@
       if (typeof Dialog === 'undefined') return false;
       const who = typeof DIALOGUE !== 'undefined' && DIALOGUE && DIALOGUE.who ? DIALOGUE.who : 'CUSTOMER';
       Dialog.say(who, String(line == null ? '' : line), { face: faceKey || null, hood: 1, secs: 4 });
+      game().testSay = true;   // G.update/G.render keep the strip alive outside a shift; a shift takes it over
       return true;
     },
 
@@ -220,7 +222,7 @@
       const bus = which === 'music' ? Audio5.musBus : which === 'sfx' ? Audio5.sfxBus : null;
       if (!bus || !bus.gain) return false;
       MUTED[which] = !!on;
-      bus.gain.value = on ? 0 : which === 'music' ? (Audio5.musicOn === false ? 0 : 0.30) : 0.9;
+      bus.gain.value = on ? 0 : SHIPPED[which];
       return true;
     },
 
