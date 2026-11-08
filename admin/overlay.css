@@ -42,3 +42,11 @@
 .adm-save { background: #f5c453; color: #241a05; border: 0; border-radius: 4px; padding: 7px 18px; font: inherit; font-weight: 700; cursor: pointer; }
 .adm-save:disabled { background: #4a4062; color: #8d84a3; cursor: default; }
 .adm-status { font-size: 12px; opacity: .8; }
+.adm-drift { color: #f5c453; font-size: 12px; margin-bottom: 8px; }
+.adm-drift[hidden] { display: none; }
+.adm-list { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; max-height: 14em; overflow: auto; margin-bottom: 10px; }
+.adm-item { background: #2a2338; color: inherit; border: 1px solid #3a3150; border-radius: 3px; padding: 2px 6px; font: inherit; font-size: 12px; text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.adm-item.on { background: #3fb8b0; color: #10242a; border-color: #3fb8b0; }
+.adm-readonly { grid-column: 2 / 4; opacity: .85; }
+.adm-link { color: #3fb8b0; }
+.adm-play { margin-top: 10px; }

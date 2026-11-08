@@ -448,6 +448,18 @@ console.log('\n— docs —');
   }
 }
 
+{
+  /* Levels panel: the field a season/name mismatch is reported on is the name */
+  const lv = structuredClone(files);
+  lv['levels.json'].levels[0].season = 'winter';           // name still says SUMMER 1972
+  let le = null; try { validateContent(memSource(lv)); } catch (x) { le = x; }
+  ok(le instanceof ContentError && le.file === 'content/levels.json' && le.path.join('.') === 'levels.0.name',
+     'a SUMMER name on a winter level is reported on levels.0.name, the field the Levels panel highlights');
+  const { existsSync: ex } = await import('node:fs');
+  const ov = readFileSync('admin/overlay.js', 'utf8');
+  ok(ex('admin/panels/levels.js') && /import '\.\/panels\/levels\.js'/.test(ov), 'the Levels panel exists and the overlay imports it');
+}
+
 console.log('\n— artifact —');
 {
   const { execFileSync } = await import('node:child_process');
