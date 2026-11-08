@@ -46,19 +46,38 @@ folder is not a pointer.
 ```bash
 node build.mjs           # bundle src/*.js -> taco-shop.html (ship) + index.html (dev)
 node serve.mjs           # static server on http://localhost:8123 (no-store; edits are live in dev)
-node test/headless.mjs   # full test suite; exits non-zero on failure
+node test/headless.mjs   # full test suite (about 280 assertions); exits non-zero on failure
+node admin.mjs           # Service Mode: the dev game plus the content editor on http://127.0.0.1:8124
+node test/admin.mjs      # Service Mode's suite (about 650 assertions): validator, server, panels, docs, test hooks
 ```
+
+**`node admin.mjs` and `node serve.mjs` must be run from the owner's own terminal.** A server started
+inside Claude Code's sandboxed shell is invisible to Chrome, so do not start either one from a session
+to "check" it. `admin.mjs` binds `127.0.0.1:8124` only; open `http://localhost:8124/` and press **F2**.
+`serve.mjs` (8123) stays the plain dev/phone server and carries no Service Mode.
 
 There is no lint step, no test framework, and no watch mode. `build.mjs` must be re-run before
 `taco-shop.html` reflects source edits; `index.html` loads `src/*.js` directly so it does not.
 
 There is no `package.json` — nothing to install. `taco-shop.html`, `index.html`, **`src/05_content.js`**
+(which gains `CASTS`, from `content/casts.json`: which faces play which customers, per era),
+**`docs/authored content/*.md`** (generated from `content/`, see below),
 **`content/faces/*.json`**, **`content/board/*.json`** and **`content/board.json`** are generated; edit
 `src/`, `shell.html` and `content/` and rebuild rather than editing them directly. Face data is re-baked with
 `node tools/render/bake-face.mjs`, and board frames with `node tools/render/bake-board.mjs`; neither is
 hand-edited.
 
 ## Authored copy (`content/*.json`)
+
+**The JSON is the master copy and the `.md` docs are its mirror (owner, 2026-10-25; took effect with
+Service Mode, 0.9.1). This reverses the 2026-09-26 ruling that the authored docs win.** Edit
+`content/`, ideally in Service Mode, and the docs follow. The seven generated docs in
+`docs/authored content/` are `levels`, `difficulty`, `attract`, `menu`, `dialogue`, `faces` and
+`music`. They are written by `tools/content/docs/` (`renderAll`) on every Service Mode save, and
+nothing is ever read back from them into the JSON. **Do not hand-edit them**: the next save
+rewrites the file. Prose in a doc that is not in the JSON survives where the renderer keeps it (the
+preamble, a bracketed note on an item), but values never do. The 0.9.1 regeneration was done once for
+all of them so the first save would not rewrite hundreds of lines at once.
 
 Player-facing copy for the attract card lives in `content/winners.json`, **the factory high-score
 board in `content/scores.json`**, **the attract rotation's durations in `content/attract.json`** (title / winners / demo, plus the title's own `wordmarkHold`), and
@@ -108,9 +127,9 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 - **`RESUME.md` — read this first when starting a session.** Where the last session
   left off, what the next one is for, the state of the repo, and what is still open. A
   snapshot: where it and `ROADMAP.md` disagree, the roadmap wins.
-- `ROADMAP.md` — **starts with the current priority** (as of 2026-10-25: the admin overlay, designed and planned but not
-  started; the full game was built that day. On 2026-11-06 two kitchen-art threads were pinned beside it — real
-  ingredient art for the wells, and the rough assembly pictures — and the owner picks the order). Then the open
+- `ROADMAP.md` — **starts with the current priority** (as of 2026-11-07: Service Mode is built and ships as 0.9.1;
+  the queued 0.9.x work follows it, from the owner's rulings that day. Two kitchen-art threads pinned on 2026-11-06 —
+  real ingredient art for the wells, and the rough assembly pictures — are still open). Then the open
   punch list, and the tiered plan for reshaping the city into the real
   neighbourhood. **Read before touching the street grid**: it records which six modules assume a uniform
   block pitch, and which tiers are safe versus which are a rewrite.
@@ -127,14 +146,12 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
   `78_scores.js`: it records why the score is the money rather than points, and why the
   `localStorage` wrapper is not optional.
 - `docs/superpowers/specs/2026-10-25-admin-overlay-design.md` and
-  `docs/superpowers/plans/2026-10-25-admin-overlay.md` describe the admin overlay, a
-  dev-only content editor and test panel inside the running game. **Designed and planned,
-  not started.** The owner chose subagent-driven execution, and the work waits for them
-  to say go. The design makes two rulings that **do not take effect until the plan's Task
-  17 lands**, so until then this file, as written, governs:
-  - the JSON becomes the master copy, and the `.md` docs become its mirror, which
-    reverses "the authored content wins";
-  - songs gain release months, with a season rule tied to them.
+  `docs/superpowers/plans/2026-10-25-admin-overlay.md` describe **Service Mode** (the owner's
+  name for the admin overlay), a dev-only content editor and test panel inside the running game.
+  **Built and shipped as 0.9.1.** The spec opens with the owner's 2026-11-07 rulings (the name,
+  F2, the version), which override its text; the plan's line numbers are stale. It carries two
+  rulings that have taken effect: the JSON is the master copy and the `.md` docs are its mirror,
+  and songs carry release months with an advisory season rule. See "Service Mode" under Architecture.
 - `docs/kitchen-minigame-prompt.md` and `docs/kitchen-minigame-prompt1.1.md` — the brief for the
   kitchen. **Not a mini-game, despite the filenames:** as of 2026-08-23 it is the *other half of the
   play*, alternating with delivery driving, not a replacement for the 1.0s restock. **1.1 is the
@@ -142,10 +159,10 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
   superseded first by a PRD (2026-08-24), and that in turn by `docs/gdd.md`.
 - `docs/gdd.md` and `docs/authored content/*.md` — **the current design.** The GDD holds rules and
   structure; the per-topic files (`levels`, `difficulty`, `menu`, `attract`, `music`) hold the values.
-  **When they disagree, the authored content wins** (owner's ruling, 2026-09-26). Both were brought
-  up to date with the built game on 2026-10-25; the GDD ends with a list of what that build invented.
-  These are markdown for people; the game reads `content/*.json`, so a value decided here still has
-  to be carried into JSON and validated by `build.mjs`.
+  **The authored docs are now generated from `content/*.json`** (owner, 2026-10-25, in force since 0.9.1),
+  so when they disagree the JSON wins; this reverses the 2026-09-26 ruling. The GDD stays hand-written
+  and holds rules and structure. The GDD ends with a list of what the 2026-10-25 build invented.
+  The game reads `content/*.json`, never the markdown.
 - `docs/PURE-CARNAGE-DECISIONS.md` — **history, not spec.** The log of the 2026-10-25 build that
   finished the game (done in a copy of this repo called "Pure Carnage", then merged back): the
   owner's rulings that day, and every invention with its reasoning. The GDD and authored content
@@ -213,6 +230,8 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 | `78_scores` | `Scores` — the high-score board: factory content, guarded `localStorage`, qualification, insertion. Model only, never draws. |
 | `80_game` | `G` — state machine, orders/tips/scoring, camera, render pipeline; `Post` |
 | `90_main` | canvas scaling, fixed-step loop, audio unlock, `window.TacoShop` bridge |
+| `admin/` | **Service Mode, dev-only, never bundled.** `overlay.js` (F2 shell), `apply.js` (`Admin.applyBuilt`), `store.js`, `fields.js`, `test.js`, `panels/*.js` (one per tab). Loaded only by `node admin.mjs`'s injection |
+| `tools/content/` | **Service Mode's server side.** `server.mjs` (the localhost server and save), `validate.mjs` (the one validator the build and the overlay share), `format.mjs`, `normalize.mjs`, `fs-source.mjs`, and `docs/` (the markdown mirror) |
 
 ## Architecture
 
@@ -389,8 +408,8 @@ at a median of 14s, the second at 29s, the third at 44s — and the coverage cur
 demo and the old 90s one both show at least one delivery in 96% of runs and two in 88%, so the last 30
 seconds bought nothing. 45s holds one delivery in 92% and two in 79%, trading roughly one demo in five
 showing a single delivery for a snappier cabinet. The title held 30s while its lockup completes at 3s.
-Cycle 135s → 75s. **`test/headless.mjs` derives its demo run length from `ATTRACT_DEMO`** rather than a
-hard-coded 85, so retuning the file does not break the suite.
+Cycle 135s → 75s. **`test/headless.mjs` derives its demo run length from `ATTRACT.demo.seconds`** (`content/attract.json`)
+rather than a hard-coded 85, so retuning the file does not break the suite.
 
 Initials entry is **arrows only** — up/down cycle, left/right move, Enter confirms — which is the one
 input scheme the rest of the game uses and the only one a gamepad maps to. A keyboard player's
@@ -437,8 +456,8 @@ flash on a new order.
 ### Title screen and controls
 
 `overlayTitle` is badge, tag, wordmark and blinking prompt, and it stages in that order: the badge alone,
-then **`IN`** at `TAG_HOLD` (0.5s), then the wordmark from `TITLE_HOLD` (authored in
-`content/attract.json` as `title.wordmarkHold`), **growing** into place over `TITLE_GROW` while
+then **`IN`** at `TAG_HOLD` (0.5s), then the wordmark from `ATTRACT.title.wordmarkHold` (authored in
+`content/attract.json`), **growing** into place over `TITLE_GROW` while
 `G.shake` kicks as it lands — the same rumble a collision
 gives, so the arrival reads as part of the game rather than a bolted-on transition. The prompt waits
 for the wordmark to *land*, not merely to appear, or it blinks away under a logo still moving.
@@ -651,6 +670,53 @@ five. In the dining room, the score card hides the service window, so props go o
 floor, off the queue spots and walk paths. `— kitchen —` checks that every kitchen level bakes,
 that the calendar is right and fits, and that the calendar and sign clear a 3-item ticket.
 
+### Service Mode (the admin overlay)
+
+A dev-only content editor and test panel that runs inside the dev build of the game. Press **F2**.
+Tabs: Levels, Menu, Attract, Music, Difficulty, Dialogue, Faces, Test. Code keeps the names `Admin`,
+`admin.mjs` and `/admin/api`; everything the owner sees says SERVICE MODE. Design:
+`docs/superpowers/specs/2026-10-25-admin-overlay-design.md` (owner rulings at its head).
+
+- **`node admin.mjs`** starts `tools/content/server.mjs` on `127.0.0.1:8124`. It serves the repo and
+  injects `admin/overlay.css` and `admin/overlay.js` into `index.html` **in memory, at request time**,
+  so nothing is written to the page on disk. `serve.mjs` knows nothing of it. It checks `Origin`
+  before any route runs, and one per-instance lock covers save and every job. Like `serve.mjs`, it has
+  to be started from the owner's own terminal; a server started inside Claude Code's sandbox is
+  invisible to Chrome.
+- **Save** runs the same validator as the build (`tools/content/validate.mjs`; `build.mjs` imports it
+  too, so there is one set of rules), renders the docs mirror first, and only then writes the JSON
+  and the docs together and rebuilds. A save that would fail the build writes nothing and names the
+  field. Files are written through `format.mjs` (`formatJSON`; baked tables keep the layout they
+  have), so a save diff is the edit.
+- **`Admin.applyBuilt(built, game, opts)`** (`admin/apply.js`) pushes the built content into the
+  running game **in place**, because other modules hold `LEVELS`, `MENUS`, ... by reference; only
+  kinds that differ by value are replaced, then each kind's `Admin.onApply` refreshers run. It is a
+  plain script with no imports, so the vm tests run it in the game's own context.
+- **Test hooks live in `src/`** and ship, inert at their defaults: `G.test` (null; overrides
+  `{difficulty, era, season}` that `G.setLevel` lays over a level through `G.testLevel`),
+  `G.autopilot` (false; `Demo.drive` or `Kitchen.botStep` plays the shift), `G.testRun` (false; set
+  by an override or the autopilot, and **a test run never reaches the board**), `G.speed` (1;
+  scales the time `90_main` feeds the fixed step), `G.testPaused` (false), `G.spawnTrain(dir)`,
+  `G.debugDraw` (null; Service Mode's debug views) and `G.testSay` (false; previews a line on any
+  screen). At default the game plays exactly as without them, and `— test hooks —` in
+  `test/headless.mjs` asserts that.
+- **None of it ships.** `taco-shop.html` must contain no overlay code and no write-endpoint
+  reference. `test/admin.mjs`'s `— artifact —` section asserts it has no `Admin`, `/admin/` or
+  `admin.mjs`; the `src/` hooks above are the only trace, by design, as plain fields.
+- **The docs mirror** is the seven generated docs listed under Authored copy. Each doc module is
+  `{ file, render(files, prevText) }`; `prevText` is how prose is kept.
+- **`content/casts.json`** says which faces are used for which customers per era (`CASTS`); the
+  Faces tab edits it, hand-sets eyes that survive a re-bake, and can add new faces.
+- **Release months are advice.** Every `content/music/*.json` has a `month`. A level plays songs
+  from its own year or up to 2 years before (refused otherwise, the title list excepted); a
+  same-year song released after the level's month is a **warning** in the build and the Music tab,
+  never an error. A summer level's month is July; a winter level's is January when a summer level
+  of the same year follows it, otherwise December. Level 3 (both Bohemian Rhapsody songs) and
+  Level 16 (Cannonball) are kept by owner ruling.
+- **`test/admin.mjs`** is the suite. `test/fixtures/` holds the hand-edited `menu.md` and `music.md`
+  from before the 0.9.1 regeneration, because the migration tests need a doc that still differs
+  from its render.
+
 ### Loop and input
 
 `90_main` runs a fixed `1/60` step with an accumulator capped at 0.25s and a 5-iteration guard. Browsers
@@ -672,7 +738,7 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. 241 assertions (as of 0.9.0) covering city invariants (address
+every drawing call is a no-op but all logic executes. About 280 assertions (as of 0.9.1) covering city invariants (address
 uniqueness, porch reachability), HUD text widths, wedge escapability, 250 solved routes, 9000 fuzzed
 simulation frames checked for NaN and out-of-world drift, the attract rotation and 85s of autonomous
 demo driving, the full scoring loop, heat/cop behaviour, and the railway.
@@ -737,7 +803,7 @@ There is no per-test filter — it is one sequential script with labelled sectio
 `— build —`,
 `— hud layout —`, `— collision —`, `— guidance —`, `— simulation —`, `— scoring —`, `— attract —`,
 `— hays map —`, `— block kinds —`, `— downtown addresses —`, `— shop apron —`, `— rail —`,
-`— high scores —`, `— heat —`, `— run structure —`, `— kitchen —`, `— kitchen demo —`, `— copy —`). To
+`— high scores —`, `— heat —`, `— run structure —`, `— kitchen —`, `— kitchen demo —`, `— test hooks —`, `— copy —`). To
 isolate one, edit the script.
 
 **`tools/render/frame.mjs <level> [secs]`** renders a real frame of any level to a PNG with the

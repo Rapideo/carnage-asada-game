@@ -7,51 +7,69 @@ Checkboxes render as a live task list on GitHub:
 
 ---
 
-## NOW: version 0.9.0, and the owner's playtest punch list
+## NOW: version 0.9.1 (Service Mode), then the owner's 0.9.x list
 
-The game is **feature-complete at 0.9.0** (2026-11-07; see `CHANGELOG.md`). The owner
-playtests it in full on Monday 2026-11-09 and brings a punch list. Fixes ship as 0.9.x,
-and 1.0.0 is the owner's call. **The owner moved the admin overlay (below) ahead of the
-punch list on 2026-11-07,** as the next version. The open questions and rough edges
-further down are to be settled with the owner the same evening.
+The game is **feature-complete at 0.9.0** (2026-11-07) and **0.9.1 adds Service Mode** (same
+day; see `CHANGELOG.md`). The owner playtests the whole game on Monday 2026-11-09 and brings a
+punch list. Fixes ship as 0.9.x, and 1.0.0 is the owner's call.
 
-## NEXT: the admin overlay (tools for the authored content)
+## DONE: Service Mode (the admin overlay), 0.9.1
 
-**The owner's next priority: the admin overlay.** It is designed and planned, but
-**not started**. The owner said on 2026-10-25 not to begin that day.
+- [x] **Service Mode**, built 2026-11-07 on branch `admin-overlay` (never pushed): F2 in the
+      dev game served by `node admin.mjs` (localhost:8124). Tabs: Levels, Menu, Attract, Music,
+      Difficulty, Dialogue, Faces, Test. Save runs the build's own validator, writes the JSON and
+      the regenerated docs, and rebuilds. None of it ships in `taco-shop.html`.
+- Design: `docs/superpowers/specs/2026-10-25-admin-overlay-design.md` (the owner's 2026-11-07
+  rulings are at its head: the name, F2, the version). Plan:
+  `docs/superpowers/plans/2026-10-25-admin-overlay.md`.
+- **Rulings now in force** (recorded in `CLAUDE.md` and `docs/gdd.md`):
+  - **The JSON is the master copy** and `docs/authored content/*.md` are generated from it.
+    This reverses the 2026-09-26 ruling. All seven docs were regenerated once in 0.9.1.
+  - **Release months:** summer is July; winter is January when it comes before that year's
+    summer level and December when it comes after. A same-year song released after its
+    level's month is a **warning, never a refusal** (owner, 2026-11-07). Level 3 keeps both
+    Bohemian Rhapsody songs and Level 16 keeps Cannonball.
+- [x] **Era faces blink again** (E1): eyes hand-set on the 15 decade faces (the 1990s club
+      customer wears sunglasses and has none); lid colours fixed on 6.
+- [x] **E8, music clearance: CLOSED** (owner, 2026-11-07). The owner ruled it is not a concern
+      and 0.9.0 is on Netlify. Do not raise it again.
 
-A dev-only overlay inside the running game:
-- edits every authored content file through forms (levels, menu, attract, music,
-  difficulty, dialogue, faces);
-- checks each edit with the build's own validator;
-- shows each edit live in the game;
-- saves the JSON plus a regenerated `.md` mirror;
-- has a Test panel that reaches any level or state, or lets the game play itself.
+## NEXT: the 0.9.x list (owner rulings, 2026-11-07)
 
-None of it ships in `taco-shop.html`.
+The owner answered the Open Calls page. Items marked **build** are queued work, to be done
+after Service Mode and not before; the rest are decisions that need no work.
 
-- **Design:** `docs/superpowers/specs/2026-10-25-admin-overlay-design.md`. It records
-  which decisions were the owner's and which were Claude's.
-- **Plan:** `docs/superpowers/plans/2026-10-25-admin-overlay.md`, 17 tasks.
-- **How to run it (owner's choice):** subagent-driven
-  (`superpowers:subagent-driven-development`), so each task gets a fresh implementer and
-  a fresh reviewer. Work on a branch `admin-overlay`, never push.
-- **Task 14's owner checkpoint is resolved (2026-11-07).** The owner made the season
-  rule a warning, not a refusal, so Bohemian Rhapsody stays on Level 3 and no playlist
-  changed.
+**Build in 0.9.x**
+- [ ] **Q2 (B): rain bites more.** Rain grip 0.84 to 0.75 (`WEATHER_GRIP.summer.rainy`). Weather
+      hazards beyond grip are post-1.0.
+- [ ] **Q4 (C): the player's car stays red;** remove the red (#d94f4f) from the traffic
+      colours (`CAR_COLORS`).
+- [ ] **Q7 (C): a full speaking cast before 1.0:** police, a rival delivery driver and kitchen
+      staff, one face per decade each (9 faces). The art director's nine portraits are
+      **approved** (`reference/faces/cast/`, untracked). Baking them needs reserved palette
+      slots (olive cactus on the rivals' caps; jade #1fa37e and gold #f3bd46 on the staff
+      badge) per `reference/faces/cast/crop-guide.json`. The owner writes the lines in
+      Service Mode's Dialogue tab.
+- [ ] **Q8 (B): each address keeps one customer face for the whole run,** picked from that
+      decade's cast.
+- [ ] **Eyes on the new faces:** the owner sets eyes by hand in Service Mode's Faces tab for the
+      nine cast faces once baked, and for any other era face that lacks them.
+- [ ] **E2: snow tracked in** onto the dining-room door mat, and wet footprints along the line,
+      on winter kitchen levels.
+- [ ] **E3: Mode C (touch) only:** move the minimap to a free corner; check on a real phone.
+- [ ] **Fix: the kitchen wall calendar** shows JAN on every winter level, but by the season
+      rule all seven winter kitchen levels are December. (Final wave of this work.)
 
-Rulings from the design that change standing project rules (recorded in `CLAUDE.md` by
-Task 17, not before):
-- **The JSON becomes the master copy**, and the `.md` docs become its mirror. This
-  reverses the 2026-09-26 ruling.
-- **Song release months** add a season rule:
-  - Summer is July.
-  - Winter is January when it comes before that year's Summer level, and December when
-    it comes after.
-  - A same-year song released after its level's month is a warning, never a refusal
-    (owner, 2026-11-07).
-
-- [ ] Build the admin overlay (plan Tasks 1–17)
+**Decided, no work**
+- Q1 (A): keep mouse-aim throwing in Mode A.
+- Q3 (A): police cost unchanged; judge Monday by counting tickets per shift.
+- Q5 (A): downtown targets unchanged; judge Monday.
+- Q6 (A): long (4-5 item) tickets may cover the kitchen calendar and sign; leave it.
+- E4: the Hard delivery levels (13, 15): decide after Monday's play.
+- E5: **the GDD X.1 palette targets are retired for graded frames;** judge by eye (noted in
+  `docs/gdd.md` X.1 and `tools/render/README.md`).
+- E6: leave the flaky demo test; rerun when it trips.
+- E7: keep the branch name `master` (the work is on `admin-overlay` until the owner merges it).
 
 ---
 
@@ -128,13 +146,12 @@ Every owner ruling and every invention is recorded in `docs/PURE-CARNAGE-DECISIO
 
 ### Known soft spots
 
-- **Era faces don't blink.** The eye detector misplaced the eyes, so the eye rects were
-  cleared. Set them by hand to bring the blink back.
+- ~~**Era faces don't blink.**~~ Fixed 2026-11-07: eyes hand-set in the Faces tab.
 - **The kitchen's winter is light:** snow on the customers' hats, and nothing more.
-- **In Mode C the minimap sits under the on-screen stick.**
+- **In Mode C the minimap sits under the on-screen stick.** Queued as E3 above.
 - **The Hard deliveries (levels 13 and 15)** cleared only 1 sweep run in 2.
-- **The kitchen frame's palette** was outside the GDD §X.1 targets before the build
-  (warm 28.7%, neutral 34.3%). No later measurement is recorded.
+- ~~**The kitchen frame's palette** was outside the GDD §X.1 targets.~~ Retired 2026-11-07 (E5):
+  the targets do not apply to graded frames; judge by eye.
 
 ---
 
@@ -249,9 +266,8 @@ work as well as Kitchen work. **All done in the 2026-10-25 build:**
       is an owner action before any public deploy (see above).
 - [x] **Attract mode.** Four screens, with the board as its own screen and a
       random-level demo.
-- [ ] **The kitchen frame's palette** was outside the §X.1 targets (warm 28.7%, neutral
-      34.3%) before any of this — a finding for the port. *Still open: no measurement
-      of the built kitchen is recorded.*
+- [x] ~~**The kitchen frame's palette** was outside the §X.1 targets.~~ Retired 2026-11-07 (E5):
+      graded frames are judged by eye.
 
 ### What is already settled, and should not be re-litigated
 

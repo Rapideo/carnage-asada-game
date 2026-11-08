@@ -149,6 +149,11 @@ directory, so an experiment you baked and abandoned is still ~3 KB in the artifa
 Delete the JSON when you drop a character; the copy under `reference/kitchen/faces/`
 is free to keep, because nothing in `src/` reads it.
 
+**Those copies keep the eyes as they were before 2026-11-07.** The eyes of the 15 decade
+customers were hand-set afterwards, in Service Mode's Faces tab, and written into
+`content/faces/*.json` (they survive a re-bake). The `reference/kitchen/faces/*.mjs` rigs were not
+updated, and nothing in `src/` reads them, so treat the JSON as the truth for eyes.
+
 **The round trip is the guard.** The baker re-imports what it wrote, decodes it with
 the *shipped* decoder, and asserts pixel-identity. An encoder and decoder that
 disagree produce a face that is subtly wrong everywhere, which reads as bad art

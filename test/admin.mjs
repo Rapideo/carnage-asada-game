@@ -1124,12 +1124,12 @@ console.log('\n— docs —');
       } else ok(false, 'faces.mjs exports read(text)');
     }
 
-    /* menu.md, rendered from today's JSON and from edits to it */
+    /* menu.md, rendered from today's JSON and from edits to it. The fixtures in test/fixtures/ are the hand-edited menu.md and music.md as they stood before the first regeneration (0.9.1): the migration tests need a doc that still differs from its render. */
     let MN = null;
     try { MN = (await import('../tools/content/docs/menu.mjs')).default; } catch (x) { console.error('  (' + x.message + ')'); }
     ok(MN && MN.file === 'menu.md' && IX.DOCS.includes(MN), 'menu.md is a registered doc');
     if (MN) {
-      const mold = readFileSync(join(DIR, 'menu.md'), 'utf8').replace(/\r\n/g, '\n');
+      const mold = readFileSync('test/fixtures/menu.hand-edited.md', 'utf8').replace(/\r\n/g, '\n');
       const mfx = (edit) => { const f = structuredClone(files); edit(f['menus.json'], f); return f; };
       const bare = (hd) => hd.replace(/^[A-Z0-9]+(?:\.\d+)?\.? /, '');
       const at = (text, ...names) => {
@@ -1234,7 +1234,7 @@ console.log('\n— docs —');
     try { MU = (await import('../tools/content/docs/music.mjs')).default; } catch (x) { console.error('  (' + x.message + ')'); }
     ok(MU && MU.file === 'music.md' && IX.DOCS.includes(MU), 'music.md is a registered doc');
     if (MU) {
-      const uold = readFileSync(join(DIR, 'music.md'), 'utf8').replace(/\r\n/g, '\n');
+      const uold = readFileSync('test/fixtures/music.hand-edited.md', 'utf8').replace(/\r\n/g, '\n');
       const PLR = 'music/playlist.json';
       const ufx = (edit) => { const f = structuredClone(files); edit(f[PLR], f); return f; };
       const songsOf = (f) => Object.fromEntries(Object.entries(f).filter(([r]) => /^music\/[^/]+\.json$/.test(r) && r !== PLR).map(([r, s]) => [r.slice(6, -5), s]));

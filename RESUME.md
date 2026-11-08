@@ -3,17 +3,34 @@
 *Written 2026-10-25, after the build that finished the 20-level game, and updated the same
 day once the admin overlay had been designed and planned. Updated 2026-11-06 with two
 pinned art threads, and 2026-11-07 with the art director's prep-board work (below), the
-kitchen surroundings, and version 0.9.0.*
+kitchen surroundings, and version 0.9.0. Updated 2026-11-07 (evening) for Service Mode, version 0.9.1.*
 This is the starting point for a fresh session. It is a snapshot: **`ROADMAP.md` is the
 living plan**, and if the two disagree, the roadmap wins.
 
-**Start here (2026-11-07): the game is version 0.9.0, feature-complete.** The version is
-`content/release.json`, shown in the corner of the title and pause screens; `CHANGELOG.md`
-says what is in it, and it is tagged `v0.9.0` (local).
+**Start here (2026-11-07): the game is version 0.9.1, which adds Service Mode to the
+feature-complete 0.9.0.** The version is `content/release.json`, shown in the corner of
+the title and pause screens; `CHANGELOG.md` says what is in it. 0.9.0 is tagged `v0.9.0`
+(and deployed to Netlify). Service Mode was built on the branch `admin-overlay`, which has
+not been merged to `master` or pushed; **merging is the owner's call.**
 
-**Next: the owner's full playtest (planned for Monday, 2026-11-09) and the punch list it
-produces.** Fix from that list as 0.9.x builds (bump the version and add a changelog entry
-for each). Then, only when the owner says go, the admin overlay.
+**Service Mode** is the owner's name for the admin overlay: run `node admin.mjs` in your
+own terminal, open <http://localhost:8124/>, press **F2**. It edits Levels, Menu, Attract,
+Music, Difficulty, Dialogue and Faces, and has a Test tab. Its code is `admin/` and
+`tools/content/`; `CLAUDE.md` has the architecture. The JSON in `content/` is now the master
+copy, and `docs/authored content/*.md` are generated from it (do not hand-edit them).
+
+**Next: the owner's full playtest (Monday, 2026-11-09), and the 0.9.x list from the owner's
+2026-11-07 rulings** (full list in `ROADMAP.md`, "NEXT: the 0.9.x list"):
+- rain grip 0.84 to 0.75; remove red (#d94f4f) from the traffic colours;
+- the nine-portrait speaking cast (police, rival driver, kitchen staff), baked with reserved
+  palette slots, with the lines written by the owner in the Dialogue tab;
+- one customer face per address for the whole run;
+- snow tracked in on winter kitchen levels; the Mode C minimap moved to a free corner;
+- the kitchen calendar: winter kitchen levels are December, not JAN.
+Decisions needing no work (keep mouse-aim, police cost, downtown targets, long tickets over
+the calendar, the flaky demo test, the branch name `master`) are in the roadmap too, along
+with E5: judge graded frames by eye, not by the GDD X.1 targets. **E8, music clearance, is
+closed.** Bump the version and add a changelog entry for each 0.9.x build.
 
 **Driving Chrome:** two Chromes are connected to the owner's account. **Browser 1 is
 Windows, this machine; Browser 2 is a Mac.** Pick Browser 1 (`select_browser`) before
@@ -60,9 +77,8 @@ The order the owner set on 2026-11-07, all done:
    limit:** a 4- or 5-item ticket (medium and harder) hangs to y 66–74 and covers the
    top of the calendar and the sign. The owner has been told.
 
-Then version 0.9.0 and a cleanup pass (stale docs, the changelog, `git gc`). Waiting
-behind the punch list, and only when the owner says go: **the admin overlay** (see **Next**
-below), fully designed and planned, nothing built.
+Then version 0.9.0 and a cleanup pass (stale docs, the changelog, `git gc`), and then
+Service Mode (0.9.1, see above).
 
 ## The art director and the prep board (2026-11-07)
 
@@ -74,8 +90,9 @@ the owner can answer. Watch that file for replies. A polling loop over its mtime
 `git status` works; keep it light, because an earlier watcher was killed for low memory.
 
 **Rulings made 2026-11-07, all by the owner:**
-- **`docs/authored content/menu.md` is law** for every dish's ingredients and order.
-  `content/menus.json` mirrors it, and the two agree today. The real restaurant menu
+- **`docs/authored content/menu.md` was law** for every dish's ingredients and order.
+  `content/menus.json` mirrored it. Since 0.9.1 the JSON is the master copy and `menu.md` is
+  generated from it, but the two still agree, and the ruling's content stands. The real restaurant menu
   (`Migrated/Taco Shop Menu - July 2026.md`, tacoshop.net) is only for how food looks.
 - **Twelve bins, no more.** Monterey Jack, olives and Mexicalli rice are dropped from every
   dish; `menu.md` notes each drop. **ONION is green onions.**
@@ -227,11 +244,13 @@ nothing in it is needed. Every ruling and invention from that day is logged in
 `docs/PURE-CARNAGE-DECISIONS.md`. The GDD and the authored content were updated to match
 the build; the GDD ends with a list of what was invented.
 
-**Repo state (2026-11-07):** `master` is clean apart from the files untracked on purpose
+**Repo state (2026-11-07, 0.9.1):** the work is on branch `admin-overlay`, ahead of `master`
+and never pushed. Untracked on purpose: `Migrated/`, `reference/faces/` and `Art Director (Codex)/`.
+Earlier note: `master` was clean apart from the files untracked on purpose
 (`Migrated/`, `Carnage_Resume.pdf`, and since 2026-11-06
 `Pixel-Art Taco Shop Ingredient Grid.png`). Since 2026-11-06 the commits have been docs,
 reference art and `menu.md` only. **No game code has changed**, so the build and test
-results below still hold. As of the admin overlay's design commit, re-checked:
+results below still hold (they were last re-checked at 0.9.1; see **Verified**). Earlier, as of the admin overlay's design commit:
 `node build.mjs` was clean, reproduced every generated file byte for byte, and
 `node test/headless.mjs` passed. `master` is **ahead of `origin/master` and not pushed**;
 push only when the owner says so. The music previews (`tools/music/preview/`, git-ignored)
@@ -266,8 +285,9 @@ were copied in from the archive, so they are present here.
 
 | check | result |
 |---|---|
-| `node build.mjs` | clean; `taco-shop.html` ~620 KB, 18 modules, all content validated |
-| `node test/headless.mjs` | PASS, including run structure, kitchen, kitchen demo and copy sections |
+| `node build.mjs` | clean (0.9.1); `taco-shop.html` ~794 KB, 18 modules, all content validated; three season warnings (levels 3 and 16, by owner ruling) |
+| `node test/headless.mjs` | PASS (about 280 assertions), including run structure, kitchen, kitchen demo, test hooks and copy sections |
+| `node test/admin.mjs` | PASS (about 650 assertions): validator, server, every panel, the docs mirror, and that the artifact holds no Service Mode |
 | `node tools/check-pad.mjs` | 209 passed |
 | `node tools/music/check-music.mjs` | all music checks pass |
 | `node tools/render/sweep.mjs 2` | autoplayers clear every level; Hard deliveries 13 and 15 cleared 1 run in 2 |
@@ -275,14 +295,11 @@ were copied in from the archive, so they are present here.
 
 ## Next
 
-**The admin overlay**, the tooling for the authored content. It was designed and planned
-on 2026-10-25, but **not started**: the owner did not want to begin that day.
+The Monday playtest and the 0.9.x list above. **Service Mode is done** (0.9.1). Not done by
+design, per its spec: city zoning (`hays*.json`) is not editable in it, and it never commits.
 
-- Design: `docs/superpowers/specs/2026-10-25-admin-overlay-design.md`
-- Plan: `docs/superpowers/plans/2026-10-25-admin-overlay.md`
-
-When the owner says go, execute the plan **subagent-driven**, which was the owner's
-choice. See `ROADMAP.md` for the one owner checkpoint.
+The remaining era faces' eyes beyond the 15 decade faces, and the nine new cast faces once
+baked, are set by the owner in the Faces tab.
 
 ## Still open
 
@@ -296,13 +313,11 @@ choice. See `ROADMAP.md` for the one owner checkpoint.
 3. **Mode B on a real stick, and Mode C on a real phone.** A gamepad press is not a gesture
    for unlocking audio, so a stick-only cabinet needs Chrome launched with
    `--autoplay-policy=no-user-gesture-required`.
-4. **Music clearance** before any public deploy. This is the owner's action; the owner
-   expects to get it.
+4. ~~**Music clearance.**~~ **Closed 2026-11-07:** the owner ruled it is not a concern.
 
 Known soft spots:
-- The era faces don't blink: the eye detector missed. Set `eyes` by hand in
-  `content/faces/c70*.json`, `c80*` and `c90*` (they are `[]`); a re-bake writes the
-  detector's wrong guess back.
+- ~~The era faces don't blink.~~ Fixed 2026-11-07: eyes hand-set on the 15 decade faces in
+  the Faces tab, and they survive a re-bake.
 - The kitchen's winter is light: hats only.
 - In Mode C the minimap sits under the on-screen stick.
 

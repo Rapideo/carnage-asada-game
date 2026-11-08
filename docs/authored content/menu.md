@@ -7,23 +7,23 @@ and 1990s) are real Taco Shop items, and each adds bins to the twelve without mo
 
 ### A. Bins
 
-#### 1. Ground Beef
+#### 1. GROUND BEEF
 
-#### 2. Refried Beans
+#### 2. REFRIED BEANS
 
-#### 3. Lettuce
+#### 3. LETTUCE
 
-#### 4. Tomatoes
+#### 4. TOMATOES
 
-#### 5. Onions (green onions)
+#### 5. ONIONS (green onions)
 
-#### 6. Chili Con Queso (CCQ)
+#### 6. CHILI CON QUESO (CCQ)
 
-#### 7. Jalapenos
+#### 7. JALAPENOS
 
-#### 8. Sour Cream
+#### 8. SOUR CREAM
 
-#### 9. Cheese (shredded)
+#### 9. CHEESE (shredded)
 
 #### 10. [EMPTY]
 
@@ -35,9 +35,9 @@ and 1990s) are real Taco Shop items, and each adds bins to the twelve without mo
 
 The thing an item is built *on*. Base stations sit outside the twelve bins, one either side.
 
-#### Left. Small Tortilla, Taco Shell, Large Tortilla (stacked, top to bottom)
+#### Left. SMALL TORTILLA, TACO SHELL, LARGE TORTILLA (stacked, top to bottom)
 
-#### Right. Chips
+#### Right. CHIPS
 
 ### B. Items
 
@@ -48,135 +48,135 @@ there, because it shares the space with the item's progress pips. The limit depe
 the step count: `12 x chars + 9 x steps <= 127`, which allows 8 characters at 3 steps,
 7 at 4, and 5 at 7. The build will enforce it.
 
-#### 1. Hard Taco
+#### 1. HARD TACO
 
 - Short : HD TACO
 
-- Ingredient 0 : Taco Shell
+- Ingredient 0 : TACO SHELL
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2: Lettuce
+- Ingredient 2 : LETTUCE
 
-- Ingredient 3: Cheese
+- Ingredient 3 : CHEESE
 
 - Price : 0.29
 
-#### 2. Hard Taco Supreme
+#### 2. HARD TACO SUPREME
 
 - Short : HTSUP
 
-- Ingredient 0 : Taco Shell
+- Ingredient 0 : TACO SHELL
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2: Lettuce
+- Ingredient 2 : LETTUCE
 
-- Ingredient 3: Cheese
+- Ingredient 3 : CHEESE
 
-- Ingredient 4: Onions
+- Ingredient 4 : ONIONS
 
-- Ingredient 5 : Tomatoes
+- Ingredient 5 : TOMATOES
 
-- Ingredient 6 : Sour Cream
+- Ingredient 6 : SOUR CREAM
 
 - Price : 0.39
 
-#### 3. Soft Taco
+#### 3. SOFT TACO
 
 - Short : SF TACO
 
-- Ingredient 0 : Small Tortilla
+- Ingredient 0 : SMALL TORTILLA
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2: Lettuce
+- Ingredient 2 : LETTUCE
 
-- Ingredient 3: Cheese
+- Ingredient 3 : CHEESE
 
 - Price : 0.39
 
-#### 4. Soft Taco Supreme
+#### 4. SOFT TACO SUPREME
 
 - Short : STSUP
 
-- Ingredient 0 : Small Tortilla
+- Ingredient 0 : SMALL TORTILLA
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2: Lettuce
+- Ingredient 2 : LETTUCE
 
-- Ingredient 3: Cheese
+- Ingredient 3 : CHEESE
 
-- Ingredient 4: Onions
+- Ingredient 4 : ONIONS
 
-- Ingredient 5 : Tomatoes
+- Ingredient 5 : TOMATOES
 
-- Ingredient 6 : Sour Cream
+- Ingredient 6 : SOUR CREAM
 
 - Price : 0.49
 
-#### 5. Beef Burrito
+#### 5. BEEF BURRITO
 
 - Short : BEEF BUR
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2: Cheese
+- Ingredient 2 : CHEESE
 
 - Price : 0.69
 
-#### 6. Bean Burrito
+#### 6. BEAN BURRITO
 
 - Short : BEAN BUR
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Refried Beans
+- Ingredient 1 : REFRIED BEANS
 
-- Ingredient 2: Cheese
+- Ingredient 2 : CHEESE
 
 - Price : 0.49
 
-#### 7. Combo Burrito
+#### 7. COMBO BURRITO
 
 - Short : COMBO
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2: Refried Beans
+- Ingredient 2 : REFRIED BEANS
 
-- Ingredient 3: Cheese
+- Ingredient 3 : CHEESE
 
 - Price : 0.69
 
-#### 8. Sancho
+#### 8. SANCHO
 
 - Short : SANCHO
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2: Lettuce
+- Ingredient 2 : LETTUCE
 
-- Ingredient 3: Cheese
+- Ingredient 3 : CHEESE
 
 - Price : 0.69
 
-#### 9. Nachos
+#### 9. NACHOS
 
 - Short : NACHOS
 
-- Ingredient 0 : Chips
+- Ingredient 0 : CHIPS
 
-- Ingredient 1 : CCQ
+- Ingredient 1 : CHILI CON QUESO
 
-- Ingredient 2 : Jalapenos
+- Ingredient 2 : JALAPENOS
 
 - Price : 0.49
 
@@ -191,9 +191,9 @@ Burrito and Combo Burrito come off the menu.
 Bins 1-9 are Era 1's, in the same places. A bin never moves: a later era only fills one
 that was empty.
 
-#### 10. Taco Shop Sauce (Sauce)
+#### 10. TACO SHOP SAUCE (Sauce)
 
-#### 11. House Chili (Chili)
+#### 11. HOUSE CHILI (Chili)
 
 #### 12. [EMPTY]
 
@@ -203,231 +203,231 @@ Same as Era 1.
 
 ### B. Items
 
-#### 1. Hard Taco
+#### 1. HARD TACO
 
 - Short : HD TACO
 
 - Ticket : HARD TACO
 
-- Ingredient 0 : Taco Shell
+- Ingredient 0 : TACO SHELL
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2 : Lettuce
+- Ingredient 2 : LETTUCE
 
-- Ingredient 3 : Cheese
+- Ingredient 3 : CHEESE
 
 - Price : 0.59
 
-#### 2. Soft Taco
+#### 2. SOFT TACO
 
 - Short : SF TACO
 
 - Ticket : SOFT TACO
 
-- Ingredient 0 : Small Tortilla
+- Ingredient 0 : SMALL TORTILLA
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2 : Lettuce
+- Ingredient 2 : LETTUCE
 
-- Ingredient 3 : Cheese
+- Ingredient 3 : CHEESE
 
 - Price : 0.69
 
-#### 3. Bean Burrito
+#### 3. BEAN BURRITO
 
 - Short : BEAN BUR
 
 - Ticket : BEAN BURRITO
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Refried Beans
+- Ingredient 1 : REFRIED BEANS
 
-- Ingredient 2 : Cheese
+- Ingredient 2 : CHEESE
 
 - Price : 0.79
 
-#### 4. Sancho
+#### 4. SANCHO
 
 - Short : SANCHO
 
 - Ticket : SANCHO
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2 : Lettuce
+- Ingredient 2 : LETTUCE
 
-- Ingredient 3 : Cheese
+- Ingredient 3 : CHEESE
 
 - Price : 1.09
 
-#### 5. Nachos
+#### 5. NACHOS
 
 - Short : NACHOS
 
 - Ticket : NACHOS
 
-- Ingredient 0 : Chips
+- Ingredient 0 : CHIPS
 
-- Ingredient 1 : CCQ
+- Ingredient 1 : CHILI CON QUESO
 
-- Ingredient 2 : Jalapenos
+- Ingredient 2 : JALAPENOS
 
 - Price : 0.89
 
-#### 6. Enchilada with Meat
+#### 6. ENCHILADA WITH MEAT
 
 - Short : MT ENCH
 
 - Ticket : MEAT ENCH.
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2 : Sauce
+- Ingredient 2 : TACO SHOP SAUCE
 
-- Ingredient 3 : Cheese
+- Ingredient 3 : CHEESE
 
 - Price : 0.99
 
-#### 7. Chili Burrito
+#### 7. CHILI BURRITO
 
 - Short : CH BUR
 
 - Ticket : CHILI BURR
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Refried Beans
+- Ingredient 1 : REFRIED BEANS
 
-- Ingredient 2 : Ground Beef
+- Ingredient 2 : GROUND BEEF
 
-- Ingredient 3 : Cheese
+- Ingredient 3 : CHEESE
 
-- Ingredient 4 : Sauce
+- Ingredient 4 : TACO SHOP SAUCE
 
-- Ingredient 5 : Chili
+- Ingredient 5 : HOUSE CHILI
 
 - Price : 1.29
 
-#### 8. Chili Sancho
+#### 8. CHILI SANCHO
 
 - Short : CH SAN
 
 - Ticket : CHILI SANCHO
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2 : Chili
+- Ingredient 2 : HOUSE CHILI
 
-- Ingredient 3 : Sauce
+- Ingredient 3 : TACO SHOP SAUCE
 
-- Ingredient 4 : Cheese
+- Ingredient 4 : CHEESE
 
-- Ingredient 5 : Lettuce
+- Ingredient 5 : LETTUCE
 
 - Price : 1.39
 
-#### 9. Chili Enchilada
+#### 9. CHILI ENCHILADA
 
 - Short : CH ENC
 
 - Ticket : CHILI ENCH.
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2 : Sauce
+- Ingredient 2 : TACO SHOP SAUCE
 
-- Ingredient 3 : Chili
+- Ingredient 3 : HOUSE CHILI
 
-- Ingredient 4 : Cheese
+- Ingredient 4 : CHEESE
 
 - Price : 1.19
 
-#### 10. Chili Cheese Nachos
+#### 10. CHILI CHEESE NACHOS
 
 - Short : CC NACH
 
 - Ticket : CHILI NACHOS
 
-- Ingredient 0 : Chips
+- Ingredient 0 : CHIPS
 
-- Ingredient 1 : Chili
+- Ingredient 1 : HOUSE CHILI
 
-- Ingredient 2 : Cheese
+- Ingredient 2 : CHEESE
 
-- Ingredient 3 : CCQ
+- Ingredient 3 : CHILI CON QUESO
 
 - Price : 1.19
 
-#### 11. Sour Cream Sancho
+#### 11. SOUR CREAM SANCHO
 
 - Short : SC SAN
 
 - Ticket : SR CR SANCHO
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2 : Sour Cream
+- Ingredient 2 : SOUR CREAM
 
-- Ingredient 3 : Sauce
+- Ingredient 3 : TACO SHOP SAUCE
 
-- Ingredient 4 : Cheese
+- Ingredient 4 : CHEESE
 
-- Ingredient 5 : Lettuce
+- Ingredient 5 : LETTUCE
 
 - Price : 1.39
 
-#### 12. Sanchez
+#### 12. SANCHEZ
 
 - Short : SANCHZ
 
 - Ticket : SANCHEZ
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2 : Sauce
+- Ingredient 2 : TACO SHOP SAUCE
 
-- Ingredient 3 : Cheese
+- Ingredient 3 : CHEESE
 
-- Ingredient 4 : Lettuce
+- Ingredient 4 : LETTUCE
 
-- Ingredient 5 : CCQ
+- Ingredient 5 : CHILI CON QUESO
 
 - Price : 1.49
 
-#### 13. Beef Nacho Supreme
+#### 13. BEEF NACHO SUPREME
 
 - Short : BNSUP
 
 - Ticket : BF NACHO SUP
 
-- Ingredient 0 : Chips
+- Ingredient 0 : CHIPS
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2 : Refried Beans
+- Ingredient 2 : REFRIED BEANS
 
-- Ingredient 3 : Cheese
+- Ingredient 3 : CHEESE
 
-- Ingredient 4 : Sour Cream
+- Ingredient 4 : SOUR CREAM
 
-- Ingredient 5 : Jalapenos
+- Ingredient 5 : JALAPENOS
 
-- Ingredient 6 : CCQ
+- Ingredient 6 : CHILI CON QUESO
 
 - Price : 2.29
 
@@ -443,7 +443,7 @@ Enchilada, Sour Cream Sancho and Beef Nacho Supreme come off the menu.
 
 Bins 1-11 are Era 2's, in the same places.
 
-#### 12. Grilled Chicken (Chicken)
+#### 12. GRILLED CHICKEN (Chicken)
 
 ### A.1 Base Stations
 
@@ -451,265 +451,265 @@ Same as Era 1.
 
 ### B. Items
 
-#### 1. Hard Taco
+#### 1. HARD TACO
 
 - Short : HD TACO
 
 - Ticket : HARD TACO
 
-- Ingredient 0 : Taco Shell
+- Ingredient 0 : TACO SHELL
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2 : Lettuce
+- Ingredient 2 : LETTUCE
 
-- Ingredient 3 : Cheese
+- Ingredient 3 : CHEESE
 
 - Price : 0.79
 
-#### 2. Soft Taco
+#### 2. SOFT TACO
 
 - Short : SF TACO
 
 - Ticket : SOFT TACO
 
-- Ingredient 0 : Small Tortilla
+- Ingredient 0 : SMALL TORTILLA
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2 : Lettuce
+- Ingredient 2 : LETTUCE
 
-- Ingredient 3 : Cheese
+- Ingredient 3 : CHEESE
 
 - Price : 0.89
 
-#### 3. Bean Burrito
+#### 3. BEAN BURRITO
 
 - Short : BEAN BUR
 
 - Ticket : BEAN BURRITO
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Refried Beans
+- Ingredient 1 : REFRIED BEANS
 
-- Ingredient 2 : Cheese
+- Ingredient 2 : CHEESE
 
 - Price : 0.99
 
-#### 4. Sancho
+#### 4. SANCHO
 
 - Short : SANCHO
 
 - Ticket : SANCHO
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2 : Lettuce
+- Ingredient 2 : LETTUCE
 
-- Ingredient 3 : Cheese
+- Ingredient 3 : CHEESE
 
 - Price : 1.49
 
-#### 5. Sanchez
+#### 5. SANCHEZ
 
 - Short : SANCHZ
 
 - Ticket : SANCHEZ
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2 : Sauce
+- Ingredient 2 : TACO SHOP SAUCE
 
-- Ingredient 3 : Cheese
+- Ingredient 3 : CHEESE
 
-- Ingredient 4 : Lettuce
+- Ingredient 4 : LETTUCE
 
-- Ingredient 5 : CCQ
+- Ingredient 5 : CHILI CON QUESO
 
 - Price : 1.89
 
-#### 6. Chili Cheese Nachos
+#### 6. CHILI CHEESE NACHOS
 
 - Short : CC NACH
 
 - Ticket : CHILI NACHOS
 
-- Ingredient 0 : Chips
+- Ingredient 0 : CHIPS
 
-- Ingredient 1 : Chili
+- Ingredient 1 : HOUSE CHILI
 
-- Ingredient 2 : Cheese
+- Ingredient 2 : CHEESE
 
-- Ingredient 3 : CCQ
+- Ingredient 3 : CHILI CON QUESO
 
 - Price : 1.69
 
-#### 7. Sour Cream Burrito
+#### 7. SOUR CREAM BURRITO
 
 - Short : SC BUR
 
 - Ticket : SR CR BURR
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Refried Beans
+- Ingredient 1 : REFRIED BEANS
 
-- Ingredient 2 : Ground Beef
+- Ingredient 2 : GROUND BEEF
 
-- Ingredient 3 : Sour Cream
+- Ingredient 3 : SOUR CREAM
 
-- Ingredient 4 : Cheese
+- Ingredient 4 : CHEESE
 
-- Ingredient 5 : Sauce
+- Ingredient 5 : TACO SHOP SAUCE
 
 - Price : 1.99
 
-#### 8. Chicken Hard Taco
+#### 8. CHICKEN HARD TACO
 
 - Short : CK TACO
 
 - Ticket : CHKN HD TACO
 
-- Ingredient 0 : Taco Shell
+- Ingredient 0 : TACO SHELL
 
-- Ingredient 1 : Chicken
+- Ingredient 1 : GRILLED CHICKEN
 
-- Ingredient 2 : Lettuce
+- Ingredient 2 : LETTUCE
 
-- Ingredient 3 : Cheese
+- Ingredient 3 : CHEESE
 
 - Price : 1.19
 
-#### 9. Chicken Soft Taco
+#### 9. CHICKEN SOFT TACO
 
 - Short : CK SOFT
 
 - Ticket : CHKN SF TACO
 
-- Ingredient 0 : Small Tortilla
+- Ingredient 0 : SMALL TORTILLA
 
-- Ingredient 1 : Chicken
+- Ingredient 1 : GRILLED CHICKEN
 
-- Ingredient 2 : Lettuce
+- Ingredient 2 : LETTUCE
 
-- Ingredient 3 : Cheese
+- Ingredient 3 : CHEESE
 
 - Price : 1.29
 
-#### 10. Chicken Enchilada
+#### 10. CHICKEN ENCHILADA
 
 - Short : CK ENCH
 
 - Ticket : CHKN ENCH.
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Chicken
+- Ingredient 1 : GRILLED CHICKEN
 
-- Ingredient 2 : Sauce
+- Ingredient 2 : TACO SHOP SAUCE
 
-- Ingredient 3 : Tomatoes
+- Ingredient 3 : TOMATOES
 
 - Price : 1.79
 
 - Dropped : Monterey Jack (no bin)
 
-#### 11. Chicken Enchilada Supreme
+#### 11. CHICKEN ENCHILADA SUPREME
 
 - Short : CKESUP
 
 - Ticket : CK ENCH SUP
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Chicken
+- Ingredient 1 : GRILLED CHICKEN
 
-- Ingredient 2 : Cheese
+- Ingredient 2 : CHEESE
 
-- Ingredient 3 : Sour Cream
+- Ingredient 3 : SOUR CREAM
 
-- Ingredient 4 : Lettuce
+- Ingredient 4 : LETTUCE
 
 - Price : 2.29
 
 - Dropped : Monterey Jack (no bin)
 
-#### 12. Chicken Burrito
+#### 12. CHICKEN BURRITO
 
 - Short : CK BURR
 
 - Ticket : CHKN BURRITO
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Chicken
+- Ingredient 1 : GRILLED CHICKEN
 
-- Ingredient 2 : Cheese
+- Ingredient 2 : CHEESE
 
-- Ingredient 3 : Sauce
+- Ingredient 3 : TACO SHOP SAUCE
 
 - Price : 2.19
 
 - Dropped : Mexicalli rice (no bin). The whole-wheat tortilla is built on the Large Tortilla
 
-#### 13. Chicken Nacho Supreme
+#### 13. CHICKEN NACHO SUPREME
 
 - Short : CNSUP
 
 - Ticket : CK NACHO SUP
 
-- Ingredient 0 : Chips
+- Ingredient 0 : CHIPS
 
-- Ingredient 1 : Chicken
+- Ingredient 1 : GRILLED CHICKEN
 
-- Ingredient 2 : Cheese
+- Ingredient 2 : CHEESE
 
-- Ingredient 3 : Sour Cream
+- Ingredient 3 : SOUR CREAM
 
-- Ingredient 4 : Tomatoes
+- Ingredient 4 : TOMATOES
 
-- Ingredient 5 : Jalapenos
+- Ingredient 5 : JALAPENOS
 
-- Ingredient 6 : CCQ
+- Ingredient 6 : CHILI CON QUESO
 
 - Price : 3.49
 
 - Dropped : Mexicalli rice, Monterey Jack and olives (no bin). Green onions trimmed to fit the 6-ingredient cap
 
-#### 14. Sombrero
+#### 14. SOMBRERO
 
 - Short : SOMBRO
 
 - Ticket : SOMBRERO
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Ground Beef
+- Ingredient 1 : GROUND BEEF
 
-- Ingredient 2 : Refried Beans
+- Ingredient 2 : REFRIED BEANS
 
-- Ingredient 3 : Sauce
+- Ingredient 3 : TACO SHOP SAUCE
 
-- Ingredient 4 : Cheese
+- Ingredient 4 : CHEESE
 
 - Price : 2.49
 
 - Dropped : Monterey Jack and olives (no bin)
 
-#### 15. Queso Melt
+#### 15. QUESO MELT
 
 - Short : QUESO MLT
 
 - Ticket : QUESO MELT
 
-- Ingredient 0 : Large Tortilla
+- Ingredient 0 : LARGE TORTILLA
 
-- Ingredient 1 : Cheese
+- Ingredient 1 : CHEESE
 
 - Price : 0.99
 

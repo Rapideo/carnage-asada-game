@@ -16,7 +16,7 @@ one self-contained HTML file.
 **Play:** open `taco-shop.html`. There is no page chrome — the canvas fills the window.
 `?level=N` starts a run at level N.
 
-**Version 0.9.0** (2026-11-07): feature-complete, ahead of release. The version shows in the
+**Version 0.9.1** (2026-11-07): feature-complete, ahead of release, with Service Mode for the owner. The version shows in the
 corner of the title and pause screens; `CHANGELOG.md` has what each build contains.
 
 ## The run
@@ -84,6 +84,8 @@ board, then a random level playing itself.
 node build.mjs           # validate content/, bundle src/*.js -> taco-shop.html (ship) + index.html (dev)
 node serve.mjs           # dev server on http://localhost:8123
 node test/headless.mjs   # test suite — runs the real game logic against a stub canvas
+node admin.mjs           # Service Mode: the game plus the content editor on http://localhost:8124 (F2)
+node test/admin.mjs      # Service Mode's tests
 node tools/render/frame.mjs <level> [secs] [--card|--clear|--over|--pause|--say]   # a real frame to PNG
 ```
 
@@ -97,10 +99,17 @@ board, the baked faces and ingredient wells, and the arranged music. The build r
 bitmap font cannot draw, copy too wide for where it is drawn, a bin that moves between eras, a recipe that
 cannot be built, a Short name whose pips would hit the board, and a song newer than its level.
 
+**Service Mode** is the owner's editor for all of it. Run `node admin.mjs` in your own terminal, open
+<http://localhost:8124/> and press **F2**: tabs for Levels, Menu, Attract, Music, Difficulty, Dialogue, Faces and
+Test (jump to any level, override the weather, let the game play itself). Save checks the content the way the
+build does, writes it and rebuilds. The JSON in `content/` is the master copy and `docs/authored content/*.md`
+are generated from it, so do not edit those by hand. `node serve.mjs` stays the plain dev server, without it.
+None of it is in `taco-shop.html`.
+
 ## Docs
 
 - **`docs/PURE-CARNAGE-DECISIONS.md`** — the owner's rulings for this build, and every invention, marked.
-- **`docs/gdd.md`** and **`docs/authored content/`** — the design.
+- **`docs/gdd.md`** and **`docs/authored content/`** — the design (the latter generated from `content/`).
 - **`ROADMAP.md`** — the punch list.
 - **`CLAUDE.md`** — architecture and invariants.
 - **`JOURNAL.md`** — why each design call was made, and the bugs that mattered.

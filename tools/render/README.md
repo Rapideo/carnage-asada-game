@@ -62,7 +62,9 @@ Everything here was discovered by the game crashing:
 
 ## A caution about `measure.mjs`
 
-It is a scoring function, not a judge.
+It is a scoring function, not a judge. **Its GDD §X.1 targets are retired for graded frames
+(owner, 2026-11-07):** the era grade moves the histogram on purpose, so judge a graded frame by
+eye. It still scores ungraded frames.
 
 Two of its metrics have a **floor set by the design's own content** — three
 cream paper tickets and a wooden board were 42% of the kitchen frame before a

@@ -22,8 +22,9 @@ Allowing for this requires specific updates to the Delivery Shift game; changes 
 - A four-screen attract loop.
 
 The rules below describe the game as built. The values (level table, difficulty numbers,
-menus, attract timings, songs) live in `docs/authored content/*.md` and, for the game
-itself, in `content/*.json`. Every ruling and invention from the build is recorded in
+menus, attract timings, songs) live in `content/*.json`, which is the master copy (owner,
+2026-10-25, in force since 0.9.1); `docs/authored content/*.md` are generated from it by
+Service Mode, so they read as the same values and are never hand-edited. Every ruling and invention from the build is recorded in
 `docs/PURE-CARNAGE-DECISIONS.md`. Section XI lists the inventions.
 
 **Context Clarification**
@@ -213,10 +214,10 @@ the board, and from there back to the title.
 
 ### G. Levels
 
-The level table is **`levels.md`**, carried into `content/levels.json`. The level-by-level
-list that used to be here was retired in the 2026-10-25 build, because it had drifted from
-`levels.md` (its seasons for levels 7-12 and 17-18 and its difficulty curve were wrong).
-The authored table wins.
+The level table is **`content/levels.json`**, and `levels.md` is generated from it. The
+level-by-level list that used to be here was retired in the 2026-10-25 build, because it had
+drifted (its seasons for levels 7-12 and 17-18 and its difficulty curve were wrong). The
+JSON wins.
 
 The structure the table follows:
 
@@ -355,14 +356,22 @@ As built (owner's ruling, 2026-10-25: arrange the real MIDIs):
 - **The year rule is a build check, not a note.** A level's song may come from the level's
   year or up to 2 years before it, never after. `build.mjs` checks each song's release
   year.
+- **The season rule is advice, and is built as such (owner, 2026-11-07).** Every song records
+  its release month. A level's month follows its season: July for a summer level; for a winter
+  level, January if a summer level of the same year comes later, otherwise December. A
+  same-year song released after its level's month is named as a **warning** by the build and
+  in Service Mode's Music tab and is never refused. Level 3 keeps both Bohemian Rhapsody
+  songs and Level 16 keeps Cannonball by owner ruling.
 - **The song list is in `music.md`** (and in `playlist.json`).
 - **Because no agent can listen,** the arrangements were chosen by structural heuristics.
   `tools/music/preview/*.wav` holds renders to check by ear.
 
 ### M. Authored Content
 
-The values the rules above use. These are markdown for people. The game reads the
-`content/*.json` files, and `build.mjs` validates each one at build time.
+The values the rules above use. **The `content/*.json` files are the master copy** and the game
+reads them; `build.mjs` validates each one at build time. The markdown files named below are
+generated from the JSON (by Service Mode's save) so people can read the values; they are a mirror,
+and this reverses the 2026-09-26 ruling that the authored docs win. Do not hand-edit them.
 
 #### A. Attract Mode (attract.md)
 
@@ -825,6 +834,12 @@ OVERHEAD and every live ticket drains 50% faster while they wait (§IV.A).
 - Rebuild with `node build.mjs`; `taco-shop.html` does not reflect source edits until you do.
 
 ### X.1 Art Requirements — matching the Delivery Shift
+
+> **Retired for graded frames (owner, 2026-11-07).** The numeric targets below were set on
+> ungraded frames. Every era now runs through `Post.grade`, which moves the whole histogram
+> on purpose, so a graded frame is judged by eye, not against this table. The table and the
+> rules after it still describe how the ungraded Delivery Shift reads and are kept for the
+> reasoning; `measure.mjs` stays a scoring function, not a judge.
 
 **The bar at the end of this section is testable, not a matter of taste.** A live
 frame of the shipped Delivery Shift measures as follows, and any new screen must
