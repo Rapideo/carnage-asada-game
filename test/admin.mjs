@@ -309,9 +309,21 @@ console.log('\n— docs —');
   ok(E && LV && IX, 'the docs engine, levels.md and the index load');
   if (E && LV && IX) {
     const { parseMd, toMd, setField, syncList, roman, letter, sameAs, applySame, diffLines } = E;
+    /* LF, as renderAll feeds the engine: on a CRLF checkout no line would match
+       a heading, everything would land in root.lines, and the identity would
+       hold vacuously. So the headings found are counted as well. */
+    const nodes = (n) => n.children.reduce((s, c) => s + 1 + nodes(c), 0);
     for (const n of NAMES) {
-      const p = join(DIR, n + '.md'), t = existsSync(p) ? readFileSync(p, 'utf8') : null;
-      ok(t !== null && toMd(parseMd(t)) === t, n + '.md round-trips through parseMd/toMd');
+      const p = join(DIR, n + '.md'), t = existsSync(p) ? readFileSync(p, 'utf8').replace(/\r\n/g, '\n') : null;
+      const tree = t !== null && parseMd(t), heads = t !== null ? t.split('\n').filter((l) => /^#{1,6} /.test(l)).length : 0;
+      ok(t !== null && heads > 5 && nodes(tree) === heads && toMd(tree) === t,
+         n + '.md round-trips through parseMd/toMd, with all ' + heads + ' headings parsed as nodes');
+    }
+    {
+      const lt = readFileSync(join(DIR, 'levels.md'), 'utf8').replace(/\r\n/g, '\n'), lr = parseMd(lt);
+      ok(lr.children.length === 1 && lr.children[0].heading === 'levels.md' && lr.children[0].children.length === 20
+         && lr.children[0].children.every((c, i) => c.depth === 2 && c.heading === roman(i + 1) + '. Level ' + (i + 1)),
+         'levels.md parses to its title over 20 level nodes');
     }
     const t0 = parseMd('# t\n\npre\n\n## A\n\nx\n\n### B\n\ny\n## C\nz\n');
     ok(t0.heading === null && t0.children.length === 1 && t0.children[0].heading === 't'
@@ -402,6 +414,36 @@ console.log('\n— docs —');
       writeFileSync(tl, doc.replace('- Season : Winter\n\n## III.', '- Season : Summer\n\n## III.'));
       const d2 = await (await fetch(srv.url + '/admin/api/drift')).json();
       ok(d2.find((x) => x.file === 'levels.md').lines === 1, 'a one-value edit to the doc is one line of drift');
+
+      /* a renderer that throws: the save fails and nothing is written, JSON or doc */
+      const snap = () => {
+        const o = {};
+        for (const [r, x] of Object.entries(loadAllContentJSON(join(tmp, 'content')))) o[r] = readFileSync(join(tmp, 'content', r), 'utf8');
+        for (const n of NAMES) o[n] = readFileSync(join(tmp, DIR, n + '.md'), 'utf8');
+        o.html = readFileSync(join(tmp, 'taco-shop.html'), 'utf8');
+        return JSON.stringify(o);
+      };
+      const bad = await startAdmin({ root: tmp, port: 0, renderDocs: () => { throw new Error('render boom'); } });
+      try {
+        const a2 = await (await fetch(bad.url + '/admin/api/content')).json();
+        const e2 = JSON.parse(a2.files['levels.json']); e2.levels[0].name = 'SUMMER 1972?';
+        const s0 = snap();
+        const r2 = await fetch(bad.url + '/admin/api/save', { method: 'POST', headers: { 'content-type': 'application/json', origin: bad.url },
+          body: JSON.stringify({ files: { 'levels.json': JSON.stringify(e2) }, stamp: { 'levels.json': a2.stamp['levels.json'] } }) });
+        const j2 = await r2.json();
+        ok(r2.status === 500 && j2.error === 'docs' && /render boom/.test(j2.message), 'a docs render that throws fails the save, naming the error');
+        ok(snap() === s0, 'and content/, the docs and the build are byte-unchanged');
+      } finally { await bad.close(); }
+      const off = await startAdmin({ root: tmp, port: 0, renderDocs: () => ({}) });
+      try {
+        const a3 = await (await fetch(off.url + '/admin/api/content')).json();
+        const e3 = JSON.parse(a3.files['levels.json']); e3.levels[0].name = 'SUMMER 1972?';
+        const before3 = readFileSync(tl, 'utf8');
+        const r3 = await fetch(off.url + '/admin/api/save', { method: 'POST', headers: { 'content-type': 'application/json', origin: off.url },
+          body: JSON.stringify({ files: { 'levels.json': JSON.stringify(e3) }, stamp: { 'levels.json': a3.stamp['levels.json'] } }) });
+        ok(r3.status === 200 && readFileSync(tl, 'utf8') === before3 && readFileSync(join(tmp, 'content/levels.json'), 'utf8').includes('SUMMER 1972?'),
+           'with the mirror switched off, a save writes the JSON and leaves the doc alone');
+      } finally { await off.close(); }
     } finally { await srv.close(); rmSync(tmp, { recursive: true, force: true }); }
   }
 }

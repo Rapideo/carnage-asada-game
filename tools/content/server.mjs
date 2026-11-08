@@ -3,11 +3,11 @@
    Dev-only; nothing here is bundled into taco-shop.html. */
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
-import { readFile, readdir, stat, writeFile, rename } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { validateContent, memSource, ContentError } from './validate.mjs';
 import { formatJSON } from './format.mjs';
-import { writeDocs, driftAt } from './docs/index.mjs';
+import { renderDocsAt, writeTexts, driftAt } from './docs/index.mjs';
 
 const TYPES = {
   '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
@@ -50,10 +50,12 @@ const readBody = (req) => new Promise((ok, no) => {
           if (r.busy) return api.send(res, 409, { error: 'busy' });
    The lock is per instance and is the same one save takes. The returned handle
    also exposes withBusy and job. Origin is checked before any route runs. */
-/* afterWrite(rels, files) runs after a save has written the JSON and before the
-   build; files is every content JSON as saved. By default it regenerates the
-   docs mirror (tools/content/docs); pass a no-op to switch the mirror off. */
-export async function startAdmin({ root, host = '127.0.0.1', port = 8124, afterWrite = (rels, files) => writeDocs(root, files), routes = {} }) {
+/* renderDocs(files) -> { root-relative path: text } renders the docs mirror
+   (tools/content/docs) from every content JSON as it will be saved. The save
+   runs it BEFORE writing anything, so a render that throws fails the save with
+   nothing written; then it writes the JSON and the docs, then builds. Pass
+   () => ({}) to switch the mirror off. */
+export async function startAdmin({ root, host = '127.0.0.1', port = 8124, renderDocs = (files) => renderDocsAt(root, files), routes = {} }) {
   const content = join(root, 'content');
   let busy = false;
   /* fn runs holding the lock; if it is taken, { busy: true } and fn never runs */
@@ -115,12 +117,13 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, afterW
         return send(res, 422, { error: 'invalid', file: e.file, path: e.path, message: e.message });
       }
 
-      for (const r of rels) {
-        const f = join(content, r), tmp = f + '.tmp';
-        await writeFile(tmp, formatJSON(parsed[r]));
-        await rename(tmp, f);
-      }
-      await afterWrite(rels, cand);
+      let docs;
+      try { docs = await renderDocs(cand); }
+      catch (e) { return send(res, 500, { error: 'docs', message: 'docs mirror: ' + String(e && e.message || e) }); }
+
+      const texts = {};
+      for (const r of rels) texts['content/' + r] = formatJSON(parsed[r]);
+      await writeTexts(root, { ...texts, ...docs });
       const b = await runJob(['node', 'build.mjs'], { cwd: root });
       if (b.code !== 0) return send(res, 500, { error: 'build', output: b.stdout + b.stderr, stamp: await stamps(rels) });
       send(res, 200, { ok: true, build: b.stdout, stamp: await stamps(rels) });

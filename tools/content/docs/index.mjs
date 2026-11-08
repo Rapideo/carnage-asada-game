@@ -5,9 +5,10 @@
    prevText the doc as it stands (null when there is none). Later docs are added
    to DOCS. The JSON is the master copy and nothing here is ever read back into it.
 
-   writeDocs is the only thing that touches disk; the admin server calls it after
-   a save. Switching the mirror off later is dropping that call. It rewrites docs
-   that exist and never creates one. */
+   The admin server's save calls renderDocsAt before it writes anything, then
+   writes the JSON and the rendered docs together. Switching the mirror off is
+   passing it a renderer that returns {}. Only docs that exist are rewritten;
+   none is ever created. */
 import { readFile, readdir, writeFile, rename } from 'node:fs/promises';
 import { join } from 'node:path';
 import { diffLines } from './engine.mjs';
@@ -60,21 +61,33 @@ export async function readDocs(root) {
   return docs;
 }
 
-/* Rewrites every registered doc that exists under root and differs from its render.
-   Returns the files written. */
-export async function writeDocs(root, files) {
+/* Renders, writes nothing: { 'docs/authored content/levels.md': text } for every
+   registered doc that exists under root and differs from its render. Pure in the
+   content, so the save can run it BEFORE writing anything and fail cleanly. */
+export async function renderDocsAt(root, files) {
   files = files || await loadContent(root);
   const docs = await readDocs(root);
   const out = renderAll(files, (f) => docs[f]);
-  const written = [];
+  const changed = {};
   for (const [f, text] of Object.entries(out)) {
-    if (docs[f] === null || docs[f] === text) continue;
-    const p = join(root, DOCS_DIR, f), tmp = p + '.tmp';
+    if (docs[f] !== null && docs[f] !== text) changed[DOCS_DIR + '/' + f] = text;
+  }
+  return changed;
+}
+
+/* Writes a { root-relative path: text } map, each file through tmp + rename. */
+export async function writeTexts(root, texts) {
+  for (const [rel, text] of Object.entries(texts)) {
+    const p = join(root, rel), tmp = p + '.tmp';
     await writeFile(tmp, text);
     await rename(tmp, p);
-    written.push(f);
   }
-  return written;
+  return Object.keys(texts);
+}
+
+/* Renders and rewrites every registered doc under root. Returns the paths written. */
+export async function writeDocs(root, files) {
+  return writeTexts(root, await renderDocsAt(root, files));
 }
 
 export async function driftAt(root) {

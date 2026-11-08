@@ -101,8 +101,13 @@ export function syncList(parent, items, { heading, fill }) {
   });
 }
 
-/* The docs' numbering, without the dot: roman(18) 'XVIII' (1-based n),
-   letter(0) 'A' (0-based i, like syncList's index). Arabic needs no helper. */
+/* The docs' numbering, without the dot.
+   NOTE THE INDEXING DIFFERS, on purpose:
+     roman(n)  takes the 1-BASED number:  roman(1) 'I', roman(18) 'XVIII'
+               (a level's n, an era number);
+     letter(i) takes the 0-BASED index:   letter(0) 'A', letter(4) 'E'
+               (syncList's i, straight from heading(item, i)).
+   So in a syncList heading: roman(i + 1) but letter(i). Arabic needs no helper. */
 export function roman(n) {
   const R = [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'],
     [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
