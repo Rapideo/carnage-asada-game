@@ -5504,6 +5504,13 @@ const Kitchen = {
   OV_X: 249, OV_H: 104,
   CELL_W: 46, CELL_H: 28, COL0: 5, ROW_Y: [105, 135],
   BX: 138, BW: 177,                      // the assembly board
+  BTN: [321, 170, 59, 44],               // WRAP IT! / SEND IT! (x, y, w, h)
+  /* The baked rack's three trays, in its own pixels: the inside of each
+     compartment, between the posts (x) and the shelf bars (rows). The cursor
+     draws 2px outside its rect, so it lands on those bars and posts. The trays
+     are not even (the top one is shorter), which is why an even three-way
+     split of the column missed them. Measured from LATTICE.TORTILLA. */
+  TRAY_X: [6, 30], TRAY_ROWS: [[4, 10], [16, 14], [32, 15]], TRAY_SPLIT: [15, 31],
   TICKET_W: 78,
   get RAIL_MAX() { return G.diff.kitchen.railMax; },      // difficulty content
   get QUEUE_MAX() { return G.diff.kitchen.queueMax; },
@@ -5566,6 +5573,7 @@ const Kitchen = {
     this.right = (this.menu.bases && this.menu.bases.right || ['CHIPS']).map((b) => this.norm(b));
     this.tickets = []; this.queue = []; this.walkers = []; this.pops = [];
     this.cur = { c: 3, r: 0, z: 0 };
+    this.onBtn = false;                   // the cursor is on WRAP IT! (Down past the bottom row)
     this.arriveT = 1.5;                   // the first ticket arrives almost at once
     this.docket = 0;
     this.flashKey = null; this.flashT = 0; this.wrongKey = null; this.hintT = 0;
@@ -5786,6 +5794,7 @@ const Kitchen = {
   },
 
   select(G) {
+    if (this.onBtn) { this.button(G); return; }
     const it = this.item(), c = this.cur;
     const key = this.keyAt(c.c, c.r, c.z);
     if (!it || it.step >= it.def.recipe.length || !key) { this.buzz(); return; }
@@ -5856,6 +5865,15 @@ const Kitchen = {
 
   move(dc, dr) {
     const c = this.cur;
+    /* WRAP IT! sits below the line: Down from the bottom row steps onto it,
+       and any other direction steps back to the bin you came from. */
+    if (this.onBtn) {
+      if (dr > 0) return;
+      this.onBtn = false; Audio5.sfx('ktick'); return;
+    }
+    if (dr > 0 && !dc && (c.c === 0 ? c.z >= this.left.length - 1 : c.c === 7 || c.r >= 1)) {
+      this.onBtn = true; Audio5.sfx('ktick'); return;
+    }
     if (dc) {
       const nc = clamp(c.c + dc, 0, 7);
       if (nc === c.c) return;
@@ -5893,7 +5911,9 @@ const Kitchen = {
       this.lastMx = Input.mx; this.lastMy = Input.my;
       const hit = this.hitTest(Input.mx, Input.my);
       if (hit && (moved || Input.mhit)) {
+        if (hit.button) this.onBtn = true;
         if (hit.c !== undefined) {
+          this.onBtn = false;
           const ch = hit.c !== this.cur.c || hit.r !== this.cur.r || hit.z !== this.cur.z;
           this.cur.c = hit.c; this.cur.r = hit.r; this.cur.z = hit.z;
           if (ch && !Input.mhit) Audio5.sfx('ktick');
@@ -5908,12 +5928,15 @@ const Kitchen = {
 
   hitTest(mx, my) {
     const { CELL_W, CELL_H, ROW_Y } = this;
-    if (mx >= 321 && mx < 380 && my >= 170 && my < 214) return { button: true };
+    const [bx, by, bw, bh] = this.BTN;
+    if (mx >= bx && mx < bx + bw && my >= by && my < by + bh) return { button: true };
     if (my < ROW_Y[0] || my >= ROW_Y[1] + CELL_H) return null;
     const c = Math.floor((mx - this.COL0) / (CELL_W + 1));
     if (c < 0 || c > 7) return null;
     if (c === 0) {
-      const z = clamp(Math.floor((my - ROW_Y[0]) / ((ROW_Y[1] + CELL_H - ROW_Y[0]) / this.left.length)), 0, this.left.length - 1);
+      const rack = this.rack();
+      const z = rack ? (my < rack.y + this.TRAY_SPLIT[0] ? 0 : my < rack.y + this.TRAY_SPLIT[1] ? 1 : 2)
+        : clamp(Math.floor((my - ROW_Y[0]) / ((ROW_Y[1] + CELL_H - ROW_Y[0]) / this.left.length)), 0, this.left.length - 1);
       return { c: 0, r: z >= 2 ? 1 : 0, z };
     }
     if (c === 7) return { c: 7, r: 0, z: 0 };
@@ -6418,13 +6441,27 @@ const Kitchen = {
     if (this.flashT > 0 && this.flashKey && this.flashKey !== this.wrongKey) this.plate(x, this.flashKey, PAL.good, 1);
     if (this.hintT > 0 && want && (G.time * 5 | 0) % 2) this.plate(x, want, PAL.amber, 1);
 
-    const r = this.cellRect(this.cur.c, this.cur.r, this.cur.z);
+    const r = this.onBtn ? this.BTN : this.cellRect(this.cur.c, this.cur.r, this.cur.z);
     this.cursor(x, r[0], r[1], r[2], r[3]);
+  },
+
+  /* where the baked tortilla rack sits on screen, or null when there is no
+     baked rack or it is not the three-tray one the TRAY_ constants measure */
+  rack() {
+    const W = this.wells && this.wells.TORTILLA;
+    if (!W || this.left.length !== 3) return null;
+    const SH = this.ROW_Y[1] + this.CELL_H - this.ROW_Y[0];
+    return { x: this.colX(0) + ((this.CELL_W - W.width) >> 1), y: this.ROW_Y[0] + ((SH - W.height) >> 1) };
   },
 
   cellRect(c, r, z) {
     const { CELL_W, CELL_H, ROW_Y } = this;
     const SH = ROW_Y[1] + CELL_H - ROW_Y[0];
+    const rack = c === 0 && this.rack();
+    if (rack) {
+      const [ty, th] = this.TRAY_ROWS[z];
+      return [rack.x + this.TRAY_X[0], rack.y + ty, this.TRAY_X[1], th];
+    }
     if (c === 0) {
       const n = this.left.length, zh = SH / n;
       return [this.colX(0), Math.round(ROW_Y[0] + z * zh), CELL_W, Math.round(zh)];
@@ -6436,7 +6473,8 @@ const Kitchen = {
   plate(x, key, col, alpha) {
     const cell = this.cellOf(key);
     if (!cell) return;
-    const [px, py, w] = this.cellRect(cell.c, cell.r, cell.z);
+    let [px, py, w] = this.cellRect(cell.c, cell.r, cell.z);
+    if (cell.c === 0) { px = this.colX(0); w = this.CELL_W; }   // a tray is narrower than its name
     const name = this.plateName(key);
     x.globalAlpha = alpha;
     R(x, PAL.ink, px + 1, py + 1, w - 2, 10);
@@ -6568,7 +6606,7 @@ const Kitchen = {
 
     /* WRAP IT! / SEND IT! -- one button, labelled with whichever comes next */
     const ready = it ? it.step >= it.def.recipe.length : !!t;
-    this.button_(x, 321, 170, 59, VH - 172, it || !t ? ['WRAP', 'IT!'] : ['SEND', 'IT!'], ready, G);
+    this.button_(x, this.BTN[0], this.BTN[1], this.BTN[2], this.BTN[3], it || !t ? ['WRAP', 'IT!'] : ['SEND', 'IT!'], ready, G);
   },
 
   button_(x, px, py, w, h, lines, ready, G) {

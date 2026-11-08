@@ -1236,8 +1236,28 @@ ok(Kt.wrongKey === wrongKey, 'and the red plate holds');
 for (let i = 1; i < recipe.length; i++) pickKey(recipe[i]);
 ok(it0.step === recipe.length && Kt.wrongKey === null, 'finishing the build clears the red plate');
 const starsBefore = G.levelStars;
-Kt.wrap(G);
-ok(it0.wrapped && G.levelStars === starsBefore, 'wrapping a dirty item banks no star');
+/* WRAP IT! is reachable without a mouse: Down past the bottom row, then select */
+Kt.cur.c = 3; Kt.cur.r = 0; Kt.onBtn = false;
+Kt.move(0, 1); ok(!Kt.onBtn && Kt.cur.r === 1, 'Down from the top row reaches the bottom row, not the button');
+Kt.move(0, 1); ok(Kt.onBtn, 'Down from the bottom row steps onto WRAP IT!');
+Kt.move(0, 1); ok(Kt.onBtn, 'and Down again stays there');
+Kt.select(G);
+ok(it0.wrapped && G.levelStars === starsBefore, 'select on the button wraps; a dirty item banks no star');
+Kt.move(0, -1); ok(!Kt.onBtn && Kt.cur.c === 3 && Kt.cur.r === 1, 'Up steps back to the bin it came from');
+/* the tortilla rack: each cursor sits on its own tray, and the mouse agrees */
+{
+  const rk = Kt.rack();
+  ok(!!rk, 'the baked tortilla rack is there to measure');
+  if (rk) {
+    const rects = [0, 1, 2].map((z) => Kt.cellRect(0, z >= 2 ? 1 : 0, z));
+    const W = Kt.wells.TORTILLA;
+    ok(rects.every(([x, y, w, h]) => x - 2 >= rk.x && x + w + 2 <= rk.x + W.width && y - 2 >= rk.y && y + h + 2 <= rk.y + W.height),
+      'every tray cursor fits inside the rack art');
+    ok(rects.every((r, z) => !z || rects[z - 1][1] + rects[z - 1][3] <= r[1] - 2), 'the tray cursors do not overlap');
+    ok(rects.every(([x, y, w, h], z) => { const t = Kt.hitTest(x + w / 2, y + h / 2); return t && t.c === 0 && t.z === z; }),
+      'a click in the middle of each tray picks that tray');
+  }
+}
 const buildAll = () => { for (const it of tk.items) if (!it.wrapped) { for (const k of it.def.recipe.slice(it.step)) pickKey(k); Kt.wrap(G); } };
 buildAll();
 const paidBefore = G.earned, doneBefore = G.done;

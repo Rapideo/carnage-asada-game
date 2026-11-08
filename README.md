@@ -52,7 +52,7 @@ Pick a mode after the title: **A** keyboard + mouse, **B** arcade stick (any bro
 |---|---|---|
 | arrows / `WASD`, or the mouse | stick | Move along the line |
 | `Space` / `Z` / click | Button 1 | Pick the ingredient |
-| `X` / click the button | Button 2 | Wrap the item |
+| `X` / click the button, or Down past the bins and `Space` | Button 2, or stick down past the bins and Button 1 | Wrap the item |
 | `Enter` / `C` / click the button | Button 3 | Send the ticket |
 
 `P` pauses (Start on a stick), `M` mutes, `N` toggles music. The pause screen lists the controls for the
