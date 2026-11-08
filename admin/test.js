@@ -77,6 +77,7 @@
       if (o.era !== '' && o.era != null && eras.includes(era)) t.era = era;
       if (SEASONS.includes(o.season)) t.season = o.season;
       g.test = Object.keys(t).length ? t : null;
+      // set from any other state (attract, mode select), the next startRun sees G.test and marks the run
       if (g.test && RUN.concat(['over', 'cont', 'entry', 'victory']).includes(g.state)) g.testRun = true;
       if (RUN.includes(g.state)) {
         quiet(g);
@@ -103,10 +104,11 @@
       return g.state;
     },
 
-    /* a number of seconds sets the clock; 'freeze' holds it, 'thaw' lets it go */
+    /* a number of seconds sets the clock; 'freeze' holds it, 'thaw' lets it
+       go. A frozen clock is unlimited time, so freezing is a test run too. */
     clock(v) {
       const g = game();
-      if (v === 'freeze') { installHold(g); frozen = true; return true; }
+      if (v === 'freeze') { installHold(g); frozen = true; g.testRun = true; return true; }
       if (v === 'thaw') { frozen = false; return true; }
       const s = Number(v);
       if (!Number.isFinite(s) || s < 0) return false;
@@ -141,18 +143,27 @@
       return g.state;
     },
 
+    /* any speed but 1, a pause or a step is easier play (slow motion is the
+       obvious cheat), so each makes the run a test run */
     speed(x) {
       const g = game(), s = Number(x);
       g.speed = Number.isFinite(s) && s > 0 ? Math.max(SPEED_MIN, Math.min(SPEED_MAX, s)) : 1;
+      if (g.speed !== 1) g.testRun = true;
       return g.speed;
     },
 
-    pause(on) { game().testPaused = !!on; return game().testPaused; },
+    pause(on) {
+      const g = game();
+      g.testPaused = !!on;
+      if (on) g.testRun = true;
+      return g.testPaused;
+    },
 
     /* one fixed step (or n), paused or not: the console bridge's step, which
        also renders; without it (the vm tests) the update alone */
     step(n) {
       const g = game(), k = n == null ? 1 : clampInt(n, 1, 600);
+      g.testRun = true;
       const bridge = typeof window !== 'undefined' && window.TacoShop;
       if (bridge && typeof bridge.step === 'function') { bridge.step(k); return k; }
       for (let i = 0; i < k; i++) { g.update(1 / 60); if (typeof Input !== 'undefined') Input.endFrame(); }
@@ -164,6 +175,8 @@
        the confirm says how many. opts (for the tests): { dirty, confirm, go, href }. */
     seed(n, opts) {
       opts = opts || {};
+      // Number('') is 0, so an empty box would reload with ?seed=0: refuse it
+      if (n == null || (typeof n === 'string' && !/^\s*\d+\s*$/.test(n))) return false;
       const s = Number(n);
       if (!Number.isInteger(s) || s < 0) return false;
       const dirty = opts.dirty != null ? opts.dirty : (Admin.store && Admin.store.dirty ? Admin.store.dirty.size : 0);

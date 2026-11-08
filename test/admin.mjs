@@ -2226,6 +2226,23 @@ console.log('\n— test harness —');
       reset(); T.jump(1, 'play'); T.force('over'); frames(60 * 7);
       ok(G.state === 'cont', 'a forced GAME OVER runs on to CONTINUE?, with no initials (' + G.state + ')');
 
+      /* a frozen clock is unlimited time, and slow motion is easier play: both are test runs */
+      reset(); T.jump(1, 'play');
+      ok(G.testRun === false, 'a fresh jump is not yet a test run');
+      T.clock('freeze');
+      G.earned = 99999999; G.timeUp();
+      ok(G.testRun === true && G.placed === false, 'clock(freeze) makes it a test run: GAME OVER on a qualifying score does not place');
+      T.clock('thaw');
+      reset(); T.jump(1, 'play'); T.speed(1);
+      ok(G.testRun === false, 'speed(1) leaves a run alone');
+      T.speed(0.5);
+      ok(G.testRun === true, 'speed(0.5) makes it a test run');
+      reset(); T.jump(1, 'play'); T.pause(true); T.pause(false);
+      ok(G.testRun === true, 'and so does a pause');
+      reset(); T.jump(1, 'play'); T.step();
+      ok(G.testRun === true, 'and a step');
+      reset(); T.speed(1);
+
       /* attract from any screen */
       const seen = [];
       for (const s of ['title', 'winners', 'scores', 'demo']) { T.attractFrom(s); seen.push(G.state === 'kdemo' ? 'demo' : G.state); }
@@ -2271,6 +2288,10 @@ console.log('\n— test harness —');
     const no = T.seed(78, { dirty: 0, confirm: () => false, go: (u) => went.push(u), href: 'http://localhost:8124/' });
     ok(no === false && went.length === 1, 'cancelled, nothing reloads');
     ok(T.seed('x', { confirm: () => true, go: (u) => went.push(u), href: 'http://localhost:8124/' }) === false && went.length === 1, 'a seed that is not a whole number is refused');
+    ok(['', '   ', null].every((v) => T.seed(v, { confirm: () => true, go: (u) => went.push(u), href: 'http://localhost:8124/' }) === false) && went.length === 1,
+       'an empty seed (Number(\'\') is 0) is refused, not reloaded as ?seed=0');
+    ok(T.seed('12', { dirty: 0, confirm: () => true, go: (u) => went.push(u), href: 'http://localhost:8124/' }) === true && went[1] === 'http://localhost:8124/?seed=12',
+       'a seed typed as text reloads');
     reset();
   }
 
@@ -2287,6 +2308,12 @@ console.log('\n— test harness —');
       globalThis.Admin.test = Object.fromEntries(['jump', 'setOverride', 'autopilot', 'attractFrom', 'clock', 'complete', 'force', 'speed', 'pause', 'step', 'seed'].map((k) => [k, rec(k)]));
       globalThis.Admin.test.status = () => ({ state: 'play', levelN: 1, shift: 100, frozen: false, speed: 1, paused: false, autopilot: false, test: null, testRun: false });
       globalThis.G = { levels: () => Array.from({ length: 20 }, (_, i) => ({ n: i + 1, type: i % 2 ? 'kitchen' : 'delivery', name: 'L' + (i + 1) })) };
+      /* the panel's 500ms refresh runs only in a browser: give it a window and catch the interval */
+      const realSI = globalThis.setInterval, realCI = globalThis.clearInterval;
+      let refresh = null;
+      globalThis.window = {};
+      globalThis.setInterval = (f) => { refresh = f; return 1; };
+      globalThis.clearInterval = () => { refresh = null; };
       try {
         const doc = fakeDoc(), el = doc.createElement('div');
         doc.body.appendChild(el);
@@ -2320,9 +2347,19 @@ console.log('\n— test harness —');
             'setOverride({})', 'autopilot(true)', 'attractFrom("winners")', 'clock(30)', 'clock("freeze")', 'complete(9)', 'force("cont")', 'speed(4)', 'pause(true)', 'step()'];
           ok(want.every((w, i) => calls[i] === w), 'each control makes its call (' + calls.join(' ') + ')');
           ok(/^seed\(123,/.test(calls[want.length] || ''), 'Reload with seed passes the seed (' + calls[want.length] + ')');
+          const n0 = calls.length;
+          nodes().find((n) => n.dataset.input === 'seed').value = '  '; act('seed').fire('click');
+          const line = () => (nodes().find((n) => n.dataset.status) || {}).textContent || '';
+          ok(calls.length === n0 && /whole number/.test(line()), 'an empty seed box reloads nothing and says why (' + line() + ')');
+          ok(typeof refresh === 'function', 'the panel refreshes its status line on a timer while shown');
+          if (refresh) { refresh(); refresh(); }
+          ok(/whole number/.test(line()), 'and the refresh keeps the message until the next action');
+          act('step').fire('click');
+          ok(!/whole number/.test(line()), 'which clears it');
         }
         if (tab.leave) tab.leave();
-      } finally { globalThis.Admin.test = realTest; delete globalThis.G; }
+        ok(refresh === null, 'leaving the tab stops the refresh');
+      } finally { globalThis.Admin.test = realTest; delete globalThis.G; delete globalThis.window; globalThis.setInterval = realSI; globalThis.clearInterval = realCI; }
     }
     const lv = readFileSync('admin/panels/levels.js', 'utf8');
     ok(/Admin\.test\.jump\(n, 'card'\)/.test(lv), 'the Levels panel\'s Play this level goes through Admin.test.jump(n, \'card\')');

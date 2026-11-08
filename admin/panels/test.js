@@ -54,7 +54,12 @@ function draw(el) {
 
   const line = h(doc, 'div', 'adm-teststatus');
   line.dataset.status = '1';
+  /* say(msg) replaces the message; say() only refreshes the state after it,
+     so the 500ms refresh never wipes an error before the next action does */
+  let last = '';
   const say = (msg) => {
+    if (msg !== undefined) last = msg;
+    msg = last;
     const s = status();
     const base = s ? s.state + ' · level ' + s.levelN + ' · clock ' + Math.max(0, Math.ceil(s.shift || 0)) + 's' +
       (s.frozen ? ' (frozen)' : '') + ' · ' + s.speed + 'x' + (s.paused ? ' · paused' : '') +
@@ -139,8 +144,10 @@ function draw(el) {
   try { seed0 = String(G.seed); } catch (e) { /* no game */ }
   const seedIn = input(r3, 'seed', seed0, 'a whole number; the page reloads with ?seed=');
   button(r3, 'seed', 'Reload with seed', (ev) => {
-    const ok = harness() && harness().seed(Number(seedIn.value), { dirty: store.dirty.size });
-    if (!ok) say('not reloaded');
+    const v = String(seedIn.value).trim();
+    if (!/^\d+$/.test(v)) { say('the seed must be a whole number'); return; }
+    const ok = harness() && harness().seed(Number(v), { dirty: store.dirty.size });
+    say(ok ? '' : 'not reloaded');
     if (ev && ev.target && typeof ev.target.blur === 'function') ev.target.blur();
   });
 
@@ -186,7 +193,7 @@ function draw(el) {
   if (timer) clearInterval(timer);
   timer = null;
   if (typeof window !== 'undefined' && typeof setInterval === 'function') {
-    timer = setInterval(() => { if (!el.isConnected) { clearInterval(timer); timer = null; return; } say(''); redrawToggles(); }, 500);
+    timer = setInterval(() => { if (!el.isConnected) { clearInterval(timer); timer = null; return; } say(); redrawToggles(); }, 500);
   }
 }
 
