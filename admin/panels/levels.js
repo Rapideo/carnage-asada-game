@@ -27,7 +27,8 @@ function difficultyKeys() {
   try { return Object.keys(DIFFICULTY); } catch (e) { return ['easy', 'medium', 'hard']; }
 }
 
-/* "Play this level": the test harness when it exists (Task 15), else the run itself. */
+/* "Play this level": the Test panel's jump (admin/test.js), onto the level's
+   card; the run itself only if the harness did not load. */
 function play(n) {
   if (Admin.test && typeof Admin.test.jump === 'function') return Admin.test.jump(n, 'card');
   G.startRun(n);

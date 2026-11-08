@@ -68,8 +68,10 @@
   /* G.level and G.diff are pointers into the content, and the content objects
      were replaced; point them at the new ones. */
   Admin.onApply('levels', function (built, game) {
-    const old = game.level, now = game.levels()[game.levelN - 1];
-    if (!now) return;
+    const old = game.level, raw = game.levels()[game.levelN - 1];
+    if (!raw) return;
+    /* with a Test panel override set, G.level is the overridden copy: compare like with like */
+    const now = typeof game.testLevel === 'function' ? game.testLevel(raw) : raw;
     game.level = now;
     const shape = (l) => l && [l.type, l.era, l.season, l.map, l.menu, l.year, l.difficulty].join();
     if (shape(old) !== shape(now)) Admin.restartScreen(game);

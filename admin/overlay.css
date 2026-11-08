@@ -132,3 +132,16 @@
 .adm-grip { opacity: .6; }
 .adm-songname { flex: 1 1 auto; }
 .adm-show:disabled { opacity: .4; cursor: default; }
+/* Test: titled groups of rows of buttons */
+.adm-teststatus { font-size: 12px; color: #3fb8b0; margin-bottom: 8px; min-height: 1.4em; }
+.adm-testsec { margin: 0 0 12px; }
+.adm-testhead { font-size: 13px; font-weight: 600; color: #f5c453; margin: 0 0 4px; padding-bottom: 2px; border-bottom: 1px solid #3a3150; }
+.adm-testrow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 5px 0; }
+.adm-testrow .adm-label { flex: 0 0 7em; color: #bdb3cf; }
+.adm-btn { background: #2a2338; color: inherit; border: 1px solid #4a4062; border-radius: 4px; padding: 3px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+.adm-btn:hover { background: #342b46; }
+.adm-btn.on { background: #3fb8b0; color: #10242a; border-color: #3fb8b0; }
+.adm-num { width: 5.5em; background: #120d1a; color: inherit; border: 1px solid #4a4062; border-radius: 4px; padding: 3px 6px; font: inherit; }
+.adm-sel { flex: 1 1 10em; min-width: 0; background: #120d1a; color: inherit; border: 1px solid #4a4062; border-radius: 4px; padding: 3px 6px; font: inherit; }
+.adm-check { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.adm-check input { width: 16px; height: 16px; }

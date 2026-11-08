@@ -88,6 +88,17 @@ const G = {
   entryIni: [0, 0, 0], entrySlot: 0, entryT: 0, placed: false, afterEntry: 'scores',
   rl: [],
 
+  /* Hooks for the dev build's Test panel. The shipped game never sets them,
+     and at these values it plays exactly as it would without them. test:
+     overrides { difficulty?, era?, season? } that setLevel lays over the level.
+     autopilot: the demo's driver, or the kitchen's cook, plays the shift.
+     testRun: this run was started under an override, or has had the
+     autopilot on, so it never reaches the board. speed multiplies the time
+     90_main feeds the fixed step; testPaused stops it (P/Esc pause is
+     `paused`, which has its own overlay). apFor: the car the autopilot last
+     took over, so Demo is reset for each new one. */
+  test: null, autopilot: false, testRun: false, speed: 1, testPaused: false, apFor: null,
+
   /* the run */
   seed: 0, levelN: 1, level: null, diffKey: 'easy', diff: DIFF_FALLBACK, nav: NAV_FULL,
   era: 1, winter: false, weather: 'sunny', weatherPin: null, stage: 'delivery', mapN: 0,
@@ -126,7 +137,7 @@ const G = {
   setLevel(n) {
     const L = this.levels();
     this.levelN = clamp(n, 1, L.length);
-    this.level = L[this.levelN - 1];
+    this.level = this.testLevel(L[this.levelN - 1]);
     this.diffKey = this.level.difficulty || 'easy';
     const D = typeof DIFFICULTY !== 'undefined' && DIFFICULTY[this.diffKey];
     this.diff = D || DIFF_FALLBACK;
@@ -145,6 +156,18 @@ const G = {
     }
     if (this.winter && !this.snowMask) this.buildSnow();
     if (this.weather === 'rainy' && !this.rainMask) this.buildRain();
+  },
+
+  /* The level as played: the level itself, unless the Test panel has set an
+     override, which is laid over a copy and never into the content. An era
+     brings its own map, menu and a year from it, for the kitchen wall. */
+  testLevel(lv) {
+    const T = this.test;
+    if (!T || !lv) return lv;
+    return Object.assign({}, lv,
+      T.difficulty ? { difficulty: T.difficulty } : null,
+      T.era ? { era: T.era, map: T.era, menu: T.era, year: (this.levels().find((l) => l.era === T.era) || lv).year } : null,
+      T.season ? { season: T.season } : null);
   },
 
   /* Weather, the owner's ruling of 2026-11-07: a delivery level rolls its own
@@ -215,7 +238,8 @@ const G = {
 
   commitEntry() {
     const ini = this.entryIni.map((i) => INI_ALPHA[i]).join('');
-    this.scoreIdx = Scores.insert(ini, this.earned);
+    // a test run reaches this screen only when forced to, and never the board
+    this.scoreIdx = this.testRun ? -1 : Scores.insert(ini, this.earned);
     Audio5.sfx('cash');
     if (this.afterEntry === 'cont') this.toCont();
     else this.toScores(true);
@@ -259,6 +283,7 @@ const G = {
   startRun(n) {
     this.earned = 0; this.stars = 0;
     this.runStart = n;
+    this.testRun = !!(this.test || this.autopilot);
     this.toCard(n);
   },
 
@@ -360,7 +385,7 @@ const G = {
     this.state = 'over';
     this.cardT = 0;
     this.shift = 0;
-    this.placed = Scores.qualifies(this.earned);
+    this.placed = !this.testRun && Scores.qualifies(this.earned);
     this.scoreIdx = -1;
     Audio5.engineOff(); Audio5.sirenOff();
     this.cop = null; Nav.clear(); Dialog.drop();
@@ -382,7 +407,7 @@ const G = {
   toVictory() {
     this.state = 'victory';
     this.cardT = 0;
-    this.placed = Scores.qualifies(this.earned);
+    this.placed = !this.testRun && Scores.qualifies(this.earned);
     this.scoreIdx = -1;
     Audio5.sfx('clear');
   },
@@ -480,7 +505,7 @@ const G = {
     const p = this.player;
     let ax, ay;
     const pad = typeof Pad !== 'undefined' && Pad.aiming;
-    if (this.state === 'demo' && this.demoAim) { ax = this.demoAim.x; ay = this.demoAim.y; }
+    if ((this.state === 'demo' || this.autopilot) && this.demoAim) { ax = this.demoAim.x; ay = this.demoAim.y; }
     /* throwNow too: on the release that throws, aiming is already false, and
        the bag must still go where the stick was pointing */
     else if (pad || (typeof Pad !== 'undefined' && Pad.throwNow)) { ax = p.x + Pad.aimX; ay = p.y + Pad.aimY; }
@@ -718,6 +743,7 @@ const G = {
     if (this.weather === 'rainy' && this.rainMask) this.updateRain(dt);
 
     const S = this.state;
+    if (this.autopilot) this.testRun = true;     // a run that had the bot at the controls is not a score
 
     if (S === 'title') {
       this.titleCam += dt * 26;
@@ -896,7 +922,11 @@ const G = {
 
     /* player */
     const p = this.player;
-    if (demo) Demo.drive(dt, this); else p.control(Input);
+    /* the autopilot drives with the demo's driver, reset for each car it takes
+       over (a toggle, or the new Player every startShift builds) */
+    if (this.autopilot && !demo && this.apFor !== p) { Demo.reset(p); this.demoAim = null; }
+    this.apFor = this.autopilot ? p : null;
+    if (demo || this.autopilot) Demo.drive(dt, this); else p.control(Input);
     p.update(dt, this);
 
     if (!demo) {

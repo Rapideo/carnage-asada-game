@@ -1354,6 +1354,102 @@ ok(Kt.stats.served >= 2, `the autoplayer actually serves (${Kt.stats.served} tic
 ok(!Scores.board.some((e) => e.cents === G.earned && e.cents > 0 && e.ini === 'ZZZ'), 'and never posts a score');
 G.toTitle();
 
+console.log('\n— test hooks —');
+/* Service Mode's Test panel drives the game through a handful of plain G
+   fields. They ship, so with G.test null and the autopilot never on the game
+   must be exactly what it was: that is the last block here. State is reset
+   before and after, since the sections share one game. */
+{
+  const KD = KX.DIFFICULTY, LVS = KX.LEVELS;
+  const reset = () => {
+    G.test = null; G.autopilot = false; G.testRun = false;
+    Input.down = Object.create(null); Input.hit = Object.create(null); Input.mhit = false;
+  };
+  const run = (secs, each) => {
+    let threw = null;
+    try { for (let i = 0; i < secs * 60; i++) { G.update(1 / 60); Input.endFrame(); if (each && each() === false) break; } } catch (e) { threw = e; }
+    return threw;
+  };
+  reset();
+  ok(G.test === null && G.autopilot === false && G.testRun === false && G.speed === 1 && G.testPaused === false,
+     'the hooks default off: G.test null, autopilot off, not a test run, speed 1, not frozen');
+
+  /* overrides: applied by setLevel after it reads the level, never into the content */
+  G.test = { difficulty: 'supreme' }; G.setLevel(1);
+  ok(G.diffKey === 'supreme' && G.diff === KD.supreme, `G.test {difficulty: supreme} gives level 1 supreme (${G.diffKey})`);
+  G.test = { era: 3, season: 'winter' }; G.setLevel(1);
+  ok(G.era === 3 && G.winter && G.mapN === 3 && G.level.era === 3 && LVS[0].era === 1 && LVS[0].season === 'summer',
+     `era and season override level 1 (era ${G.era}, map ${G.mapN}, winter ${G.winter}); levels.json is untouched`);
+  G.test = null; G.setLevel(1);
+  ok(G.diffKey === 'easy' && G.era === 1 && !G.winter && G.mapN === 1 && G.level === LVS[0], 'G.test null: level 1 as authored, the map back to 1');
+  G.test = { difficulty: 'hard' }; G.startRun(1);
+  ok(G.testRun === true && G.diffKey === 'hard', 'a run started under an override is a test run');
+  reset();
+
+  /* the autopilot: Demo.drive at the wheel of a real shift, no keys held */
+  G.startRun(1); G.beginShift();
+  ok(G.state === 'play' && G.testRun === false, 'a run started with no override and the autopilot off is not a test run');
+  G.autopilot = true;
+  let path = 0, px = G.player.x, py = G.player.y;                    // startShift built this Player: read it after
+  const threw = run(30, () => { const q = G.player; path += Math.hypot(q.x - px, q.y - py); px = q.x; py = q.y; return G.state === 'play'; });
+  ok(!threw && path > 200, `the autopilot drives a delivery shift: ${path | 0}px of path in 30s with no keys held` + (threw ? ' — ' + threw.stack : ''));
+  ok(G.testRun === true, 'and having had the autopilot on makes it a test run');
+
+  /* Level 19, straight into play, autopilot on, off and on again. Kept on the
+     clock so 30s is 30s of driving; a delivery is a throw that landed, which
+     is the aim point following the porch, not just the steering. */
+  G.startRun(19); G.beginShift(); G.autopilot = true;
+  const d0 = G.stats.delivered;
+  let flips = 0;
+  const t19 = run(30, () => {
+    G.shift = Math.max(G.shift, 60);
+    if (++flips === 600) G.autopilot = false; else if (flips === 660) G.autopilot = true;
+    return G.state === 'play';
+  });
+  ok(!t19 && G.state === 'play', 'level 19 with the autopilot on, off and on again runs 30s without throwing' + (t19 ? ' — ' + t19.stack : ''));
+  /* measured over 140 runs: first delivery at a median of ~15s, 139 inside
+     90s and the slowest at 141s. The budget is 180s so this is not a flake;
+     it ends the moment one lands. */
+  const t19b = run(150, () => { G.shift = Math.max(G.shift, 60); return G.state === 'play' && G.stats.delivered === d0; });
+  ok(!t19b && G.stats.delivered > d0, `and delivers (${G.stats.delivered - d0} within 180s)`);
+
+  /* the kitchen cook */
+  G.autopilot = false;
+  G.startRun(2); G.beginShift(); G.autopilot = true;
+  const s0 = KX.Kitchen.stats.served;
+  const tk = run(40, () => { G.shift = Math.max(G.shift, 60); return G.state === 'kitchen'; });
+  ok(!tk && KX.Kitchen.stats.served > s0, `the autopilot cooks a kitchen shift (${KX.Kitchen.stats.served - s0} tickets in 40s)`);
+
+  /* a test run never places */
+  G.autopilot = false;
+  ok(G.testRun === true, 'still a test run with the autopilot off again');
+  G.earned = 99999999;
+  ok(Scores.qualifies(G.earned), 'the score would qualify');
+  G.timeUp();
+  ok(G.state === 'over' && G.placed === false, 'under G.testRun, GAME OVER on a qualifying score does not place');
+  G.afterOver();
+  ok(G.state === 'cont', 'so it goes to CONTINUE?, with no initials prompt');
+  G.toVictory();
+  ok(G.placed === false, 'nor does victory');
+  reset();
+
+  /* and with G.test null and the autopilot never on, the score loop is as it was */
+  G.startRun(1); G.beginShift();
+  ok(!G.testRun, 'a plain run is not a test run');
+  G.earned = 0;
+  G.timeUp();
+  ok(G.placed === Scores.qualifies(0), `GAME OVER on $0.00 places exactly when the board says it qualifies (${G.placed})`);
+  G.startRun(1); G.beginShift(); G.earned = 99999999;
+  G.timeUp();
+  ok(G.placed === true, 'GAME OVER on a qualifying score places');
+  G.afterOver();
+  ok(G.state === 'entry' && G.afterEntry === 'cont', 'and the initials come first, then CONTINUE?');
+  G.state = 'play'; G.toVictory();
+  ok(G.placed === true, 'victory on a qualifying score places');
+  G.toTitle();
+  reset();
+}
+
 console.log('\n— copy —');
 const dl = KX.DIALOGUE;
 let longLine = 0;

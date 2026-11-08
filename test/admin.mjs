@@ -2144,6 +2144,191 @@ console.log('\n— menu panel —');
   globalThis.Admin.applyBuilt = realApply;
 }
 
+console.log('\n— test harness —');
+{
+  const { existsSync: ex } = await import('node:fs');
+  const { deferred: DEF } = await import('./sandbox.mjs');
+  let loaded = ex('admin/test.js');
+  if (loaded) { try { runScript(readFileSync('admin/test.js', 'utf8'), 'admin/test.js'); } catch (x) { loaded = false; console.error('  (' + x.message + ')'); } }
+  const T = SB.Admin && SB.Admin.test;
+  const API = ['jump', 'setOverride', 'autopilot', 'attractFrom', 'clock', 'complete', 'force', 'speed', 'pause', 'step', 'seed'];
+  ok(loaded && T && API.every((k) => typeof T[k] === 'function'), 'admin/test.js puts ' + API.join(', ') + ' on Admin.test');
+  const ov = readFileSync('admin/overlay.js', 'utf8');
+  ok(/import '\.\/test\.js'/.test(ov) && /import '\.\/panels\/test\.js'/.test(ov), 'the overlay imports admin/test.js and the Test panel');
+  if (T) {
+    const { G, Input } = SB.__x, K = SB.__k.Kitchen;
+    const frames = (n) => { for (let i = 0; i < n; i++) { G.update(1 / 60); Input.endFrame(); } };
+    const reset = () => { G.test = null; G.autopilot = false; G.testRun = false; G.speed = 1; G.testPaused = false; T.clock('thaw'); Input.down = Object.create(null); };
+    let threw = null;
+    try {
+      reset();
+      /* getting somewhere */
+      G.toTitle();
+      T.jump(4, 'card');
+      ok(G.state === 'card' && G.levelN === 4 && G.stage === 'kitchen', 'jump(4, card) lands on the level 4 card (' + G.state + ' ' + G.levelN + ')');
+      T.jump(19, 'play');
+      ok(G.state === 'play' && G.levelN === 19 && G.diffKey === 'supreme', 'jump(19, play) is straight into a level 19 shift (' + G.state + ')');
+      ok(G.testRun === false, 'a jump alone, with no override, is not a test run');
+      T.setOverride({ difficulty: 'easy', era: '', season: null });
+      ok(JSON.stringify(G.test) === '{"difficulty":"easy"}' && G.testRun === true, 'setOverride keeps only what is set, and the run is now a test run (' + JSON.stringify(G.test) + ')');
+      ok(G.state === 'card' && G.levelN === 19 && G.diffKey === 'easy', 'an override mid-shift restarts the level on its card with it applied (' + G.state + ' ' + G.diffKey + ')');
+      T.setOverride({ era: 1, season: 'winter' });
+      ok(G.era === 1 && G.mapN === 1 && G.winter && G.diffKey === 'supreme', 'era and season override; difficulty is the level\'s again (' + G.era + ' ' + G.diffKey + ')');
+      G.beginShift();
+      const renamed = structuredClone(diskBuilt); renamed.levels[18].name = renamed.levels[18].name + 'X';
+      SB.Admin.applyBuilt(renamed, G);
+      ok(G.state === 'play' && G.level.era === 1 && G.level.name.endsWith('X'), 'under an override a rename alone reaches G.level without restarting the shift (' + G.state + ')');
+      SB.Admin.applyBuilt(diskBuilt, G);
+      T.setOverride({ difficulty: 'nonsense', era: 9 });
+      ok(G.test === null, 'values the game does not have are dropped, leaving no override');
+      ok(G.era === 3 && G.mapN === 3 && !G.winter, 'and the level is as authored again');
+
+      /* the autopilot hands over at once, both ways */
+      reset(); T.jump(1, 'play');
+      T.autopilot(true);
+      ok(G.autopilot === true && G.testRun === true, 'autopilot(true) turns it on and makes the run a test run');
+      let path = 0, px = G.player.x, py = G.player.y;
+      for (let i = 0; i < 600; i++) { frames(1); path += Math.hypot(G.player.x - px, G.player.y - py); px = G.player.x; py = G.player.y; }
+      ok(path > 100, 'it drives (' + (path | 0) + 'px in 10s)');
+      T.autopilot(false); frames(90);
+      ok(G.autopilot === false && G.player.throttle === 0 && G.player.steer === 0, 'autopilot(false): the keys have the car again, and with none held it coasts');
+
+      /* skipping: freeze, add completions, level clear */
+      reset(); T.jump(19, 'play');
+      T.clock(42);
+      ok(G.shift === 42 && G.testRun === true, 'clock(42) sets the clock, and setting it is a test run');
+      T.clock('freeze'); frames(120);
+      ok(G.state === 'play' && G.shift === 42, 'frozen, 2s of frames leave the clock at 42 (' + G.shift + ')');
+      T.complete(3);
+      ok(G.done === 3 && G.shift === 42 + G.diff.extend, 'complete(3) counts three and earns the extension, frozen or not (' + G.shift + ')');
+      frames(30);
+      ok(G.shift === 42 + G.diff.extend, 'and the frozen clock holds the extended time');
+      T.complete(G.diff.target - 3);
+      ok(G.state === 'clear', 'adding the rest of the target (' + G.diff.target + ') reaches LEVEL CLEAR');
+      T.clock('thaw'); T.jump(1, 'play'); const s1 = G.shift; frames(60);
+      ok(G.shift < s1, 'thawed, the clock runs');
+      G.toCard(2); G.beginShift(); T.clock('freeze'); const sk = G.shift; frames(60);
+      ok(G.state === 'kitchen' && G.shift === sk, 'the freeze holds the kitchen clock too');
+      T.clock('thaw');
+
+      /* force */
+      const forced = {};
+      for (const w of ['over', 'cont', 'entry', 'victory', 'clear']) {
+        reset(); T.jump(1, 'play'); G.earned = 99999999; T.force(w);
+        forced[w] = G.state + (w === 'over' || w === 'victory' ? ':' + G.placed : '');
+      }
+      ok(JSON.stringify(forced) === '{"over":"over:false","cont":"cont","entry":"entry","victory":"victory:false","clear":"clear"}',
+         'force: over, cont, entry, victory and clear reach their screens; a forced run never places (' + JSON.stringify(forced) + ')');
+      reset(); T.jump(1, 'play'); T.force('entry');
+      const boardBefore = JSON.stringify(SB.__x.Scores.board);
+      G.earned = 99999999; G.commitEntry();
+      ok(JSON.stringify(SB.__x.Scores.board) === boardBefore, 'initials entered on a test run do not reach the board');
+      reset(); T.jump(1, 'play'); T.force('over'); frames(60 * 7);
+      ok(G.state === 'cont', 'a forced GAME OVER runs on to CONTINUE?, with no initials (' + G.state + ')');
+
+      /* attract from any screen */
+      const seen = [];
+      for (const s of ['title', 'winners', 'scores', 'demo']) { T.attractFrom(s); seen.push(G.state === 'kdemo' ? 'demo' : G.state); }
+      ok(seen.join() === 'title,winners,scores,demo', 'attractFrom puts the loop on each screen (' + seen.join() + ')');
+      G.toTitle();
+    } catch (x) { threw = x; }
+    ok(!threw, 'the harness calls run without throwing' + (threw ? ' — ' + threw.stack : ''));
+
+    /* speed, pause and step: the real fixed-step loop in 90_main, fed frames by hand */
+    let raf = null;
+    SB.requestAnimationFrame = (f) => { raf = f; };
+    const boot = DEF[0];
+    threw = null;
+    try {
+      boot();
+      reset();
+      let now = 1000;
+      const feed = (n) => { const t0 = G.time; for (let i = 0; i < n; i++) { now += 1000 / 60; raf(now); } return Math.round((G.time - t0) * 60); };
+      raf(now);
+      const at1 = feed(60);
+      T.speed(4); const at4 = feed(60);
+      T.speed(0.25); const atQ = feed(60);
+      T.speed(1); T.pause(true); const paused = feed(60) + (G.testPaused === true ? 0 : 1000);
+      const t0 = G.time; T.step(); T.step(); T.step(); const stepped = Math.round((G.time - t0) * 60);
+      T.pause(false); const after = feed(60);
+      ok(at1 >= 59 && at1 <= 61, '60 frames at speed 1 are 60 ticks (' + at1 + ')');
+      ok(at4 >= 236 && at4 <= 244, 'at speed 4 they are 240 (' + at4 + ')');
+      ok(atQ >= 14 && atQ <= 16, 'at speed 0.25 they are 15 (' + atQ + ')');
+      ok(paused === 0, 'paused (G.testPaused), no ticks at all (' + paused + ')');
+      ok(stepped === 3, 'step() still steps while paused (' + stepped + ')');
+      ok(after >= 59 && after <= 61, 'unpaused, the loop picks up at speed 1 with no catch-up burst (' + after + ')');
+      T.speed(99);
+      ok(G.speed > 0 && G.speed <= 4, 'speed is clamped to what the loop can run (' + G.speed + ')');
+      T.speed(1);
+    } catch (x) { threw = x; }
+    ok(!threw, 'the loop under speed and pause runs without throwing' + (threw ? ' — ' + threw.stack : ''));
+
+    /* seed: a confirm that warns about unsaved edits, then the reload */
+    const asked = [], went = [];
+    const yes = T.seed(77, { dirty: 2, confirm: (m) => { asked.push(m); return true; }, go: (u) => went.push(u), href: 'http://localhost:8124/?level=3' });
+    ok(yes === true && asked.length === 1 && /unsaved/.test(asked[0]) && /2/.test(asked[0]) && went[0] === 'http://localhost:8124/?level=3&seed=77',
+       'seed(77) with 2 unsaved edits asks first, warning about them, then reloads with ?seed=77 kept beside the other parameters (' + asked[0] + ' -> ' + went[0] + ')');
+    const no = T.seed(78, { dirty: 0, confirm: () => false, go: (u) => went.push(u), href: 'http://localhost:8124/' });
+    ok(no === false && went.length === 1, 'cancelled, nothing reloads');
+    ok(T.seed('x', { confirm: () => true, go: (u) => went.push(u), href: 'http://localhost:8124/' }) === false && went.length === 1, 'a seed that is not a whole number is refused');
+    reset();
+  }
+
+  /* the panel: every control calls the harness */
+  {
+    const FL = await import('../admin/fields.js');
+    let pl = true;
+    try { await import('../admin/panels/test.js'); } catch (x) { pl = false; console.error('  (' + x.message + ')'); }
+    const tab = FL.tabs.get('test');
+    ok(pl && tab && tab.title === 'Test', 'the Test panel registers its tab');
+    if (tab) {
+      const calls = [], realTest = globalThis.Admin.test;
+      const rec = (name) => (...a) => { calls.push(name + '(' + a.map((v) => JSON.stringify(v)).join(',') + ')'); return true; };
+      globalThis.Admin.test = Object.fromEntries(['jump', 'setOverride', 'autopilot', 'attractFrom', 'clock', 'complete', 'force', 'speed', 'pause', 'step', 'seed'].map((k) => [k, rec(k)]));
+      globalThis.Admin.test.status = () => ({ state: 'play', levelN: 1, shift: 100, frozen: false, speed: 1, paused: false, autopilot: false, test: null, testRun: false });
+      globalThis.G = { levels: () => Array.from({ length: 20 }, (_, i) => ({ n: i + 1, type: i % 2 ? 'kitchen' : 'delivery', name: 'L' + (i + 1) })) };
+      try {
+        const doc = fakeDoc(), el = doc.createElement('div');
+        doc.body.appendChild(el);
+        tab.render(el);
+        const nodes = () => el.walk();
+        const act = (a) => nodes().find((n) => n.dataset.act === a);
+        const need = ['jump-card', 'jump-play', 'override-clear', 'autopilot', 'attract-title', 'attract-winners', 'attract-scores', 'attract-demo',
+          'clock-set', 'clock-freeze', 'complete', 'force-over', 'force-cont', 'force-entry', 'force-victory', 'force-clear',
+          'speed-0.25', 'speed-0.5', 'speed-1', 'speed-2', 'speed-4', 'pause', 'step', 'seed'];
+        const missing = need.filter((a) => !act(a));
+        ok(missing.length === 0, 'the panel has a control for every harness call' + (missing.length ? ' (missing ' + missing.join() + ')' : ''));
+        if (!missing.length) {
+          const lvl = nodes().find((n) => n.dataset.input === 'level');
+          lvl.value = '19'; lvl.fire('change');
+          act('jump-card').fire('click'); act('jump-play').fire('click');
+          const sel = (k) => nodes().find((n) => n.dataset.override === k);
+          sel('difficulty').value = 'supreme'; sel('difficulty').fire('change');
+          sel('era').value = '2'; sel('era').fire('change');
+          act('override-clear').fire('click');
+          act('autopilot').checked = true; act('autopilot').fire('change');
+          act('attract-winners').fire('click');
+          nodes().find((n) => n.dataset.input === 'clock').value = '30'; act('clock-set').fire('click');
+          act('clock-freeze').fire('click');
+          nodes().find((n) => n.dataset.input === 'complete').value = '9'; act('complete').fire('click');
+          act('force-cont').fire('click');
+          act('speed-4').fire('click');
+          act('pause').checked = true; act('pause').fire('change');
+          act('step').fire('click');
+          nodes().find((n) => n.dataset.input === 'seed').value = '123'; act('seed').fire('click');
+          const want = ['jump(19,"card")', 'jump(19,"play")', 'setOverride({"difficulty":"supreme"})', 'setOverride({"difficulty":"supreme","era":2})',
+            'setOverride({})', 'autopilot(true)', 'attractFrom("winners")', 'clock(30)', 'clock("freeze")', 'complete(9)', 'force("cont")', 'speed(4)', 'pause(true)', 'step()'];
+          ok(want.every((w, i) => calls[i] === w), 'each control makes its call (' + calls.join(' ') + ')');
+          ok(/^seed\(123,/.test(calls[want.length] || ''), 'Reload with seed passes the seed (' + calls[want.length] + ')');
+        }
+        if (tab.leave) tab.leave();
+      } finally { globalThis.Admin.test = realTest; delete globalThis.G; }
+    }
+    const lv = readFileSync('admin/panels/levels.js', 'utf8');
+    ok(/Admin\.test\.jump\(n, 'card'\)/.test(lv), 'the Levels panel\'s Play this level goes through Admin.test.jump(n, \'card\')');
+  }
+}
+
 console.log('\n— artifact —');
 {
   const { execFileSync } = await import('node:child_process');

@@ -1,6 +1,7 @@
 /* Service Mode: the entry point. The page loads this as a module after the
    game's own scripts; F2 opens a panel beside the running game. */
 import './apply.js';
+import './test.js';
 import './panels/levels.js';
 import './panels/menu.js';
 import './panels/difficulty.js';
@@ -8,6 +9,7 @@ import './panels/attract.js';
 import './panels/music.js';
 import './panels/dialogue.js';
 import './panels/faces.js';
+import './panels/test.js';
 import { store } from './store.js';
 import { TAB_ORDER, tabs, paint, refreshControls } from './fields.js';
 

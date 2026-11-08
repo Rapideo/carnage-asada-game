@@ -85,7 +85,9 @@
     let dt = (now - last) / 1000;
     last = now;
     if (dt > 0.25) dt = 0.25;
-    acc = Math.min(acc + dt, 0.25);   // never let the catch-up loop spiral
+    /* G.speed and G.testPaused are the Test panel's (1 and false in the
+       shipped game); step(n) below steps whatever they say */
+    acc = G.testPaused ? 0 : Math.min(acc + dt * (G.speed || 1), 0.25);   // never let the catch-up loop spiral
 
     let guard = 0;
     while (acc >= STEP && guard++ < 5) {

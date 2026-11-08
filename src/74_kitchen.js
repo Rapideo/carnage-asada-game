@@ -243,7 +243,7 @@ const Kitchen = {
 
     this.walk(dt);
 
-    if (this.demo) this.botStep(dt, G);
+    if (this.demo || G.autopilot) this.botStep(dt, G);     // the attract cook, or the Test panel's autopilot
     else this.input(G);
 
     for (let i = this.pops.length - 1; i >= 0; i--) {
