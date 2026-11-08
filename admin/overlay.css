@@ -142,6 +142,8 @@
 .adm-btn:hover { background: #342b46; }
 .adm-btn.on { background: #3fb8b0; color: #10242a; border-color: #3fb8b0; }
 .adm-num { width: 5.5em; background: #120d1a; color: inherit; border: 1px solid #4a4062; border-radius: 4px; padding: 3px 6px; font: inherit; }
+.adm-text { width: 13em; background: #120d1a; color: inherit; border: 1px solid #4a4062; border-radius: 4px; padding: 3px 6px; font: inherit; }
+.adm-fps { font-variant-numeric: tabular-nums; }
 .adm-sel { flex: 1 1 10em; min-width: 0; background: #120d1a; color: inherit; border: 1px solid #4a4062; border-radius: 4px; padding: 3px 6px; font: inherit; }
 .adm-check { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
 .adm-check input { width: 16px; height: 16px; }

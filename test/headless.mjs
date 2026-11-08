@@ -1433,6 +1433,27 @@ console.log('\n— test hooks —');
   ok(G.placed === false, 'nor does victory');
   reset();
 
+  /* the debug-view hook and the train spawn: both ship, both inert by default */
+  ok(G.debugDraw === null, 'G.debugDraw is null by default');
+  G.startRun(1); G.beginShift();
+  let dd = 0, ddArgs = null;
+  G.debugDraw = (c, cam) => { dd++; ddArgs = [c, cam]; };
+  G.render(ctx);
+  ok(dd === 1 && ddArgs[0] === ctx && typeof ddArgs[1].x === 'number' && typeof ddArgs[1].y === 'number',
+     `one G.render calls G.debugDraw once, with the context and a cam (${dd})`);
+  G.debugDraw = null;
+  G.render(ctx);
+  ok(dd === 1, 'and with it null nothing is called');
+  G.train = null;
+  const tr1 = G.spawnTrain(1);
+  ok(tr1 && tr1.dir === 1 && tr1.y === City.tracks[1] && G.train === tr1, `spawnTrain(1) puts a train on the south track and makes it G.train (${tr1 && tr1.y} vs ${City.tracks[1]})`);
+  G.train = null;
+  const trN = G.spawnTrain(-1);
+  ok(trN && trN.dir === -1 && trN.y === City.tracks[0] && G.train === trN, `spawnTrain(-1) puts it on the north track (${trN && trN.y} vs ${City.tracks[0]})`);
+  G.train = null;
+  G.toTitle();
+  reset();
+
   /* and with G.test null and the autopilot never on, the score loop is as it was */
   G.startRun(1); G.beginShift();
   ok(!G.testRun, 'a plain run is not a test run');

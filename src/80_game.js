@@ -97,7 +97,7 @@ const G = {
      90_main feeds the fixed step; testPaused stops it (P/Esc pause is
      `paused`, which has its own overlay). apFor: the car the autopilot last
      took over, so Demo is reset for each new one. */
-  test: null, autopilot: false, testRun: false, speed: 1, testPaused: false, apFor: null,
+  test: null, autopilot: false, testRun: false, speed: 1, testPaused: false, apFor: null, debugDraw: null,
 
   /* the run */
   seed: 0, levelN: 1, level: null, diffKey: 'easy', diff: DIFF_FALLBACK, nav: NAV_FULL,
@@ -700,6 +700,12 @@ const G = {
     }
   },
 
+  /* A train on its track now. Eastbound keeps to the south track --
+     City.tracks is [north, south]. */
+  spawnTrain(dir) {
+    return (this.train = new Train(dir, City.tracks[dir > 0 ? 1 : 0]));
+  },
+
   bumpHeat(n) {
     this.heat = clamp(this.heat + n, 0, HEAT_MAX);
     this.infraction = 1.2;
@@ -1000,9 +1006,7 @@ const G = {
     this.wreckCd -= dt;
     this.trainT -= dt;
     if (!this.train && this.trainT <= 0) {
-      const dir = Math.random() < 0.5 ? 1 : -1;
-      // eastbound keeps to the south track -- City.tracks is [north, south]
-      this.train = new Train(dir, City.tracks[dir > 0 ? 1 : 0]);
+      this.spawnTrain(Math.random() < 0.5 ? 1 : -1);
       this.trainT = rand(22, 40);
     }
     if (this.train) {
@@ -1328,6 +1332,7 @@ const G = {
     Fx.draw(x, cam);
     if (this.weather === 'snowy') this.drawSnowfall(x);
     if (rainy) this.drawRain(x);
+    if (this.debugDraw) this.debugDraw(x, cam);   // Service Mode's debug views; null in the shipped game
 
     if (live) {
       this.drawAim(x, cam);

@@ -42,11 +42,65 @@
       const s0 = this.state, t0 = this.shift;
       const r = orig.call(this, dt);
       if (frozen && this.state === s0 && SHIFT.includes(s0) && this.shift < t0) this.shift = t0;
+      /* startRun recomputes testRun, so a run begun while frozen would lose the
+         mark clock('freeze') set: re-assert it on every update, the way the
+         autopilot does, so a run frozen at any point is a test run */
+      if (frozen) this.testRun = true;
       return r;
     };
     held.__clockHold = true;
     held.__orig = orig;
     g.update = held;
+  }
+
+  /* ---- debug views ---------------------------------------------------------
+     Drawn by G.debugDraw (null in the shipped game) in world space, with the
+     cam the render pass hands over. Cyan is the guidance colour and stays out
+     of it: red for solid ground, amber for the keep-clear mask, bone for the
+     nav nodes, magenta for the live route. */
+  const MUTED = { music: false, sfx: false };
+  const VIEWS = { solid: false, keep: false, nodes: false, route: false };
+  const MAGENTA = '#ff3fd0';
+  const pal = (k, d) => (typeof PAL !== 'undefined' && PAL && PAL[k]) || d;
+  function drawViews(x, cam) {
+    const t0 = Math.max(0, Math.floor(cam.x / TS)), t1 = Math.min(GW - 1, Math.floor((cam.x + VW) / TS));
+    const u0 = Math.max(0, Math.floor(cam.y / TS)), u1 = Math.min(GH - 1, Math.floor((cam.y + VH) / TS));
+    const a0 = x.globalAlpha;
+    if (VIEWS.solid || VIEWS.keep) {
+      for (let ty = u0; ty <= u1; ty++) {
+        for (let tx = t0; tx <= t1; tx++) {
+          const px = tx * TS - cam.x, py = ty * TS - cam.y;
+          if (VIEWS.solid && City.isSolid(tx * TS + TS / 2, ty * TS + TS / 2)) {
+            x.globalAlpha = 0.4; x.fillStyle = pal('red', '#e8452c'); x.fillRect(px, py, TS, TS);
+          }
+          if (VIEWS.keep && City.keep[ty * GW + tx]) {
+            x.globalAlpha = 0.45; x.fillStyle = pal('amber', '#ffb01f'); x.fillRect(px + 2, py + 2, TS - 4, TS - 4);
+          }
+        }
+      }
+    }
+    x.globalAlpha = 1;
+    if (VIEWS.nodes) {
+      const n = typeof NODES !== 'undefined' ? NODES : 9;
+      x.fillStyle = pal('bone', '#f2e9d0');
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          const px = City.nodeX(i) - cam.x, py = City.nodeY(j) - cam.y;
+          if (px < -8 || py < -8 || px > VW + 8 || py > VH + 8) continue;
+          x.fillRect(px - 4, py, 9, 1); x.fillRect(px, py - 4, 1, 9);
+        }
+      }
+    }
+    if (VIEWS.route && Nav && Nav.route && Nav.route.length) {
+      x.strokeStyle = MAGENTA; x.lineWidth = 2;
+      x.beginPath();
+      x.moveTo(G.player.x - cam.x, G.player.y - cam.y);
+      for (const n of Nav.route) x.lineTo(City.nodeX(n[0]) - cam.x, City.nodeY(n[1]) - cam.y);
+      x.stroke();
+      x.fillStyle = MAGENTA;
+      for (const n of Nav.route) x.fillRect(City.nodeX(n[0]) - cam.x - 2, City.nodeY(n[1]) - cam.y - 2, 5, 5);
+    }
+    x.globalAlpha = a0;
   }
 
   const T = (Admin.test = {
@@ -118,6 +172,57 @@
     },
 
     get frozen() { return frozen; },
+
+    /* ---- events ---- */
+    train() { return game().spawnTrain(Math.random() < 0.5 ? 1 : -1); },
+    heat(n) { const v = Number(n); if (Number.isFinite(v)) game().bumpHeat(v); return game().heat; },
+    cop() { game().spawnCop(); return true; },
+
+    /* the line on the dialogue strip, with that face: the Dialog call G.react
+       makes, without react's play-only guard (the strip is drawn only during a
+       shift, so from other screens it waits for one) */
+    say(line, faceKey) {
+      if (typeof Dialog === 'undefined') return false;
+      const who = typeof DIALOGUE !== 'undefined' && DIALOGUE && DIALOGUE.who ? DIALOGUE.who : 'CUSTOMER';
+      Dialog.say(who, String(line == null ? '' : line), { face: faceKey || null, hood: 1, secs: 4 });
+      return true;
+    },
+
+    /* ---- debug views ---- */
+    view(name, on) {
+      if (!(name in VIEWS)) return false;
+      VIEWS[name] = !!on;
+      game().debugDraw = Object.values(VIEWS).some(Boolean) ? drawViews : null;
+      return true;
+    },
+    views() { return Object.assign({}, VIEWS); },
+    muted() { return Object.assign({}, MUTED); },
+
+    /* ---- housekeeping ---- */
+    /* the factory board through Scores' own guarded write, then Scores.load();
+       false when storage refused it (the board shown is the factory one anyway) */
+    resetBoard() {
+      const ok = Scores._write(JSON.stringify(Scores.factory()));
+      Scores.load();
+      return ok;
+    },
+
+    mode(m) {
+      if (m !== 'A' && m !== 'B' && m !== 'C') return false;
+      Pad.setMode(m);
+      return true;
+    },
+
+    /* music / sfx to 0 and back to the shipped gains (20_audio.js): 0.30, or 0
+       if the player has turned the music off with M, and 0.9 */
+    mute(which, on) {
+      if (typeof Audio5 === 'undefined') return false;
+      const bus = which === 'music' ? Audio5.musBus : which === 'sfx' ? Audio5.sfxBus : null;
+      if (!bus || !bus.gain) return false;
+      MUTED[which] = !!on;
+      bus.gain.value = on ? 0 : which === 'music' ? (Audio5.musicOn === false ? 0 : 0.30) : 0.9;
+      return true;
+    },
 
     /* k completions through the same door every delivery and ticket uses */
     complete(k) {

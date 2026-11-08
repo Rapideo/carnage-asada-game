@@ -1709,6 +1709,8 @@ console.log('\n— dialogue panel —');
       const said = [], pool = { late: ['KEEP'] };
       globalThis.G = { state: 'title', era: 1, react(kind) { said.push([kind, this.state, this.era, JSON.stringify(globalThis.DIALOGUE[kind])]); } };
       globalThis.DIALOGUE = pool;
+      /* the real Admin.test.say may be loaded by now: this checks the fallback, so hide it */
+      const realSayFn = globalThis.Admin.test && globalThis.Admin.test.say; if (realSayFn) delete globalThis.Admin.test.say;
       act('say', 'late', 8).fire('click');
       ok(said.length === 1 && said[0][0] === 'late' && said[0][1] === 'play' && said[0][2] === 2 && said[0][3] === '["2|TIME IS MONEY, TACO BOY!"]',
          'Say it on a 1980s line runs G.react with that line pinned, in play, in era 2 (' + JSON.stringify(said[0]) + ')');
@@ -1720,7 +1722,8 @@ console.log('\n— dialogue panel —');
       let threw = null;
       try { act('say', 'late', 0).fire('click'); } catch (x) { threw = x; }
       ok(!threw && !act('say', 'who'), 'with no game, Say it is harmless; who has no Say it');
-    } finally { delete globalThis.G; delete globalThis.DIALOGUE; }
+      if (realSayFn) globalThis.Admin.test.say = realSayFn;
+    } finally { delete globalThis.G; delete globalThis.DIALOGUE }
   }
   store.files = structuredClone(files); store.dirty.clear(); store.error = null;
   globalThis.Admin.applyBuilt = realApply;
@@ -2280,6 +2283,95 @@ console.log('\n— test harness —');
     } catch (x) { threw = x; }
     ok(!threw, 'the loop under speed and pause runs without throwing' + (threw ? ' — ' + threw.stack : ''));
 
+    /* events, debug views, housekeeping (Task 16) */
+    threw = null;
+    try {
+      const { Scores, City, Nav, Fx } = SB.__x, { Audio5, Pad, Dialog, PAL } = SB.__k;
+      const EV = ['train', 'heat', 'cop', 'say', 'view', 'resetBoard', 'mode', 'mute'];
+      ok(EV.every((k) => typeof T[k] === 'function'), 'Admin.test also has ' + EV.join(', '));
+
+      /* a clock frozen survives into a new run, and that run is a test run */
+      reset(); T.jump(1, 'play'); T.clock('freeze');
+      G.startRun(1); G.beginShift();
+      frames(5);
+      ok(G.testRun === true, 'while frozen, every update marks the run a test run');
+      G.earned = 99999999; G.timeUp();
+      ok(G.placed === false, 'a qualifying GAME OVER in a run started while frozen does not place');
+      T.clock('thaw'); reset();
+      T.jump(1, 'play'); frames(5);
+      ok(G.testRun === false, 'thawed and reset, a plain run is not a test run');
+
+      /* events */
+      reset(); T.jump(1, 'play');
+      const h0 = G.heat; T.heat(10);
+      ok(G.heat > h0, 'heat(10) raises the heat (' + h0 + ' -> ' + G.heat + ')');
+      G.cop = null; T.cop();
+      ok(G.cop, 'cop() puts a cruiser on the map');
+      G.train = null; T.train();
+      ok(G.train && (G.train.y === City.tracks[0] || G.train.y === City.tracks[1]), 'train() puts a train on a track');
+      const old = G.train; T.train();
+      ok(G.train && G.train !== old, 'and a second press replaces it');
+
+      /* say: the same Dialog call G.react makes, from any state */
+      G.toTitle(); Dialog.drop();
+      T.say('A TEST LINE', 'nonesuch');
+      ok(Dialog.active && Dialog.lines.join() === 'A TEST LINE' && Dialog.face === 'nonesuch', 'say() raises the strip with that line and face outside play (' + G.state + ')');
+      Dialog.drop();
+      T.say('NO FACE');
+      ok(Dialog.active && Dialog.face === null, 'and a face is optional');
+      Dialog.drop();
+
+      /* debug views */
+      const painted = [];
+      const rec = new Proxy({}, { get: (o, k) => (k in o ? o[k] : () => {}), set: (o, k, v) => { o[k] = v; if (k === 'fillStyle' || k === 'strokeStyle') painted.push(String(v).toLowerCase()); return true; } });
+      ok(G.debugDraw === null, 'no debug view on: G.debugDraw is null');
+      T.view('solid', true);
+      ok(typeof G.debugDraw === 'function', 'a view on installs G.debugDraw');
+      for (const v of ['keep', 'nodes', 'route']) T.view(v, true);
+      Nav.route = [[1, 1], [2, 1], [2, 2]];
+      G.debugDraw(rec, { x: 600, y: 600 });
+      ok(painted.length > 0, 'the views paint (' + painted.length + ' colour sets)');
+      ok(!painted.includes(PAL.cyan.toLowerCase()) && !painted.includes(PAL.cyanLo.toLowerCase()), 'none of them uses cyan');
+      const allowed = new Set([PAL.red, PAL.amber, PAL.bone, '#ff3fd0', '#d23fd2', '#e040e0'].map((s) => s.toLowerCase()));
+      ok(painted.every((c) => allowed.has(c)), 'only red, amber, bone and magenta (' + [...new Set(painted)].join(' ') + ')');
+      ok(T.views().solid && T.views().route, 'views() reports what is on');
+      for (const v of ['solid', 'keep', 'nodes']) T.view(v, false);
+      ok(typeof G.debugDraw === 'function', 'with one still on the hook stays');
+      T.view('route', false);
+      ok(G.debugDraw === null, 'with all off G.debugDraw is null again');
+      ok(T.view('nonsense', true) === false && G.debugDraw === null, 'an unknown view is refused');
+
+      /* housekeeping */
+      const store = {}; SB.localStorage = { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); } };
+      Scores.load(); Scores.board.unshift({ ini: 'ZZZ', cents: 99999999 }); Scores.sort(); Scores.save();
+      ok(JSON.parse(store[Scores.KEY])[0].ini === 'ZZZ', 'a score is on the stored board');
+      const rb = T.resetBoard();
+      ok(rb === true && JSON.stringify(JSON.parse(store[Scores.KEY])) === JSON.stringify(Scores.factory()) &&
+         JSON.stringify(Scores.board) === JSON.stringify(Scores.factory()) && Scores.stored === true,
+         'resetBoard writes the factory board through Scores\' guarded write and reloads it');
+      SB.localStorage = { getItem() { throw new Error('SecurityError'); }, setItem() { throw new Error('SecurityError'); } };
+      ok(T.resetBoard() === false && Scores.board.length > 0, 'a storage that throws: resetBoard says false and the board is still the factory one');
+      delete SB.localStorage;
+
+      const m0 = Pad.mode;
+      T.mode('B'); ok(Pad.mode === 'B', 'mode(B) sets Pad.mode');
+      T.mode('Z'); ok(Pad.mode === 'B', 'an unknown mode is refused');
+      T.mode(m0 || 'A');
+
+      const mus = Audio5.musBus, sfx = Audio5.sfxBus, on = Audio5.musicOn;
+      Audio5.musBus = { gain: { value: 0.3 } }; Audio5.sfxBus = { gain: { value: 0.9 } }; Audio5.musicOn = true;
+      T.mute('music', true); T.mute('sfx', true);
+      ok(Audio5.musBus.gain.value === 0 && Audio5.sfxBus.gain.value === 0, 'mute silences both buses');
+      T.mute('music', false); T.mute('sfx', false);
+      ok(Audio5.musBus.gain.value === 0.30 && Audio5.sfxBus.gain.value === 0.9, 'and unmute restores exactly 0.30 and 0.9');
+      Audio5.musicOn = false; T.mute('music', true); T.mute('music', false);
+      ok(Audio5.musBus.gain.value === 0, 'unmute leaves music off if the player had turned it off (M)');
+      Audio5.musBus = mus; Audio5.sfxBus = sfx; Audio5.musicOn = on;
+      T.mute('music', true); T.mute('sfx', true); T.mute('music', false); T.mute('sfx', false);   // no audio ready: must not throw
+    } catch (x) { threw = x; }
+    ok(!threw, 'the events, views and housekeeping run without throwing' + (threw ? ' — ' + threw.stack : ''));
+    reset();
+
     /* seed: a confirm that warns about unsaved edits, then the reload */
     const asked = [], went = [];
     const yes = T.seed(77, { dirty: 2, confirm: (m) => { asked.push(m); return true; }, go: (u) => went.push(u), href: 'http://localhost:8124/?level=3' });
@@ -2305,7 +2397,9 @@ console.log('\n— test harness —');
     if (tab) {
       const calls = [], realTest = globalThis.Admin.test;
       const rec = (name) => (...a) => { calls.push(name + '(' + a.map((v) => JSON.stringify(v)).join(',') + ')'); return true; };
-      globalThis.Admin.test = Object.fromEntries(['jump', 'setOverride', 'autopilot', 'attractFrom', 'clock', 'complete', 'force', 'speed', 'pause', 'step', 'seed'].map((k) => [k, rec(k)]));
+      globalThis.Admin.test = Object.fromEntries(['jump', 'setOverride', 'autopilot', 'attractFrom', 'clock', 'complete', 'force', 'speed', 'pause', 'step', 'seed', 'train', 'heat', 'cop', 'say', 'view', 'resetBoard', 'mode', 'mute'].map((k) => [k, rec(k)]));
+      globalThis.Admin.test.views = () => ({ solid: false, keep: false, nodes: false, route: false });
+      globalThis.Admin.test.muted = () => ({ music: false, sfx: false });
       globalThis.Admin.test.status = () => ({ state: 'play', levelN: 1, shift: 100, frozen: false, speed: 1, paused: false, autopilot: false, test: null, testRun: false });
       globalThis.G = { levels: () => Array.from({ length: 20 }, (_, i) => ({ n: i + 1, type: i % 2 ? 'kitchen' : 'delivery', name: 'L' + (i + 1) })) };
       /* the panel's 500ms refresh runs only in a browser: give it a window and catch the interval */
@@ -2322,7 +2416,8 @@ console.log('\n— test harness —');
         const act = (a) => nodes().find((n) => n.dataset.act === a);
         const need = ['jump-card', 'jump-play', 'override-clear', 'autopilot', 'attract-title', 'attract-winners', 'attract-scores', 'attract-demo',
           'clock-set', 'clock-freeze', 'complete', 'force-over', 'force-cont', 'force-entry', 'force-victory', 'force-clear',
-          'speed-0.25', 'speed-0.5', 'speed-1', 'speed-2', 'speed-4', 'pause', 'step', 'seed'];
+          'speed-0.25', 'speed-0.5', 'speed-1', 'speed-2', 'speed-4', 'pause', 'step', 'seed',
+          'train', 'cop', 'heat', 'say', 'view-solid', 'view-keep', 'view-nodes', 'view-route', 'reset-board', 'mode-A', 'mode-B', 'mode-C', 'mute-music', 'mute-sfx'];
         const missing = need.filter((a) => !act(a));
         ok(missing.length === 0, 'the panel has a control for every harness call' + (missing.length ? ' (missing ' + missing.join() + ')' : ''));
         if (!missing.length) {
@@ -2356,6 +2451,18 @@ console.log('\n— test harness —');
           ok(/whole number/.test(line()), 'and the refresh keeps the message until the next action');
           act('step').fire('click');
           ok(!/whole number/.test(line()), 'which clears it');
+          ok(nodes().some((n) => n.dataset.fps), 'the panel carries an FPS counter');
+          calls.length = 0;
+          act('train').fire('click'); act('cop').fire('click');
+          nodes().find((n) => n.dataset.input === 'heat').value = '12'; act('heat').fire('click');
+          nodes().find((n) => n.dataset.input === 'say').value = 'HI'; nodes().find((n) => n.dataset.input === 'face').value = ' bob '; act('say').fire('click');
+          act('view-solid').checked = true; act('view-solid').fire('change');
+          act('view-route').checked = true; act('view-route').fire('change');
+          act('reset-board').fire('click'); act('mode-B').fire('click');
+          act('mute-music').checked = true; act('mute-music').fire('change');
+          act('mute-sfx').checked = true; act('mute-sfx').fire('change');
+          ok(calls.join(' ') === 'train() cop() heat(12) say("HI","bob") view("solid",true) view("route",true) resetBoard() mode("B") mute("music",true) mute("sfx",true)',
+             'the event, view and housekeeping controls make their calls (' + calls.join(' ') + ')');
         }
         if (tab.leave) tab.leave();
         ok(refresh === null, 'leaving the tab stops the refresh');

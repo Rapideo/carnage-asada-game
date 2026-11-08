@@ -3,8 +3,8 @@
    them. Nothing here is content and nothing is saved: these are session
    switches, and any run they touch is a test run that never reaches the
    board. Game consts (G, DIFFICULTY) are read by bare name, never globalThis.
-   Task 16 adds its sections (making things happen, debug views,
-   housekeeping) through section() below. */
+   Groups: getting somewhere, the bot, skipping, speed, making things
+   happen, debug views (with the FPS counter), housekeeping. */
 import '../fields.js';
 import { store } from '../store.js';
 
@@ -17,6 +17,7 @@ const ATTRACT = [['title', 'Title'], ['winners', 'Winners'], ['scores', 'Scores'
 let level = null;         // the level picked for a jump (kept across redraws)
 const override = { difficulty: '', era: '', season: '' };
 let timer = null;
+let fpsRaf = null;
 
 const h = (doc, tag, cls, text) => { const n = doc.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
 const harness = () => Admin.test;
@@ -178,8 +179,61 @@ function draw(el) {
   const pz = check(r10, 'pause', 'Pause', (ev) => call(ev, 'pause', !!pz.checked));
   button(r10, 'step', 'Step', (ev) => call(ev, 'step'));
 
+  /* ---- making things happen ---- */
+  const ev = section(el, 'Making things happen');
+  const e1 = rowIn(ev, '');
+  button(e1, 'train', 'Train now', (e) => call(e, 'train'));
+  button(e1, 'cop', 'Cop now', (e) => call(e, 'cop'));
+  const heatIn = input(e1, 'heat', 20, 'heat to add');
+  button(e1, 'heat', 'Add heat', (e) => call(e, 'heat', Number(heatIn.value)));
+  const e2 = rowIn(ev, 'Say');
+  const sayIn = h(doc, 'input', 'adm-text'); sayIn.type = 'text'; sayIn.dataset.input = 'say'; sayIn.value = 'ONE LINE FOR THE STRIP'; sayIn.maxLength = 34;
+  const faceIn = h(doc, 'input', 'adm-text'); faceIn.type = 'text'; faceIn.dataset.input = 'face'; faceIn.placeholder = 'face key'; faceIn.title = 'a face key, e.g. one from the Faces tab; empty for none';
+  e2.append(sayIn, faceIn);
+  button(e2, 'say', 'Show', (e) => call(e, 'say', sayIn.value, faceIn.value.trim() || null));
+
+  /* ---- debug views ---- */
+  const dv = section(el, 'Debug views');
+  const d1 = rowIn(dv, '');
+  const VIEWS = [['solid', 'Solid tiles (red)'], ['keep', 'Keep-clear (amber)'], ['nodes', 'Nav nodes (bone)'], ['route', 'Live route (magenta)']];
+  const viewBoxes = VIEWS.map(([k, label]) => { const c = check(d1, 'view-' + k, label, (e) => call(e, 'view', k, !!c.checked)); return [k, c]; });
+  const d2 = rowIn(dv, 'FPS');
+  const fpsEl = h(doc, 'span', 'adm-fps', '--'); fpsEl.dataset.fps = '1';
+  d2.appendChild(fpsEl);
+
+  /* ---- housekeeping ---- */
+  const hk = section(el, 'Housekeeping');
+  const k1 = rowIn(hk, '');
+  button(k1, 'reset-board', 'Reset high-score board', (e) => {
+    const T = harness();
+    const ok = T && typeof T.resetBoard === 'function' ? T.resetBoard() : false;
+    if (e && e.target && typeof e.target.blur === 'function') e.target.blur();
+    say(ok ? 'high-score board reset to the factory board' : 'the board is the factory one for now, but this page cannot store it');
+  });
+  const k2 = rowIn(hk, 'Controls');
+  for (const m of ['A', 'B', 'C']) button(k2, 'mode-' + m, 'Mode ' + m, (e) => call(e, 'mode', m));
+  const k3 = rowIn(hk, 'Mute');
+  const muteM = check(k3, 'mute-music', 'Music', (e) => call(e, 'mute', 'music', !!muteM.checked));
+  const muteS = check(k3, 'mute-sfx', 'Effects', (e) => call(e, 'mute', 'sfx', !!muteS.checked));
+
+  /* the frame rate, from requestAnimationFrame deltas; stops when the panel goes */
+  if (fpsRaf != null && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(fpsRaf);
+  fpsRaf = null;
+  if (typeof requestAnimationFrame === 'function' && typeof performance !== 'undefined') {
+    let last = performance.now(), frames = 0, acc = 0;
+    const tick = (t) => {
+      if (!fpsEl.isConnected) { fpsRaf = null; return; }
+      frames++; acc += t - last; last = t;
+      if (acc >= 500) { fpsEl.textContent = Math.round(frames * 1000 / acc) + ' fps'; frames = 0; acc = 0; }
+      fpsRaf = requestAnimationFrame(tick);
+    };
+    fpsRaf = requestAnimationFrame(tick);
+  }
+
   function st2() { return status() || {}; }
   function redrawToggles() {
+    try { const v = harness().views(); for (const [k, c] of viewBoxes) c.checked = !!v[k]; } catch (e) { /* no harness */ }
+    try { const m = harness().muted(); muteM.checked = !!m.music; muteS.checked = !!m.sfx; } catch (e) { /* no harness */ }
     const s = st2();
     ap.checked = !!s.autopilot;
     pz.checked = !!s.paused;
@@ -206,4 +260,8 @@ export function section(el, title) {
   return s;
 }
 
-Admin.tab('test', 'Test', draw, { leave() { if (timer) { clearInterval(timer); timer = null; } } });
+Admin.tab('test', 'Test', draw, { leave() {
+  if (timer) { clearInterval(timer); timer = null; }
+  if (fpsRaf != null && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(fpsRaf);
+  fpsRaf = null;
+} });

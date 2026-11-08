@@ -72,7 +72,7 @@ vm.createContext(sandbox);
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, money, MAXTHROW,' +
   ' VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER };',
   sandbox, { filename: 'bundle.js' });
-vm.runInContext(';globalThis.__k = { Kitchen, DIFFICULTY, LEVELS, DIALOGUE, MENUS, BOARD, RELEASE, CASTS };', sandbox);
+vm.runInContext(';globalThis.__k = { Kitchen, DIFFICULTY, LEVELS, DIALOGUE, MENUS, BOARD, RELEASE, CASTS, Audio5, Pad, Dialog, PAL };', sandbox);
 
 /* run more script in the game's context, e.g. admin/apply.js */
 export const runScript = (src, filename) => vm.runInContext(src, sandbox, { filename });
