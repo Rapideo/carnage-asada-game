@@ -391,6 +391,104 @@ console.log('\n— docs —');
     ok(IX.renderAll(files, (f) => f === 'levels.md' ? old.replace(/\n/g, '\r\n') : null)['levels.md'] === out.replace(/\n/g, '\r\n'),
        'renderAll: a CRLF doc renders the same and keeps its line endings');
 
+    /* difficulty.md, rendered from today's JSON and from edits to it */
+    let DF = null;
+    try { DF = (await import('../tools/content/docs/difficulty.mjs')).default; } catch (x) { console.error('  (' + x.message + ')'); }
+    ok(DF && DF.file === 'difficulty.md' && IX.DOCS.includes(DF), 'difficulty.md is a registered doc');
+    if (DF) {
+      const dold = readFileSync(join(DIR, 'difficulty.md'), 'utf8').replace(/\r\n/g, '\n');
+      const dfx = (edit) => { const f = structuredClone(files); edit(f['difficulty.json']); return f; };
+      /* a node by its headings' names, numbering ignored: at(text, 'Medium', 'Penalties') */
+      const at = (text, ...names) => {
+        let n = parseMd(text).children.find((c) => c.depth === 1);
+        for (const nm of names) n = n && n.children.find((c) => c.heading.replace(/^[A-Z0-9]+\. /, '') === nm);
+        return n || { lines: [], children: [] };
+      };
+      const has = (n, line) => n.lines.includes(line);
+      const dout = DF.render(files, dold);
+      ok(DF.render(files, dout) === dout, 'rendering difficulty.md is idempotent');
+      const a = dold.split('\n'), b = dout.split('\n');
+      const changed = a.map((l, i) => [l, b[i]]).filter(([x, y]) => x !== y);
+      ok(a.length === b.length && changed.every(([x, y]) => /^\s*- /.test(x) && x.replace(/\s*:\s*/, ' : ') === y),
+         'from today\'s JSON every line is byte-identical but for "Key:" spacing on value lines (' + JSON.stringify(changed) + ')');
+      ok(has(at(dout, 'Easy', 'Shift'), '- Tip Floor : 2.00. The tip falls to it in 54s and holds there; it never runs out')
+         && has(at(dout, 'Easy', 'Shift'), '- Depreciation Rate : 1.00 / 3 Seconds')
+         && has(at(dout, 'Medium', 'Shift'), '- Depreciation Rate : 1.00 / 2.5 Seconds (reaches the 2.00 floor at 45s; Easy 54s)'),
+         'the shift lines read the JSON: money in dollars, the decay as $1.00 / N seconds');
+
+      /* the brief: a Medium fine */
+      const t12 = DF.render(dfx((d) => { d.medium.fines.ticket = 1200; }), dold);
+      ok(has(at(t12, 'Medium', 'Penalties'), '- Speeding Ticket : 12.00'), 'medium.fines.ticket = 1200 makes Medium Penalties read "- Speeding Ticket : 12.00"');
+      const hc = at(t12, 'Hard', 'Penalties');
+      ok(!hc.lines.some((l) => /Same as/.test(l)) && has(hc, '- Speeding Ticket : 10.00') && has(hc, '- Hitting Pedestrian : 4.00')
+         && has(hc, '- Hitting Train : 10.00') && has(hc, '- Remake : 1.50')
+         && has(hc, 'Held rather than raised on purpose: flat fines against smaller tips already cost more'),
+         "Hard's \"Same as Medium\" no longer holds: it becomes fields, and its note is kept (" + JSON.stringify(hc.lines) + ')');
+      ok(DF.render(dfx((d) => { d.medium.fines.ticket = 1200; }), t12) === t12, 'and that render is idempotent');
+      /* prose: every paragraph line and heading of the old doc is still there, in order */
+      const prose = a.filter((l) => l.trim() && !/^\s*- /.test(l) && !/^\s+\S/.test(l) && !/^\|/.test(l));
+      let j = 0; const tl = t12.split('\n');
+      for (const l of tl) if (j < prose.length && l === prose[j]) j++;
+      ok(prose.length > 40 && j === prose.length, 'after that edit every one of the ' + prose.length + ' prose lines and headings survives, in order (' + (prose[j] || '') + ')');
+      const both = DF.render(dfx((d) => { d.medium.fines.ticket = 1200; d.hard.fines.ticket = 1200; }), dold);
+      const hb = at(both, 'Hard', 'Penalties');
+      ok(hb.lines.some((l) => /^- Same as Medium : Speeding Ticket 12\.00, Hitting Pedestrian 4\.00, Hitting Train 10\.00,$/.test(l))
+         && has(hb, '  Remake 1.50. Held rather than raised on purpose: flat fines against smaller tips'),
+         'while Hard still equals Medium its "Same as Medium" line stays, with the values it quotes following the JSON');
+
+      /* the same-as rule on a section */
+      ok(has(at(dout, 'Medium', 'Bonus Structure'), '- Same as Easy'), 'with Medium equal to Easy, "Same as Easy" in Medium Bonus Structure survives');
+      const pb = DF.render(dfx((d) => { d.medium.perfectBonus = 600; }), dold), mb = at(pb, 'Medium', 'Bonus Structure');
+      ok(!mb.lines.some((l) => /Same as/.test(l)) && has(mb, '- Perfect Delivery : +6.00') && has(mb, '- Every 3 Completed : +1:30 Time Bonus')
+         && has(mb, '- Maximum Extensions Per Shift : 5') && has(mb, '- Level Target : 15 deliveries / 15 tickets served') && has(mb, '- Clean Ticket : +5.00'),
+         'with them different it is replaced by the section\'s fields (' + JSON.stringify(mb.lines) + ')');
+      ok(has(at(pb, 'Hard', 'Bonus Structure', 'Points Bonus'), '- Same as Easy'), 'Hard\'s Points Bonus still names Easy, which it still equals');
+      ok(DF.render(dfx((d) => { d.medium.perfectBonus = 600; }), pb) === pb, 'and that render is idempotent');
+
+      /* tails */
+      const tailed = dold.replace('- Starting Tip per Item : 5.00\n', '- Starting Tip per Item : 5.00 a ticket, for each item on it\n');
+      const tp = DF.render(dfx((d) => { d.easy.kitchen.tipPerItem = 600; d.easy.kitchen.maxItems = 4; d.easy.tipFloor = 300; }), tailed);
+      ok(has(at(tp, 'Easy', 'Kitchen Shift'), '- Starting Tip per Item : 6.00 a ticket, for each item on it'), 'the line Starting Tip per Item : 5.00 keeps its tail when the value changes');
+      ok(has(at(tp, 'Easy', 'Kitchen Shift'), '- Maximum Items per Ticket : 4. Tickets are weighted toward 1 and 2 items')
+         && has(at(tp, 'Easy', 'Shift'), '- Tip Floor : 3.00. The tip falls to it in 54s and holds there; it never runs out'),
+         'so do the notes after Maximum Items per Ticket and Tip Floor');
+
+      /* "anything not listed here is the same as" the difficulty before */
+      const fl = DF.render(dfx((d) => { d.medium.tipFloor = 300; }), dold);
+      ok(has(at(fl, 'Medium', 'Shift'), '- Tip Floor : 3.00') && has(at(fl, 'Hard', 'Shift'), '- Tip Floor : 2.00')
+         && !at(fl, 'Supreme', 'Shift').lines.some((l) => /Tip Floor/.test(l)),
+         'an unlisted value is written where it stops matching the difficulty before, and only there');
+
+      /* nav table, hint, ticket limit */
+      const nv = DF.render(dfx((d) => { d.hard.nav.dot = false; }), dold);
+      ok(nv.includes('\n| Hard | | | | | x |\n') && nv.includes('\n| Medium | x | | x | | x |\n'), 'the Navigation table rows follow the JSON');
+      const hn = DF.render(dfx((d) => { d.easy.kitchen.hint = false; d.medium.kitchen.hint = true; d.hard.kitchen.hint = false; }), dold);
+      ok(has(at(hn, 'Easy', 'Kitchen Shift'), '- Hint : none') && has(at(hn, 'Medium', 'Kitchen Shift'), '- Hint : on')
+         && has(at(hn, 'Hard', 'Kitchen Shift'), '- Hint : none'), 'Hint reads on / none from the JSON');
+      ok(has(at(dout, 'Easy', 'Kitchen Shift'), "- Hint : after a wrong pick, the right bin's plate blinks amber for 1.6s. The star and"),
+         "while the hint is on, Easy's description of it is left as written");
+      const lm = DF.render(dfx((d) => { d.easy.kitchen.railMax = 4; d.easy.kitchen.queueMax = 2; }), dold);
+      ok(has(at(lm, 'Easy', 'Kitchen Shift'), '- Ticket Limit : 4 on the rail, and it is a soft limit. Up to 2 more customers wait in')
+         && has(at(lm, 'Medium', 'Kitchen Shift'), '- Ticket Limit : 3 on the rail. Up to 3 more customers wait in the OVERHEAD'),
+         'Ticket Limit carries railMax and queueMax');
+
+      const fresh = DF.render(files, null);
+      ok(['## I. Easy', '## II. Medium', '## III. Hard', '## IV. Supreme'].every((s) => fresh.includes('\n' + s + '\n'))
+         && fresh.includes('\n| Supreme | | | | | x |') && DF.render(files, fresh) === fresh, 'difficulty.md renders from nothing, idempotently');
+      ok(IX.renderAll(files, (f) => f === 'difficulty.md' ? dold : null)['difficulty.md'] === dout, 'renderAll renders difficulty.md');
+    }
+
+    /* the same-as rule: a Same-as item with a wrapped note */
+    {
+      const sw = parseMd('### C. P\n\n- Same as Medium : A 1.00,\n  B 2.00. A note\n  that wraps\n').children[0];
+      ok(sameAs(sw) === 'Medium', 'a Same-as item that wraps onto indented lines is still recognised');
+      let kept = null;
+      applySame(sw, { values: 1, resolve: () => 2, fill: (n) => setField(n, 'A', '3.00'), keep: (t) => { kept = t; return ['A note that wraps']; } });
+      ok(kept === '- Same as Medium : A 1.00, B 2.00. A note that wraps' && toMd(sw) === '### C. P\n\n- A : 3.00\n\nA note that wraps\n',
+         'replacing it removes the whole item and puts back what keep() returns (' + JSON.stringify(toMd(sw)) + ')');
+      ok(typeof E.findField === 'function' && E.findField(parseMd('## X\n\n- A : 1\n\n  - B (x) : 2\n').children[0], 'B (x)', { indent: '  ' }) === 3, 'findField finds a nested field line');
+    }
+
     /* the save path rewrites the doc; the drift route counts what differs */
     const tmp = mkdtempSync(join(tmpdir(), 'admin-docs-'));
     for (const f of ['build.mjs', 'shell.html', 'src', 'content', 'tools/content', DIR]) cpSync(f, join(tmp, f), { recursive: true });
@@ -469,6 +567,120 @@ console.log('\n— docs —');
   const { existsSync: ex } = await import('node:fs');
   const ov = readFileSync('admin/overlay.js', 'utf8');
   ok(ex('admin/panels/levels.js') && /import '\.\/panels\/levels\.js'/.test(ov), 'the Levels panel exists and the overlay imports it');
+}
+
+console.log('\n— difficulty panel —');
+{
+  /* just enough DOM for fields.js and a panel: elements, text, classes, events */
+  const fakeDoc = () => {
+    const doc = { activeElement: null };
+    class N {
+      constructor(tag) { this.tagName = String(tag).toUpperCase(); this.kids = []; this.parentNode = null; this.dataset = {}; this.className = ''; this._t = ''; this.on = {}; this.attrs = {}; this.style = {}; }
+      get ownerDocument() { return doc; }
+      get firstChild() { return this.kids[0] || null; }
+      appendChild(c) { if (c.parentNode) c.parentNode.kids.splice(c.parentNode.kids.indexOf(c), 1); c.parentNode = this; this.kids.push(c); return c; }
+      append(...cs) { for (const c of cs) this.appendChild(typeof c === 'string' ? Object.assign(new N('#text'), { _t: c }) : c); }
+      insertBefore(c, ref) { this.appendChild(c); this.kids.pop(); const i = this.kids.indexOf(ref); this.kids.splice(i < 0 ? this.kids.length : i, 0, c); return c; }
+      get textContent() { return this._t + this.kids.map((k) => k.textContent).join(''); }
+      set textContent(s) { for (const k of this.kids) k.parentNode = null; this.kids = []; this._t = String(s); }
+      get isConnected() { let n = this; while (n.parentNode) n = n.parentNode; return n === doc.body; }
+      get classList() {
+        const get = () => new Set(this.className.split(/\s+/).filter(Boolean)), put = (s) => { this.className = [...s].join(' '); };
+        return { contains: (c) => get().has(c), add: (c) => { const s = get(); s.add(c); put(s); }, remove: (c) => { const s = get(); s.delete(c); put(s); },
+          toggle: (c, on) => { const s = get(); if (on === undefined ? !s.has(c) : on) s.add(c); else s.delete(c); put(s); return s.has(c); } };
+      }
+      addEventListener(t, f) { (this.on[t] = this.on[t] || []).push(f); }
+      fire(t) { for (const f of this.on[t] || []) f({ type: t, target: this, preventDefault() {} }); }
+      setAttribute(k, v) { this.attrs[k] = String(v); }
+      walk() { return [this, ...this.kids.flatMap((k) => k.walk())]; }
+    }
+    doc.createElement = (t) => new N(t);
+    doc.body = new N('body');
+    return doc;
+  };
+
+  const { store } = await import('../admin/store.js');
+  const FL = await import('../admin/fields.js');
+  const { DIFF_KEYS, NAV_KEYS } = await import('../tools/content/validate.mjs');
+  const realApply = globalThis.Admin.applyBuilt;
+  globalThis.Admin.applyBuilt = () => {};          // the game is not part of this section
+  store.files = structuredClone(files); store.dirty.clear(); store.error = null;
+  let loaded = true;
+  try { await import('../admin/panels/difficulty.js'); } catch (x) { loaded = false; console.error('  (' + x.message + ')'); }
+  const tab = FL.tabs.get('difficulty');
+  ok(loaded && tab && tab.title === 'Difficulty', 'the Difficulty panel registers its tab');
+  const ov = readFileSync('admin/overlay.js', 'utf8');
+  ok(/import '\.\/panels\/difficulty\.js'/.test(ov), 'the overlay imports the Difficulty panel');
+  if (tab) {
+    const doc = fakeDoc(), el = doc.createElement('div');
+    doc.body.appendChild(el);
+    tab.render(el);
+    const nodes = el.walk();
+    const ctl = (k, p) => nodes.find((n) => n.dataset.rel === 'difficulty.json' && n.dataset.path === k + '.' + p);
+    const heads = nodes.filter((n) => n.tagName === 'TH' && n.dataset.diff).map((n) => n.textContent);
+    ok(heads.join() === 'Easy,Medium,Hard,Supreme', 'one column per difficulty, in ladder order (' + heads.join() + ')');
+    const ROWS = ['start', 'extend', 'maxExt', 'target', 'tipStart', 'tipFloor', 'tipDecay', 'fines.ticket', 'fines.ped', 'fines.train', 'fines.remake',
+      ...NAV_KEYS.map((f) => 'nav.' + f), 'kitchen.tipPerItem', 'kitchen.decay', 'kitchen.maxItems', 'kitchen.every', 'kitchen.railMax',
+      'kitchen.queueMax', 'kitchen.hint', 'kitchen.cleanBonus', 'perfectBonus'];
+    const want = DIFF_KEYS.flatMap((k) => ROWS.map((r) => k + '.' + r)).sort();
+    const got = nodes.filter((n) => n.dataset.rel === 'difficulty.json').map((n) => n.dataset.path).sort();
+    ok(JSON.stringify(got) === JSON.stringify(want), 'a control for every row in every column, bound to its JSON path (' + got.length + ' of ' + want.length + ')');
+    const MONEY = ['tipStart', 'tipFloor', 'fines.ticket', 'fines.ped', 'fines.train', 'fines.remake', 'kitchen.tipPerItem', 'kitchen.cleanBonus', 'perfectBonus'];
+    ok(DIFF_KEYS.every((k) => MONEY.every((p) => ctl(k, p).dataset.kind === 'money')
+       && NAV_KEYS.every((f) => ctl(k, 'nav.' + f).dataset.kind === 'bool') && ctl(k, 'kitchen.hint').dataset.kind === 'bool'),
+       'money rows are money fields, nav and hint are on/off');
+    ok(ctl('easy', 'fines.ticket').value === '5.00' && ctl('supreme', 'fines.ticket').value === '15.00', 'fines show in dollars');
+    ok(ctl('easy', 'tipDecay').value === '3' && ctl('medium', 'tipDecay').value === '2.5' && ctl('easy', 'kitchen.decay').value === '8'
+       && ctl('medium', 'kitchen.decay').value === '6', 'a decay shows as the N of $1.00 / N s');
+    ok(nodes.some((n) => n.textContent === '$1.00 /') , 'the decay rows say $1.00 /');
+    const derived = () => DIFF_KEYS.map((k) => (nodes.find((n) => n.dataset.derived === k) || {}).textContent).join();
+    ok(derived() === '54s,45s,36s,36s', 'the derived row: seconds for the tip to reach the floor (' + derived() + ')');
+    ok(el.textContent.includes('tip reaches the floor'), 'captioned "tip reaches the floor"');
+
+    const type = (c, v) => { c.value = v; c.fire('input'); FL.paint(); };   // the overlay repaints on every store change
+    type(ctl('easy', 'tipDecay'), '4');
+    ok(store.get('difficulty.json', 'easy.tipDecay') === 25 && derived().startsWith('72s,'), 'editing N stores 100 / N cents per second, and the derived row follows (' + derived() + ')');
+    type(ctl('easy', 'tipDecay'), '0');
+    ok(store.get('difficulty.json', 'easy.tipDecay') === 25 && /seconds/.test(ctl('easy', 'tipDecay')._msg.textContent), 'N = 0 is refused on the field and nothing is stored');
+    type(ctl('easy', 'tipDecay'), '3');
+    ok(store.get('difficulty.json', 'easy.tipDecay') === 100 / 3 && ctl('easy', 'tipDecay')._msg.textContent === '' && derived().startsWith('54s,'), 'N = 3 stores 100/3, exactly the shipped value');
+    type(ctl('medium', 'kitchen.decay'), '5');
+    ok(store.get('difficulty.json', 'medium.kitchen.decay') === 20, 'the kitchen decay edits the same way');
+    type(ctl('medium', 'kitchen.decay'), '6');
+    type(ctl('easy', 'fines.ticket'), '6.50');
+    ok(store.get('difficulty.json', 'easy.fines.ticket') === 650, 'a fine is typed in dollars and stored in cents');
+    type(ctl('easy', 'fines.ticket'), '5.00');
+
+    const tick = (c, on) => { c.checked = on; c.fire('change'); FL.paint(); };
+    tick(ctl('hard', 'nav.line'), true);
+    const bad = ctl('hard', 'nav.line');
+    ok(store.error && store.error.path.join('.') === 'hard.nav.line' && bad.classList.contains('adm-bad')
+       && /Guidance only ever comes away up the ladder/.test(bad._msg.textContent), 'turning Hard\'s line back on is refused, with the ladder message on that cell');
+    ok(nodes.filter((n) => n.classList && n.classList.contains('adm-bad')).length === 1, 'and on no other cell');
+    tick(ctl('hard', 'nav.line'), false);
+    ok(store.error === null && !bad.classList.contains('adm-bad'), 'turning it off again clears it');
+    tick(ctl('easy', 'nav.panel'), false);
+    ok(store.error && store.error.path.join('.') === 'medium.nav.panel' && ctl('medium', 'nav.panel').classList.contains('adm-bad'),
+       "turning Easy's panel off is refused on Medium's panel, the harder level that still shows it");
+    tick(ctl('easy', 'nav.panel'), true);
+    tick(ctl('easy', 'nav.line'), false);
+    ok(store.error === null, "turning Easy's line off is allowed: every harder level already has it off");
+    tick(ctl('easy', 'nav.line'), true);
+    ok(JSON.stringify(store.files['difficulty.json']) === JSON.stringify(files['difficulty.json']), 'every edit was put back');
+  }
+  store.dirty.clear(); store.error = null;
+  globalThis.Admin.applyBuilt = realApply;
+
+  /* the refresher: a difficulty edit reaches the running game without restarting it */
+  const A = SB.Admin, { G } = SB.__x, K = SB.__k.Kitchen;
+  G.startRun(2); G.beginShift();
+  for (let i = 0; i < 30; i++) G.update(1 / 60);
+  const st = G.state, wx = G.weather;
+  const fk = structuredClone(files); fk['difficulty.json'][G.diffKey].kitchen.decay = 7; fk['difficulty.json'][G.diffKey].tipFloor = 150;
+  A.applyBuilt(validateContent(memSource(fk)), G);
+  ok(G.state === st && st === 'kitchen' && G.weather === wx && G.diff.tipFloor === 150 && K.diff.decay === 7 && G.diff.kitchen === K.diff,
+     'a difficulty edit mid-shift reaches G.diff and the kitchen, and neither restarts the shift nor re-rolls the weather');
+  A.applyBuilt(validateContent(memSource(files)), G);
 }
 
 console.log('\n— artifact —');

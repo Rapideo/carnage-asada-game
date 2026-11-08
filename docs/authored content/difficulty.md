@@ -13,7 +13,7 @@ Levels 1-6, the 1970s.
 
 - Starting Tip : 20.00 
 
-- Depreciation Rate  : 1.00 / 3 Seconds
+- Depreciation Rate : 1.00 / 3 Seconds
 
 - Tip Floor : 2.00. The tip falls to it in 54s and holds there; it never runs out
 
@@ -26,7 +26,7 @@ Levels 1-6, the 1970s.
   - Every third delivery or ticket served earns one, wherever they came from: the three
     need not be from one load, and a miss only delays the next one
 
-- Maximum Extensions Per Shift: 5
+- Maximum Extensions Per Shift : 5
 
 - Level Target : 15 deliveries / 15 tickets served (3 x the extension cap; see GDD §II.D.3).
   Reaching it clears the level; 0:00 first is game over. Medium and Hard: also 15.

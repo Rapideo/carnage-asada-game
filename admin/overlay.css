@@ -50,3 +50,14 @@
 .adm-readonly { grid-column: 2 / 4; opacity: .85; }
 .adm-link { color: #3fb8b0; }
 .adm-play { margin-top: 10px; }
+/* Difficulty: four narrow columns of cells, so the field loses its label column */
+.adm-diff { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; }
+.adm-diff th, .adm-diff td { padding: 1px 3px; vertical-align: top; }
+.adm-diff .adm-rowhead { width: 8.5em; text-align: left; font-weight: normal; color: #bdb3cf; padding-top: 6px; }
+.adm-diff .adm-colhead { text-align: left; color: #f5c453; }
+.adm-diff .adm-group th { text-align: left; color: #3fb8b0; font-weight: 600; padding-top: 10px; border-bottom: 1px solid #3a3150; }
+.adm-diff .adm-field { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 3px; margin: 2px 0; }
+.adm-diff .adm-field input[type=text] { flex: 1 1 0; min-width: 0; width: auto; padding: 3px 4px; }
+.adm-diff .adm-field .adm-label { font-size: 11px; white-space: nowrap; }
+.adm-diff .adm-field .adm-msg { flex: 1 0 100%; }
+.adm-diff .adm-derived { padding-top: 6px; }

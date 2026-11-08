@@ -60,8 +60,16 @@ const blank = (l) => l === undefined || l.trim() === '';
    indented continuation), or after its last line of prose if it has no fields,
    blank-separated the way the docs are. Only the node's own lines are searched,
    never its children's. */
+const fieldRe = (key, indent) => new RegExp('^' + esc(indent) + '- ' + esc(key) + '\\s*: *(.*)$');
+
+/* The index in node.lines of the field line `<indent>- <key> : ...`, or -1. */
+export function findField(node, key, { indent = '' } = {}) {
+  const re = fieldRe(key, indent);
+  return node.lines.findIndex((l) => re.test(l));
+}
+
 export function setField(node, key, valueText, { match = /^.*/, indent = '' } = {}) {
-  const re = new RegExp('^' + esc(indent) + '- ' + esc(key) + '\\s*: *(.*)$');
+  const re = fieldRe(key, indent);
   const lines = node.lines;
   for (let i = 0; i < lines.length; i++) {
     const m = re.exec(lines[i]);
@@ -117,25 +125,53 @@ export function roman(n) {
 }
 export const letter = (i) => String.fromCharCode(65 + i);
 
-/* The same-as rule. A node whose only non-blank line is `Same as Easy` (with or
-   without a leading `- `) stands for another difficulty's or section's values. */
+/* The same-as rule. A node whose only item is `Same as Easy` (with or without a
+   leading `- `) stands for another difficulty's or section's values. The item
+   may run on: `- Same as Medium : Speeding Ticket 10.00, ...` wrapped onto
+   indented continuation lines is still one item, and still the node's only one. */
 const SAME = /^(?:- )?Same as (\w+)/;
+const cont = (l) => l !== undefined && /^\s+\S/.test(l);
 export function sameAs(node) {
   if (node.children.length) return null;
   const body = node.lines.filter((l) => !blank(l));
-  const m = body.length === 1 && SAME.exec(body[0]);
-  return m ? m[1] : null;
+  const m = body.length >= 1 && SAME.exec(body[0]);
+  return m && body.slice(1).every(cont) ? m[1] : null;
+}
+
+/* [start, end) of the Same-as item in node.lines: its line and its continuation */
+export function sameRange(node) {
+  const i = node.lines.findIndex((l) => SAME.test(l));
+  if (i < 0) return null;
+  let j = i + 1;
+  while (cont(node.lines[j])) j++;
+  return [i, j];
 }
 
 /* values: what the node's fields would say; resolve(name): the values of the
    section it names. While they are equal the node is left alone (false);
-   otherwise the Same-as line is removed and fill(node) writes the fields (true).
-   A node with no Same-as line is simply filled. */
-export function applySame(node, { values, resolve, fill }) {
+   otherwise the Same-as item is removed and fill(node) writes the fields (true).
+   keep(text), optional, is handed the removed item as one line (continuations
+   trimmed and joined by spaces) and returns lines of prose to put back after
+   the fields: how a note written into a Same-as item survives it. A node with
+   no Same-as item is simply filled. */
+export function applySame(node, { values, resolve, fill, keep }) {
   const name = sameAs(node);
   if (name !== null && equal(values, resolve(name))) return false;
-  if (name !== null) node.lines = node.lines.filter((l) => blank(l) || !SAME.test(l));
+  let text = null;
+  if (name !== null) {
+    const [i, j] = sameRange(node);
+    text = node.lines.slice(i, j).map((l, k) => (k ? l.trim() : l)).join(' ');
+    node.lines.splice(i, j - i);
+  }
   fill(node);
+  const back = text !== null && keep ? keep(text) : [];
+  if (back.length) {
+    let last = -1;
+    for (let i = 0; i < node.lines.length; i++) if (!blank(node.lines[i])) last = i;
+    const ins = ['', ...back];
+    if (last + 1 >= node.lines.length || !blank(node.lines[last + 1])) ins.push('');
+    node.lines.splice(last + 1, 0, ...ins);
+  }
   return true;
 }
 
