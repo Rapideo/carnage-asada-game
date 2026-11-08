@@ -7,6 +7,30 @@ here, run `node build.mjs` and the tests, commit, and tag it (`git tag v<version
 Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch lists.
 **1.0.0** is when the owner calls it released.
 
+## 0.9.1 (2026-11-07): Service Mode
+
+A tool for the owner, not a change to how the game plays. The public game
+(`taco-shop.html`) contains none of it.
+
+**Service Mode** (named after the arcade cabinet's service switch)
+- Run `node admin.mjs` in your own terminal, open `http://localhost:8124/`, and press
+  **F2**: editing panels open over the live game, and Save can write files. (`node serve.mjs`
+  on port 8123 stays the plain dev server, with no Service Mode.)
+- Tabs: **Levels, Menu, Attract, Music, Difficulty, Dialogue, Faces, Test**.
+- Save checks everything the build would check, shows the reason on the field that caused
+  it, writes the content files, and rebuilds.
+- The **JSON in `content/` is now the master copy**, and the `.md` files in
+  `docs/authored content/` are generated from it, so they cannot drift. This reverses
+  the 2026-09-26 ruling that the authored docs win.
+- **Music:** the whole MIDI library is listable and playable through the game's own
+  player, and a level's playlist can be any length. Every song records its release month.
+  A song released after its level's month is a warning, never a refusal.
+- **Test tab:** jump to any level or screen, override the weather or season, let the game
+  play itself, speed it up or step it, and call up debug views.
+- The **15 decade customers blink again**: their eyes were hand-set in the Faces tab.
+- A song's list, a menu item or a line of dialogue edited in Service Mode shows in the
+  game behind the panel straight away.
+
 ## 0.9.0 (2026-11-07): feature-complete
 
 The first numbered build. Everything the design calls for is in. Next comes the owner's
