@@ -103,12 +103,55 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
   ok(e instanceof ContentError && e.file === 'content/faces/c70teacher.json' && e.path.join() === 'skin', 'a lid colour (skin) that is not in the face\'s palette is refused');
 }
 
-/* a song's release month: optional, an integer 1-12 when present (Task 13; Task 14 fills them in) */
+/* a song's release month: required (Task 14), an integer 1-12 */
 {
-  const monthErr = (m) => { const f = structuredClone(files); f['music/kashmir.json'].month = m; let x = null; try { validateContent(memSource(f)); } catch (y) { x = y; } return x; };
+  const monthErr = (m) => { const f = structuredClone(files); if (m === undefined) delete f['music/kashmir.json'].month; else f['music/kashmir.json'].month = m; let x = null; try { validateContent(memSource(f)); } catch (y) { x = y; } return x; };
   ok([0, 13, 2.5, '3', null].every((m) => { const x = monthErr(m); return x instanceof ContentError && x.file === 'content/music/kashmir.json' && x.path.join() === 'month'; }),
      'a song month of 0, 13, 2.5, "3" or null is refused on [month] (' + (monthErr(13) && monthErr(13).message) + ')');
-  ok(monthErr(1) === null && monthErr(12) === null && monthErr(undefined) === null, 'months 1 and 12, or none, are accepted');
+  ok(monthErr(1) === null && monthErr(12) === null, 'months 1 and 12 are accepted');
+  e = monthErr(undefined);
+  ok(e instanceof ContentError && e.file === 'content/music/kashmir.json' && e.path.join() === 'month' && /month/.test(e.message),
+     'a song with no month is refused on [month] (' + (e && e.message) + ')');
+  ok(Object.values(disk.music).every((s) => Number.isInteger(s.month) && s.month >= 1 && s.month <= 12) && Object.keys(disk.music).length === 42,
+     'every one of the 42 shipped songs has a release month');
+  const sj = JSON.parse(readFileSync('tools/music/songs.json', 'utf8')).songs;
+  ok(sj.length === 42 && sj.every((s) => disk.music[s.id] && s.month === disk.music[s.id].month && typeof s._month === 'string' && s._month.length > 10),
+     'songs.json carries the same month for every song, and a _month note naming its source');
+}
+
+/* the season rule (spec §9, owner 2026-11-07: a late song WARNS, never refuses) */
+{
+  const { levelMonth, songEligible, MUSIC_LOOKBACK: LB } = await import('../tools/content/validate.mjs');
+  const LV = disk.levels;
+  ok(typeof levelMonth === 'function' && [[0, 7], [1, 12], [2, 1], [3, 7], [8, 1], [14, 1], [19, 12]].every(([i, m]) => levelMonth(LV, i) === m),
+     'levelMonth: L1 7, L2 12, L3 1, L4 7, L9 1, L15 1, L20 12 (' + (typeof levelMonth === 'function' ? [0, 1, 2, 3, 8, 14, 19].map((i) => levelMonth(LV, i)).join() : 'none') + ')');
+  ok(typeof levelMonth === 'function' && LV.every((l, i) => (l.season === 'summer' ? levelMonth(LV, i) === 7 : [1, 12].includes(levelMonth(LV, i)))),
+     'every summer is July, every winter January or December');
+  const se = (s, i) => (typeof songEligible === 'function' ? songEligible(s, LV, i) : { ok: null });
+  let r = se({ year: 1975, month: 10 }, 2);
+  ok(r.ok === true && typeof r.warn === 'string' && /oct/i.test(r.warn) && /jan/i.test(r.warn), 'an October 1975 song on Level 3 (January 1975) is allowed, with a warning naming both months (' + r.warn + ')');
+  r = se({ year: 1975, month: 10 }, 3);
+  ok(r.ok === true && typeof r.warn === 'string' && /oct/i.test(r.warn) && /jul/i.test(r.warn), 'and on Level 4 (July 1975) too (' + r.warn + ')');
+  r = se({ year: 1984, month: 5 }, 8);
+  ok(r.ok === true && typeof r.warn === 'string' && /may/i.test(r.warn) && /jan/i.test(r.warn), 'a May 1984 song on Level 9 (January 1984) warns (' + r.warn + ')');
+  r = se({ year: 1975, month: 1 }, 2);
+  ok(r.ok === true && !r.warn, 'a January song on a January level is fine, no warning');
+  r = se({ year: 1975, month: 7 }, 3);
+  ok(r.ok === true && !r.warn, 'a July song on a July level is fine');
+  r = se({ year: 1974, month: 12 }, 2);
+  ok(r.ok === true && !r.warn, 'an earlier year is never warned about, whatever its month');
+  r = se({ year: 1976, month: 1 }, 2);
+  ok(r.ok === false && /too new/.test(r.why || ''), 'a song from after the level\'s year is still refused, too new (' + r.why + ')');
+  r = se({ year: 1975 - LB - 1, month: 12 }, 2);
+  ok(r.ok === false && /too old/.test(r.why || ''), 'and one more than ' + LB + ' years before it, too old (' + r.why + ')');
+  /* the build still refuses only the year window: Bohemian Rhapsody stays on Level 3 */
+  ok(disk.playlist['3'].join() === 'bohemian-opera,bohemian-rock' && disk.playlist['16'].includes('cannonball'), 'the shipped playlists keep Bohemian Rhapsody on Level 3 and Cannonball on Level 16');
+  const late = structuredClone(files); late['music/kashmir.json'].month = 12;
+  e = null; try { validateContent(memSource(late)); } catch (x) { e = x; }
+  ok(e === null, 'a same-year song released after its level\'s month does not fail the content (Kashmir in December on Level 4)');
+  const early = structuredClone(files); early['music/playlist.json']['1'] = ['kashmir'];
+  e = null; try { validateContent(memSource(early)); } catch (x) { e = x; }
+  ok(e instanceof ContentError && e.path.join() === '1,0', 'a year violation still does');
 }
 
 const before = JSON.stringify(files);
@@ -280,11 +323,11 @@ console.log('\n— server —');
          'porting into an existing id is 409 exists, and the song and songs.json are untouched (' + r.status + ')');
       const bad = [{ ...hazy, id: '../x' }, { ...hazy, id: 'Upper' }, { ...hazy, id: 'playlist' }, { ...hazy, file: '../../content/levels.json' },
         { ...hazy, file: '70s/../../../content/x.mid' }, { ...hazy, file: 'C:/x.mid' }, { ...hazy, file: '70s\\Kashmir.mid' }, { ...hazy, file: '70s/Missing.mid' },
-        { ...hazy, title: '' }, { ...hazy, artist: 7 }, { ...hazy, year: 1987.5 }, { ...hazy, month: 13 }, { ...hazy, month: 0 }];
+        { ...hazy, title: '' }, { ...hazy, artist: 7 }, { ...hazy, year: 1987.5 }, { ...hazy, month: 13 }, { ...hazy, month: 0 }, { ...hazy, month: undefined }];
       const codes = [];
       for (const b of bad) codes.push((await port(b)).status);
       ok(codes.every((c) => c === 400) && !existsSync(join(tmp, 'content/music/hazy-shade-of-winter.json')) && readFileSync(SJ, 'utf8') === sjText,
-         'a bad id, a file outside the library or missing, an empty title, a bad year or month is 400, and nothing is written (' + codes.join() + ')');
+         'a bad id, a file outside the library or missing, an empty title, a bad year, a bad or missing month is 400, and nothing is written (' + codes.join() + ')');
       r = await port(hazy); j = await r.json();
       const made = join(tmp, 'content/music/hazy-shade-of-winter.json');
       ok(r.status === 200 && j.rel === 'music/hazy-shade-of-winter.json' && j.json && j.json.id === hazy.id && j.json.title === hazy.title && j.json.artist === hazy.artist
@@ -302,10 +345,10 @@ console.log('\n— server —');
       ok(r.status === 409 && (await r.json()).error === 'exists' && madeText !== null && readFileSync(made, 'utf8') === madeText && readFileSync(SJ, 'utf8') === sj2, 'a second port under the same id is refused, not overwritten');
       const l1 = await lib();
       ok(l1 && (l1.find((m) => m.file === hazy.file) || { ids: [] }).ids.join() === hazy.id, 'and the library now names the song');
-      r = await port({ file: '90s/99Problems.mid', id: 'ninety-nine-problems', title: '99 PROBLEMS', artist: 'JAY-Z', year: 2003 }); j = await r.json();
+      r = await port({ file: '90s/99Problems.mid', id: 'ninety-nine-problems', title: '99 PROBLEMS', artist: 'JAY-Z', year: 2003, month: 4 }); j = await r.json();
       ok(r.status === 422 && typeof j.log === 'string' && j.log.length > 0 && !existsSync(join(tmp, 'content/music/ninety-nine-problems.json')) && readFileSync(SJ, 'utf8') === sj2,
          'a MIDI the arranger cannot use is 422 { log }, and leaves nothing behind (' + r.status + ')');
-      r = await port({ file: 'OnTheOutside.mid', id: 'on-the-outside', title: 'ON THE OUTSIDE’', artist: 'X', year: 1990 }); j = await r.json();
+      r = await port({ file: 'OnTheOutside.mid', id: 'on-the-outside', title: 'ON THE OUTSIDE’', artist: 'X', year: 1990, month: 1 }); j = await r.json();
       ok(r.status === 422 && /’/.test(j.log || '') && !existsSync(join(tmp, 'content/music/on-the-outside.json')) && readFileSync(SJ, 'utf8') === sj2,
          'a title the font cannot draw is 422 naming the character, and leaves nothing behind (' + r.status + ' ' + String(j.log).slice(0, 80) + ')');
       ok((await port(hazy, 'http://evil.example')).status === 403, 'the port route checks the Origin too');
@@ -1862,9 +1905,13 @@ console.log('\n— music panel —');
       LIB.push({ file: '90s/Lump.mid', ids: [] });
       act('refresh-lib').fire('click'); await tick();
       act('port-open', { midi: '90s/Lump.mid' }).fire('click');
+      const nSent = sent.length;
       fill({ title: 'kashmir', artist: 'x', year: '1995', month: '' });
       act('port').fire('click'); await tick();
-      ok(sent[sent.length - 1].body.month === undefined && /already/.test(pf('msg').textContent), 'an empty month sends none; an id that exists is reported (' + pf('msg').textContent + ')');
+      ok(sent.length === nSent && /month/.test(pf('msg').textContent), 'an empty month is refused before anything is sent: every song needs one (' + pf('msg').textContent + ')');
+      fill({ month: '7' });
+      act('port').fire('click'); await tick();
+      ok(sent.length === nSent + 1 && sent[sent.length - 1].body.month === 7 && /already/.test(pf('msg').textContent), 'an id that exists is reported (' + pf('msg').textContent + ')');
       reply = { status: 422, json: { error: 'job', log: 'midi2song: no lead candidate' } };
       fill({ id: 'lump2' });
       act('port').fire('click'); await tick();
@@ -1879,6 +1926,13 @@ console.log('\n— music panel —');
       const opt = (k, id) => pick(k).kids.find((o) => o.value === id);
       ok(opt('1', 'kashmir') && opt('1', 'kashmir').disabled && /too new/.test(opt('1', 'kashmir').textContent), 'a song too new for the level is greyed, and says so (' + (opt('1', 'kashmir') || {}).textContent + ')');
       ok(opt('5', 'immigrant-song') && opt('5', 'immigrant-song').disabled && /too old/.test(opt('5', 'immigrant-song').textContent), 'one more than 2 years before it is greyed, too old (' + (opt('5', 'immigrant-song') || {}).textContent + ')');
+      const late = opt('4', 'bohemian-opera');
+      ok(late && !late.disabled && /released Oct 1975, after this level's July/.test(late.textContent),
+         'a same-year song released after the level\'s month can be picked, with a warning naming both months (' + (late || {}).textContent + ')');
+      const warnNote = (k) => nodes().filter((n) => n.classList.contains('adm-warn') && n.dataset.list === k).map((n) => n.textContent);
+      ok(warnNote('3').length === 2 && warnNote('3').every((t) => /released Oct 1975, after this level's January/.test(t)) && warnNote('1').length === 0,
+         'a late song in a list shows a warning note on its row; a list with none shows none (' + warnNote('3').join(' | ') + ')');
+      ok(warnNote('16').length === 1 && /Aug 1993, after this level's July/.test(warnNote('16')[0]), 'Cannonball on Level 16 is flagged (' + warnNote('16').join() + ')');
       ok(opt('1', 'immigrant-song').disabled && /in this list/.test(opt('1', 'immigrant-song').textContent) && !opt('1', 'walk-on-the-wild-side').disabled, 'a song already in the list is greyed; an eligible one is not');
       ok(!opt('title', 'kashmir').disabled && opt('title', 'a-hazy-shade-of-winter') && !opt('title', 'a-hazy-shade-of-winter').disabled, 'the title takes any song, the newly ported one too');
       pick('1').value = 'walk-on-the-wild-side'; act('song-add', { list: '1' }).fire('click');

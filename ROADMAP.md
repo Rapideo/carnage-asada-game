@@ -36,8 +36,9 @@ None of it ships in `taco-shop.html`.
 - **How to run it (owner's choice):** subagent-driven
   (`superpowers:subagent-driven-development`), so each task gets a fresh implementer and
   a fresh reviewer. Work on a branch `admin-overlay`, never push.
-- **One owner checkpoint, in Task 14.** The season rule removes Bohemian Rhapsody from
-  Level 3. The owner picks its replacement songs by ear in the overlay's Music panel.
+- **Task 14's owner checkpoint is resolved (2026-11-07).** The owner made the season
+  rule a warning, not a refusal, so Bohemian Rhapsody stays on Level 3 and no playlist
+  changed.
 
 Rulings from the design that change standing project rules (recorded in `CLAUDE.md` by
 Task 17, not before):
@@ -47,6 +48,8 @@ Task 17, not before):
   - Summer is July.
   - Winter is January when it comes before that year's Summer level, and December when
     it comes after.
+  - A same-year song released after its level's month is a warning, never a refusal
+    (owner, 2026-11-07).
 
 - [ ] Build the admin overlay (plan Tasks 1–17)
 

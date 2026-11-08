@@ -127,6 +127,8 @@
 .adm-now { display: flex; align-items: center; gap: 8px; color: #f5c453; font-size: 12px; }
 .adm-playlist .adm-song { display: flex; align-items: center; gap: 6px; padding: 2px 4px; margin: 2px 0; background: #2a2338; border: 1px solid #3a3150; border-radius: 3px; font-size: 12px; cursor: grab; }
 .adm-playlist .adm-song.adm-over { outline: 1px dashed #3fb8b0; }
+.adm-playlist .adm-song { flex-wrap: wrap; }
+.adm-playlist .adm-warn { flex: 1 0 100%; color: #ffc861; font-size: 11px; padding-left: 1.4em; }
 .adm-grip { opacity: .6; }
 .adm-songname { flex: 1 1 auto; }
 .adm-show:disabled { opacity: .4; cursor: default; }

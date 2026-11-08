@@ -15,17 +15,20 @@
                   a saved playlist names it, and never over an existing id.
    Playlists      the title's list, then one per level 1-20, any length: add,
                   remove, and reorder by dragging a song (or with the arrows).
-                  The picker greys out the songs a level may not play and says
-                  why. Until Task 14 adds songEligible (the release month and
-                  the season), that is the year rule alone: a level plays songs
-                  from its own year or up to MUSIC_LOOKBACK years before, never
-                  after. The title has no year.
+                  The picker asks validate.mjs's songEligible, the build's own
+                  rule. The year window greys a song out and says why: a level
+                  plays songs from its own year or up to MUSIC_LOOKBACK years
+                  before, never after. The release month only warns (owner,
+                  2026-11-07): a same-year song released after the level's
+                  month (levelMonth: summer July, winter January or December
+                  by level order) can be picked, and says so in the picker and
+                  on its row. The title has no year.
 
    Game consts (G, Music) are reached through Admin.music, never globalThis.
    The playlist refresher lives in admin/apply.js. */
 import '../fields.js';
 import { store } from '../store.js';
-import { MUSIC_LOOKBACK } from '../../tools/content/validate.mjs';
+import { MUSIC_LOOKBACK, songEligible, levelMonth, MONTHS } from '../../tools/content/validate.mjs';
 
 const Admin = (globalThis.Admin = globalThis.Admin || {});
 const PL = 'music/playlist.json';
@@ -68,14 +71,14 @@ const listOf = (k) => { const l = store.get(PL, pathOf(k)); return Array.isArray
 const setList = (k, arr) => { store.set(PL, pathOf(k), arr); redraw(); };
 export const slug = (t) => String(t).toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
-/* why a level may not play a song, or null. The year rule, as validate.mjs
-   applies it; Task 14 replaces this with songEligible. */
-export function whyNot(song, lv) {
-  if (!lv || !song || typeof song.year !== 'number') return null;
-  if (song.year > lv.year) return 'too new: ' + song.year + ', after ' + lv.year;
-  if (song.year < lv.year - MUSIC_LOOKBACK) return 'too old: ' + song.year + ', more than ' + MUSIC_LOOKBACK + ' years before ' + lv.year;
-  return null;
+/* may list k play this song? { ok, why?, warn? } from songEligible, against
+   the working copy's levels in order. The title takes anything. */
+export function eligible(song, k) {
+  if (k === 'title' || !song) return { ok: true };
+  const L = levels(), i = L.findIndex((l) => String(l.n) === String(k));
+  return i < 0 ? { ok: true } : songEligible(song, L, i);
 }
+const monthOf = (k) => { const L = levels(), i = L.findIndex((l) => String(l.n) === String(k)); return i < 0 ? null : MONTHS[levelMonth(L, i) - 1]; };
 
 /* the working copy into the running game, music table and all: a ported song
    has to be in MUSIC before Listen can play it */
@@ -145,7 +148,7 @@ function portForm(doc, box, file) {
   field('title', 'Title', 'as the game shows it', 'upper case, the way the game draws it');
   field('artist', 'Artist', 'as the game shows it');
   field('year', 'Year', '1987', 'the original release year: what the year rule checks');
-  field('month', 'Month', '1-12, or empty', 'the release month, 1 = January: the first release, single or album, whichever came first');
+  field('month', 'Month', '1-12', 'the release month, 1 = January: the first release, single or album, whichever came first');
   field('id', 'Id', 'from the title', 'the song\'s file, content/music/<id>.json: lower-case letters, digits and dashes');
   const go = btn(doc, 'Port', 'port', 'arrange it with midi2song.mjs on the server');
   go.dataset.midi = file;
@@ -167,12 +170,11 @@ async function port(file) {
   const ys = f.year.trim(), ms = f.month.trim(), id = f.id.trim() || slug(title);
   if (!title || !artist) f.msg = 'a title and an artist, as the game will show them';
   else if (!/^\d{4}$/.test(ys)) f.msg = 'the year is the original release year, four digits, like 1987';
-  else if (ms && !(/^\d{1,2}$/.test(ms) && +ms >= 1 && +ms <= 12)) f.msg = 'the month is 1-12 (1 = January), or empty';
+  else if (!(/^\d{1,2}$/.test(ms) && +ms >= 1 && +ms <= 12)) f.msg = 'the release month is 1-12 (1 = January), and every song needs one: the first release, single or album, whichever came first';
   else if (!ID.test(id) || id === 'playlist' || id.length > 48) f.msg = 'the id is lower-case letters, digits and dashes, like a-hazy-shade-of-winter';
   else {
     f.msg = 'arranging…'; redraw();
-    const body = { file, id, title, artist, year: Number(ys) };
-    if (ms) body.month = Number(ms);
+    const body = { file, id, title, artist, year: Number(ys), month: Number(ms) };
     try {
       const r = await fetch((store.base || '') + '/admin/api/port', {
         method: 'POST', headers: { 'content-type': 'application/json', ...store.headers }, body: JSON.stringify(body) });
@@ -299,6 +301,13 @@ function songRow(doc, sec, k, j, list, all) {
     list.length > 1 ? 'take it out of this list' : 'a list needs at least one song');
   rm.disabled = list.length <= 1;
   row.appendChild(tools);
+  /* the season rule is advice: a late song stays, and says so */
+  const el = s ? eligible(s, k) : { ok: true };
+  if (el.warn) {
+    const w = h(doc, 'div', 'adm-warn', 'Warning: ' + el.warn + '. It still plays; the build only flags it.');
+    w.dataset.list = k; w.dataset.id = id;
+    row.appendChild(w);
+  }
   row.addEventListener('dragstart', (e) => {
     dragFrom = { k, j };
     if (e && e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', id); } catch (x) { /* not settable */ } }
@@ -322,7 +331,8 @@ function playlist(doc, el, k, lv, all) {
   const sec = h(doc, 'div', 'adm-screen adm-playlist');
   sec.dataset.list = k;
   sec.appendChild(h(doc, 'h3', null, lv ? 'Level ' + lv.n + ' · ' + lv.name + ' · ' + (lv.type === 'kitchen' ? 'Kitchen' : 'Delivery') : 'Title'));
-  sec.appendChild(h(doc, 'p', 'adm-note', lv ? 'Songs from ' + (lv.year - MUSIC_LOOKBACK) + '-' + lv.year + ': its own year or up to ' + MUSIC_LOOKBACK + ' before, never after.'
+  sec.appendChild(h(doc, 'p', 'adm-note', lv ? 'Songs from ' + (lv.year - MUSIC_LOOKBACK) + '-' + lv.year + ': its own year or up to ' + MUSIC_LOOKBACK + ' before, never after. '
+    + 'Its month is ' + monthOf(k) + ' ' + lv.year + ': a ' + lv.year + ' song released after that is flagged, not refused.'
     : 'From the title screen through the winners and high-score screens. The title has no year, so any song can play.'));
   for (let j = 0; j < list.length; j++) songRow(doc, sec, k, j, list, all);
   const row = h(doc, 'div', 'adm-row');
@@ -330,10 +340,12 @@ function playlist(doc, el, k, lv, all) {
   sel.dataset.pick = k;
   const ph = h(doc, 'option', null, 'add a song…'); ph.value = '';
   sel.appendChild(ph);
-  const opts = Object.keys(all).map((id) => ({ id, s: all[id], why: list.includes(id) ? 'in this list' : whyNot(all[id], lv) }))
-    .sort((a, b) => (!!a.why - !!b.why) || (b.s.year - a.s.year) || String(a.s.title).localeCompare(String(b.s.title)));
+  const opts = Object.keys(all).map((id) => {
+    const r = eligible(all[id], k);
+    return { id, s: all[id], why: list.includes(id) ? 'in this list' : (r.ok ? null : r.why), warn: r.warn || null };
+  }).sort((a, b) => (!!a.why - !!b.why) || (b.s.year - a.s.year) || String(a.s.title).localeCompare(String(b.s.title)));
   for (const o of opts) {
-    const op = h(doc, 'option', null, label(o.s) + (o.why ? ' — ' + o.why : ''));
+    const op = h(doc, 'option', null, label(o.s) + (o.why ? ' — ' + o.why : o.warn ? ' — warning: ' + o.warn : ''));
     op.value = o.id;
     op.disabled = !!o.why;
     sel.appendChild(op);

@@ -272,8 +272,8 @@ The four screens in loop order with the total cycle time shown live (1:20 today)
 - **New: release month.** `music.md` says a same-year song is kept out of a level whose
   season comes before its release, and that the build enforces it. **The build does not**:
   it checks only the year, because no song records a month. Add a `month` to every song
-  (in `songs.json` and the ported JSON), enforce the season rule in the build, and use it in
-  the picker. The 42 existing songs need their months researched; use the song's **first
+  (in `songs.json` and the ported JSON), apply the season rule in the build, and use it in
+  the picker. (Owner, 2026-11-07: the season rule warns and never refuses; see §9.) The 42 existing songs need their months researched; use the song's **first
   release, single or album, whichever came first**, consistent with music.md's "original
   release year" (my call). See §9 for what each season means.
 
@@ -409,16 +409,16 @@ Collected from above so nothing is a surprise:
   forward.** Summer is **July**. Winter is **January** when it comes before that year's
   Summer level (Levels 3, 9, 15) and **December** when it comes after (Levels 2, 6, 8, 12,
   14, 18, 20). The build derives this from the level order; it is not authored per level.
-  A song is eligible for a same-year level only if its release month is on or before the
-  level's month.
+  A same-year song released after the level's month is **flagged as a warning**, in the
+  build log and the Music panel's picker and rows. It is never refused: only the year
+  window (its own year or up to 2 before, never after) fails the build.
 
-  **Consequence:** Level 3 (Winter 1975, so January 1975) plays both Bohemian Rhapsody
-  sections (October 1975), which the rule now refuses, and there is no other 1975 delivery
-  level, so Bohemian Rhapsody leaves the game. Level 3 needs two upbeat songs from 1973 up
-  to January 1975. My call: the plan proposes candidates from the library, ported through
-  the Music panel, for the owner to choose by ear. The rule's enforcement lands in the same
-  step, so the build is never red in between. Every other playlist must be re-checked once
-  the months are researched; any further failure is brought to the owner the same way.
+  **Owner ruling, 2026-11-07: the month rule is advisory.** As first written, this section
+  had the rule refuse such a song, which would have taken Bohemian Rhapsody (October 1975)
+  out of Level 3 (Winter 1975, so January 1975) and called for replacements chosen by ear.
+  The owner made it a warning instead, and no playlist changed: Level 3 keeps both
+  Bohemian Rhapsody sections and Level 16 (Summer 1993, July) keeps Cannonball (August
+  1993). Those three are the only warnings the shipped playlists carry.
 
 ## 10. Left to the builder
 

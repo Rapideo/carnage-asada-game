@@ -279,7 +279,7 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
     return out.map((file) => ({ file, ids: json.songs.filter((s) => s && s.file === file).map((s) => s.id) }));
   }
 
-  /* POST /admin/api/port { file, id, title, artist, year, month? }: arrange a
+  /* POST /admin/api/port { file, id, title, artist, year, month }: arrange a
      MIDI from the library with tools/music/midi2song.mjs, write the song to
      content/music/<id>.json and its entry to tools/music/songs.json. Like a
      recolour, the song is written when made: it ships with the next build
@@ -293,13 +293,12 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
   async function portSong(req, res) {
     let b;
     try { b = JSON.parse(await readBody(req)); } catch { return send(res, 400, { error: 'bad request' }); }
-    const { file, id, title, artist, year } = b || {};
-    const month = b && b.month != null ? b.month : undefined;
+    const { file, id, title, artist, year, month } = b || {};
     const str = (s) => typeof s === 'string' && s.trim() !== '' && s.length <= 80;
     const fileOk = typeof file === 'string' && MIDI_FILE.test(file) && !file.includes('\\') && !file.startsWith('/') && !/^[a-z]:/i.test(file)
       && file.split('/').every((s) => s !== '' && s !== '.' && s !== '..');
     if (!fileOk || typeof id !== 'string' || !SONG_ID.test(id) || id.length > 48 || id === 'playlist' || !str(title) || !str(artist)
-        || !Number.isInteger(year) || year < 1900 || year > 2100 || (month !== undefined && !(Number.isInteger(month) && month >= 1 && month <= 12)))
+        || !Number.isInteger(year) || year < 1900 || year > 2100 || !(Number.isInteger(month) && month >= 1 && month <= 12))
       return send(res, 400, { error: 'bad request' });
     const lib = resolve(root, ...MIDI_DIR.split('/')), src = resolve(lib, ...file.split('/'));
     if (!src.startsWith(lib + sep)) return send(res, 400, { error: 'bad request' });
@@ -321,7 +320,7 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
     const tmp = await mkdtemp(join(tmpdir(), 'port-'));
     try {
       const out = join(tmp, id + '.json');
-      const opts = ['--id', id, '--title', title, '--artist', artist, '--year', String(year), ...(month !== undefined ? ['--month', String(month)] : []), '--src', file];
+      const opts = ['--id', id, '--title', title, '--artist', artist, '--year', String(year), '--month', String(month), '--src', file];
       const r = await runJob(['node', 'tools/music/midi2song.mjs', src, ...opts, '--out', out], { cwd: root });
       const log = ['$ node tools/music/midi2song.mjs ' + MIDI_DIR + '/' + file + ' ' + opts.map((a) => (/\s/.test(a) ? JSON.stringify(a) : a)).join(' '), (r.stdout + r.stderr).trim()];
       const failed = (why) => [422, { error: 'job', log: log.concat(why ? [why] : []).join('\n') }];
@@ -337,7 +336,7 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
       catch (e) { if (!(e instanceof ContentError)) throw e; return [422, { error: 'invalid', log: log.concat(['the content does not validate with this song in it: ' + e.message]).join('\n') }]; }
       try { await writeFile(dest, text, { flag: 'wx' }); }
       catch (e) { if (e.code === 'EEXIST') return [409, { error: 'exists', rel }]; throw e; }
-      const entry = { id, file, title, artist, year, ...(month !== undefined ? { month } : {}) };
+      const entry = { id, file, title, artist, year, month };
       try { await writeTexts(root, { [SONGS]: formatSongs({ ...songs.json, songs: [...songs.json.songs, entry] }) }); }
       catch (e) { await rm(dest, { force: true }); throw e; }   // a song with no entry is half a port
       return [200, { rel, json, output: r.stdout.trim() }];

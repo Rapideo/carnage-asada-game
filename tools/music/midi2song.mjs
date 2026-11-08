@@ -7,7 +7,8 @@
             [--start BAR] [--bars N] [--lead K] [--bass K] [--harm K,K]
             [--res 4|6|8|12] [--id ID] [--title T] [--artist A] [--year Y]
             [--month M] [--src S]
-       (--month is the release month, 1-12, written into the song as `month`;
+       (--month is the release month, 1-12, written into the song as `month`
+       -- the build refuses a song in content/music/ without one;
        --src the file as songs.json names it, e.g. 70s/Kashmir.mid)
        node tools/music/midi2song.mjs --scan reference/assets/midi
        node tools/music/midi2song.mjs --batch tools/music/songs.json [--preview]

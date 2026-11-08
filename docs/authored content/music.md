@@ -2,7 +2,7 @@
 
 Driving Shift songs are intended to be more upbeat; fast-paced and energizing. Kichen Shift songs should be soufully mello, or solo-danceable. 
 
-A level may only play songs from its own year or up to 2 years before it, never after. A song's year is its original release year, and build.mjs checks every level's songs against it and fails the build on one that is too new. A same-year song is also kept out of a level whose season comes before the song's release: Bohemian Rhapsody (October 1975) is not in Summer 1975, and We're Not Gonna Take It (May 1984) is not in Winter 1984.
+A level may only play songs from its own year or up to 2 years before it, never after. A song's year is its original release year, and build.mjs checks every level's songs against it and fails the build on one that is too new. Every song also records its release month (the first release, single or album, whichever came first; `tools/music/songs.json` says where each one comes from), and a level's season stands for a month: Summer is July, and Winter is January when that year's Summer level comes after it and December when it comes before, by level order. A same-year song released after its level's month is flagged as a warning, in the build log and the Music panel, but never refused (owner, 2026-11-07): Bohemian Rhapsody (October 1975) stays in Winter 1975, and Cannonball (August 1993) in Summer 1993.
 
 Each list plays in order and then loops. The songs are the real MIDIs from `reference/assets/midi/`, arranged for the game's own chip voices by `tools/music/midi2song.mjs` (the song list is `tools/music/songs.json`). The game reads the lists from `content/music/playlist.json`.
 

@@ -766,6 +766,46 @@ function checkBoardArt(menus, board) {
    music.md: a level plays songs from its own year or up to 2 years before,
    never after -- an anachronism is a guard, not a judgement call. */
 export const MUSIC_LOOKBACK = 2;
+export const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+/* The month a level's season means (spec §9, owner): whichever keeps time
+   moving forward. Summer is July. Winter is January when a summer level of
+   the same year comes after it in level order, and December otherwise. It is
+   derived from the order, never authored per level. */
+export function levelMonth(levels, i) {
+  const lv = levels[i];
+  if (lv.season === 'summer') return 7;
+  return levels.some((l, j) => j > i && l.year === lv.year && l.season === 'summer') ? 1 : 12;
+}
+
+/* May level i play this song? The YEAR window is a rule: a song from after
+   the level's year, or more than MUSIC_LOOKBACK years before it, is
+   { ok: false, why }. The MONTH is advice (owner, 2026-11-07): a same-year
+   song released after the level's month is { ok: true, warn }, flagged and
+   never refused. The title list has no year and is not asked. */
+export function songEligible(song, levels, i) {
+  const lv = levels[i];
+  if (!lv || !song || typeof song.year !== 'number') return { ok: true };
+  if (song.year > lv.year) return { ok: false, why: 'too new: ' + song.year + ', after ' + lv.year };
+  if (song.year < lv.year - MUSIC_LOOKBACK) return { ok: false, why: 'too old: ' + song.year + ', more than ' + MUSIC_LOOKBACK + ' years before ' + lv.year };
+  const lm = levelMonth(levels, i);
+  if (song.year === lv.year && Number.isInteger(song.month) && song.month > lm && song.month <= 12)
+    return { ok: true, warn: 'released ' + MONTHS[song.month - 1].slice(0, 3) + ' ' + song.year + ', after this level\'s ' + MONTHS[lm - 1] };
+  return { ok: true };
+}
+
+/* Every month warning the shipped playlists carry: [{ level, id, warn }]. */
+export function musicWarnings(music, playlist, levels) {
+  const out = [];
+  levels.forEach((lv, i) => {
+    for (const id of playlist[String(lv.n)] || []) {
+      const r = music[id] ? songEligible(music[id], levels, i) : { ok: true };
+      if (r.warn) out.push({ level: lv.n, id, warn: r.warn });
+    }
+  });
+  return out;
+}
+
 function buildMusic(src, levels) {
   const files = src.list('music');
   if (files === null) return { music: {}, playlist: {}, note: 'no content/music/ yet' };
@@ -778,9 +818,11 @@ function buildMusic(src, levels) {
     if (!s || typeof s !== 'object' || Array.isArray(s)) fail(MF, [], `content/music/${file} must be a song object`);
     if (s.id !== undefined && s.id !== id) fail(MF, ['id'], `content/music/${file}: id is "${s.id}" but the file is ${file}; they must match`);
     for (const f of ['title', 'artist']) if (s[f] !== undefined) drawable(MF, [f], `content/music/${file} ${f}`, s[f]);
-    /* the release month (midi2song --month), for the season rule: optional until every song has one */
-    if (s.month !== undefined && !(Number.isInteger(s.month) && s.month >= 1 && s.month <= 12))
-      fail(MF, ['month'], `content/music/${file}: month is ${JSON.stringify(s.month)}; a release month is an integer 1-12 (1 = January), or left out`);
+    /* the release month (midi2song --month): required, for the season rule */
+    if (s.month === undefined)
+      fail(MF, ['month'], `content/music/${file}: no month. Every song needs its release month, an integer 1-12 (1 = January): the first release, single or album, whichever came first.`);
+    if (!(Number.isInteger(s.month) && s.month >= 1 && s.month <= 12))
+      fail(MF, ['month'], `content/music/${file}: month is ${JSON.stringify(s.month)}; a release month is an integer 1-12 (1 = January)`);
     music[id] = stripNotes(s);
   }
   if (!files.includes('playlist.json')) return { music, playlist: {}, note: 'no playlist.json yet' };
@@ -799,8 +841,9 @@ function buildMusic(src, levels) {
     list.forEach((id, j) => {
       if (typeof id !== 'string' || !music[id])
         fail(F, [k, j], `${F}: "${k}" names ${JSON.stringify(id)}, which is not a song in content/music/ (have: ${Object.keys(music).join(' ') || 'none'})`);
+      /* the year window only: a late month is a warning (songEligible), not a failure */
       const y = music[id].year;
-      if (lv && isNum(y) && (y > lv.year || y < lv.year - MUSIC_LOOKBACK))
+      if (lv && isNum(y) && !songEligible(music[id], levels, +k - 1).ok)
         fail(F, [k, j], `${F}: level ${k} (${lv.name}) plays "${id}" from ${y}. A level may only play songs from ${lv.year - MUSIC_LOOKBACK}-${lv.year}: its own year or up to ${MUSIC_LOOKBACK} before, never after.`);
     });
     playlist[k] = list;
