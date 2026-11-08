@@ -5585,10 +5585,30 @@ const Dialog = {
   say(who, line, o) {
     o = o || {};
     this.active = true; this.t = 0; this.hold = o.secs || 3.2;
-    this.who = who; this.lines = [].concat(line);
+    this.who = who;
+    this.lines = typeof line === 'string' ? this.wrap(line, o.face) : [].concat(line);
     this.sub = o.sub || ''; this.meter = o.meter == null ? null : o.meter;
     this.face = o.face || null; this.hostile = !!o.hostile;
     this.hood = o.hood || 0; this.blinkT = 1.4 + Math.random() * 1.6; this.blink = 0;
+  },
+
+  /** greedy word wrap into the bubble beside this face. The same rule as wrapRows
+      in tools/content/validate.mjs (src/ cannot import it); the headless suite
+      asserts they agree. A word wider than a row sits on a row of its own. */
+  wrap(line, face) {
+    const f = face && FACES[face];
+    const fw = f ? Math.max(DLG_BOX, f.w + 4) : DLG_BOX;
+    const bx = DLG_X + 3 + fw + 10, bw = DLG_X + (VW - 8) - 6 - bx;
+    const limit = Math.min(bw - 8, textW('X'.repeat(34), 1));
+    const rows = [];
+    let cur = '';
+    for (const word of line.split(' ')) {
+      if (!word) continue;
+      const next = cur ? cur + ' ' + word : word;
+      if (cur && textW(next, 1) > limit) { rows.push(cur); cur = word; } else cur = next;
+    }
+    if (cur) rows.push(cur);
+    return rows;
   },
 
   drop() { this.active = false; },

@@ -375,15 +375,38 @@ function buildScores(src) {
    here only for the width check. */
 const DLG_BUBBLE_PAD = 10;
 export const DLG_MAX_CHARS = 34;
+export const DLG_MAX_ROWS = 2;
 export const DLG_KEYS = ['who', 'delivered', 'missed', 'late', 'arrive', 'wait', 'queue', 'walkout', 'served', 'wrong'];
 const ERA_PREFIX = /^([0-9])\|/;
-function buildDialogue(src, faces) {
-  const F = 'content/dialogue.json';
-  const raw = src.readJSON('dialogue.json');
+
+/* Greedy word wrap with the 5x7 font's width. null when one word alone is wider
+   than a row. Dialog.wrap in src/72_dialog.js is the same rule (src/ cannot
+   import); the headless suite asserts the two agree. */
+export function wrapRows(body, limitPx) {
+  const rows = [];
+  let cur = '';
+  for (const word of body.split(' ').filter(Boolean)) {
+    if (textPx(word, 1) > limitPx) return null;
+    const next = cur ? cur + ' ' + word : word;
+    if (cur && textPx(next, 1) > limitPx) { rows.push(cur); cur = word; } else cur = next;
+  }
+  if (cur) rows.push(cur);
+  return rows;
+}
+
+/* the widest a row of dialogue may be: the bubble beside the widest baked face,
+   capped at DLG_MAX_CHARS characters */
+export function dlgLimitPx(faces) {
   const widestFace = Math.max(56, ...Object.values(faces).map((f) => f.w + 4));
   const bx = 7 + widestFace + DLG_BUBBLE_PAD;
   const bubblePx = (4 + 376 - 6) - bx - 8;            // bubble inner width, less padding
-  const limitPx = Math.min(bubblePx, textPx('X'.repeat(DLG_MAX_CHARS), 1));
+  return { widestFace, bubblePx, limitPx: Math.min(bubblePx, textPx('X'.repeat(DLG_MAX_CHARS), 1)) };
+}
+
+function buildDialogue(src, faces) {
+  const F = 'content/dialogue.json';
+  const raw = src.readJSON('dialogue.json');
+  const { widestFace, bubblePx, limitPx } = dlgLimitPx(faces);
   const maxChars = Math.floor((limitPx + 1) / 6);
   const why = bubblePx < textPx('X'.repeat(DLG_MAX_CHARS), 1)
     ? `The bubble gives ${bubblePx}px beside a ${widestFace}px portrait`
@@ -415,12 +438,17 @@ function buildDialogue(src, faces) {
         fail(F, P, `${F}: "${k}" line ${JSON.stringify(s)} must be ALL CAPS, as it is drawn.`);
       if (!body.trim()) fail(F, P, `${F}: "${k}" has an empty line`);
       drawable(F, P, `${F}: "${k}" line`, body);
-      const w = textPx(body, 1);
-      if (w > limitPx) {
+      const rows = wrapRows(body, limitPx);
+      if (!rows) {
+        const big = body.split(' ').reduce((x, y) => (y.length > x.length ? y : x), '');
         fail(F, P,
-          `${F}: "${k}" line ${JSON.stringify(s)} is ${w}px wide.\n` +
-          `  ${why}, so the limit is ${maxChars} characters.\n` +
-          `  Trim ${body.length - maxChars} character${body.length - maxChars === 1 ? '' : 's'}.`);
+          `${F}: "${k}" line ${JSON.stringify(s)} has a word too wide for one row (${JSON.stringify(big)}, ${textPx(big, 1)}px).\n` +
+          `  ${why}, so a row holds ${maxChars} characters. Break it up or shorten the word.`);
+      }
+      if (rows.length > DLG_MAX_ROWS) {
+        fail(F, P,
+          `${F}: "${k}" line ${JSON.stringify(s)} needs ${rows.length} rows; the bubble holds ${DLG_MAX_ROWS}.\n` +
+          `  ${why}, so a row holds ${maxChars} characters. Trim it to fit ${DLG_MAX_ROWS} rows.`);
       }
     });
     /* every pool needs a line 1972 can say, or the strip draws nothing in Era 1 */

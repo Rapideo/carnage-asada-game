@@ -1182,9 +1182,24 @@ console.log('\n— docs —');
 
       /* the width check is the validator's: an over-wide line is a ContentError at [key, index] */
       let wide = null;
-      try { validateContent(memSource(gx((d) => { d.delivered[2] = 'THIS LINE IS FAR TOO WIDE FOR THE SPEECH BUBBLE BESIDE THE PORTRAIT'; }))); } catch (x) { wide = x; }
-      ok(wide instanceof ContentError && wide.file === 'content/dialogue.json' && wide.path.join() === 'delivered,2' && /Trim \d+ character/.test(wide.message),
-         'an over-wide line is a ContentError with path [key, index] (' + (wide && wide.path.join()) + ')');
+      try { validateContent(memSource(gx((d) => { d.delivered[2] = 'THIS LINE IS FAR TOO WIDE FOR THE SPEECH BUBBLE BESIDE THE PORTRAIT AND IT KEEPS GOING ON'; }))); } catch (x) { wide = x; }
+      ok(wide instanceof ContentError && wide.file === 'content/dialogue.json' && wide.path.join() === 'delivered,2' && /3 rows/.test(wide.message),
+         'a line needing 3 rows is a ContentError with path [key, index] (' + (wide && wide.path.join() + ': ' + wide.message.split('\n')[0]) + ')');
+
+      /* two-row lines: a 50-character line of short words wraps to 2 rows and validates */
+      const { wrapRows, DLG_MAX_ROWS } = await import('../tools/content/validate.mjs');
+      const L50 = 'WE ARE SO SORRY ABOUT THE WAIT HERE IS YOUR TACOS';
+      ok(L50.length >= 49 && L50.length <= 51 && DLG_MAX_ROWS === 2, 'the sample line is 50 characters and the bubble holds 2 rows (' + L50.length + ')');
+      const wr = wrapRows(L50, 200);
+      ok(Array.isArray(wr) && wr.length === 2 && wr.join(' ') === L50, 'wrapRows breaks 50 characters of short words into 2 rows (' + JSON.stringify(wr) + ')');
+      ok(wrapRows('A'.repeat(40), 200) === null, 'wrapRows returns null for a word wider than a row');
+      let two = null;
+      try { validateContent(memSource(gx((d) => { d.delivered[2] = L50; }))); } catch (x) { two = x; }
+      ok(two === null, 'a 50-character line of short words validates (' + (two && two.message.split('\n')[0]) + ')');
+      let word = null;
+      try { validateContent(memSource(gx((d) => { d.delivered[2] = 'HELLO ' + 'O'.repeat(40) + ' THERE'; }))); } catch (x) { word = x; }
+      ok(word instanceof ContentError && word.path.join() === 'delivered,2' && /too wide/.test(word.message) && word.message.includes('OOOO'),
+         'a 40-letter word is a ContentError naming the line and "too wide" (' + (word && word.message.split('\n')[0]) + ')');
     }
 
     /* faces.md: per era, the cast; each face's name, size and whether its eyes are set */
@@ -1816,9 +1831,9 @@ console.log('\n— dialogue panel —');
       ok(store.error && store.error.path.join() === 'late,8' && /’/.test(store.error.message) && ctl('late.8').classList.contains('adm-bad'), 'a curly quote is still flagged by name on its field (' + (store.error && store.error.message.slice(0, 80)) + ')');
       type(ctl('late.8'), 'TIME IS MONEY, TACO BOY!');
       /* the width check is the validator's */
-      type(ctl('missed.1'), 'THIS LINE IS FAR TOO WIDE FOR THE SPEECH BUBBLE BESIDE THE PORTRAIT');
-      ok(store.error && store.error.path.join() === 'missed,1' && ctl('missed.1').classList.contains('adm-bad') && /Trim \d+ character/.test(ctl('missed.1')._msg.textContent),
-         'an over-wide line is flagged on its field with the validator\'s message and how much to trim');
+      type(ctl('missed.1'), 'THIS LINE IS FAR TOO WIDE FOR THE SPEECH BUBBLE BESIDE THE PORTRAIT AND IT KEEPS GOING ON');
+      ok(store.error && store.error.path.join() === 'missed,1' && ctl('missed.1').classList.contains('adm-bad') && /3 rows/.test(ctl('missed.1')._msg.textContent),
+         'a too-long line is flagged on its field with the validator\'s row count');
       const ctr = nodes().find((n) => n.dataset.count === 'missed.1');
       ok(ctr && /^\d+\/34$/.test(ctr.textContent), 'the field carries a live character count against the cap (' + (ctr && ctr.textContent) + ')');
       type(ctl('missed.1'), 'IN THE BUSHES. VERY CLASSY.');

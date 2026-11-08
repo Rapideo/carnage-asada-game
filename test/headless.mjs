@@ -1372,6 +1372,27 @@ for (const era of [1, 2, 3]) {
 }
 ok(tooWideRecipe === 0, 'every recipe line fits the menu card');
 
+/* The wrap rule exists twice: wrapRows in validate.mjs (the build) and Dialog.wrap
+   (the game; src/ cannot import). This keeps them from drifting. */
+console.log('\n— dialogue —');
+{
+  const { wrapRows, DLG_MAX_ROWS } = await import('../tools/content/validate.mjs');
+  const { Dialog, FACES, DLG_BOX } = sandbox.__k;
+  const widestKey = Object.keys(FACES).reduce((a, k) => (FACES[k].w > FACES[a].w ? k : a));
+  const fw = Math.max(DLG_BOX, FACES[widestKey].w + 4);
+  const bw = (4 + 376 - 6) - (4 + 3 + fw + 10);       // as in Dialog.draw
+  const L50 = 'WE ARE SO SORRY ABOUT THE WAIT HERE IS YOUR TACOS';
+  Dialog.say('CUSTOMER', L50, { face: widestKey });
+  ok(Dialog.lines.length === 2, `a 50-character line wraps to two rows (${Dialog.lines.length})`);
+  ok(Dialog.lines.every((r) => textW(r, 1) <= bw - 2), `every row fits the bubble beside the widest face (${Dialog.lines.map((r) => textW(r, 1)).join('/')} in ${bw - 2}px)`);
+  const tests = [L50, 'SHORT', 'ONE TWO THREE FOUR FIVE SIX SEVEN EIGHT NINE TEN', 'THANKS A MILLION FOR THE FAST DELIVERY PAL'];
+  const bad = tests.filter((s) => Dialog.wrap(s, widestKey).length !== wrapRows(s, Math.min(bw - 8, 34 * 6 - 1)).length);
+  ok(bad.length === 0 && DLG_MAX_ROWS === 2, 'Dialog.wrap and the validator\'s wrapRows agree on the row count' + (bad.length ? ': ' + bad.join(' | ') : ''));
+  Dialog.say('CUSTOMER', ['ONE', 'TWO'], { face: widestKey });
+  ok(Dialog.lines.join() === 'ONE,TWO', 'an array of rows is used as given');
+  Dialog.drop();
+}
+
 console.log('\n— kitchen demo —');
 /* the demo's level set is content: attract.demo.levels, "random" or a list */
 {
