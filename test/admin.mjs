@@ -103,6 +103,14 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
   ok(e instanceof ContentError && e.file === 'content/faces/c70teacher.json' && e.path.join() === 'skin', 'a lid colour (skin) that is not in the face\'s palette is refused');
 }
 
+/* a song's release month: optional, an integer 1-12 when present (Task 13; Task 14 fills them in) */
+{
+  const monthErr = (m) => { const f = structuredClone(files); f['music/kashmir.json'].month = m; let x = null; try { validateContent(memSource(f)); } catch (y) { x = y; } return x; };
+  ok([0, 13, 2.5, '3', null].every((m) => { const x = monthErr(m); return x instanceof ContentError && x.file === 'content/music/kashmir.json' && x.path.join() === 'month'; }),
+     'a song month of 0, 13, 2.5, "3" or null is refused on [month] (' + (monthErr(13) && monthErr(13).message) + ')');
+  ok(monthErr(1) === null && monthErr(12) === null && monthErr(undefined) === null, 'months 1 and 12, or none, are accepted');
+}
+
 const before = JSON.stringify(files);
 validateContent(memSource(files));
 ok(JSON.stringify(files) === before, 'validating does not mutate the source');
@@ -145,7 +153,10 @@ console.log('\n— server —');
   const { mkdtempSync, cpSync, writeFileSync, rmSync } = await import('node:fs');
   const { tmpdir } = await import('node:os');
   const tmp = mkdtempSync(join(tmpdir(), 'admin-'));
-  for (const f of ['build.mjs', 'shell.html', 'src', 'content', 'tools/content', 'tools/render/recolor-lattice.mjs']) cpSync(f, join(tmp, f), { recursive: true });
+  /* a few MIDIs, not the library: one ported, one that ports, one that fails (99Problems has no notes to arrange), one at the root */
+  const MIDIS = ['70s/Kashmir.mid', '80s/HazyShadeOfWinter.mid', '90s/99Problems.mid', 'OnTheOutside.mid'];
+  for (const f of ['build.mjs', 'shell.html', 'src', 'content', 'tools/content', 'tools/render/recolor-lattice.mjs', 'tools/music/midi2song.mjs', 'tools/music/songs.json',
+    ...MIDIS.map((m) => 'reference/assets/midi/' + m)]) cpSync(f, join(tmp, f), { recursive: true });
   (await import('node:child_process')).execFileSync('node', ['build.mjs'], { cwd: tmp, stdio: 'pipe' });
   const { startAdmin } = await import('../tools/content/server.mjs');
   const srv = await startAdmin({ root: tmp, port: 0 });
@@ -247,6 +258,57 @@ console.log('\n— server —');
       catch (x) { toolCode = x.status; }
       ok(toolCode === 2 && readFileSync(raceFile, 'utf8') === raceText, 'recolor-lattice.mjs run by hand onto an existing name exits 2 and leaves the file alone (' + toolCode + ')');
       ok((await recolor({ src: 'BEANS', name: 'X', hue: 0, sat: 1, val: 1 }, 'http://evil.example')).status === 403, 'recolour checks the Origin too');
+    }
+
+    /* the MIDI library and porting: a port writes one song and its songs.json
+       entry, in the temp root, and never over an existing id */
+    {
+      const { existsSync } = await import('node:fs');
+      const port = (body, origin) => fetch(srv.url + '/admin/api/port', {
+        method: 'POST', headers: { 'content-type': 'application/json', origin: origin || srv.url }, body: JSON.stringify(body) });
+      const lib = async () => { const x = await fetch(srv.url + '/admin/api/midis'); return x.status === 200 ? x.json() : null; };
+      const l0 = await lib();
+      ok(Array.isArray(l0) && l0.map((m) => m.file).join() === [...MIDIS].sort().join() && l0.every((m) => Array.isArray(m.ids)),
+         'GET midis lists every .mid under reference/assets/midi, sorted, each with its song ids (' + JSON.stringify(l0) + ')');
+      const km = l0 && l0.find((m) => m.file === '70s/Kashmir.mid'), hz = l0 && l0.find((m) => m.file === '80s/HazyShadeOfWinter.mid');
+      ok(km && km.ids.join() === 'kashmir' && hz && hz.ids.length === 0, 'a ported MIDI names its song; an unported one names none');
+      const SJ = join(tmp, 'tools/music/songs.json'), sjText = readFileSync(SJ, 'utf8');
+      const kj = join(tmp, 'content/music/kashmir.json'), kText = readFileSync(kj, 'utf8');
+      const hazy = { file: '80s/HazyShadeOfWinter.mid', id: 'hazy-shade-of-winter', title: 'A HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987, month: 11 };
+      r = await port({ ...hazy, id: 'kashmir' }); j = await r.json();
+      ok(r.status === 409 && j.error === 'exists' && readFileSync(kj, 'utf8') === kText && readFileSync(SJ, 'utf8') === sjText,
+         'porting into an existing id is 409 exists, and the song and songs.json are untouched (' + r.status + ')');
+      const bad = [{ ...hazy, id: '../x' }, { ...hazy, id: 'Upper' }, { ...hazy, id: 'playlist' }, { ...hazy, file: '../../content/levels.json' },
+        { ...hazy, file: '70s/../../../content/x.mid' }, { ...hazy, file: 'C:/x.mid' }, { ...hazy, file: '70s\\Kashmir.mid' }, { ...hazy, file: '70s/Missing.mid' },
+        { ...hazy, title: '' }, { ...hazy, artist: 7 }, { ...hazy, year: 1987.5 }, { ...hazy, month: 13 }, { ...hazy, month: 0 }];
+      const codes = [];
+      for (const b of bad) codes.push((await port(b)).status);
+      ok(codes.every((c) => c === 400) && !existsSync(join(tmp, 'content/music/hazy-shade-of-winter.json')) && readFileSync(SJ, 'utf8') === sjText,
+         'a bad id, a file outside the library or missing, an empty title, a bad year or month is 400, and nothing is written (' + codes.join() + ')');
+      r = await port(hazy); j = await r.json();
+      const made = join(tmp, 'content/music/hazy-shade-of-winter.json');
+      ok(r.status === 200 && j.rel === 'music/hazy-shade-of-winter.json' && j.json && j.json.id === hazy.id && j.json.title === hazy.title && j.json.artist === hazy.artist
+         && j.json.year === 1987 && j.json.month === 11 && j.json.src === hazy.file && j.json.len > 0 && existsSync(made)
+         && JSON.stringify(JSON.parse(readFileSync(made, 'utf8'))) === JSON.stringify(j.json),
+         'porting an unported MIDI is 200 { rel, json } and writes content/music/<id>.json, month and all (' + r.status + ' ' + JSON.stringify(j).slice(0, 160) + ')');
+      const sj = JSON.parse(readFileSync(SJ, 'utf8')), last = sj.songs[sj.songs.length - 1];
+      ok(sj.songs.length === JSON.parse(sjText).songs.length + 1 && JSON.stringify(last) === JSON.stringify({ id: hazy.id, file: hazy.file, title: hazy.title, artist: hazy.artist, year: 1987, month: 11 })
+         && readFileSync(SJ, 'utf8') === formatSongs(sj), 'songs.json gains the entry, written one song per line (' + JSON.stringify(last) + ')');
+      let vb = null; try { vb = validateContent(fsSource(join(tmp, 'content'))); } catch (x) { vb = x; }
+      ok(vb && vb.music && vb.music[hazy.id] && vb.music[hazy.id].month === 11, 'the temp content validates with the ported song in it' + (vb instanceof Error ? ': ' + vb.message : ''));
+      ok(!existsSync('content/music/hazy-shade-of-winter.json') && !readFileSync('tools/music/songs.json', 'utf8').includes('hazy-shade'), 'and nothing in the real repo');
+      const madeText = existsSync(made) ? readFileSync(made, 'utf8') : null, sj2 = readFileSync(SJ, 'utf8');
+      r = await port({ ...hazy, title: 'AGAIN' });
+      ok(r.status === 409 && (await r.json()).error === 'exists' && madeText !== null && readFileSync(made, 'utf8') === madeText && readFileSync(SJ, 'utf8') === sj2, 'a second port under the same id is refused, not overwritten');
+      const l1 = await lib();
+      ok(l1 && (l1.find((m) => m.file === hazy.file) || { ids: [] }).ids.join() === hazy.id, 'and the library now names the song');
+      r = await port({ file: '90s/99Problems.mid', id: 'ninety-nine-problems', title: '99 PROBLEMS', artist: 'JAY-Z', year: 2003 }); j = await r.json();
+      ok(r.status === 422 && typeof j.log === 'string' && j.log.length > 0 && !existsSync(join(tmp, 'content/music/ninety-nine-problems.json')) && readFileSync(SJ, 'utf8') === sj2,
+         'a MIDI the arranger cannot use is 422 { log }, and leaves nothing behind (' + r.status + ')');
+      r = await port({ file: 'OnTheOutside.mid', id: 'on-the-outside', title: 'ON THE OUTSIDE’', artist: 'X', year: 1990 }); j = await r.json();
+      ok(r.status === 422 && /’/.test(j.log || '') && !existsSync(join(tmp, 'content/music/on-the-outside.json')) && readFileSync(SJ, 'utf8') === sj2,
+         'a title the font cannot draw is 422 naming the character, and leaves nothing behind (' + r.status + ' ' + String(j.log).slice(0, 80) + ')');
+      ok((await port(hazy, 'http://evil.example')).status === 403, 'the port route checks the Origin too');
     }
 
     /* a face edit (eyes) is written in the layout the face file already has */
@@ -427,6 +489,54 @@ const diskBuilt = validateContent(fsSource('content'));
   try { A.applyBuilt(validateContent(memSource(f2)), G); frames(60); } catch (x) { threw = x; }
   ok(!threw, "swapping level 1's playlist during play, then 60 frames: no throw" + (threw ? ' — ' + threw.stack : ''));
   ok(runScript('PLAYLIST["1"].join()') === other, 'PLAYLIST["1"] is the new song');
+
+  /* Review Focus 5, with the music really playing: a stub AudioContext makes
+     Audio5 ready, so Music schedules notes and walks its queue. A 3-song list
+     plays into its third song, then shrinks to one under it. */
+  {
+    const AU = runScript('Audio5'), MU = runScript('Music');
+    const H = { get(t, k) { if (k in t) return t[k]; if (k === 'value') return 0; if (typeof k === 'symbol' || k === 'then') return undefined; return (t[k] = mk()); }, apply() { return mk(); } };
+    const mk = () => new Proxy(function () {}, H);
+    const actx = new Proxy({ currentTime: 0, sampleRate: 22050, state: 'running', destination: mk(), resume() {},
+      createBuffer: (c, n) => ({ getChannelData: () => new Float32Array(n) }), createPeriodicWave: () => ({}) },
+    { get: (t, k) => (k in t ? t[k] : () => mk()) });
+    const saved = { ctx: AU.ctx, ready: AU.ready, master: AU.master, sfxBus: AU.sfxBus, musBus: AU.musBus };
+    Object.assign(AU, { ctx: actx, ready: true, master: mk(), sfxBus: mk(), musBus: mk() });
+    const tick = (secs) => { actx.currentTime += secs; MU._tick(); };
+    threw = null;
+    try {
+      const f3 = files2(); f3['music/playlist.json']['1'] = ['immigrant-song', 'black-dog', 'walk-on-the-wild-side'];
+      A.applyBuilt(validateContent(memSource(f3)), G);
+      G.startRun(1); G.beginShift(); frames(10);
+      ok(G.state === 'play' && MU.playing() && MU.queue.join() === 'immigrant-song,black-dog,walk-on-the-wild-side', 'level 1 plays its 3-song list (' + MU.queue.join() + ')');
+      let guard = 0;
+      while (MU.idx !== 2 && guard++ < 50) tick(20);
+      ok(MU.idx === 2 && MU.now().id === 'walk-on-the-wild-side', 'and walks it into the third song (' + MU.idx + ')');
+      const f1 = files2(); f1['music/playlist.json']['1'] = ['black-dog'];
+      A.applyBuilt(validateContent(memSource(f1)), G);
+      for (let i = 0; i < 40; i++) { tick(0.5); frames(1); }
+      ok(MU.playing() && MU.queue.join() === 'black-dog' && MU.idx === 0 && MU.now().id === 'black-dog', 'shrinking the playing list to one song: the refresher puts the new list on (' + MU.queue.join() + ' ' + MU.idx + ')');
+
+      /* Listen: the game's own player, the level's music released, then restored */
+      const L = A.music;
+      ok(L && typeof L.listen === 'function' && typeof L.stop === 'function', 'apply.js puts Admin.music.listen and stop on Admin');
+      const orig = G.playMusic;
+      L.listen('kashmir', G); tick(0.5);
+      ok(MU.queue.join() === 'kashmir' && MU.now().id === 'kashmir' && L.listening === 'kashmir', 'Listen plays one song through Music (' + MU.queue.join() + ')');
+      const f2b = files2(); f2b['music/playlist.json']['1'] = ['immigrant-song', 'black-dog'];
+      A.applyBuilt(validateContent(memSource(f2b)), G); tick(0.5);
+      G.playMusic('title'); tick(0.5);
+      ok(MU.queue.join() === 'kashmir' && G.musicKey === 'title', 'while listening, a playlist edit or the game changing its music does not cut in, but the key is kept (' + MU.queue.join() + ' ' + G.musicKey + ')');
+      G.playMusic(1);
+      L.stop(G); tick(0.5);
+      ok(L.listening === null && G.playMusic === orig && MU.queue.join() === 'immigrant-song,black-dog', 'Stop restores the level\'s music, its newest list, through G.playMusic (' + MU.queue.join() + ')');
+      for (let i = 0; i < 20; i++) { tick(0.5); frames(1); }
+    } catch (x) { threw = x; }
+    ok(!threw, 'a playing list shrunk, a listen and a stop, with frames between: no throw' + (threw ? ' — ' + threw.stack : ''));
+    MU.stop(); MU.owns = false;
+    Object.assign(AU, saved);
+    A.applyBuilt(validateContent(memSource(files2())), G);
+  }
 
   /* identity is kept, so every module's captured reference stays good */
   const L0 = runScript('LEVELS'), D0 = runScript('DIFFICULTY');
@@ -1066,6 +1176,82 @@ console.log('\n— docs —');
       ok(IX.renderAll(files, (f) => f === 'menu.md' ? mold : null)['menu.md'] === mout, 'renderAll renders menu.md');
     }
 
+    /* music.md: per year, the Driving and Kitchen Shift lists; the title list; the rules as prose */
+    let MU = null;
+    try { MU = (await import('../tools/content/docs/music.mjs')).default; } catch (x) { console.error('  (' + x.message + ')'); }
+    ok(MU && MU.file === 'music.md' && IX.DOCS.includes(MU), 'music.md is a registered doc');
+    if (MU) {
+      const uold = readFileSync(join(DIR, 'music.md'), 'utf8').replace(/\r\n/g, '\n');
+      const PLR = 'music/playlist.json';
+      const ufx = (edit) => { const f = structuredClone(files); edit(f[PLR], f); return f; };
+      const songsOf = (f) => Object.fromEntries(Object.entries(f).filter(([r]) => /^music\/[^/]+\.json$/.test(r) && r !== PLR).map(([r, s]) => [r.slice(6, -5), s]));
+      const lists = (f) => Object.fromEntries(Object.entries(f[PLR]).filter(([k]) => !k.startsWith('_')));
+      const bareH = (hd) => hd.replace(/^[A-Z0-9]+\. /, '');
+      const at = (text, ...names) => {
+        let n = parseMd(text).children.find((c) => c.depth === 1);
+        for (const nm of names) n = n && n.children.find((c) => bareH(c.heading) === nm);
+        return n || { lines: [], children: [] };
+      };
+      const SONG = /^\d+\. .+ - .+ \(\d+\)$/, LVL = /^Level \d+, (Summer|Winter) \d{4}\.$/;
+      const songs = (n) => n.lines.filter((l) => SONG.test(l));
+      const proseOf = (src) => src.split('\n').filter((l) => l.trim() && !/^#/.test(l) && !SONG.test(l) && !LVL.test(l));
+      const lost = (src, o) => { const p = proseOf(src); let j = 0; for (const l of o.split('\n')) if (j < p.length && l === p[j]) j++; return j === p.length ? null : p[j]; };
+
+      const uout = MU.render(files, uold);
+      ok(MU.render(files, uout) === uout, 'rendering music.md is idempotent');
+      const a = uold.split('\n'), b = uout.split('\n');
+      const changed = a.map((l, i) => [l, b[i]]).filter(([x, y]) => x !== y);
+      ok(a.length === b.length && changed.length > 0 && changed.every(([x, y]) => (/^### [A-Z]\. \w+ Shift$/.test(x) && /^### [A-Z]\. (Driving|Kitchen) Shift$/.test(y))
+         || (SONG.test(x) && SONG.test(y) && x.toUpperCase() === y.toUpperCase())),
+         'from today\'s JSON only shift headings and song lines change, line for line, and a song line only in case (' + JSON.stringify(changed.filter(([x]) => !SONG.test(x)).slice(0, 4)) + ')');
+      const pn = proseOf(uold).length;
+      ok(pn >= 4 && lost(uold, uout) === null && uout.startsWith(uold.slice(0, uold.indexOf('## I. 1972'))), 'all ' + pn + ' prose lines survive in order, the preamble byte for byte (' + lost(uold, uout) + ')');
+      const top = parseMd(uout).children[0].children.map((c) => c.heading);
+      const years = [...new Set(files['levels.json'].levels.map((l) => l.year))];
+      ok(top.join('|') === [...years.map((y, i) => roman(i + 1) + '. ' + y), roman(years.length + 1) + '. Title Screen'].join('|'),
+         'one "## <roman>. <year>" per year, then the title section where the doc keeps it (' + top.join('|') + ')');
+      ok(parseMd(uout).children[0].children.slice(0, years.length).every((y) => y.children.map((c) => c.heading).join('|') === 'A. Driving Shift|B. Kitchen Shift'),
+         'every year has A. Driving Shift and B. Kitchen Shift');
+      const d1 = at(uout, '1972', 'Driving Shift');
+      ok(d1.lines.includes('Level 1, Summer 1972.') && songs(d1).join('|') === '1. IMMIGRANT SONG - LED ZEPPELIN (1970)|2. BLACK DOG - LED ZEPPELIN (1971)',
+         'a shift lists its Level line and its songs as TITLE - ARTIST (year), in the JSON\'s form (' + JSON.stringify(songs(d1)) + ')');
+      ok(songs(at(uout, '1975', 'Driving Shift')).join('|') === '1. BOHEMIAN RHAPSODY (the opera section) - QUEEN (1975)|2. BOHEMIAN RHAPSODY (the hard-rock section) - QUEEN (1975)',
+         'a bracketed note after a title is kept');
+      const tt = at(uout, 'Title Screen');
+      ok(songs(tt).join('|') === "1. ONE STEP BEYOND - MADNESS (1979)|2. REELIN' IN THE YEARS - STEELY DAN (1972)" && tt.lines.some((l) => /^The title songs play/.test(l)),
+         'the title section lists its songs after its note');
+
+      /* the brief: a level with 3 songs renders 3 numbered lines */
+      const three = ufx((p) => { p['1'] = ['immigrant-song', 'black-dog', 'walk-on-the-wild-side']; });
+      const u3 = MU.render(three, uold), t3 = at(u3, '1972', 'Driving Shift');
+      ok(songs(t3).join('|') === '1. IMMIGRANT SONG - LED ZEPPELIN (1970)|2. BLACK DOG - LED ZEPPELIN (1971)|3. WALK ON THE WILD SIDE - LOU REED (1972)'
+         && u3.includes('\n2. BLACK DOG - LED ZEPPELIN (1971)\n\n3. WALK ON THE WILD SIDE - LOU REED (1972)\n\n### B. Kitchen Shift\n'),
+         'a level with 3 songs renders 3 numbered lines, blank-separated (' + JSON.stringify(songs(t3)) + ')');
+      ok(lost(uold, u3) === null && !/\n\n\n/.test(u3) && MU.render(three, u3) === u3, 'with no prose lost and no doubled blank line, idempotently');
+      const one = ufx((p) => { p['1'] = ['black-dog']; p.title = ['reelin-in-the-years']; });
+      const u1 = MU.render(one, u3);
+      ok(songs(at(u1, '1972', 'Driving Shift')).join('|') === '1. BLACK DOG - LED ZEPPELIN (1971)' && songs(at(u1, 'Title Screen')).join('|') === "1. REELIN' IN THE YEARS - STEELY DAN (1972)"
+         && lost(uold, u1) === null && !/\n\n\n/.test(u1) && MU.render(one, u1) === u1, 'shrunk to one song each, the lists follow, the prose stays');
+      /* a year that changes keeps the prose under it */
+      const noted = uold.replace('## I. 1972\n\n### A.', '## I. 1972\n\nThe first year.\n\n### A.');
+      const yr = ufx((p, f) => { f['levels.json'].levels[0].year = 1973; f['levels.json'].levels[1].year = 1973; });
+      const uy = MU.render(yr, noted);
+      ok(at(uy, '1973').lines.includes('The first year.') && at(uy, '1973', 'Driving Shift').lines.includes('Level 1, Summer 1973.') && !uy.includes('## I. 1972'),
+         'a level year that changes renames its section and keeps its prose');
+      /* a note under a song list stays with it */
+      const n2 = uold.replace('2. Black Dog - Led Zeppelin (1971)\n', '2. Black Dog - Led Zeppelin (1971)\n\nBoth from the band\'s first run.\n');
+      const un = MU.render(three, n2);
+      ok(lost(n2, un) === null && at(un, '1972', 'Driving Shift').lines.includes('Both from the band\'s first run.'), 'prose between songs is kept in its section');
+
+      /* round trip: reading a render back gives the playlists */
+      const rt = (f, prev) => { const t = MU.render(f, prev); return typeof MU.read === 'function' && JSON.stringify(MU.read(t, songsOf(f))) === JSON.stringify(lists(f)); };
+      const fresh = MU.render(files, null);
+      ok(rt(files, uold) && rt(three, uold) && rt(one, u3) && rt(files, null), 'music.md round-trips: reading a render back gives every list, in order');
+      ok(parseMd(fresh).children[0].children[0].heading === 'I. Title Screen' && parseMd(fresh).children[0].children[1].heading === 'II. 1972'
+         && MU.render(files, fresh) === fresh, 'from nothing the title section comes first, then the years, idempotently');
+      ok(IX.renderAll(files, (f) => f === 'music.md' ? uold : null)['music.md'] === uout, 'renderAll renders music.md');
+    }
+
     /* the same-as rule: a Same-as item with a wrapped note */
     {
       const sw = parseMd('### C. P\n\n- Same as Medium : A 1.00,\n  B 2.00. A note\n  that wraps\n').children[0];
@@ -1576,6 +1762,127 @@ console.log('\n— faces panel —');
     } finally { globalThis.fetch = realFetch; delete globalThis.Admin.test; }
   }
   store.files = structuredClone(files); store.dirty.clear(); store.error = null;
+  globalThis.Admin.applyBuilt = realApply;
+}
+
+console.log('\n— music panel —');
+{
+  const { store } = await import('../admin/store.js');
+  const FL = await import('../admin/fields.js');
+  const realApply = globalThis.Admin.applyBuilt, realFetch = globalThis.fetch, realMusic = globalThis.Admin.music;
+  const applied = [];
+  globalThis.Admin.applyBuilt = (b, g, o) => { applied.push(o || {}); return []; };
+  store.files = structuredClone(files); store.dirty.clear(); store.error = null;
+  let loaded = true;
+  try { await import('../admin/panels/music.js'); } catch (x) { loaded = false; console.error('  (' + x.message + ')'); }
+  const tab = FL.tabs.get('music');
+  ok(loaded && tab && tab.title === 'Music', 'the Music panel registers its tab');
+  ok(/import '\.\/panels\/music\.js'/.test(readFileSync('admin/overlay.js', 'utf8')), 'the overlay imports the Music panel');
+  if (tab) {
+    const tick = (ms = 5) => new Promise((x) => setTimeout(x, ms));
+    const calls = [];
+    globalThis.Admin.music = { listening: null, listen(id) { calls.push('listen:' + id); this.listening = id; return true; }, stop() { calls.push('stop'); this.listening = null; } };
+    const LIB = [{ file: '70s/BohemianRhapsody.mid', ids: ['bohemian-opera', 'bohemian-rock'] }, { file: '70s/Kashmir.mid', ids: ['kashmir'] }, { file: '80s/HazyShadeOfWinter.mid', ids: [] }];
+    let sent = [], reply = null;
+    globalThis.fetch = async (url, o) => {
+      if (/\/admin\/api\/midis$/.test(url)) return { status: 200, ok: true, json: async () => structuredClone(LIB) };
+      sent.push({ url, body: JSON.parse(o.body) });
+      return { status: reply.status, ok: reply.status === 200, json: async () => reply.json };
+    };
+    try {
+      const doc = fakeDoc(), el = doc.createElement('div');
+      doc.body.appendChild(el);
+      tab.render(el); await tick();
+      const nodes = () => el.walk(), find = (f) => nodes().find(f);
+      const act = (a, extra = {}) => find((n) => n.dataset.act === a && Object.entries(extra).every(([k, v]) => n.dataset[k] === String(v)));
+      const PL = () => store.files['music/playlist.json'];
+
+      /* library */
+      const rows = nodes().filter((n) => n.dataset.midi !== undefined && n.classList.contains('adm-midi'));
+      ok(rows.map((n) => n.dataset.midi).join() === LIB.map((m) => m.file).join(), 'the library lists every MIDI the server has (' + rows.map((n) => n.dataset.midi).join() + ')');
+      const row = (f) => rows.find((n) => n.dataset.midi === f);
+      ok(row('70s/Kashmir.mid').textContent.includes('KASHMIR - LED ZEPPELIN (1975)') && row('70s/BohemianRhapsody.mid').textContent.split('BOHEMIAN RHAPSODY - QUEEN (1975)').length === 3,
+         'a ported MIDI shows each of its songs: title, artist and year');
+      ok(row('80s/HazyShadeOfWinter.mid').textContent.includes('80s/HazyShadeOfWinter.mid') && act('port-open', { midi: '80s/HazyShadeOfWinter.mid' }) && !act('port-open', { midi: '70s/Kashmir.mid' }),
+         'an unported one shows its filename and a Port button');
+
+      /* listen */
+      act('listen', { id: 'kashmir' }).fire('click');
+      ok(calls.join() === 'listen:kashmir' && act('stop') && el.textContent.includes('KASHMIR'), 'Listen plays the song through Admin.music.listen, and Stop is offered');
+      act('stop').fire('click');
+      ok(calls.join() === 'listen:kashmir,stop' && !act('stop'), 'Stop stops it');
+
+      /* port */
+      act('port-open', { midi: '80s/HazyShadeOfWinter.mid' }).fire('click');
+      const pf = (k) => find((n) => n.dataset.port === k);
+      ok(['title', 'artist', 'year', 'month', 'id'].every((k) => pf(k)) && act('port'), 'Port opens a form: title, artist, year, month and id');
+      const fill = (o) => { for (const [k, v] of Object.entries(o)) { pf(k).value = v; pf(k).fire('input'); } };
+      fill({ title: 'a hazy shade of winter', artist: 'the bangles', year: '19x7', month: '11', id: '' });
+      act('port').fire('click'); await tick();
+      ok(sent.length === 0 && /year/.test(pf('msg').textContent), 'a year that is not one is refused before anything is sent (' + pf('msg').textContent + ')');
+      fill({ year: '1987', month: '13' });
+      act('port').fire('click'); await tick();
+      ok(sent.length === 0 && /month/.test(pf('msg').textContent), 'and so is a month past 12');
+      fill({ month: '11' });
+      const song = { ...structuredClone(files['music/kashmir.json']), id: 'a-hazy-shade-of-winter', title: 'A HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987, month: 11 };
+      reply = { status: 200, json: { rel: 'music/a-hazy-shade-of-winter.json', json: song, output: 'arranged' } };
+      applied.length = 0;
+      act('port').fire('click'); await tick();
+      ok(sent.length === 1 && /\/admin\/api\/port$/.test(sent[0].url)
+         && JSON.stringify(sent[0].body) === JSON.stringify({ file: '80s/HazyShadeOfWinter.mid', id: 'a-hazy-shade-of-winter', title: 'A HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987, month: 11 }),
+         'Port posts { file, id, title, artist, year, month }, upper-cased as the game draws it, the id from the title (' + JSON.stringify(sent[0] && sent[0].body) + ')');
+      ok(store.files['music/a-hazy-shade-of-winter.json'] === song && !store.dirty.has('music/a-hazy-shade-of-winter.json') && !store.bigUntouched().includes('music'),
+         'the ported song joins the working copy, not dirty, and the music table is applied from then on (' + store.bigUntouched().join() + ')');
+      ok(applied.length >= 1 && !(applied[applied.length - 1].skip || []).includes('music'), 'and it is applied to the game at once, music and all');
+      ok(act('listen', { id: 'a-hazy-shade-of-winter' }) && !act('port-open', { midi: '80s/HazyShadeOfWinter.mid' }), 'the library row now offers Listen');
+      reply = { status: 409, json: { error: 'exists', rel: 'music/kashmir.json' } };
+      LIB.push({ file: '90s/Lump.mid', ids: [] });
+      act('refresh-lib').fire('click'); await tick();
+      act('port-open', { midi: '90s/Lump.mid' }).fire('click');
+      fill({ title: 'kashmir', artist: 'x', year: '1995', month: '' });
+      act('port').fire('click'); await tick();
+      ok(sent[sent.length - 1].body.month === undefined && /already/.test(pf('msg').textContent), 'an empty month sends none; an id that exists is reported (' + pf('msg').textContent + ')');
+      reply = { status: 422, json: { error: 'job', log: 'midi2song: no lead candidate' } };
+      fill({ id: 'lump2' });
+      act('port').fire('click'); await tick();
+      ok(/no lead candidate/.test(pf('msg').textContent), 'a failed port shows its log');
+
+      /* playlists: the title, then 1..20 */
+      const secs = nodes().filter((n) => n.dataset.list !== undefined && n.classList.contains('adm-playlist')).map((n) => n.dataset.list);
+      ok(secs.join() === ['title', ...Array.from({ length: 20 }, (x, i) => String(i + 1))].join(), 'a list for the title, then one per level 1-20 (' + secs.join() + ')');
+      const items = (k) => nodes().filter((n) => n.classList.contains('adm-song') && n.dataset.list === k).map((n) => n.dataset.id);
+      ok(items('1').join() === PL()['1'].join() && items('title').join() === PL().title.join(), 'each list shows its songs, in order');
+      const pick = (k) => find((n) => n.dataset.pick === k);
+      const opt = (k, id) => pick(k).kids.find((o) => o.value === id);
+      ok(opt('1', 'kashmir') && opt('1', 'kashmir').disabled && /too new/.test(opt('1', 'kashmir').textContent), 'a song too new for the level is greyed, and says so (' + (opt('1', 'kashmir') || {}).textContent + ')');
+      ok(opt('5', 'immigrant-song') && opt('5', 'immigrant-song').disabled && /too old/.test(opt('5', 'immigrant-song').textContent), 'one more than 2 years before it is greyed, too old (' + (opt('5', 'immigrant-song') || {}).textContent + ')');
+      ok(opt('1', 'immigrant-song').disabled && /in this list/.test(opt('1', 'immigrant-song').textContent) && !opt('1', 'walk-on-the-wild-side').disabled, 'a song already in the list is greyed; an eligible one is not');
+      ok(!opt('title', 'kashmir').disabled && opt('title', 'a-hazy-shade-of-winter') && !opt('title', 'a-hazy-shade-of-winter').disabled, 'the title takes any song, the newly ported one too');
+      pick('1').value = 'walk-on-the-wild-side'; act('song-add', { list: '1' }).fire('click');
+      ok(PL()['1'].join() === 'immigrant-song,black-dog,walk-on-the-wild-side' && store.dirty.has('music/playlist.json') && store.error === null && items('1').length === 3,
+         'Add puts a third song on the level, and it validates');
+      pick('1').value = 'kashmir'; act('song-add', { list: '1' }).fire('click');
+      ok(PL()['1'].length === 3, 'a greyed song is not added');
+      act('song-up', { list: '1', j: 2 }).fire('click');
+      ok(PL()['1'].join() === 'immigrant-song,walk-on-the-wild-side,black-dog', 'up moves a song');
+      act('song-down', { list: '1', j: 0 }).fire('click');
+      ok(PL()['1'].join() === 'walk-on-the-wild-side,immigrant-song,black-dog', 'down moves a song');
+      const srow = (k, j) => find((n) => n.classList.contains('adm-song') && n.dataset.list === k && n.dataset.j === String(j));
+      ok(srow('1', 0).draggable === true, 'a song row can be dragged');
+      srow('1', 2).fire('dragstart'); srow('1', 0).fire('dragover'); srow('1', 0).fire('drop');
+      ok(PL()['1'].join() === 'black-dog,walk-on-the-wild-side,immigrant-song', 'dragging a row onto another moves it there (' + PL()['1'].join() + ')');
+      act('song-remove', { list: '1', j: 1 }).fire('click');
+      ok(PL()['1'].join() === 'black-dog,immigrant-song' && store.error === null, 'Remove takes a song out');
+      act('song-remove', { list: '1', j: 1 }).fire('click');
+      ok(PL()['1'].join() === 'black-dog' && act('song-remove', { list: '1', j: 0 }).disabled, 'the last song cannot be removed: a list needs one');
+      act('listen', { id: 'black-dog', list: '1' }).fire('click');
+      ok(calls[calls.length - 1] === 'listen:black-dog', 'a song in a list can be listened to');
+      store.set('music/playlist.json', '1', ['immigrant-song', 'black-dog']);
+      ok(JSON.stringify(PL()) === JSON.stringify(files['music/playlist.json']), 'every playlist edit was put back');
+    } finally { globalThis.fetch = realFetch; globalThis.Admin.music = realMusic; }
+  }
+  store.files = structuredClone(files); store.dirty.clear(); store.error = null;
+  if (store.added) store.added.clear();
   globalThis.Admin.applyBuilt = realApply;
 }
 

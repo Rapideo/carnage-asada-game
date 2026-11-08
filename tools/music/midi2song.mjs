@@ -6,6 +6,9 @@
        node tools/music/midi2song.mjs <file.mid> [--preview] [--out f.json]
             [--start BAR] [--bars N] [--lead K] [--bass K] [--harm K,K]
             [--res 4|6|8|12] [--id ID] [--title T] [--artist A] [--year Y]
+            [--month M] [--src S]
+       (--month is the release month, 1-12, written into the song as `month`;
+       --src the file as songs.json names it, e.g. 70s/Kashmir.mid)
        node tools/music/midi2song.mjs --scan reference/assets/midi
        node tools/music/midi2song.mjs --batch tools/music/songs.json [--preview]
 
@@ -540,6 +543,7 @@ export function arrange(file, opt = {}) {
     title: opt.title || basename(file, '.mid'),
     artist: opt.artist || '',
     year: opt.year || 0,
+    ...(opt.month ? { month: opt.month } : {}),
     src: opt.src || basename(file),
     bpm: Math.round(bpm * 100) / 100,
     res, bar: barSteps, len,
@@ -704,8 +708,11 @@ function parseArgs(argv) {
 
 function optsFrom(o) {
   const n = (v) => (v === undefined ? undefined : +v);
+  const month = n(o.month);
+  if (month !== undefined && !(Number.isInteger(month) && month >= 1 && month <= 12))
+    throw new Error(`--month ${o.month}: a release month is an integer 1-12 (1 = January)`);
   return {
-    id: o.id, title: o.title, artist: o.artist, year: n(o.year), src: o.src,
+    id: o.id, title: o.title, artist: o.artist, year: n(o.year), month, src: o.src,
     start: n(o.start), bars: n(o.bars), res: n(o.res),
     lead: o.lead, bass: o.bass, harm: o.harm ? (Array.isArray(o.harm) ? o.harm : String(o.harm).split(',')) : undefined,
   };

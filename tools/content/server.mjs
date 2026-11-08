@@ -3,10 +3,11 @@
    Dev-only; nothing here is bundled into taco-shop.html. */
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
-import { readFile, readdir, stat, writeFile, mkdir, rm } from 'node:fs/promises';
+import { readFile, readdir, stat, writeFile, mkdir, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { validateContent, memSource, ContentError } from './validate.mjs';
-import { formatJSON, formatLike } from './format.mjs';
+import { formatJSON, formatLike, formatSongs } from './format.mjs';
 import { renderDocsAt, writeTexts, driftAt } from './docs/index.mjs';
 
 const TYPES = {
@@ -16,6 +17,9 @@ const TYPES = {
 const BAKED = ['faces/', 'lattice/', 'board/'];
 /* a face's file name and cast key: lower-case, like c70teacher */
 const FACE_NAME = /^[a-z][a-z0-9]{1,23}$/, FACE_MAX_BYTES = 32 * 1024 * 1024;
+/* the MIDI library, and a ported song's id: its file name in content/music/ */
+const MIDI_DIR = 'reference/assets/midi', SONGS = 'tools/music/songs.json';
+const SONG_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/, MIDI_FILE = /\.midi?$/i;
 const INJECT ='<link rel="stylesheet" href="/admin/overlay.css"><script type="module" src="/admin/overlay.js"></script>';
 
 /* Raw spawn: resolves, never rejects. It takes NO lock. Inside startAdmin, run
@@ -244,7 +248,102 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
     if (held.busy) return send(res, 409, { error: 'busy' });
     send(res, held.value[0], held.value[1]);
   }
-  const builtin = { '/admin/api/recolor': recolor, '/admin/api/face': newFace };
+  /* tools/music/songs.json as { text, json }. No file is an empty list; a file
+     that does not parse is an error, never an empty list a port would then
+     write over it. */
+  async function readSongs() {
+    let text;
+    try { text = await readFile(join(root, ...SONGS.split('/')), 'utf8'); } catch (e) { if (e.code === 'ENOENT') return { text: null, json: { _root: MIDI_DIR, songs: [] } }; throw e; }
+    const json = JSON.parse(text);
+    if (!json || !Array.isArray(json.songs)) throw new Error(SONGS + ' has no "songs" list');
+    return { text, json };
+  }
+
+  /* GET /admin/api/midis -> [{ file: '70s/X.mid', ids: [...] }]: every .mid
+     and .midi under reference/assets/midi/, sorted, with the ids of the songs
+     songs.json arranges from it (none: not ported yet). */
+  async function midis() {
+    const out = [];
+    const walk = async (dir, rel) => {
+      let ents;
+      try { ents = await readdir(dir, { withFileTypes: true }); } catch { return; }
+      for (const e of ents) {
+        const r = rel ? rel + '/' + e.name : e.name;
+        if (e.isDirectory()) await walk(join(dir, e.name), r);
+        else if (MIDI_FILE.test(e.name)) out.push(r);
+      }
+    };
+    await walk(join(root, ...MIDI_DIR.split('/')), '');
+    out.sort();
+    const { json } = await readSongs();
+    return out.map((file) => ({ file, ids: json.songs.filter((s) => s && s.file === file).map((s) => s.id) }));
+  }
+
+  /* POST /admin/api/port { file, id, title, artist, year, month? }: arrange a
+     MIDI from the library with tools/music/midi2song.mjs, write the song to
+     content/music/<id>.json and its entry to tools/music/songs.json. Like a
+     recolour, the song is written when made: it ships with the next build
+     (everything in content/music/ does) but no level plays it until a saved
+     playlist names it. `file` is relative to reference/assets/midi/ and must
+     stay inside it. Nothing is overwritten: an id that is already a song file
+     or a songs.json entry is 409 exists. The arranger writes to a temp file;
+     the song is checked with the rest of the content before anything in the
+     repo is written, so a port that fails (422 { log }) leaves nothing behind.
+     -> 200 { rel: 'music/<id>.json', json, output } */
+  async function portSong(req, res) {
+    let b;
+    try { b = JSON.parse(await readBody(req)); } catch { return send(res, 400, { error: 'bad request' }); }
+    const { file, id, title, artist, year } = b || {};
+    const month = b && b.month != null ? b.month : undefined;
+    const str = (s) => typeof s === 'string' && s.trim() !== '' && s.length <= 80;
+    const fileOk = typeof file === 'string' && MIDI_FILE.test(file) && !file.includes('\\') && !file.startsWith('/') && !/^[a-z]:/i.test(file)
+      && file.split('/').every((s) => s !== '' && s !== '.' && s !== '..');
+    if (!fileOk || typeof id !== 'string' || !SONG_ID.test(id) || id.length > 48 || id === 'playlist' || !str(title) || !str(artist)
+        || !Number.isInteger(year) || year < 1900 || year > 2100 || (month !== undefined && !(Number.isInteger(month) && month >= 1 && month <= 12)))
+      return send(res, 400, { error: 'bad request' });
+    const lib = resolve(root, ...MIDI_DIR.split('/')), src = resolve(lib, ...file.split('/'));
+    if (!src.startsWith(lib + sep)) return send(res, 400, { error: 'bad request' });
+    try { if (!(await stat(src)).isFile()) throw new Error('not a file'); } catch { return send(res, 400, { error: 'no such midi', file }); }
+
+    const rel = 'music/' + id + '.json', dest = join(content, 'music', id + '.json');
+    /* the check, the job and the writes hold ONE lock, as the recolour does: runJob, not job */
+    let held;
+    try { held = await withBusy(() => portLocked(rel, dest, { file, src, id, title, artist, year, month })); }
+    catch (e) { return send(res, 500, { error: 'server', message: String(e && e.message || e) }); }
+    if (held.busy) return send(res, 409, { error: 'busy' });
+    send(res, held.value[0], held.value[1]);
+  }
+  async function portLocked(rel, dest, { file, src, id, title, artist, year, month }) {
+    const songs = await readSongs();
+    let there = true;
+    try { await stat(dest); } catch { there = false; }
+    if (there || songs.json.songs.some((s) => s && s.id === id)) return [409, { error: 'exists', rel }];
+    const tmp = await mkdtemp(join(tmpdir(), 'port-'));
+    try {
+      const out = join(tmp, id + '.json');
+      const opts = ['--id', id, '--title', title, '--artist', artist, '--year', String(year), ...(month !== undefined ? ['--month', String(month)] : []), '--src', file];
+      const r = await runJob(['node', 'tools/music/midi2song.mjs', src, ...opts, '--out', out], { cwd: root });
+      const log = ['$ node tools/music/midi2song.mjs ' + MIDI_DIR + '/' + file + ' ' + opts.map((a) => (/\s/.test(a) ? JSON.stringify(a) : a)).join(' '), (r.stdout + r.stderr).trim()];
+      const failed = (why) => [422, { error: 'job', log: log.concat(why ? [why] : []).join('\n') }];
+      if (r.code !== 0) return failed();
+      let text, json;
+      try { text = await readFile(out, 'utf8'); json = JSON.parse(text); } catch (e) { return failed('the arranger wrote no readable song: ' + e.message); }
+      /* the content as a whole has to take it (the title through the font, for one) */
+      const all = [], cand = {};
+      await walkJSON(content, '', all);
+      for (const x of all) cand[x] = JSON.parse(await readFile(join(content, x), 'utf8'));
+      cand[rel] = json;
+      try { validateContent(memSource(cand)); }
+      catch (e) { if (!(e instanceof ContentError)) throw e; return [422, { error: 'invalid', log: log.concat(['the content does not validate with this song in it: ' + e.message]).join('\n') }]; }
+      try { await writeFile(dest, text, { flag: 'wx' }); }
+      catch (e) { if (e.code === 'EEXIST') return [409, { error: 'exists', rel }]; throw e; }
+      const entry = { id, file, title, artist, year, ...(month !== undefined ? { month } : {}) };
+      try { await writeTexts(root, { [SONGS]: formatSongs({ ...songs.json, songs: [...songs.json.songs, entry] }) }); }
+      catch (e) { await rm(dest, { force: true }); throw e; }   // a song with no entry is half a port
+      return [200, { rel, json, output: r.stdout.trim() }];
+    } finally { await rm(tmp, { recursive: true, force: true }); }
+  }
+  const builtin = { '/admin/api/recolor': recolor, '/admin/api/face': newFace, '/admin/api/port': portSong };
 
   const server = createServer(async (req, res) => {
     try {
@@ -269,6 +368,9 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
         return send(res, 200, { files, stamp: await stamps(rels) });
       }
       if (path === '/admin/api/drift') return send(res, 200, await driftAt(root));
+      if (path === '/admin/api/midis') {
+        try { return send(res, 200, await midis()); } catch (e) { return send(res, 500, { error: 'server', message: String(e && e.message || e) }); }
+      }
       if (path === '/' || path === '/index.html') {
         const html = (await readFile(join(root, 'index.html'), 'utf8')).replace('</body>', INJECT + '</body>');
         res.writeHead(200, { 'content-type': 'text/html', 'cache-control': 'no-store' });

@@ -15,6 +15,7 @@ export const store = {
   files: {},                // rel -> parsed JSON (the working copy)
   stamp: {},                // rel -> mtimeMs at the last load / save
   dirty: new Set(),         // rel of files edited since
+  added: new Set(),         // rel of files a server job wrote since the load (adopt)
   error: null,              // the ContentError from the last validate, or null
   applyError: null,         // an exception thrown while pushing into the game
   listeners: new Set(),
@@ -30,6 +31,7 @@ export const store = {
     for (const [rel, raw] of Object.entries(body.files)) this.files[rel] = JSON.parse(raw);
     this.stamp = body.stamp;
     this.dirty.clear();
+    this.added.clear();
     this.error = null;
     this.emit();
   },
@@ -64,10 +66,19 @@ export const store = {
     return res;
   },
 
+  /* A file a server job has just written (a ported song): already on disk, so
+     into the working copy but not dirty. It is remembered, so the table it
+     feeds keeps being applied: were the content invalid at the moment it
+     arrived, the next valid edit still carries it into the game. */
+  adopt(rel, json) {
+    this.files[rel] = json;
+    this.added.add(rel);
+  },
+
   /* The big baked tables are most of the build; skip comparing them unless a
-     file that feeds them is dirty. */
+     file that feeds them is dirty (or was adopted since the load). */
   bigUntouched() {
-    const rels = [...this.dirty], any = (f) => rels.some(f);
+    const rels = [...this.dirty, ...this.added], any = (f) => rels.some(f);
     const skip = [];
     if (!any((r) => r.startsWith('faces/'))) skip.push('faces');
     if (!any((r) => r.startsWith('lattice/'))) skip.push('lattice');

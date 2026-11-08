@@ -778,6 +778,9 @@ function buildMusic(src, levels) {
     if (!s || typeof s !== 'object' || Array.isArray(s)) fail(MF, [], `content/music/${file} must be a song object`);
     if (s.id !== undefined && s.id !== id) fail(MF, ['id'], `content/music/${file}: id is "${s.id}" but the file is ${file}; they must match`);
     for (const f of ['title', 'artist']) if (s[f] !== undefined) drawable(MF, [f], `content/music/${file} ${f}`, s[f]);
+    /* the release month (midi2song --month), for the season rule: optional until every song has one */
+    if (s.month !== undefined && !(Number.isInteger(s.month) && s.month >= 1 && s.month <= 12))
+      fail(MF, ['month'], `content/music/${file}: month is ${JSON.stringify(s.month)}; a release month is an integer 1-12 (1 = January), or left out`);
     music[id] = stripNotes(s);
   }
   if (!files.includes('playlist.json')) return { music, playlist: {}, note: 'no playlist.json yet' };

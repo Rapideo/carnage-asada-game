@@ -96,9 +96,45 @@
   });
   /* a new well (a recolour in the Menu panel) is decoded as soon as it exists */
   Admin.onApply('lattice', function () { if (typeof Kitchen !== 'undefined' && Kitchen.wells) Kitchen.buildWells(); });
+  /* If the edited list is the one playing, it is put on afresh: a list that
+     shrank under the song it was on starts again from its first. Music.playList
+     ignores a list identical to the one playing, so an edit to any other list
+     changes nothing. While a song is being listened to, G.playMusic only
+     records the key (Admin.music below), so the edit waits for Stop. */
   Admin.onApply('playlist', function (built, game) {
     if (game.musicKey != null) game.playMusic(game.musicKey);
   });
+
+  /* Listen (the Music panel): one song through the game's own player, Music
+     through Audio5.musBus, so what is heard is what ships. The level or
+     attract music is released for it; while it plays, the game's own calls to
+     G.playMusic (a new screen, the audio unlock, a playlist edit) only record
+     the key, so the song is not cut off. Stop restores the music through
+     G.playMusic of the current key. */
+  Admin.music = {
+    listening: null,
+    _game: null, _orig: null,
+    listen(id, game) {
+      const g = game || (typeof G !== 'undefined' ? G : undefined);
+      if (typeof Music === 'undefined' || !Music.has(id)) return false;
+      if (typeof Audio5 !== 'undefined' && Audio5.init) { try { Audio5.init(); Audio5.resume(); } catch (e) { /* no WebAudio here */ } }
+      if (g && !this._orig) {
+        this._game = g; this._orig = g.playMusic;
+        g.playMusic = function (key) { this.musicKey = key; };
+      }
+      this.listening = id;
+      return Music.play(id);
+    },
+    stop() {
+      const g = this._game, orig = this._orig;
+      this.listening = null; this._game = null; this._orig = null;
+      if (typeof Music !== 'undefined') Music.stop();
+      if (g && orig) {
+        g.playMusic = orig;
+        if (g.musicKey != null) g.playMusic(g.musicKey);
+      }
+    },
+  };
   /* Faces are decoded afresh. A face that is talking, or that a customer in
      the kitchen holds, and is no longer in FACES falls back to DLG_FACE: the
      strip would otherwise draw an empty box. (Kitchen.castFor reads CASTS

@@ -5,6 +5,7 @@ import './panels/levels.js';
 import './panels/menu.js';
 import './panels/difficulty.js';
 import './panels/attract.js';
+import './panels/music.js';
 import './panels/dialogue.js';
 import './panels/faces.js';
 import { store } from './store.js';

@@ -49,15 +49,15 @@ const node = (heading, depth) => ({ heading, depth, lines: [''], children: [] })
    renamed it) the note is the text from its first " (" on, so it stays on the
    renamed line. A name the doc never had gets no note. */
 const NOTE = /^ \(.*\)$/;
-function noteOf(old, name) {
+export function noteOf(old, name) {
   if (!old) return '';
   const n = String(name), rest = old.slice(n.length);
   if (old.toUpperCase().startsWith(n.toUpperCase())) return NOTE.test(rest) ? rest : '';
   const i = old.indexOf(' (');
   return i >= 0 && NOTE.test(old.slice(i)) ? old.slice(i) : '';
 }
-/* the doc's text names `name`, with or without a note after it */
-const sameName = (text, name) => {
+/* the doc's text names `name`, with or without a note after it (music.mjs uses both) */
+export const sameName = (text, name) => {
   const t = String(text).toUpperCase(), n = String(name).toUpperCase();
   return t === n || (t.startsWith(n) && NOTE.test(String(text).slice(n.length)));
 };
