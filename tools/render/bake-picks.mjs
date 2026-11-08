@@ -127,7 +127,7 @@ function toneMatch(img, [x, y, w, h], target, rawStats) {
   }
   return out;
 }
-function keyByFlood(img, [x, y, w, h]) {
+export function keyByFlood(img, [x, y, w, h]) {
   const out = { width: img.width, height: img.height, data: new Uint8ClampedArray(img.data) };
   const seen = new Uint8Array(w * h), stack = [];
   const black = (i, j) => { const k = ((y + j) * img.width + x + i) * 4; return out.data[k] + out.data[k + 1] + out.data[k + 2] === 0; };
@@ -143,7 +143,7 @@ function keyByFlood(img, [x, y, w, h]) {
   return out;
 }
 /* the crop as its own RGBA image, transparent pixels magenta (see 3. above) */
-function cropOut(img, [x, y, w, h]) {
+export function cropOut(img, [x, y, w, h]) {
   const c = new Canvas(w, h);
   for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
     const s = ((y + j) * img.width + x + i) * 4, d = (j * w + i) * 4;

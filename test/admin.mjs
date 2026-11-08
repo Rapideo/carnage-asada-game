@@ -2697,5 +2697,17 @@ console.log('\n— artifact —');
   for (const s of ['fetch(', 'import(']) ok(!code.includes(s), 'taco-shop.html calls no ' + s + ') outside its comments');
 }
 
+console.log('\n— cast portraits —');
+{
+  const keys = ['cop70', 'cop80', 'cop90', 'rival70', 'rival80', 'rival90', 'staff70', 'staff80', 'staff90'];
+  const F = {};
+  for (const k of keys) { try { F[k] = JSON.parse(readFileSync('content/faces/' + k + '.json', 'utf8')); } catch (x) { F[k] = null; } }
+  ok(keys.every((k) => F[k]), 'all nine cast faces are in content/faces/');
+  ok(keys.every((k) => F[k] && F[k].w === 60 && F[k].h === 74 && F[k].pal.length <= 16), 'each is 60x74 with at most 16 palette entries');
+  ok(keys.every((k) => F[k] && Array.isArray(F[k].eyes) && F[k].eyes.length === 0), 'eyes are cleared for the owner to set by hand');
+  ok(['rival70', 'rival80', 'rival90'].every((k) => F[k] && F[k].pal.includes('#94a754')), 'the rivals keep the olive cactus (#94a754)');
+  ok(['staff70', 'staff80', 'staff90'].every((k) => F[k] && F[k].pal.includes('#1fa37e') && F[k].pal.includes('#f3bd46')), 'the coworkers keep jade and gold');
+}
+
 console.log(`\n${fails === 0 ? 'PASS' : 'FAIL (' + fails + ')'}`);
 process.exit(fails ? 1 : 0);

@@ -978,8 +978,62 @@ The 1990s.
 
 Baked, and shipped with the game (everything in `content/faces/` is), but no era casts them. `smokerbust` is the dialogue default: the strip falls back to it when a face is missing.
 
-### A. smokerbust
+### A. cop70
+
+- Size : 60x74
+
+- Eyes : not set
+
+### B. cop80
+
+- Size : 60x74
+
+- Eyes : not set
+
+### C. cop90
+
+- Size : 60x74
+
+- Eyes : not set
+
+### D. rival70
+
+- Size : 60x74
+
+- Eyes : not set
+
+### E. rival80
+
+- Size : 60x74
+
+- Eyes : not set
+
+### F. rival90
+
+- Size : 60x74
+
+- Eyes : not set
+
+### G. smokerbust
 
 - Size : 60x74
 
 - Eyes : detected (2)
+
+### H. staff70
+
+- Size : 60x74
+
+- Eyes : not set
+
+### I. staff80
+
+- Size : 60x74
+
+- Eyes : not set
+
+### J. staff90
+
+- Size : 60x74
+
+- Eyes : not set

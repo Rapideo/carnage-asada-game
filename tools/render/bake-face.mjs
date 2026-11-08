@@ -81,8 +81,24 @@ async function main() {
      and the box is allowed to grow if the screen can pay for it. */
   const MAXW = Number(process.env.MAXW) || 54;
   const MAXH = Number(process.env.MAXH) || 54;
+  /* COLOURS sets the body colour count (default 15; the ink is the sixteenth).
+     ACCENTS is a JSON file of [{ hex, pixelsAfterInk: [[x,y],...] }] painted
+     onto the reduced, inked canvas before the palette is taken, so a small
+     detail the median cut would average away (a cactus, a uniform badge)
+     keeps its colour. Unset, the bake is unchanged. */
+  const COLOURS = Number(process.env.COLOURS) || 15;
   const { cv } = reduceHead(img, crop || [0, 0, img.width, img.height],
-                            { maxW: MAXW, maxH: MAXH, colours: 15, ink: INK });
+                            { maxW: MAXW, maxH: MAXH, colours: COLOURS, ink: INK });
+  if (process.env.ACCENTS) {
+    for (const a of JSON.parse(readFileSync(process.env.ACCENTS, 'utf8'))) {
+      const c = [1, 3, 5].map((i) => parseInt(a.hex.slice(i, i + 2), 16));
+      for (const [x, y] of a.pixelsAfterInk) {
+        if (x < 0 || y < 0 || x >= cv.width || y >= cv.height) throw new Error(`${name}: accent pixel ${x},${y} is off the ${cv.width}x${cv.height} canvas`);
+        const i = (y * cv.width + x) * 4;
+        cv.data[i] = c[0]; cv.data[i + 1] = c[1]; cv.data[i + 2] = c[2]; cv.data[i + 3] = 255;
+      }
+    }
+  }
 
   /* ---- palette from what actually survived ------------------ */
   const seen = new Map();
