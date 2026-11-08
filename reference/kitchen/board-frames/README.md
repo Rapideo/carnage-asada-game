@@ -9,6 +9,6 @@ It's the art director's full set (`../review/2026-11-07-full-board-set/`) with t
 The manifest is the same in all three, byte for byte.
 
 - `states/`: 88 transparent 40×38 PNGs, one per distinct state, named by recipe prefix (`LARGE-BEANS-CHEESE.png`), with finishes named `<DISH>-WRAPPED.png`.
-- `manifest.json`: each dish's recipe, build keys, finished key and eras. The recipes match `docs/authored content/menu.md.md`, which is law.
+- `manifest.json`: each dish's recipe, build keys, finished key and eras. The recipes match `docs/authored content/menu.md`, which is law.
 
 **Still under the owner's art pin: nothing here is in the game yet.** The rulings and the review history are in `docs/art-direction-welcome.md`.

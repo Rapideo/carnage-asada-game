@@ -49,7 +49,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Delivery
 
-- Name : Level 1 - Summer 1972
+- Name : SUMMER 1972
 
 - Era : 1970s
 
@@ -65,7 +65,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Kitchen
 
-- Name : Level 2 - Winter 1972
+- Name : WINTER 1972
 
 - Era : 1970s
 
@@ -81,7 +81,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Delivery
 
-- Name : Level 3 - Winter 1975
+- Name : WINTER 1975
 
 - Era : 1970s
 
@@ -97,7 +97,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Kitchen
 
-- Name : Level 4 - Summer 1975
+- Name : SUMMER 1975
 
 - Era : 1970s
 
@@ -113,7 +113,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Delivery
 
-- Name : Level 5 - Summer 1978
+- Name : SUMMER 1978
 
 - Era : 1970s
 
@@ -129,7 +129,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Kitchen
 
-- Name : Level 6 - Winter 1978
+- Name : WINTER 1978
 
 - Era : 1970s
 
@@ -145,7 +145,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Delivery
 
-- Name : Level 7 - Summer 1981
+- Name : SUMMER 1981
 
 - Era : 1980s
 
@@ -161,7 +161,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Kitchen
 
-- Name : Level 8 - Winter 1981
+- Name : WINTER 1981
 
 - Era : 1980s
 
@@ -177,7 +177,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Delivery
 
-- Name : Level 9 - Winter 1984
+- Name : WINTER 1984
 
 - Era : 1980s
 
@@ -193,7 +193,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Kitchen
 
-- Name : Level 10 - Summer 1984
+- Name : SUMMER 1984
 
 - Era : 1980s
 
@@ -209,7 +209,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Delivery
 
-- Name : Level 11 - Summer 1987
+- Name : SUMMER 1987
 
 - Era : 1980s
 
@@ -225,7 +225,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Kitchen
 
-- Name : Level 12 - Winter 1987
+- Name : WINTER 1987
 
 - Era : 1980s
 
@@ -241,7 +241,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Delivery
 
-- Name : Level 13 - Summer 1990
+- Name : SUMMER 1990
 
 - Era : 1990s
 
@@ -257,7 +257,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Kitchen
 
-- Name : Level 14 - Winter 1990
+- Name : WINTER 1990
 
 - Era : 1990s
 
@@ -273,7 +273,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Delivery
 
-- Name : Level 15 - Winter 1993
+- Name : WINTER 1993
 
 - Era : 1990s
 
@@ -289,7 +289,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Kitchen
 
-- Name : Level 16 - Summer 1993
+- Name : SUMMER 1993
 
 - Era : 1990s
 
@@ -305,7 +305,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Delivery
 
-- Name : Level 17 - Summer 1996
+- Name : SUMMER 1996
 
 - Era : 1990s
 
@@ -321,7 +321,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Kitchen
 
-- Name : Level 18 - Winter 1996
+- Name : WINTER 1996
 
 - Era : 1990s
 
@@ -337,7 +337,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Delivery
 
-- Name : Level 19 - Summer 1999
+- Name : SUMMER 1999
 
 - Era : 1990s
 
@@ -353,7 +353,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Game Type : Kitchen
 
-- Name : Level 20 - Winter 1999
+- Name : WINTER 1999
 
 - Era : 1990s
 

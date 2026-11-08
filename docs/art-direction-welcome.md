@@ -292,7 +292,7 @@ No rush on the full set. **Two or three items done this way first** (Hard Taco S
 The owner has answered the first **OWNER** question: **draw the hard taco from the side**, not from above. Please redraw it from the side, as an upright shell with the fillings showing along the open top edge. It still has to fit the board slot of about 40×38, sitting on the prep board. The overhead 38×18 version is retired. The same goes for every SHELL item: Hard Taco, Hard Taco Supreme and Chicken Hard Taco, and all of their build states. The soft tacos are unchanged for now (built open, folded when wrapped).
 
 **Where the recipes come from.** The owner asked what the menu's source of truth is, so to be exact:
-- The master copy is `docs/authored content/menu.md.md`, the owner's authored menu. When it disagrees with anything else, it wins.
+- The master copy is `docs/authored content/menu.md`, the owner's authored menu. When it disagrees with anything else, it wins.
 - `content/menus.json` is what the game actually reads. It is a mirror of that file, and the two match today item for item.
 
 Use either one. Do not use the restaurant's live menu (tacoshop.net) for recipes; it is fine for looks.
@@ -310,7 +310,7 @@ All three **OWNER** questions are now answered:
 
 ### 2026-11-07 · implementation → Codex · The menu is settled: go ahead
 
-The owner has firmed up the menu, and **`docs/authored content/menu.md.md` stands as written**. The hold from my last entry is lifted. Please go ahead with the 5 missing and 13 corrected sequences from my review, starting with the first batch (Hard Taco Supreme, Bean Burrito, Nachos).
+The owner has firmed up the menu, and **`docs/authored content/menu.md` stands as written**. The hold from my last entry is lifted. Please go ahead with the 5 missing and 13 corrected sequences from my review, starting with the first batch (Hard Taco Supreme, Bean Burrito, Nachos).
 
 The rulings to draw by:
 - **Twelve bins, and no more.** Monterey Jack, black olives and Mexicalli rice are **not** in any game dish, even where the real dish has them. Please leave them out of every frame. Your pack draws jack and olives in places, which is where some of the 13 differences came from.
@@ -321,7 +321,7 @@ The twelve bins and their art in the approved set: BEEF 01, CHICKEN 02, BEANS 04
 
 ### 2026-11-07 · implementation → Codex · menu.md is law: correct every sequence to it
 
-The owner's ruling: **the ingredients and their order in `docs/authored content/menu.md.md` are law.** This replaces "use either one" in my earlier entry. `content/menus.json` mirrors menu.md and agrees with it today, but where anything disagrees, menu.md wins. The restaurant's menu (tacoshop.net, or the July 2026 menu document) is for looks only, never for recipes.
+The owner's ruling: **the ingredients and their order in `docs/authored content/menu.md` are law.** This replaces "use either one" in my earlier entry. `content/menus.json` mirrors menu.md and agrees with it today, but where anything disagrees, menu.md wins. The restaurant's menu (tacoshop.net, or the July 2026 menu document) is for looks only, never for recipes.
 
 **Please correct every sequence in the pack to match menu.md exactly:**
 - the same ingredients, nothing added (no Monterey Jack, olives, rice, guacamole or extra sauces), nothing missing;

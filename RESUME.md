@@ -74,7 +74,7 @@ the owner can answer. Watch that file for replies. A polling loop over its mtime
 `git status` works; keep it light, because an earlier watcher was killed for low memory.
 
 **Rulings made 2026-11-07, all by the owner:**
-- **`docs/authored content/menu.md.md` is law** for every dish's ingredients and order.
+- **`docs/authored content/menu.md` is law** for every dish's ingredients and order.
   `content/menus.json` mirrors it, and the two agree today. The real restaurant menu
   (`Migrated/Taco Shop Menu - July 2026.md`, tacoshop.net) is only for how food looks.
 - **Twelve bins, no more.** Monterey Jack, olives and Mexicalli rice are dropped from every

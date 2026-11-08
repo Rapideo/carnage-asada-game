@@ -293,6 +293,119 @@ console.log('\n— store —');
   } finally { await srv.close(); rmSync(tmp, { recursive: true, force: true }); }
 }
 
+console.log('\n— docs —');
+{
+  const { existsSync, mkdtempSync, cpSync, rmSync, writeFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const DIR = 'docs/authored content', NAMES = ['attract', 'difficulty', 'levels', 'menu', 'music'];
+  ok(NAMES.every((n) => existsSync(join(DIR, n + '.md')) && !existsSync(join(DIR, n + '.md.md'))),
+     'the five docs are named *.md, not *.md.md');
+  let E = null, LV = null, IX = null;
+  try {
+    E = await import('../tools/content/docs/engine.mjs');
+    LV = (await import('../tools/content/docs/levels.mjs')).default;
+    IX = await import('../tools/content/docs/index.mjs');
+  } catch (x) { console.error('  (' + x.message + ')'); }
+  ok(E && LV && IX, 'the docs engine, levels.md and the index load');
+  if (E && LV && IX) {
+    const { parseMd, toMd, setField, syncList, roman, letter, sameAs, applySame, diffLines } = E;
+    for (const n of NAMES) {
+      const p = join(DIR, n + '.md'), t = existsSync(p) ? readFileSync(p, 'utf8') : null;
+      ok(t !== null && toMd(parseMd(t)) === t, n + '.md round-trips through parseMd/toMd');
+    }
+    const t0 = parseMd('# t\n\npre\n\n## A\n\nx\n\n### B\n\ny\n## C\nz\n');
+    ok(t0.heading === null && t0.children.length === 1 && t0.children[0].heading === 't'
+       && t0.children[0].children.map((c) => c.heading).join() === 'A,C'
+       && t0.children[0].children[0].children[0].heading === 'B' && t0.children[0].children[0].children[0].depth === 3,
+       'parseMd nests headings by depth');
+
+    ok(roman(1) === 'I' && roman(4) === 'IV' && roman(9) === 'IX' && roman(18) === 'XVIII' && roman(19) === 'XIX'
+       && roman(20) === 'XX' && roman(14) === 'XIV', 'roman numbers');
+    ok(letter(0) === 'A' && letter(4) === 'E', 'letter(i) is 0-based');
+
+    /* setField: a note after the value survives, Key: v is normalised, a missing key is appended */
+    const nd = parseMd('## X\n\n- Tip Floor : 2.00. The tip falls to it in 54s\n\n- Ingredient 2: Lettuce\n\nSome prose.\n').children[0];
+    setField(nd, 'Tip Floor', '3.00', { match: /^\d+\.\d\d/ });
+    setField(nd, 'Ingredient 2', 'Cheese', { match: /^.*/ });
+    setField(nd, 'Price', '0.29', { match: /^.*/ });
+    ok(toMd(nd) === '## X\n\n- Tip Floor : 3.00. The tip falls to it in 54s\n\n- Ingredient 2 : Cheese\n\n- Price : 0.29\n\nSome prose.\n',
+       'setField keeps the tail, normalises "Key:", appends a missing key after the last field (' + JSON.stringify(toMd(nd)) + ')');
+    const nf = { heading: 'N', depth: 2, lines: [''], children: [] };
+    setField(nf, 'A', '1'); setField(nf, 'B', '2');
+    ok(toMd(nf) === '## N\n\n- A : 1\n\n- B : 2\n', 'setField builds an empty node in the docs\' blank-separated style');
+
+    /* syncList: reuse by position, keep prose, create and drop */
+    const par = parseMd('# d\n\n## I. One\n\nprose one\n\n- V : 1\n\n## II. Two\n\n- V : 2\n\n## III. Three\n\n- V : 3\n').children[0];
+    syncList(par, [10, 20], { heading: (x, i) => roman(i + 1) + '. Item ' + x, fill: (n, x) => setField(n, 'V', String(x), { match: /^\d+/ }) });
+    ok(toMd(par) === '# d\n\n## I. Item 10\n\nprose one\n\n- V : 10\n\n## II. Item 20\n\n- V : 20\n', 'syncList reuses, keeps prose and drops extras');
+    syncList(par, [10, 20, 30], { heading: (x, i) => roman(i + 1) + '. Item ' + x, fill: (n, x) => setField(n, 'V', String(x)) });
+    ok(toMd(par).endsWith('- V : 20\n\n## III. Item 30\n\n- V : 30\n'), 'syncList creates a new node at the end');
+
+    /* the same-as rule */
+    const sa = parseMd('### B. Bonus\n\n- Same as Easy\n').children[0];
+    ok(sameAs(sa) === 'Easy', 'sameAs reads the referenced name');
+    const fillB = (n) => setField(n, 'Bonus', '5.00');
+    ok(applySame(sa, { values: { b: 5 }, resolve: () => ({ b: 5 }), fill: fillB }) === false && toMd(sa) === '### B. Bonus\n\n- Same as Easy\n',
+       'a Same-as node is left alone while its values match');
+    ok(applySame(sa, { values: { b: 6 }, resolve: () => ({ b: 5 }), fill: fillB }) === true && toMd(sa) === '### B. Bonus\n\n- Bonus : 5.00\n',
+       'a Same-as node whose values differ is replaced by its fields (' + JSON.stringify(toMd(sa)) + ')');
+
+    ok(diffLines('a\nb\nc', 'a\nb\nc') === 0 && diffLines('a\nb\nc', 'a\nX\nc') === 1 && diffLines('a\nb\nc', 'a\nb\nN\nc') === 1,
+       'diffLines counts changed lines');
+
+    /* levels.md, rendered from today's JSON */
+    const lp = join(DIR, 'levels.md'), old = existsSync(lp) ? readFileSync(lp, 'utf8') : '';
+    const typos = old.replace('## XVIII. Level 18', '## IIXX. Level 18').replace('## XIX. Level 19', '## IXX. Level 19').replace('## XX. Level 20', '## XX. Leve 20');
+    for (const [label, prev] of [['the doc', old], ['the doc with its old typos', typos]]) {
+      const out = LV.render(files, prev);
+      ok(out.includes('## XVIII. Level 18') && out.includes('## XIX. Level 19') && out.includes('## XX. Level 20')
+         && !out.includes('IIXX') && !out.includes('IXX.') && !out.includes('Leve 20'), 'levels.md headings are numbered from the JSON (' + label + ')');
+    }
+    const out = LV.render(files, old);
+    const pre = old.slice(0, old.indexOf('## I. Level 1'));
+    ok(pre.length > 100 && out.startsWith(pre), 'every line of the levels.md preamble survives');
+    ok(LV.render(files, out) === out, 'rendering levels.md is idempotent');
+    ok(out.includes('- Name : SUMMER 1972\n') && !out.includes('Level 1 - Summer 1972'), 'Name shows the JSON\'s form');
+    ok(out.includes('## V. Level 5\n\n- Sequence : 5\n\n- Game Type : Delivery\n\n- Name : SUMMER 1978\n\n- Era : 1970s\n\n- Music : 1978 - Delivery\n\n- Difficulty : Easy\n\n- Season : Summer\n\n## VI.'),
+       'a level node carries all seven fields, in order');
+    const w5 = structuredClone(files); w5['levels.json'].levels[4].season = 'winter';
+    const l5 = parseMd(LV.render(w5, old)).children[0].children.find((n) => n.heading === 'V. Level 5');
+    ok(l5 && l5.lines.includes('- Season : Winter'), "level 5's season set to winter shows in its node");
+    const fresh = LV.render(files, null);
+    ok(fresh.includes('## XX. Level 20') && LV.render(files, fresh) === fresh, 'levels.md renders from nothing, idempotently');
+    ok(IX.DOCS.some((d) => d.file === 'levels.md'), 'levels.md is a registered doc');
+    const all = IX.renderAll(files, (f) => f === 'levels.md' ? old : null);
+    ok(all['levels.md'] === out, 'renderAll renders every registered doc');
+    ok(IX.renderAll(files, (f) => f === 'levels.md' ? old.replace(/\n/g, '\r\n') : null)['levels.md'] === out.replace(/\n/g, '\r\n'),
+       'renderAll: a CRLF doc renders the same and keeps its line endings');
+
+    /* the save path rewrites the doc; the drift route counts what differs */
+    const tmp = mkdtempSync(join(tmpdir(), 'admin-docs-'));
+    for (const f of ['build.mjs', 'shell.html', 'src', 'content', 'tools/content', DIR]) cpSync(f, join(tmp, f), { recursive: true });
+    (await import('node:child_process')).execFileSync('node', ['build.mjs'], { cwd: tmp, stdio: 'pipe' });
+    const { startAdmin } = await import('../tools/content/server.mjs');
+    const srv = await startAdmin({ root: tmp, port: 0 });
+    const tl = join(tmp, DIR, 'levels.md');
+    try {
+      const d0 = await (await fetch(srv.url + '/admin/api/drift')).json();
+      const dl = Array.isArray(d0) && d0.find((x) => x.file === 'levels.md');
+      ok(dl && typeof dl.lines === 'number', 'GET drift reports levels.md with a line count (' + JSON.stringify(d0) + ')');
+      const api = await (await fetch(srv.url + '/admin/api/content')).json();
+      const ed = JSON.parse(api.files['levels.json']); ed.levels[0].name = 'SUMMER 1972!';
+      const r = await fetch(srv.url + '/admin/api/save', { method: 'POST', headers: { 'content-type': 'application/json', origin: srv.url },
+        body: JSON.stringify({ files: { 'levels.json': JSON.stringify(ed) }, stamp: { 'levels.json': api.stamp['levels.json'] } }) });
+      ok(r.status === 200, 'a valid save in a temp root succeeds');
+      const doc = readFileSync(tl, 'utf8');
+      ok(doc.includes('- Name : SUMMER 1972!\n') && doc.startsWith(pre), 'the save rewrote docs/authored content/levels.md, preamble intact');
+      const d1 = await (await fetch(srv.url + '/admin/api/drift')).json();
+      ok(d1.find((x) => x.file === 'levels.md').lines === 0, 'after a save, levels.md has no drift');
+      writeFileSync(tl, doc.replace('- Season : Winter\n\n## III.', '- Season : Summer\n\n## III.'));
+      const d2 = await (await fetch(srv.url + '/admin/api/drift')).json();
+      ok(d2.find((x) => x.file === 'levels.md').lines === 1, 'a one-value edit to the doc is one line of drift');
+    } finally { await srv.close(); rmSync(tmp, { recursive: true, force: true }); }
+  }
+}
+
 console.log('\n— artifact —');
 {
   const { execFileSync } = await import('node:child_process');
