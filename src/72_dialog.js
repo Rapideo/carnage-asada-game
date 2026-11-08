@@ -96,10 +96,12 @@ const Dialog = {
     }
 
     /* speaker plate rides the bubble's top-left corner, clear of the head */
+    /* 7px type needs a 9px fill: at 7 the glyphs' bottom row landed on the
+       ink border and every name read with its base cut off */
     const nw = textW(this.who, 1) + 8;
-    R(x, PAL.ink, bx + 4, by - 4, nw, 9);
-    R(x, this.hostile ? PAL.bad : PAL.amber, bx + 5, by - 3, nw - 2, 7);
-    text(x, this.who, bx + 8, by - 2, PAL.ink, 1);
+    R(x, PAL.ink, bx + 4, by - 5, nw, 11);
+    R(x, this.hostile ? PAL.bad : PAL.amber, bx + 5, by - 4, nw - 2, 9);
+    text(x, this.who, bx + 8, by - 3, PAL.ink, 1);
 
     const n = this.lines.length;
     for (let i = 0; i < n; i++)
