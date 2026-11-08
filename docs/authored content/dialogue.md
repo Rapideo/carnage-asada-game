@@ -1,0 +1,139 @@
+# dialogue.md
+
+The customer's lines over the dialogue strip, in both halves of the game. One section per key; a line tagged (1980s on) or (1990s on) is only said from that era, so nobody quotes a film that has not come out yet. The game reads `content/dialogue.json`: that file is the master copy and this page mirrors it, so edit the lines in Service Mode or in the JSON.
+
+## I. Who
+
+The name on the speech bubble.
+
+1. "CUSTOMER"
+
+## II. Delivered
+
+Delivery Shift: the order arrived in good time.
+
+1. "ABOUT TIME. SMELLS ALRIGHT THOUGH."
+2. "YOU FOUND IT. NOBODY FINDS IT."
+3. "KEEP THE CHANGE, SPEED DEMON."
+4. "STILL WARM. I'LL ALLOW IT."
+5. "RIGHT ON THE PORCH. WELL I'LL BE."
+6. "NOW THAT'S WHAT I CALL SERVICE!"
+7. "TELL THE COOK I SAID HOWDY."
+8. "OOH, STILL STEAMING. BLESS YOU."
+
+## III. Missed
+
+Delivery Shift: the bag landed off the porch.
+
+1. "THAT'S MY HEDGE. THAT WAS DINNER."
+2. "IN THE BUSHES. VERY CLASSY."
+3. "YOU THREW IT AT THE LAWN."
+4. "I WATCHED YOU DO THAT."
+5. "MY TACOS! IN THE PETUNIAS!"
+6. "WHAT IN THE NAME OF SAM HILL?!"
+7. "WELL I NEVER!"
+8. "HEAVENS TO BETSY! MY SUPPER!"
+
+## IV. Late
+
+Delivery Shift: it arrived, but the tip had run down.
+
+1. "IN MY DAY A TACO TOOK 30 SECONDS!"
+2. "SLOWER THAN MOLASSES IN JANUARY!"
+3. "I'VE SEEN TUMBLEWEEDS MOVE FASTER!"
+4. "I ORDERED THIS AS A YOUNG MAN!"
+5. "I STARTED GROWING A BEARD WAITING!"
+6. "YOU MOVE LIKE CONTINENTAL DRIFT!"
+7. "IT'S COLD. IT'S FINE. I'M FINE."
+8. "WELL. THAT'S... INTERESTING."
+9. "TIME IS MONEY, TACO BOY!" (1980s on)
+
+## V. Arrive
+
+Kitchen Shift: a new ticket goes on the rail.
+
+1. "HOWDY! WHAT'S GOOD TODAY?"
+2. "I AM ON MY LUNCH BREAK!"
+3. "I HAVE THIRTY MINUTES. GO!"
+4. "I HAVE A 2 PM WITH REGIONAL!"
+5. "I LEFT MY STATION WAGON RUNNING!"
+6. "I GOT REBAR TO TIE. MOVE IT!"
+7. "I GOTTA GET BACK ON THE ROAD!"
+8. "I'M GONNA MISS THE COIN TOSS!"
+9. "TEN-FOUR, GOOD BUDDY. TACOS!"
+10. "I HAVE A POWER LUNCH AT NOON!" (1980s on)
+11. "MY PAGER'S GOING OFF. HURRY!" (1990s on)
+
+## VI. Wait
+
+Kitchen Shift: a customer's patience is under 30%.
+
+1. "HELLOOO? ANYBODY BACK THERE?"
+2. "HELLOOO? MCFLY?" (1990s on)
+3. "EARTH TO TACO BOY, COME IN!"
+4. "I S'POSE I'LL JUST WAIT THEN."
+5. "BOY, YOU BETCHA I'M UPSET."
+6. "MY CATTLE MOVE FASTER THAN THIS!"
+7. "I'VE POURED CONCRETE FASTER!"
+8. "TICK. TOCK. THE TACO TIMER TICKS!"
+9. "DEAR LORD, DELIVER UNTO ME MY TACO"
+10. "I'LL BE DEAD BY THE TIME IT COMES!"
+11. "SEEN GLACIERS WITH MORE HUSTLE!"
+12. "MY FILOFAX SAYS I'M LATE, PAL!" (1980s on)
+
+## VII. Queue
+
+Kitchen Shift: the line is past three customers.
+
+1. "THIS LINE GOES CLEAR TO MAIN ST!"
+2. "WEIGH STATIONS MOVE QUICKER!"
+3. "IS THIS THE LINE FOR TACOS OR DMV?"
+4. "I'LL GIVE YOU TWENTY BUCKS TO CUT!"
+5. "THE WHOLE TOWN'S IN HERE TODAY!"
+6. "I COULD'VE WALKED TO DODGE CITY!"
+7. "EMPIRES HAVE RISEN AND FALLEN!"
+8. "DELAY OF GAME! DELAY! OF! GAME!"
+9. "WE'RE STACKED UP LIKE CORDWOOD!"
+
+## VIII. Walkout
+
+Kitchen Shift: a customer's patience ran out.
+
+1. "I'LL DARKEN THIS DOOR NEVERMORE!"
+2. "I'M TELLING MY BRIDGE CLUB!"
+3. "SUSAN! GET IN THE CAR. ARBY'S!"
+4. "...SHOULD'VE GONE TO WENDY'S..."
+5. "...WAIT 'TIL I TELL LINDA..."
+6. "NEVER COMING BACK. MAYBE TUESDAY."
+7. "...I DROVE TWENTY MINUTES FOR THIS"
+8. "OPE! SORRY! OUT THE DOOR FOREVER!"
+9. "CONVOY OF ONE, OVER AND OUT!"
+10. "A POX UPON THIS ESTABLISHMENT!"
+11. "MAY ALL YOUR TORTILLAS BE SOGGY!"
+
+## IX. Served
+
+Kitchen Shift: a ticket was served.
+
+1. "NOW THAT'S A TACO!"
+2. "WORTH EVERY PENNY. MOSTLY."
+3. "WELL, BLESS YOUR HEART, SUGAR."
+4. "BEAUTY. JUST BEAUTY."
+5. "MY COMPLIMENTS TO THE CHEF!"
+6. "YOU'RE ALRIGHT, KID."
+7. "THAT'S WHAT I CAME FOR!"
+8. "I'LL BE BACK. AND I'LL BE HUNGRY."
+
+## X. Wrong
+
+Kitchen Shift: a wrong pick.
+
+1. "WHOA WHOA WHOA. NOT THAT ONE!"
+2. "DID I JUST WITNESS A CRIME?"
+3. "THIS IS A CRIME AGAINST TORTILLAS!"
+4. "OH NO! A FUMBLE ON THE TORTILLA!"
+5. "YOU COULDN'T FOLD IT WITH A MAP!"
+6. "FOR THE LOVE OF PETE, NOT THAT!"
+7. "SORRY! THE ANSWER WAS 'A TACO'!"
+8. "THAT AIN'T ON THE TICKET, BUD!"
+9. "I DIDN'T ORDER THAT. DID I?"

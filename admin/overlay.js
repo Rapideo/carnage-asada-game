@@ -5,6 +5,7 @@ import './panels/levels.js';
 import './panels/menu.js';
 import './panels/difficulty.js';
 import './panels/attract.js';
+import './panels/dialogue.js';
 import { store } from './store.js';
 import { TAB_ORDER, tabs, paint, refreshControls } from './fields.js';
 

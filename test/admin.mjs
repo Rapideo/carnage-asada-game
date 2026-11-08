@@ -387,9 +387,9 @@ console.log('\n— docs —');
 {
   const { existsSync, mkdtempSync, cpSync, rmSync, writeFileSync } = await import('node:fs');
   const { tmpdir } = await import('node:os');
-  const DIR = 'docs/authored content', NAMES = ['attract', 'difficulty', 'levels', 'menu', 'music'];
+  const DIR = 'docs/authored content', NAMES = ['attract', 'dialogue', 'difficulty', 'levels', 'menu', 'music'];
   ok(NAMES.every((n) => existsSync(join(DIR, n + '.md')) && !existsSync(join(DIR, n + '.md.md'))),
-     'the five docs are named *.md, not *.md.md');
+     'the six docs are named *.md, not *.md.md');
   let E = null, LV = null, IX = null;
   try {
     E = await import('../tools/content/docs/engine.mjs');
@@ -696,6 +696,56 @@ console.log('\n— docs —');
          && afresh.includes('- Duration : 0:45 seconds') && afresh.includes('One loop is 1:20.') && AT.render(files, afresh) === afresh,
          'attract.md renders from nothing, idempotently');
       ok(IX.renderAll(files, (f) => f === 'attract.md' ? aold : null)['attract.md'] === aout, 'renderAll renders attract.md');
+    }
+
+    /* dialogue.md, rendered from today's JSON and from edits to it */
+    let DG = null;
+    try { DG = (await import('../tools/content/docs/dialogue.mjs')).default; } catch (x) { console.error('  (' + x.message + ')'); }
+    ok(DG && DG.file === 'dialogue.md' && IX.DOCS.includes(DG), 'dialogue.md is a registered doc');
+    if (DG) {
+      const { DLG_KEYS } = await import('../tools/content/validate.mjs');
+      const gx = (edit) => { const f = structuredClone(files); edit(f['dialogue.json'], f); return f; };
+      const dold = existsSync(join(DIR, 'dialogue.md')) ? readFileSync(join(DIR, 'dialogue.md'), 'utf8').replace(/\r\n/g, '\n') : null;
+      const fresh = DG.render(files, null);
+      ok(DLG_KEYS.every((k, i) => fresh.includes('\n## ' + roman(i + 1) + '. ' + k[0].toUpperCase() + k.slice(1) + '\n')),
+         'dialogue.md renders one "## <roman>. <Key>" section per key of DLG_KEYS, in order');
+      ok(fresh.includes('1. "ABOUT TIME. SMELLS ALRIGHT THOUGH."') && fresh.includes('1. "CUSTOMER"'), 'lines are a numbered list in JSON form');
+      ok(fresh.includes('9. "TIME IS MONEY, TACO BOY!" (1980s on)') && !fresh.includes('2|'), 'a 2| line shows as (1980s on), the prefix gone');
+      ok(fresh.includes('"MY PAGER\'S GOING OFF. HURRY!" (1990s on)'), 'a 3| line shows as (1990s on)');
+      ok(DG.render(files, fresh) === fresh, 'rendering dialogue.md is idempotent');
+      ok(dold !== null && DG.render(files, dold) === dold, 'the committed dialogue.md is what today\'s JSON renders to');
+      ok(IX.renderAll(files, (f) => f === 'dialogue.md' ? fresh : null)['dialogue.md'] === fresh, 'renderAll renders dialogue.md');
+
+      /* prose: the preamble, a note under a section and a wrapped item line all survive */
+      const NOTE = '   (owner: keep this one)';
+      const notes = fresh.replace('\n## I. Who\n', '\n## I. Who\n\nMY OWN NOTE ABOUT WHO.\n')
+        .replace('1. "ABOUT TIME. SMELLS ALRIGHT THOUGH."', '1. "ABOUT TIME. SMELLS ALRIGHT THOUGH."\n' + NOTE);
+      ok(notes !== fresh && DG.render(files, notes) === notes, 'prose under a heading and an item\'s wrapped note survive an unchanged render');
+      const grown = DG.render(gx((d) => { d.delivered.push('ONE MORE LINE.'); }), notes);
+      const gl = grown.split('\n'), ni = gl.indexOf('1. "ABOUT TIME. SMELLS ALRIGHT THOUGH."');
+      ok(grown.includes('MY OWN NOTE ABOUT WHO.') && gl[ni + 1] === NOTE, 'a note survives, still under its item, when the list is edited');
+      ok(grown.includes('9. "ONE MORE LINE."'), 'an added line is numbered in');
+      const shrunk = DG.render(gx((d) => { d.delivered.length = 3; }), notes);
+      ok(shrunk.split('\n').indexOf(NOTE) === shrunk.split('\n').indexOf('1. "ABOUT TIME. SMELLS ALRIGHT THOUGH."') + 1 && !shrunk.includes('4. "STILL WARM'),
+         'a note on a line that is still there stays, and the dropped lines go');
+      const pre = fresh.split('\n## I. Who')[0];
+      ok(pre.length > 80 && /^# dialogue\.md\n\n\S/.test(pre), 'the preamble is a paragraph under the title');
+      const custom = DG.render(files, fresh.replace(pre, '# dialogue.md\n\nMY PREAMBLE.\n'));
+      ok(custom.startsWith('# dialogue.md\n\nMY PREAMBLE.\n') && !custom.includes(pre.split('\n')[2]), 'a rewritten preamble is kept, not regenerated');
+
+      /* values round-trip */
+      if (typeof DG.read === 'function') {
+        const want = (f) => { const d = f['dialogue.json'], o = {}; for (const k of DLG_KEYS) o[k] = [].concat(d[k]); return o; };
+        const cases = { today: files, grown: gx((d) => { d.wait.push('3|HELLO FROM 1990.'); d.queue.shift(); }), who: gx((d) => { d.who = 'PATRON'; }) };
+        const bad = Object.entries(cases).filter(([, f]) => JSON.stringify(DG.read(DG.render(f, dold))) !== JSON.stringify(want(f))).map(([n]) => n);
+        ok(bad.length === 0, 'dialogue.md round-trips: reading a render back gives the JSON\'s lines (' + bad + ')');
+      } else ok(false, 'dialogue.mjs exports read(text)');
+
+      /* the width check is the validator's: an over-wide line is a ContentError at [key, index] */
+      let wide = null;
+      try { validateContent(memSource(gx((d) => { d.delivered[2] = 'THIS LINE IS FAR TOO WIDE FOR THE SPEECH BUBBLE BESIDE THE PORTRAIT'; }))); } catch (x) { wide = x; }
+      ok(wide instanceof ContentError && wide.file === 'content/dialogue.json' && wide.path.join() === 'delivered,2' && /Trim \d+ character/.test(wide.message),
+         'an over-wide line is a ContentError with path [key, index] (' + (wide && wide.path.join()) + ')');
     }
 
     /* menu.md, rendered from today's JSON and from edits to it */
@@ -1117,6 +1167,89 @@ console.log('\n— attract panel —');
   A.applyBuilt(validateContent(memSource(files)), G);
   ok(Scores.board[0].ini === files['scores.json'].board[0].ini, 'put back');
   G.toTitle();
+}
+
+console.log('\n— dialogue panel —');
+{
+  const { store } = await import('../admin/store.js');
+  const FL = await import('../admin/fields.js');
+  const { DLG_KEYS } = await import('../tools/content/validate.mjs');
+  const realApply = globalThis.Admin.applyBuilt;
+  globalThis.Admin.applyBuilt = () => {};
+  store.files = structuredClone(files); store.dirty.clear(); store.error = null;
+  let loaded = true;
+  try { await import('../admin/panels/dialogue.js'); } catch (x) { loaded = false; console.error('  (' + x.message + ')'); }
+  const tab = FL.tabs.get('dialogue');
+  ok(loaded && tab && tab.title === 'Dialogue', 'the Dialogue panel registers its tab');
+  ok(/import '\.\/panels\/dialogue\.js'/.test(readFileSync('admin/overlay.js', 'utf8')), 'the overlay imports the Dialogue panel');
+  if (tab) {
+    try {
+      const doc = fakeDoc(), el = doc.createElement('div');
+      doc.body.appendChild(el);
+      tab.render(el);
+      const nodes = () => el.walk();
+      const ctl = (p) => nodes().find((n) => n.dataset.rel === 'dialogue.json' && n.dataset.path === p);
+      const act = (a, key, i) => nodes().find((n) => n.dataset.act === a && n.dataset.key === key && (i === undefined || n.dataset.i === String(i)));
+      const type = (c, v) => { c.value = v; c.fire('input'); FL.paint(); };
+      const D = () => store.files['dialogue.json'];
+      const secs = nodes().filter((n) => n.dataset.section !== undefined).map((n) => n.dataset.section);
+      ok(secs.join() === DLG_KEYS.join(), 'one section per key of DLG_KEYS, in order (' + secs.join() + ')');
+      ok(ctl('who') && ctl('who').dataset.kind === 'text' && !ctl('who.0'), 'who is a single text field');
+      ok(DLG_KEYS.filter((k) => k !== 'who').every((k) => D()[k].every((_, i) => ctl(k + '.' + i))), 'every other line has its own field, bound at [key, index]');
+
+      /* era dropdown: All eras / 1980s on / 1990s on, stored as no prefix, 2| or 3| */
+      const era = (k, i) => nodes().find((n) => n.tagName === 'SELECT' && n.dataset.era === k + '.' + i);
+      const labels = era('late', 8).kids.map((o) => o.textContent).join();
+      ok(labels === 'All eras,1980s on,1990s on', 'the era dropdown offers All eras / 1980s on / 1990s on (' + labels + ')');
+      ok(era('late', 8).value === '1' && era('arrive', 10).value === '2' && era('late', 0).value === '0', 'it shows each line\'s floor');
+      ok(ctl('late.8').value === 'TIME IS MONEY, TACO BOY!', 'the text field shows the line without its prefix');
+      era('late', 0).value = '1'; era('late', 0).fire('change');
+      ok(D().late[0] === '2|IN MY DAY A TACO TOOK 30 SECONDS!', 'choosing 1980s on stores "2|" before the line');
+      era('late', 0).value = '0'; era('late', 0).fire('change');
+      ok(D().late[0] === 'IN MY DAY A TACO TOOK 30 SECONDS!', 'All eras removes it');
+      type(ctl('late.8'), 'TIME IS PRECIOUS, TACO BOY!');
+      ok(D().late[8] === '2|TIME IS PRECIOUS, TACO BOY!', 'editing the text keeps the era floor');
+      type(ctl('late.8'), 'TIME IS MONEY, TACO BOY!');
+
+      /* the width check is the validator's */
+      type(ctl('missed.1'), 'THIS LINE IS FAR TOO WIDE FOR THE SPEECH BUBBLE BESIDE THE PORTRAIT');
+      ok(store.error && store.error.path.join() === 'missed,1' && ctl('missed.1').classList.contains('adm-bad') && /Trim \d+ character/.test(ctl('missed.1')._msg.textContent),
+         'an over-wide line is flagged on its field with the validator\'s message and how much to trim');
+      const ctr = nodes().find((n) => n.dataset.count === 'missed.1');
+      ok(ctr && /^\d+\/34$/.test(ctr.textContent), 'the field carries a live character count against the cap (' + (ctr && ctr.textContent) + ')');
+      type(ctl('missed.1'), 'IN THE BUSHES. VERY CLASSY.');
+      ok(store.error === null && !ctl('missed.1').classList.contains('adm-bad'), 'shortened, the flag clears');
+
+      /* add and remove */
+      const n0 = D().queue.length;
+      act('add', 'queue').fire('click');
+      ok(D().queue.length === n0 + 1 && D().queue[n0] === '' && ctl('queue.' + n0), 'Add line appends an empty line and its field');
+      ok(store.error && store.error.path.join() === 'queue,' + n0, 'an empty line is the validator\'s to refuse, on that field');
+      type(ctl('queue.' + n0), 'STACKED UP LIKE HAY BALES!');
+      ok(store.error === null && D().queue[n0] === 'STACKED UP LIKE HAY BALES!', 'typed into, it validates');
+      act('remove', 'queue', n0).fire('click');
+      ok(D().queue.length === n0 && !ctl('queue.' + n0), 'Remove drops the line');
+      ok(JSON.stringify(D().queue) === JSON.stringify(files['dialogue.json'].queue), 'the pool is back as it was');
+
+      /* Say it: pins a line, goes through G.react, and puts everything back */
+      const said = [], pool = { late: ['KEEP'] };
+      globalThis.G = { state: 'title', era: 1, react(kind) { said.push([kind, this.state, this.era, JSON.stringify(globalThis.DIALOGUE[kind])]); } };
+      globalThis.DIALOGUE = pool;
+      act('say', 'late', 8).fire('click');
+      ok(said.length === 1 && said[0][0] === 'late' && said[0][1] === 'play' && said[0][2] === 2 && said[0][3] === '["2|TIME IS MONEY, TACO BOY!"]',
+         'Say it on a 1980s line runs G.react with that line pinned, in play, in era 2 (' + JSON.stringify(said[0]) + ')');
+      ok(G.state === 'title' && G.era === 1 && pool.late.join() === 'KEEP', 'and the state, era and pool are restored afterwards');
+      globalThis.G.react = () => { throw new Error('boom'); };
+      try { act('say', 'late', 8).fire('click'); } catch (e) { /* the panel may let it out */ }
+      ok(G.state === 'title' && G.era === 1 && pool.late.join() === 'KEEP', 'even if react throws, nothing is left changed');
+      delete globalThis.G; delete globalThis.DIALOGUE;
+      let threw = null;
+      try { act('say', 'late', 0).fire('click'); } catch (x) { threw = x; }
+      ok(!threw && !act('say', 'who'), 'with no game, Say it is harmless; who has no Say it');
+    } finally { delete globalThis.G; delete globalThis.DIALOGUE; }
+  }
+  store.files = structuredClone(files); store.dirty.clear(); store.error = null;
+  globalThis.Admin.applyBuilt = realApply;
 }
 
 console.log('\n— menu panel —');

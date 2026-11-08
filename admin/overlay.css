@@ -98,3 +98,9 @@
 .adm-ingrow .adm-field { flex: 1 1 auto; margin: 2px 0; }
 .adm-recipe > .adm-msg { margin-left: 9em; }
 .adm-bindetail .adm-row { margin: 6px 0; }
+/* Dialogue: a line is an era dropdown, its text, a count and two buttons */
+.adm-dlgline { display: flex; align-items: flex-start; gap: 4px; margin: 2px 0; }
+.adm-dlgline .adm-field { flex: 1 1 auto; margin: 0; }
+.adm-dlgline .adm-field input[type=text] { width: 100%; }
+.adm-era { background: #120d1a; color: inherit; border: 1px solid #3a3150; border-radius: 3px; font: inherit; font-size: 12px; padding: 2px; }
+.adm-count { font: 11px/22px ui-monospace, Consolas, monospace; color: #bdb3cf; min-width: 3.2em; text-align: right; }
