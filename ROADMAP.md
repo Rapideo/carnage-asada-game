@@ -114,6 +114,10 @@ after Service Mode and not before; the rest are decisions that need no work.
 - [ ] **E2: snow tracked in** onto the dining-room door mat, and wet footprints along the line,
       on winter kitchen levels.
 - [ ] **E3: Mode C (touch) only:** move the minimap to a free corner; check on a real phone.
+- [ ] **Touch controls in the landscape margins** (owner, 2026-11-08). In landscape the 16:9
+      picture does not use all the screen it could. Move the Mode C controls out into the left
+      and right margins, and make them larger. Fold E3 into it, since freeing the picture may
+      settle where the minimap goes.
 - [ ] **Fix: the kitchen wall calendar** shows JAN on every winter level, but by the season
       rule all seven winter kitchen levels are December. (Final wave of this work.)
 
