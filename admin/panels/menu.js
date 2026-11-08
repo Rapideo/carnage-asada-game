@@ -56,7 +56,9 @@ function wellImage(key) {
   try { rec = typeof LATTICE !== 'undefined' && LATTICE ? LATTICE[key] : null; } catch (e) { rec = null; }
   rec = rec || records()[key];
   if (!rec) return null;
-  if (!decoded.has(rec)) { try { decoded.set(rec, Faces.decode(rec)); } catch (e) { return null; } }
+  if (!decoded.has(rec)) {
+    try { decoded.set(rec, Faces.decode(rec)); } catch (e) { console.warn('Service Mode: the well ' + key + ' did not decode', e); return null; }
+  }
   return decoded.get(rec);
 }
 function well(doc, key) {
@@ -146,6 +148,8 @@ function newIngredient(doc, box, e, i) {
   const wells = Object.keys(records()).sort();
   box.appendChild(h(doc, 'p', 'adm-readonly', 'A new ingredient needs a well. Start from one, move its colours, and Preview writes '
     + 'content/lattice/<key>.json (never over an existing file). Put in bin fills the slot; Save keeps it.'));
+  box.appendChild(h(doc, 'p', 'adm-readonly adm-warn', 'Each Preview writes a new well file, so trying another colour needs another key. '
+    + 'Wells you do not use are not deleted: remove them from content/lattice/ by hand.'));
   const inputs = {};
   const row = (k, label, title) => {
     const w = h(doc, 'div', 'adm-field');
@@ -238,9 +242,13 @@ function applyNow() {
 
 function budgetText(it) {
   const steps = it && Array.isArray(it.recipe) ? it.recipe.length : 0, s = String((it && it.short) || '');
-  const px = NOW_PX - nowCost(s, steps), left = Math.floor((NOW_PX - 9 * steps) / 12) - s.length;
-  const ch = (n) => n + ' character' + (n === 1 ? '' : 's');
-  return px >= 0 ? px + 'px left, ' + ch(left) + ' left' : 'over by ' + -px + 'px: trim ' + ch(-left);
+  /* characters are counted by asking nowCost itself, so the rule lives in validate.mjs only */
+  const fits = (t) => nowCost(t, steps) <= NOW_PX;
+  const px = NOW_PX - nowCost(s, steps), ch = (n) => n + ' character' + (n === 1 ? '' : 's');
+  if (fits(s)) { let k = 0; while (k < 64 && fits(s + 'X'.repeat(k + 1))) k++; return px + 'px left, ' + ch(k) + ' left'; }
+  let t = 1;
+  while (t < s.length && !fits(s.slice(0, s.length - t))) t++;
+  return 'over by ' + -px + 'px: trim ' + ch(t);
 }
 /* text that follows the store as you type: the budget, and the item's heading */
 const live = new Set();

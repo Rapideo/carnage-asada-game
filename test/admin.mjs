@@ -183,6 +183,20 @@ console.log('\n— server —');
       r = await recolor({ src: 'BEANS', name: 'BUSYWELL', hue: 0, sat: 1, val: 1 });
       ok(r.status === 409 && (await r.json()).error === 'busy' && !existsSync(join(tmp, 'content/lattice/busywell.json')), 'a recolour while a job runs is 409 busy');
       await held;
+      /* two at once for the same new name: the check and the write share one lock */
+      const race = await Promise.all([30, 90].map((hue) => recolor({ src: 'BEANS', name: 'RACEWELL', hue, sat: 1, val: 1 })));
+      const rb = await Promise.all(race.map((x) => x.json())), rs = race.map((x) => x.status);
+      const won = rb[rs.indexOf(200)], lostR = rb[rs.findIndex((s) => s !== 200)];
+      const raceFile = join(tmp, 'content/lattice/racewell.json');
+      ok(rs.filter((s) => s === 200).length === 1 && rs.filter((s) => s === 409).length === 1 && ['busy', 'exists'].includes(lostR && lostR.error)
+         && existsSync(raceFile) && JSON.stringify(JSON.parse(readFileSync(raceFile, 'utf8'))) === JSON.stringify(won.json),
+         'two concurrent same-name recolours: one 200, one 409 (' + rs.join() + ' ' + (lostR && lostR.error) + '), and the file is the winner\'s');
+      /* the tool itself never overwrites */
+      const raceText = readFileSync(raceFile, 'utf8');
+      let toolCode = 0;
+      try { (await import('node:child_process')).execFileSync(process.execPath, ['tools/render/recolor-lattice.mjs', 'BEANS', 'RACEWELL', '180', '1', '1'], { cwd: tmp, stdio: 'pipe' }); }
+      catch (x) { toolCode = x.status; }
+      ok(toolCode === 2 && readFileSync(raceFile, 'utf8') === raceText, 'recolor-lattice.mjs run by hand onto an existing name exits 2 and leaves the file alone (' + toolCode + ')');
       ok((await recolor({ src: 'BEANS', name: 'X', hue: 0, sat: 1, val: 1 }, 'http://evil.example')).status === 403, 'recolour checks the Origin too');
     }
 
@@ -708,10 +722,14 @@ console.log('\n— docs —');
       ok(eras.length === 3 && eras.every((e) => e.children.map((c) => c.heading).join('|') === 'A. Bins|A.1 Base Stations|B. Items'),
          'every era keeps A. Bins, A.1 Base Stations and B. Items, in that order');
       const e1 = at(mout, 'Era 1');
-      ok(at(mout, 'Era 1', 'Bins').children.map((c) => c.heading).join('|') === files['menus.json']['1'].bins.map((x, i) => (i + 1) + '. ' + (x ? x.name : '[EMPTY]')).join('|'),
-         'Era 1 lists all twelve bins by their JSON names, [EMPTY] for none');
-      ok(at(mout, 'Era 2', 'Bins').children.map((c) => c.heading).join('|') === '10. TACO SHOP SAUCE|11. HOUSE CHILI|12. [EMPTY]'
-         && at(mout, 'Era 3', 'Bins').children.map((c) => c.heading).join('|') === '12. GRILLED CHICKEN',
+      ok(at(mout, 'Era 1', 'Bins').children.map((c) => c.heading).join('|') === '1. GROUND BEEF|2. REFRIED BEANS|3. LETTUCE|4. TOMATOES|5. ONIONS (green onions)|6. CHILI CON QUESO (CCQ)|7. JALAPENOS|8. SOUR CREAM|9. CHEESE (shredded)|10. [EMPTY]|11. [EMPTY]|12. [EMPTY]',
+         'Era 1 lists all twelve bins by their JSON names, with the bracketed notes from the doc, [EMPTY] for none (' + at(mout, 'Era 1', 'Bins').children.map((c) => c.heading).join('|') + ')');
+      /* the ruling: a bracketed qualifier is a note, kept verbatim, and none is lost */
+      const brackets = (s) => s.split('\n').filter((l) => /^(#{2,4} |- (Short|Ticket|Ingredient \d+|Price)\s*:).* \(/.test(l)).map((l) => l.slice(l.indexOf(' (')));
+      ok(JSON.stringify(brackets(mout)) === JSON.stringify(brackets(mold)) && brackets(mold).length === 7,
+         'every bracketed note on a heading or value line survives regeneration (' + JSON.stringify(brackets(mout)) + ')');
+      ok(at(mout, 'Era 2', 'Bins').children.map((c) => c.heading).join('|') === '10. TACO SHOP SAUCE (Sauce)|11. HOUSE CHILI (Chili)|12. [EMPTY]'
+         && at(mout, 'Era 3', 'Bins').children.map((c) => c.heading).join('|') === '12. GRILLED CHICKEN (Chicken)',
          'a later era lists only the slots the era before left empty');
       ok(at(mout, 'Era 1', 'Base Stations').children.map((c) => c.heading).join('|') === 'Left. SMALL TORTILLA, TACO SHELL, LARGE TORTILLA (stacked, top to bottom)|Right. CHIPS',
          'the base stations follow the JSON, the "(stacked, top to bottom)" note kept');
@@ -762,9 +780,22 @@ console.log('\n— docs —');
       const bins = mfx((m) => { m['1'].bins[0].name = 'MINCED BEEF'; m['2'].bins[11] = { key: 'OLIVES', name: 'OLIVES', plate: 'OLIVES' }; });
       const mbn = MN.render(bins, mold);
       ok(at(mbn, 'Era 1', 'Bins').children[0].heading === '1. MINCED BEEF' && at(mbn, 'Era 1', 'Items').children[0].lines.includes('- Ingredient 1 : MINCED BEEF')
-         && at(mbn, 'Era 2', 'Bins').children.map((c) => c.heading).join('|') === '10. TACO SHOP SAUCE|11. HOUSE CHILI|12. OLIVES',
+         && at(mbn, 'Era 2', 'Bins').children.map((c) => c.heading).join('|') === '10. TACO SHOP SAUCE (Sauce)|11. HOUSE CHILI (Chili)|12. OLIVES',
          'a renamed bin renames its heading and the ingredient lines that use it; a filled slot shows its name');
       ok(lost(mold, mbn) === null, 'and no prose is lost (' + lost(mold, mbn) + ')');
+      const ren = MN.render(mfx((m) => { m['1'].bins[4].name = 'SCALLIONS'; m['2'].bins[9].name = 'HOT SAUCE'; }), mold);
+      ok(at(ren, 'Era 1', 'Bins').children[4].heading === '5. SCALLIONS (green onions)' && at(ren, 'Era 2', 'Bins').children[0].heading === '10. HOT SAUCE (Sauce)',
+         'a JSON rename keeps the bracketed note on the renamed line (' + at(ren, 'Era 1', 'Bins').children[4].heading + ')');
+      ok(MN.render(mfx((m) => { m['1'].bins[4].name = 'SCALLIONS'; m['2'].bins[9].name = 'HOT SAUCE'; }), ren) === ren, 'and that render is idempotent');
+      /* a note on an ingredient line, and on an item heading, follows that ingredient and that dish */
+      const noted = mold.replace('- Ingredient 2 : Jalapenos\n', '- Ingredient 2 : Jalapenos (pickled)\n').replace('#### 9. Nachos\n', '#### 9. Nachos (the 1970s plate)\n');
+      ok(noted !== mold && noted.split('(pickled)').length === 2 && noted.includes('Nachos (the 1970s plate)'), 'the noted doc has both notes, once');
+      const nn = (o) => at(o, 'Era 1', 'Items').children;
+      const n1 = MN.render(files, noted), n9 = nn(n1)[8];
+      ok(n9.heading === '9. NACHOS (the 1970s plate)' && n9.lines.includes('- Ingredient 2 : JALAPENOS (pickled)'), 'notes on an item heading and an ingredient line survive (' + n9.heading + ')');
+      const swp = MN.render(mfx((m) => { const r = m['1'].items[8].recipe; [r[1], r[2]] = [r[2], r[1]]; m['1'].items.unshift(m['1'].items.pop()); }), noted), s0 = nn(swp)[0];
+      ok(s0.heading === '1. NACHOS (the 1970s plate)' && s0.lines.includes('- Ingredient 1 : JALAPENOS (pickled)') && s0.lines.includes('- Ingredient 2 : CHILI CON QUESO'),
+         'and move with the dish and the ingredient when the menu and the recipe are reordered (' + JSON.stringify(fields(s0)) + ')');
 
       const mfresh = MN.render(files, null);
       ok(['## I. Era 1', '### A. Bins', '### A.1 Base Stations', '### B. Items', '#### 15. QUESO MELT', '## III. Era 3'].every((s) => mfresh.includes('\n' + s + '\n'))
@@ -1163,7 +1194,7 @@ console.log('\n— menu panel —');
       const it0 = M()['1'].items[0], left0 = NOW_PX - nowCost(it0.short, it0.recipe.length);
       ok(budget(0).includes(left0 + 'px left') && budget(0).includes('0 characters left'), 'the short shows px and characters left (' + budget(0) + ')');
       type(ctl('1.items.0.short'), 'HD TACOS');
-      ok(store.error && store.error.path.join('.') === '1.items.0.short' && /Trim 1/.test(ctl('1.items.0.short')._msg.textContent) && /over/.test(budget(0)),
+      ok(store.error && store.error.path.join('.') === '1.items.0.short' && /Trim 1/.test(ctl('1.items.0.short')._msg.textContent) && budget(0) === 'over by 5px: trim 1 character',
          'a short past the budget is refused on the field with characters to trim (' + budget(0) + ')');
       type(ctl('1.items.0.short'), 'HD TACO');
       type(ctl('1.items.0.price'), '0.35');
@@ -1211,6 +1242,7 @@ console.log('\n— menu panel —');
       ok(['key', 'name', 'plate', 'src', 'hue', 'sat', 'val'].every((k) => ni(k)) && act('preview') && act('fill') && act('fill').disabled,
          'an empty bin offers a new ingredient: key, name, plate, a source well and hue/sat/val; Put in bin waits for a preview');
       ok(ni('src').kids.some((o) => o.textContent === 'BEANS'), 'the source select lists the wells');
+      ok(el.textContent.includes('Each Preview writes a new well file') && el.textContent.includes('by hand'), 'the form says each Preview writes a file, and leftovers are deleted by hand');
       const sent = [];
       const beansRec = { ...structuredClone(files['lattice/beans.json']), name: 'TESTWELL' };
       globalThis.fetch = async (url, o) => {

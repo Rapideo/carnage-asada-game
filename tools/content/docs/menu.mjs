@@ -26,9 +26,11 @@
                             is removed. A renamed dish keeps the node in its
                             position.
 
-   Display follows the JSON's form: names as stored (upper case), so "Cheese
-   (shredded)" reads CHEESE; an ingredient is the name of its bin or base in
-   that era. Every other line in a node is prose and stays where it is: the
+   Display follows the JSON's form: names as stored (upper case), and an
+   ingredient is the name of its bin or base in that era. A bracketed note the
+   doc wrote after a name is kept verbatim after it (controller ruling: these
+   carry owner rulings, ONIONS are green onions), so "Cheese (shredded)" reads
+   "CHEESE (shredded)" and keeps its note through a rename. Every other line in a node is prose and stays where it is: the
    introductions, the "Bins 1-9 are Era 1's" notes, the Short sizing note under
    Era 1's Items, the Dropped notes, and the whole of the Notes section. */
 import { parseMd, toMd, roman } from './engine.mjs';
@@ -40,6 +42,26 @@ const blank = (l) => l === undefined || l.trim() === '';
 const num = (h) => { const m = /^(\d+)\. /.exec(h); return m ? Number(m[1]) : null; };
 const node = (heading, depth) => ({ heading, depth, lines: [''], children: [] });
 
+/* A bracketed note after a name ("Onions (green onions)", "Chili Con Queso
+   (CCQ)") is an owner's note on the value, and is kept verbatim after the
+   JSON's form of the name: "ONIONS (green onions)". When the doc's text starts
+   with the name (case aside) the note is what follows it; otherwise (the JSON
+   renamed it) the note is the text from its first " (" on, so it stays on the
+   renamed line. A name the doc never had gets no note. */
+const NOTE = /^ \(.*\)$/;
+function noteOf(old, name) {
+  if (!old) return '';
+  const n = String(name), rest = old.slice(n.length);
+  if (old.toUpperCase().startsWith(n.toUpperCase())) return NOTE.test(rest) ? rest : '';
+  const i = old.indexOf(' (');
+  return i >= 0 && NOTE.test(old.slice(i)) ? old.slice(i) : '';
+}
+/* the doc's text names `name`, with or without a note after it */
+const sameName = (text, name) => {
+  const t = String(text).toUpperCase(), n = String(name).toUpperCase();
+  return t === n || (t.startsWith(n) && NOTE.test(String(text).slice(n.length)));
+};
+
 const SECTIONS = [['Bins', 'A. Bins'], ['Base Stations', 'A.1 Base Stations'], ['Items', 'B. Items']];
 const OWNED = /^- (Short|Ticket|Ingredient \d+|Price)\s*:\s*(.*)$/;
 
@@ -49,12 +71,13 @@ const OWNED = /^- (Short|Ticket|Ingredient \d+|Price)\s*:\s*(.*)$/;
 function fillItem(n, it, label, withTicket) {
   const L = n.lines;
   let p = -1, priceTail = '';
-  const kept = [];
+  const kept = [], olds = [];
   for (let i = 0; i < L.length; i++) {
     const m = OWNED.exec(L[i]);
     if (!m) { kept.push(L[i]); continue; }
     if (p < 0) p = kept.length;
     if (m[1] === 'Price') { const v = /^\d+\.\d\d/.exec(m[2]); priceTail = v ? m[2].slice(v[0].length) : ''; }
+    if (m[1].startsWith('Ingredient ')) olds[Number(m[1].slice(11))] = m[2];
     if (blank(L[i + 1])) i++;                    // its blank separator goes with it
   }
   if (p < 0) {                                   // none yet: after the node's last line of prose
@@ -64,7 +87,12 @@ function fillItem(n, it, label, withTicket) {
   }
   const vals = [['Short', it.short]];
   if (withTicket) vals.push(['Ticket', it.ticket]);
-  it.recipe.forEach((k, j) => vals.push(['Ingredient ' + j, label(k)]));
+  /* an ingredient's note follows the ingredient it was written on, by name:
+     the same step if it still names it, else any step that did */
+  it.recipe.forEach((k, j) => {
+    const name = label(k), was = olds[j] !== undefined && sameName(olds[j], name) ? olds[j] : olds.find((v) => v !== undefined && sameName(v, name));
+    vals.push(['Ingredient ' + j, name + (was ? noteOf(was, name) : '')]);
+  });
   vals.push(['Price', money(it.price) + priceTail]);
   const block = [];
   for (const [k, v] of vals) block.push('- ' + k + ' : ' + v, '');
@@ -78,14 +106,14 @@ function syncItems(sec, items, label) {
   const old = sec.children.filter((c) => num(c.heading) !== null), rest = sec.children.filter((c) => num(c.heading) === null);
   const claimed = new Set(), at = new Array(items.length).fill(null);
   items.forEach((it, i) => {
-    const hit = old.find((c) => !claimed.has(c) && bare(c.heading).toUpperCase() === String(it.name).toUpperCase());
+    const hit = old.find((c) => !claimed.has(c) && sameName(bare(c.heading), it.name));
     if (hit) { claimed.add(hit); at[i] = hit; }
   });
   items.forEach((it, i) => { if (!at[i] && old[i] && !claimed.has(old[i])) { claimed.add(old[i]); at[i] = old[i]; } });
   const tickets = old.some((c) => c.lines.some((l) => /^- Ticket\s*:/.test(l))) || !old.length;
   sec.children = [...items.map((it, i) => {
     const fresh = !at[i], n = at[i] || node('', sec.depth + 1);
-    n.heading = (i + 1) + '. ' + it.name;
+    n.heading = (i + 1) + '. ' + it.name + (fresh ? '' : noteOf(bare(n.heading), it.name));
     fillItem(n, it, label, n.lines.some((l) => /^- Ticket\s*:/.test(l)) || (fresh && tickets));
     return n;
   }), ...rest];
@@ -95,8 +123,8 @@ function syncBins(sec, m, prev) {
   const slots = m.bins.map((b, i) => i).filter((i) => !prev || prev.bins[i] == null);
   const old = sec.children.filter((c) => num(c.heading) !== null), rest = sec.children.filter((c) => num(c.heading) === null);
   sec.children = [...slots.map((i) => {
-    const n = old.find((c) => num(c.heading) === i + 1) || node('', sec.depth + 1), b = m.bins[i];
-    n.heading = (i + 1) + '. ' + (b ? b.name : '[EMPTY]');
+    const was = old.find((c) => num(c.heading) === i + 1), n = was || node('', sec.depth + 1), b = m.bins[i];
+    n.heading = (i + 1) + '. ' + (b ? b.name + (was ? noteOf(bare(was.heading), b.name) : '') : '[EMPTY]');
     return n;
   }), ...rest];
 }

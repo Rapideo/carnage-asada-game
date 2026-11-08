@@ -147,16 +147,25 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
     if (typeof src !== 'string' || !/^[A-Z0-9]+$/.test(src) || typeof name !== 'string' || !/^[A-Z]+$/.test(name)
         || !nums.every(Number.isFinite) || nums[1] < 0 || nums[2] < 0) return send(res, 400, { error: 'bad request' });
     const dir = join(content, 'lattice'), rel = 'lattice/' + name.toLowerCase() + '.json';
-    const list = (await readdir(dir)).filter((f) => f.endsWith('.json')), names = new Set();
-    for (const f of list) {
-      try { names.add(JSON.parse(await readFile(join(dir, f), 'utf8')).name); } catch { /* the validator reports it */ }
-    }
-    if (list.includes(name.toLowerCase() + '.json') || names.has(name)) return send(res, 409, { error: 'exists', rel });
-    if (!list.includes(src.toLowerCase() + '.json')) return send(res, 400, { error: 'no such well', src });
-    const r = await job(['node', 'tools/render/recolor-lattice.mjs', src, name, ...nums.map(String)]);
-    if (r.busy) return send(res, 409, { error: 'busy' });
-    if (r.code !== 0) return send(res, 500, { error: 'job', output: r.stdout + r.stderr });
-    send(res, 200, { rel, json: JSON.parse(await readFile(join(content, rel), 'utf8')), output: r.stdout.trim() });
+    /* The existence check and the spawn hold ONE lock, so two requests for a
+       new name cannot both pass the check: the second is busy, or (once the
+       first is done) finds the file. runJob, not job: job would take the lock
+       a second time and report busy against itself. The tool also opens its
+       output exclusively ('wx'), so even outside this server nothing is
+       overwritten. */
+    const held = await withBusy(async () => {
+      const list = (await readdir(dir)).filter((f) => f.endsWith('.json')), names = new Set();
+      for (const f of list) {
+        try { names.add(JSON.parse(await readFile(join(dir, f), 'utf8')).name); } catch { /* the validator reports it */ }
+      }
+      if (list.includes(name.toLowerCase() + '.json') || names.has(name)) return [409, { error: 'exists', rel }];
+      if (!list.includes(src.toLowerCase() + '.json')) return [400, { error: 'no such well', src }];
+      const r = await runJob(['node', 'tools/render/recolor-lattice.mjs', src, name, ...nums.map(String)], { cwd: root });
+      if (r.code !== 0) return [/EEXIST/.test(r.stderr) ? 409 : 500, /EEXIST/.test(r.stderr) ? { error: 'exists', rel } : { error: 'job', output: r.stdout + r.stderr }];
+      return [200, { rel, json: JSON.parse(await readFile(join(content, rel), 'utf8')), output: r.stdout.trim() }];
+    });
+    if (held.busy) return send(res, 409, { error: 'busy' });
+    send(res, held.value[0], held.value[1]);
   }
   const builtin = { '/admin/api/recolor': recolor };
 

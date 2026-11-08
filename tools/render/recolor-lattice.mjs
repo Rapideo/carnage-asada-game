@@ -21,6 +21,10 @@
 
    SAUCE  <- CCQ    a smooth wet field, so it reads as sauce rather than as a heap
    CHILI  <- BEANS  whole beans in a mass, which is what chili con carne is
+
+   It never overwrites: a NAME that is already a file fails with EEXIST (exit
+   2) and the file is left as it was. The baked wells stay as they are (owner,
+   2026-11-07); to re-derive one, delete its file first, deliberately.
 */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -58,5 +62,11 @@ rec.pal = rec.pal.map((h) => {
   return toHex([(H + Number(hue) + 360) % 360, Math.min(1, S * Number(sat)), Math.min(1, V * Number(val))]);
 });
 rec.name = name.toUpperCase();
-writeFileSync(join(DIR, name.toLowerCase() + '.json'), JSON.stringify(rec, null, 2) + '\n');
+/* never over an existing well: the output is opened exclusively */
+try { writeFileSync(join(DIR, name.toLowerCase() + '.json'), JSON.stringify(rec, null, 2) + '\n', { flag: 'wx' }); }
+catch (e) {
+  if (e.code !== 'EEXIST') throw e;
+  console.error(`EEXIST: content/lattice/${name.toLowerCase()}.json already exists; nothing written (delete it first to re-derive)`);
+  process.exit(2);
+}
 console.log(`${rec.name} <- ${src.toUpperCase()}: ${moved} of ${rec.pal.length} colours moved`);
