@@ -81,6 +81,7 @@ function draw(el) {
   ro('Sequence', 'Level ' + lv.n + ' of ' + levels.length);
   Admin.field(form, { rel: REL, path: path('type'), kind: 'select', label: 'Game Type', options: TYPES });
   Admin.field(form, { rel: REL, path: path('name'), kind: 'text', label: 'Name' });
+  Admin.field(form, { rel: REL, path: path('year'), kind: 'int', label: 'Year', title: 'Year, 1970 to 1999; era and name must agree with it' });
   Admin.field(form, { rel: REL, path: path('era'), kind: 'select', label: 'Era', options: [1, 2, 3] });
   Admin.field(form, { rel: REL, path: path('difficulty'), kind: 'select', label: 'Difficulty', options: difficultyKeys() });
   Admin.field(form, { rel: REL, path: path('season'), kind: 'select', label: 'Season', options: SEASONS });
@@ -103,8 +104,7 @@ function draw(el) {
 
 Admin.tab('levels', 'Levels', draw);
 
-/* An edit to the level now on screen restarts the screen, so the change is seen. */
-Admin.onApply('levels', function (built, game) {
-  const g = game || (typeof G !== 'undefined' ? G : null);
-  if (g && panel && panel.isConnected && sel + 1 === g.levelN) Admin.restartScreen(g);
-});
+/* No refresher here on purpose: apply.js already repoints G.level at the new
+   content and restarts the screen only when a gameplay field of the current
+   level changed (type, era, year, season, difficulty, map, menu). A rename
+   alone must not restart a run per keystroke. */

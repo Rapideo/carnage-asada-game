@@ -455,6 +455,17 @@ console.log('\n— docs —');
   let le = null; try { validateContent(memSource(lv)); } catch (x) { le = x; }
   ok(le instanceof ContentError && le.file === 'content/levels.json' && le.path.join('.') === 'levels.0.name',
      'a SUMMER name on a winter level is reported on levels.0.name, the field the Levels panel highlights');
+  const era = structuredClone(files); era['levels.json'].levels[0].era = 2;
+  le = null; try { validateContent(memSource(era)); } catch (x) { le = x; }
+  ok(le instanceof ContentError && le.path.join('.') === 'levels.0.era', 'changing era alone is a ContentError on levels.0.era');
+  /* the last 1970s level moves forward into the 1980s: year, era, name (and map/menu, which equal era) together */
+  const mv = structuredClone(files), LS = mv['levels.json'].levels, k = LS.findIndex((l) => l.era === 2) - 1, l0 = LS[k];
+  Object.assign(l0, { year: LS[k + 1].year, era: 2, name: l0.season.toUpperCase() + ' ' + LS[k + 1].year, map: 2, menu: 2 });
+  /* the music rule (songs no more than 2 years before the level) follows the level: take the neighbour's list */
+  const PL = mv['music/playlist.json'], PLL = PL.levels || PL;
+  PLL[String(l0.n)] = PLL[String(LS[k + 1].n)];
+  let mb = null; le = null; try { mb = validateContent(memSource(mv)); } catch (x) { le = x; }
+  ok(mb && mb.levels[k].year === l0.year && mb.levels[k].era === 2, 'year, era and name changed together validate (' + (le ? le.path.join('.') + ': ' + le.message : 'ok') + ')');
   const { existsSync: ex } = await import('node:fs');
   const ov = readFileSync('admin/overlay.js', 'utf8');
   ok(ex('admin/panels/levels.js') && /import '\.\/panels\/levels\.js'/.test(ov), 'the Levels panel exists and the overlay imports it');
