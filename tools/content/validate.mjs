@@ -62,8 +62,10 @@ export const FONT_CHARS = /^[A-Z0-9 .,:;!?$+\-/\\%#()[\]*=<>'"_&@^~]*$/;
 // the virtual screen, and the scale each field is drawn at in overlayWinners
 export const VW = 384;
 const EDGE = 8;
-const FIELD_SCALE = { slogan: 2, attribution: 1, credit: 1 };
+export const FIELD_SCALE = { slogan: 2, attribution: 1, credit: 1 };
 const textPx = (s, k) => (s.length ? s.length * 6 - 1 : 0) * k;
+/* the most characters a line of a winners.json field may have (the panel shows it) */
+export const lineMaxChars = (field) => Math.floor((VW - EDGE) / (FIELD_SCALE[field] || 1) / 6);
 
 /* The one charset check every builder shares, so the message is the same
    everywhere: which file, which field, which characters. */
@@ -99,7 +101,7 @@ function buildContent(src) {
       // the JSON said so, but a note is not a guard.
       const w = textPx(up, scale);
       if (w > VW - EDGE) {
-        const max = Math.floor((VW - EDGE) / scale / 6);
+        const max = lineMaxChars(k);
         fail(F, [k],
           `content/winners.json: "${k}" is ${w}px wide at scale ${scale}, but the screen is ${VW}px.\n` +
           `  ${JSON.stringify(s)} is ${s.length} characters; the limit at this scale is ${max}.\n` +
@@ -701,7 +703,10 @@ function buildLevels(src, difficulty, maps, menus) {
     if (i > 0 && DIFF_KEYS.indexOf(v.difficulty) < DIFF_KEYS.indexOf(L[i - 1].difficulty))
       fail(F, [...P, 'difficulty'], `${W} is "${v.difficulty}", easier than level ${i} ("${L[i - 1].difficulty}"); the run only gets harder`);
   });
-  return L;
+  /* the season rule's month (levelMonth) rides on each built level, so the
+     game (the kitchen's wall calendar) reads it rather than keeping a copy of
+     the rule. Derived from the order, never authored. */
+  return L.map((v, i) => ({ ...v, month: levelMonth(L, i) }));
 }
 
 /* Every bin in every era names a piece of lattice art. A missing one draws

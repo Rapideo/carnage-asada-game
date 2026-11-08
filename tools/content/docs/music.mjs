@@ -32,9 +32,10 @@
    read(text, music) reads the lists back as song ids, for the round-trip test. */
 import { parseMd, toMd, roman, letter } from './engine.mjs';
 import { noteOf, sameName } from './menu.mjs';
+import { MUSIC_LOOKBACK } from '../validate.mjs';
 
 const PREAMBLE = 'The songs each level plays, and the title\'s. Each list plays in order and then loops. '
-  + 'A level may only play songs from its own year or up to 2 years before it, never after. '
+  + 'A level may only play songs from its own year or up to ' + MUSIC_LOOKBACK + ' years before it, never after. '
   + 'The game reads `content/music/playlist.json` and the songs in `content/music/`: those are the master copy and this page mirrors them, '
   + 'so edit the lists in Service Mode (Music) or in the JSON.';
 const TITLE = 'Title Screen';

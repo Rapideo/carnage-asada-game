@@ -112,7 +112,7 @@ function lineRow(doc, el, key, i) {
   const sayBtn = h(doc, 'button', 'adm-show', 'Say it');
   sayBtn.type = 'button';
   sayBtn.dataset.act = 'say'; sayBtn.dataset.key = key; sayBtn.dataset.i = String(i);
-  sayBtn.title = 'show it on the dialogue strip (during a shift)';
+  sayBtn.title = 'show it on the dialogue strip, on whatever screen the game is on';
   sayBtn.addEventListener('click', () => say(key, i));
   const rm = h(doc, 'button', 'adm-show', 'Remove');
   rm.type = 'button';

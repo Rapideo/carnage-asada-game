@@ -83,8 +83,8 @@ function thumb(doc, n) {
 
 /* ---- the strip ------------------------------------------------------------ */
 
-/* Admin.test.say (Task 16) when it exists; until then Dialog.say directly. The
-   strip is drawn only during a shift, so outside one nothing shows. */
+/* Admin.test.say when it exists, which shows the strip on any screen; without
+   it (no Test harness) Dialog.say directly, which only a shift draws. */
 function show(n) {
   if (Admin.test && typeof Admin.test.say === 'function') return Admin.test.say(LINE, n);
   if (typeof Dialog === 'undefined' || !Dialog || typeof Dialog.say !== 'function') return;
@@ -234,7 +234,7 @@ function eyesSection(doc, el) {
   clear.addEventListener('click', () => { setEyes(n, []); redraw(); });
   const blink = btn(doc, blinkOn ? 'Eyes open' : 'Blink', 'blink', 'show it mid-blink, as the game draws it');
   blink.addEventListener('click', () => { blinkOn = !blinkOn; redraw(); });
-  const say = btn(doc, 'Show in strip', 'say-face', 'put it in the dialogue strip at game size (during a shift)');
+  const say = btn(doc, 'Show in strip', 'say-face', 'put it in the dialogue strip at game size, on whatever screen the game is on');
   say.addEventListener('click', () => show(n));
   row.append(clear, blink, say);
   sec.appendChild(row);
@@ -293,7 +293,7 @@ async function bake() {
         method: 'POST', headers: { 'content-type': 'application/json', ...store.headers }, body: JSON.stringify(body) });
       const j = await r.json();
       if (r.status === 200) {
-        store.files[j.rel] = j.json;          // already on disk: in the working copy, not dirty
+        store.adopt(j.rel, j.json, j.stamp);  // already on disk: in the working copy, not dirty, stamped
         applyNow();
         pick = name;
         nf.msg = 'wrote content/' + j.rel + '. Add it to a cast to use it.\n' + (j.log || '');

@@ -270,6 +270,8 @@ console.log('\n— server —');
       ok(r.status === 200 && j.rel === 'lattice/testwell.json' && j.json && j.json.name === 'TESTWELL' && existsSync(made)
          && JSON.stringify(JSON.parse(readFileSync(made, 'utf8'))) === JSON.stringify(j.json),
          'a new name is 200 { rel, json } and writes content/lattice/<name>.json in the temp root (' + r.status + ' ' + JSON.stringify(j).slice(0, 120) + ')');
+      ok(j.stamp && j.stamp['lattice/testwell.json'] === (existsSync(made) && statSync(made).mtimeMs),
+         'and it returns the stamp of the file it wrote, so the store can save that file later (' + JSON.stringify(j.stamp) + ')');
       ok(!existsSync('content/lattice/testwell.json'), 'and nothing in the real repo');
       const beans = JSON.parse(readFileSync(join(tmp, 'content/lattice/beans.json'), 'utf8'));
       ok(j.json && j.json.w === beans.w && j.json.pix === beans.pix && j.json.pal.length === beans.pal.length && j.json.pal.join() !== beans.pal.join(),
@@ -334,6 +336,8 @@ console.log('\n— server —');
          && j.json.year === 1987 && j.json.month === 11 && j.json.src === hazy.file && j.json.len > 0 && existsSync(made)
          && JSON.stringify(JSON.parse(readFileSync(made, 'utf8'))) === JSON.stringify(j.json),
          'porting an unported MIDI is 200 { rel, json } and writes content/music/<id>.json, month and all (' + r.status + ' ' + JSON.stringify(j).slice(0, 160) + ')');
+      ok(j.stamp && j.stamp['music/hazy-shade-of-winter.json'] === (existsSync(made) && statSync(made).mtimeMs),
+         'and it returns the stamp of the song it wrote (' + JSON.stringify(j.stamp) + ')');
       const sj = JSON.parse(readFileSync(SJ, 'utf8')), last = sj.songs[sj.songs.length - 1];
       ok(sj.songs.length === JSON.parse(sjText).songs.length + 1 && JSON.stringify(last) === JSON.stringify({ id: hazy.id, file: hazy.file, title: hazy.title, artist: hazy.artist, year: 1987, month: 11 })
          && readFileSync(SJ, 'utf8') === formatSongs(sj), 'songs.json gains the entry, written one song per line (' + JSON.stringify(last) + ')');
@@ -368,6 +372,28 @@ console.log('\n— server —');
     r = await fetch(srv.url + '/admin/api/save', { method: 'POST', body: '{}' });
     ok(r.status === 403, 'a POST with no Origin is refused 403');
     ok((await fetch(srv.url + '/..%2f..%2fetc/passwd')).status === 404, 'the .. guard holds');
+
+    /* DNS rebinding: a page on another name that resolves to 127.0.0.1 is
+       same-origin with itself, not with us, so the Origin check never sees
+       its GETs. The Host header does: every route, GET or POST, refuses one
+       that is not this server's own name and port. */
+    {
+      const http = await import('node:http');
+      const port = new URL(srv.url).port;
+      const req = (path, host, method = 'GET') => new Promise((done, no) => {
+        const q = http.request({ host: '127.0.0.1', port, path, method, headers: { host, origin: srv.url, 'content-type': 'application/json' } },
+          (res) => { res.resume(); res.on('end', () => done(res.statusCode)); });
+        q.on('error', no);
+        q.end(method === 'POST' ? '{"files":{},"stamp":{}}' : undefined);
+      });
+      const foreign = [];
+      for (const [path, host, m] of [['/admin/api/content', 'evil.example:' + port], ['/', 'evil.example:' + port], ['/.git/HEAD', 'evil.example'],
+        ['/content/levels.json', 'rebind.example:' + port], ['/admin/api/content', '127.0.0.1:1'], ['/admin/api/content', 'localhost'],
+        ['/admin/api/save', 'evil.example:' + port, 'POST']]) foreign.push(await req(path, host, m));
+      ok(foreign.every((c) => c === 403 || c === 421), 'a foreign Host is refused on every route, GET and POST (' + foreign.join() + ')');
+      const mine = [await req('/admin/api/content', '127.0.0.1:' + port), await req('/admin/api/content', 'localhost:' + port), await req('/', 'localhost:' + port)];
+      ok(mine.every((c) => c === 200), 'and 127.0.0.1:<port> and localhost:<port> are served (' + mine.join() + ')');
+    }
   } finally { await srv.close(); rmSync(tmp, { recursive: true, force: true }); }
 }
 
@@ -443,6 +469,8 @@ console.log('\n— faces —');
        && JSON.stringify(JSON.parse(readFileSync(made, 'utf8'))) === JSON.stringify(j.json) && typeof j.log === 'string' && /round trip/.test(j.log),
        'a new face is 200 { rel, json, log } and writes content/faces/<name>.json in the temp root (' + r.status + ' ' + JSON.stringify(j).slice(0, 160) + ')');
     ok(j.json && j.json.w <= 60 && j.json.h <= 74, 'baked to the bust budget, 60x74 (' + (j.json && j.json.w + 'x' + j.json.h) + ')');
+    ok(j.stamp && j.stamp['faces/testface.json'] === (existsSync(made) && statSync(made).mtimeMs),
+       'and it returns the stamp of the face file it wrote (' + JSON.stringify(j.stamp) + ')');
     ok(existsSync(refImg) && readFileSync(refImg).equals(readFileSync(SRC_PNG)), 'the reference image is kept under reference/assets/images/faces/');
     ok(!existsSync('content/faces/testface.json') && !existsSync('reference/assets/images/faces/testface.png'), 'and nothing in the real repo');
     r = await face({ name: 'testface', png, crop: [268, 100, 862, 1071] });
@@ -710,6 +738,74 @@ console.log('\n— store —');
     const stale = await store.save();
     ok(!stale.ok && stale.reason === 'changed', 'a file changed on disk is reported, not overwritten');
   } finally { await srv.close(); rmSync(tmp, { recursive: true, force: true }); }
+}
+
+console.log('\n— job, then save —');
+/* Each job (a face, a recolour, a port) writes a content file. The store
+   adopts it with the stamp the route returned, so an edit to that file (or a
+   file that names it) saves, rather than 409 changed with a reload that
+   throws every unsaved edit away; and the table it feeds reaches the game. */
+{
+  const { mkdtempSync, cpSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const tmp = mkdtempSync(join(tmpdir(), 'admin-jobs-'));
+  for (const f of ['build.mjs', 'shell.html', 'src', 'content', 'tools/content', 'tools/render', 'reference/kitchen/facedata.mjs', 'reference/kitchen/portrait.mjs',
+    'tools/music/midi2song.mjs', 'tools/music/songs.json', 'reference/assets/midi/80s/HazyShadeOfWinter.mid']) cpSync(f, join(tmp, f), { recursive: true });
+  (await import('node:child_process')).execFileSync('node', ['build.mjs'], { cwd: tmp, stdio: 'pipe' });
+  const { startAdmin } = await import('../tools/content/server.mjs');
+  const srv = await startAdmin({ root: tmp, port: 0 });
+  const { store } = await import('../admin/store.js');
+  const realApply = globalThis.Admin.applyBuilt;
+  const call = async (route, body) => {
+    const r = await fetch(srv.url + route, { method: 'POST', headers: { 'content-type': 'application/json', origin: srv.url }, body: JSON.stringify(body) });
+    return { status: r.status, j: await r.json() };
+  };
+  try {
+    globalThis.Admin.applyBuilt = SB.Admin.applyBuilt;            // the real one, into the vm game
+    store.base = srv.url; store.headers = { origin: srv.url };
+    await store.load();
+
+    /* a face: bake it, give it eyes, cast it, save */
+    const png = readFileSync('reference/assets/images/Smoker.png').toString('base64');
+    let { status, j } = await call('/admin/api/face', { name: 'jobface', png, crop: [268, 100, 862, 1071] });
+    ok(status === 200 && j.rel === 'faces/jobface.json', 'the face job made faces/jobface.json (' + status + ')');
+    if (status === 200) {
+      store.adopt(j.rel, j.json, j.stamp);
+      store.set(j.rel, 'eyes', [[20, 28, 6, 4]]); store.set(j.rel, '_eyesByHand', true);
+      store.set('casts.json', '1', [...store.files['casts.json']['1'], 'jobface']);
+      const s = await store.save();
+      ok(s.ok, 'a new face, its eyes set and cast, saves: 200, not 409 changed (' + JSON.stringify(s).slice(0, 120) + ')');
+      ok(runScript('!!FACES.jobface') && runScript('CASTS["1"].includes("jobface")'), "and the game's FACES and CASTS hold it");
+    }
+
+    /* a well: recolour, edit the new file itself, save */
+    ({ status, j } = await call('/admin/api/recolor', { src: 'BEANS', name: 'JOBWELL', hue: -20, sat: 1.1, val: 0.8 }));
+    ok(status === 200 && j.rel === 'lattice/jobwell.json', 'the recolour job made lattice/jobwell.json (' + status + ')');
+    if (status === 200) {
+      store.adopt(j.rel, j.json, j.stamp);
+      store.set(j.rel, 'pal', [...j.json.pal]);
+      const s = await store.save();
+      ok(s.ok, 'an edit to the new well saves: 200, not 409 changed (' + JSON.stringify(s).slice(0, 120) + ')');
+      ok(runScript('!!LATTICE.JOBWELL'), "and the game's LATTICE holds it");
+    }
+
+    /* a song: port it, edit it and put it on the title list, save */
+    ({ status, j } = await call('/admin/api/port', { file: '80s/HazyShadeOfWinter.mid', id: 'job-hazy', title: 'A HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987, month: 11 }));
+    ok(status === 200 && j.rel === 'music/job-hazy.json', 'the port job made music/job-hazy.json (' + status + ')');
+    if (status === 200) {
+      store.adopt(j.rel, j.json, j.stamp);
+      store.set(j.rel, 'title', 'A HAZY SHADE OF WINTER!');
+      store.set('music/playlist.json', 'title', [...store.files['music/playlist.json'].title, 'job-hazy']);
+      const s = await store.save();
+      ok(s.ok, 'a ported song, edited and named by the title list, saves: 200, not 409 changed (' + JSON.stringify(s).slice(0, 120) + ')');
+      ok(runScript('!!MUSIC["job-hazy"] && MUSIC["job-hazy"].title === "A HAZY SHADE OF WINTER!" && PLAYLIST.title.includes("job-hazy")'), "and the game's MUSIC and PLAYLIST hold it");
+    }
+  } finally {
+    await srv.close(); rmSync(tmp, { recursive: true, force: true });
+    globalThis.Admin.applyBuilt = realApply;
+    SB.Admin.applyBuilt(diskBuilt, SB.__x.G);
+    store.base = ''; store.headers = {}; store.files = structuredClone(files); store.stamp = {}; store.dirty.clear(); store.added.clear(); store.error = null;
+  }
 }
 
 console.log('\n— docs —');
@@ -1409,6 +1505,25 @@ console.log('\n— docs —');
   ok(ex('admin/panels/levels.js') && /import '\.\/panels\/levels\.js'/.test(ov), 'the Levels panel exists and the overlay imports it');
 }
 
+console.log('\n— docs in step —');
+/* the JSON is the master copy: every committed doc is exactly today's render
+   of it, so a value changed in content/ without a Service Mode save shows here */
+{
+  const IXd = await import('../tools/content/docs/index.mjs');
+  ok(IXd.DOCS.length === 7, 'seven docs are registered (' + IXd.DOCS.map((d) => d.file).join() + ')');
+  const docs = await IXd.readDocs('.');
+  const out = IXd.renderAll(files, (f) => docs[f]);
+  for (const d of IXd.DOCS) {
+    const lines = typeof docs[d.file] === 'string' ? IXd.drift(files, (f) => (f === d.file ? docs[f] : null)).find((x) => x.file === d.file).lines : -1;
+    ok(docs[d.file] !== null && out[d.file] === docs[d.file] && lines === 0, IXd.DOCS_DIR + '/' + d.file + ' is today\'s render of the JSON: drift 0 (' + lines + ')');
+  }
+  /* a rule value is said where it is defined, not restated as a literal */
+  const mm = readFileSync('tools/content/docs/music.mjs', 'utf8'), at = readFileSync('admin/panels/attract.js', 'utf8');
+  ok(!/up to \d+ years/.test(mm) && /MUSIC_LOOKBACK/.test(mm), 'music.md\'s year window comes from MUSIC_LOOKBACK, not a literal');
+  ok(!/\b(3 to 600|31 characters|62 characters)\b/.test(at) && /MIN_SECS/.test(at) && /MAX_SECS/.test(at),
+     'the Attract tooltips take their limits from the validator, not literals');
+}
+
 /* just enough DOM for fields.js and a panel: elements, text, classes, events */
 const fakeDoc = () => {
   const doc = { activeElement: null };
@@ -1798,7 +1913,7 @@ console.log('\n— faces panel —');
          'a lid colour swatch sets skin from the face\'s own palette, by hand');
 
       /* new face: drop an image, optionally crop, Bake */
-      let sent = null, reply = { status: 200, json: { rel: 'faces/newguy.json', json: { ...files['faces/smokerbust.json'], name: 'NEWGUY' }, log: 'faces/newguy.mjs  60x74\n  round trip: identical' } };
+      let sent = null, reply = { status: 200, json: { rel: 'faces/newguy.json', json: { ...files['faces/smokerbust.json'], name: 'NEWGUY' }, log: 'faces/newguy.mjs  60x74\n  round trip: identical', stamp: { 'faces/newguy.json': 4242 } } };
       globalThis.fetch = async (url, o) => { sent = { url, body: JSON.parse(o.body) }; return { status: reply.status, json: async () => reply.json }; };
       const said = [];
       globalThis.Admin.test = { say: (t, f) => said.push(f) };
@@ -1812,6 +1927,8 @@ console.log('\n— faces panel —');
          'Bake posts the name, the image as base64 and the crop (' + JSON.stringify(sent && { ...sent.body, png: sent.body.png.slice(0, 12) }) + ')');
       ok(store.files['faces/newguy.json'] && store.files['faces/newguy.json'].name === 'NEWGUY' && !store.dirty.has('faces/newguy.json'),
          'the baked face is in the working copy, not dirty (it is on disk)');
+      ok(store.stamp['faces/newguy.json'] === 4242 && store.added.has('faces/newguy.json') && !store.bigUntouched().includes('faces'),
+         'adopted with the stamp the route returned, so editing it can be saved, and the faces table is applied from then on');
       ok(said.join() === 'newguy', 'and is shown in the dialogue strip through Admin.test.say (' + said.join() + ')');
       ok(/round trip/.test(nf('msg').textContent), 'the bake log reaches the panel');
       ok(find((x) => x.dataset.add === '2').kids.some((o) => o.value === 'newguy'), 'the new face can be cast');
@@ -1830,7 +1947,7 @@ console.log('\n— faces panel —');
       ok(sent === null && /x y w h/.test(nf('msg').textContent), 'and so is a crop that is not four numbers');
     } finally { globalThis.fetch = realFetch; delete globalThis.Admin.test; }
   }
-  store.files = structuredClone(files); store.dirty.clear(); store.error = null;
+  store.files = structuredClone(files); store.dirty.clear(); store.error = null; store.added.clear(); store.stamp = {};
   globalThis.Admin.applyBuilt = realApply;
 }
 
@@ -1894,7 +2011,7 @@ console.log('\n— music panel —');
       ok(sent.length === 0 && /month/.test(pf('msg').textContent), 'and so is a month past 12');
       fill({ month: '11' });
       const song = { ...structuredClone(files['music/kashmir.json']), id: 'a-hazy-shade-of-winter', title: 'A HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987, month: 11 };
-      reply = { status: 200, json: { rel: 'music/a-hazy-shade-of-winter.json', json: song, output: 'arranged' } };
+      reply = { status: 200, json: { rel: 'music/a-hazy-shade-of-winter.json', json: song, output: 'arranged', stamp: { 'music/a-hazy-shade-of-winter.json': 4444 } } };
       applied.length = 0;
       act('port').fire('click'); await tick();
       ok(sent.length === 1 && /\/admin\/api\/port$/.test(sent[0].url)
@@ -1903,6 +2020,7 @@ console.log('\n— music panel —');
       ok(store.files['music/a-hazy-shade-of-winter.json'] === song && !store.dirty.has('music/a-hazy-shade-of-winter.json') && !store.bigUntouched().includes('music'),
          'the ported song joins the working copy, not dirty, and the music table is applied from then on (' + store.bigUntouched().join() + ')');
       ok(applied.length >= 1 && !(applied[applied.length - 1].skip || []).includes('music'), 'and it is applied to the game at once, music and all');
+      ok(store.stamp['music/a-hazy-shade-of-winter.json'] === 4444, 'adopted with the stamp the route returned (' + store.stamp['music/a-hazy-shade-of-winter.json'] + ')');
       ok(act('listen', { id: 'a-hazy-shade-of-winter' }) && !act('port-open', { midi: '80s/HazyShadeOfWinter.mid' }), 'the library row now offers Listen');
       reply = { status: 409, json: { error: 'exists', rel: 'music/kashmir.json' } };
       LIB.push({ file: '90s/Lump.mid', ids: [] });
@@ -2112,7 +2230,7 @@ console.log('\n— menu panel —');
       globalThis.fetch = async (url, o) => {
         sent.push({ url, body: JSON.parse(o.body), method: o.method });
         const exists = JSON.parse(o.body).name === 'CHILI';
-        return { status: exists ? 409 : 200, ok: !exists, json: async () => (exists ? { error: 'exists' } : { rel: 'lattice/testwell.json', json: beansRec }) };
+        return { status: exists ? 409 : 200, ok: !exists, json: async () => (exists ? { error: 'exists' } : { rel: 'lattice/testwell.json', json: beansRec, stamp: { 'lattice/testwell.json': 4343 } }) };
       };
       const chiliRec = store.files['lattice/chili.json'];
       ni('key').value = 'CHILI'; ni('src').value = String(ni('src').kids.findIndex((o) => o.textContent === 'BEANS'));
@@ -2128,6 +2246,8 @@ console.log('\n— menu panel —');
          'Preview posts { src, name, hue, sat, val } to the recolour endpoint (' + JSON.stringify(last && last.body) + ')');
       ok(store.files['lattice/testwell.json'] === beansRec && !store.dirty.has('lattice/testwell.json') && !store.dirty.has('menus.json'),
          'the new well joins the working copy (it is already on disk), and nothing is dirty yet');
+      ok(store.stamp['lattice/testwell.json'] === 4343 && store.added.has('lattice/testwell.json') && !store.bigUntouched().includes('lattice'),
+         'adopted with the stamp the route returned, and the lattice table is applied from then on');
       ok(nodes().some((n) => n.tagName === 'CANVAS' && n.dataset.well === 'TESTWELL' && n.draws.length && n.draws[0][0].rec === beansRec) && !act('fill').disabled,
          'the preview shows the new well, and Put in bin is ready');
       act('fill').fire('click');
@@ -2143,7 +2263,7 @@ console.log('\n— menu panel —');
       ok(!threw, 'with no Faces (no game) the panel still draws' + (threw ? ': ' + threw.message : ''));
     } finally { globalThis.fetch = realFetch; delete globalThis.LATTICE; delete globalThis.Faces; }
   }
-  store.files = structuredClone(files); store.dirty.clear(); store.error = null;
+  store.files = structuredClone(files); store.dirty.clear(); store.error = null; store.added.clear(); store.stamp = {};
   globalThis.Admin.applyBuilt = realApply;
 }
 
@@ -2160,6 +2280,7 @@ console.log('\n— test harness —');
   ok(/import '\.\/test\.js'/.test(ov) && /import '\.\/panels\/test\.js'/.test(ov), 'the overlay imports admin/test.js and the Test panel');
   if (T) {
     const { G, Input } = SB.__x, K = SB.__k.Kitchen;
+    ok(G.update && G.update.__clockHold === true, 'admin/test.js wraps G.update as it loads, before any freeze');
     const frames = (n) => { for (let i = 0; i < n; i++) { G.update(1 / 60); Input.endFrame(); } };
     const reset = () => { G.test = null; G.autopilot = false; G.testRun = false; G.speed = 1; G.testPaused = false; T.clock('thaw'); Input.down = Object.create(null); };
     let threw = null;
@@ -2244,6 +2365,33 @@ console.log('\n— test harness —');
       ok(G.testRun === true, 'and so does a pause');
       reset(); T.jump(1, 'play'); T.step();
       ok(G.testRun === true, 'and a step');
+      /* startRun recomputes testRun: a run begun under a speed or a pause is still marked */
+      reset(); T.speed(0.5); G.startRun(1); G.beginShift(); frames(5);
+      ok(G.testRun === true, 'a run started while the speed is not 1 is a test run once it updates');
+      G.earned = 99999999; G.timeUp();
+      ok(G.placed === false, 'and its qualifying GAME OVER does not place');
+      reset(); T.pause(true); G.startRun(1); G.beginShift(); frames(1);
+      ok(G.testRun === true, 'a run started while test-paused is a test run once it updates');
+      reset(); T.pause(true); G.startRun(1); G.beginShift(); T.pause(false);
+      ok(G.testRun === true, 'and one started paused and resumed without an update is marked too');
+      reset(); G.startRun(1); G.beginShift(); frames(5);
+      ok(G.testRun === false, 'with speed 1 and no pause, a plain run stays unmarked');
+
+      /* the engine and siren fall silent under a pause, and come back */
+      {
+        const AU = SB.__k.Audio5, calls = [], keep = {};
+        for (const k of ['engineOn', 'engineOff', 'sirenOn', 'sirenOff']) { keep[k] = AU[k]; AU[k] = () => calls.push(k); }
+        try {
+          reset(); T.jump(1, 'play'); G.cop = { fake: true }; calls.length = 0;
+          T.pause(true);
+          ok(calls.includes('engineOff') && calls.includes('sirenOff'), 'pause(true) turns the engine and siren off (' + calls.join() + ')');
+          calls.length = 0; T.pause(false);
+          ok(calls.includes('engineOn') && calls.includes('sirenOn'), 'resuming a delivery shift puts the engine back, and the siren with a cop on (' + calls.join() + ')');
+          G.cop = null; T.jump(2, 'play'); calls.length = 0;
+          T.pause(true); T.pause(false);
+          ok(G.state === 'kitchen' && !calls.includes('engineOn'), 'resuming the kitchen starts no engine (' + calls.join() + ')');
+        } finally { Object.assign(AU, keep); G.cop = null; }
+      }
       reset(); T.speed(1);
 
       /* attract from any screen */
@@ -2492,7 +2640,10 @@ console.log('\n— artifact —');
   const { execFileSync } = await import('node:child_process');
   execFileSync('node', ['build.mjs'], { stdio: 'pipe' });
   const shipped = readFileSync('taco-shop.html', 'utf8');
-  for (const s of ['Admin', '/admin/', 'admin.mjs']) ok(!shipped.includes(s), 'taco-shop.html contains no "' + s + '"');
+  for (const s of ['Admin', '/admin/', 'admin.mjs', '/admin/api']) ok(!shipped.includes(s), 'taco-shop.html contains no "' + s + '"');
+  /* the code, that is: 35_faces.js explains in a comment why it never calls fetch() */
+  const code = shipped.replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const s of ['fetch(', 'import(']) ok(!code.includes(s), 'taco-shop.html calls no ' + s + ') outside its comments');
 }
 
 console.log(`\n${fails === 0 ? 'PASS' : 'FAIL (' + fails + ')'}`);

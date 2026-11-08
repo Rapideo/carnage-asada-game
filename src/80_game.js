@@ -164,10 +164,18 @@ const G = {
   testLevel(lv) {
     const T = this.test;
     if (!T || !lv) return lv;
-    return Object.assign({}, lv,
+    const out = Object.assign({}, lv,
       T.difficulty ? { difficulty: T.difficulty } : null,
       T.era ? { era: T.era, map: T.era, menu: T.era, year: (this.levels().find((l) => l.era === T.era) || lv).year } : null,
       T.season ? { season: T.season } : null);
+    /* a new season or year brings its month, taken from the level that has
+       them (LEVELS carries the season rule's month; it is not re-derived here) */
+    if (out.season !== lv.season || out.year !== lv.year) {
+      const L = this.levels();
+      const m = L.find((l) => l.year === out.year && l.season === out.season) || L.find((l) => l.season === out.season);
+      if (m) out.month = m.month;
+    }
+    return out;
   },
 
   /* Weather, the owner's ruling of 2026-11-07: a delivery level rolls its own

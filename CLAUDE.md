@@ -679,8 +679,11 @@ Tabs: Levels, Menu, Attract, Music, Difficulty, Dialogue, Faces, Test. Code keep
 
 - **`node admin.mjs`** starts `tools/content/server.mjs` on `127.0.0.1:8124`. It serves the repo and
   injects `admin/overlay.css` and `admin/overlay.js` into `index.html` **in memory, at request time**,
-  so nothing is written to the page on disk. `serve.mjs` knows nothing of it. It checks `Origin`
-  before any route runs, and one per-instance lock covers save and every job. Like `serve.mjs`, it has
+  so nothing is written to the page on disk. `serve.mjs` knows nothing of it. It checks `Host`
+  (only `127.0.0.1:<port>` or `localhost:<port>`, against DNS rebinding) on every route and
+  `Origin` before any POST, and one per-instance lock covers save and every job. A job that
+  writes a content file (face, recolour, port) returns its `stamp`, and the panel `store.adopt`s
+  it with that stamp, so a later edit to the new file saves instead of reporting 409 changed. Like `serve.mjs`, it has
   to be started from the owner's own terminal; a server started inside Claude Code's sandbox is
   invisible to Chrome.
 - **Save** runs the same validator as the build (`tools/content/validate.mjs`; `build.mjs` imports it
@@ -698,8 +701,13 @@ Tabs: Levels, Menu, Attract, Music, Difficulty, Dialogue, Faces, Test. Code keep
   by an override or the autopilot, and **a test run never reaches the board**), `G.speed` (1;
   scales the time `90_main` feeds the fixed step), `G.testPaused` (false), `G.spawnTrain(dir)`,
   `G.debugDraw` (null; Service Mode's debug views) and `G.testSay` (false; previews a line on any
-  screen). At default the game plays exactly as without them, and `— test hooks —` in
-  `test/headless.mjs` asserts that.
+  screen). The Test panel's mute also reads two shipped constants, `SFX_GAIN` and `MUS_GAIN`
+  (`20_audio.js`), to put a bus back at its shipped gain. At default the game plays exactly as
+  without them, and `— test hooks —` in `test/headless.mjs` asserts that.
+- **`LEVELS` carries `month`**, the season rule's month (`levelMonth` in `validate.mjs`), put on
+  each built level by the validator and never authored. The kitchen's wall calendar reads it
+  (every winter kitchen level is DEC), and `G.testLevel` takes a season or era override's month
+  from the `LEVELS` entry with that year and season rather than re-deriving the rule.
 - **None of it ships.** `taco-shop.html` must contain no overlay code and no write-endpoint
   reference. `test/admin.mjs`'s `— artifact —` section asserts it has no `Admin`, `/admin/` or
   `admin.mjs`; the `src/` hooks above are the only trace, by design, as plain fields.

@@ -149,7 +149,8 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
      content/lattice/<name>.json. Generated assets are written when generated:
      the file is inert until a saved menu names it, and nothing overwrites one,
      so a name that is already a file or a record is 409 exists.
-     -> 200 { rel: 'lattice/<name>.json', json, output } */
+     -> 200 { rel: 'lattice/<name>.json', json, output, stamp: { [rel]: mtimeMs } }
+     (the stamp lets the store save an edit to the file it has just adopted) */
   async function recolor(req, res) {
     let b;
     try { b = JSON.parse(await readBody(req)); } catch { return send(res, 400, { error: 'bad request' }); }
@@ -174,7 +175,7 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
       if (!list.includes(src.toLowerCase() + '.json')) return [400, { error: 'no such well', src }];
       const r = await runJob(['node', 'tools/render/recolor-lattice.mjs', src, name, ...nums.map(String)], { cwd: root });
       if (r.code !== 0) return [/EEXIST/.test(r.stderr) ? 409 : 500, /EEXIST/.test(r.stderr) ? { error: 'exists', rel } : { error: 'job', output: r.stdout + r.stderr }];
-      return [200, { rel, json: JSON.parse(await readFile(join(content, rel), 'utf8')), output: r.stdout.trim() }];
+      return [200, { rel, json: JSON.parse(await readFile(join(content, rel), 'utf8')), output: r.stdout.trim(), stamp: await stamps([rel]) }];
     });
     if (held.busy) return send(res, 409, { error: 'busy' });
     send(res, held.value[0], held.value[1]);
@@ -191,7 +192,7 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
      reference copy or a kept image is 409 exists. When a step fails, what this
      request wrote is removed (the name can be tried again) and the steps' output
      comes back as 422 { log }.
-     -> 200 { rel: 'faces/<name>.json', json, log } */
+     -> 200 { rel: 'faces/<name>.json', json, log, stamp: { [rel]: mtimeMs } } */
   async function newFace(req, res) {
     let b;
     try { b = JSON.parse(await readBody(req)); } catch { return send(res, 400, { error: 'bad request' }); }
@@ -243,7 +244,7 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
       for (const r of all) cand[r] = JSON.parse(await readFile(join(content, r), 'utf8'));
       try { validateContent(memSource(cand)); }
       catch (e) { if (!(e instanceof ContentError)) throw e; return failed('the content does not validate with this face in it: ' + e.message); }
-      return [200, { rel, json, log: log.join('\n') }];
+      return [200, { rel, json, log: log.join('\n'), stamp: await stamps([rel]) }];
     });
     if (held.busy) return send(res, 409, { error: 'busy' });
     send(res, held.value[0], held.value[1]);
@@ -289,7 +290,7 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
      or a songs.json entry is 409 exists. The arranger writes to a temp file;
      the song is checked with the rest of the content before anything in the
      repo is written, so a port that fails (422 { log }) leaves nothing behind.
-     -> 200 { rel: 'music/<id>.json', json, output } */
+     -> 200 { rel: 'music/<id>.json', json, output, stamp: { [rel]: mtimeMs } } */
   async function portSong(req, res) {
     let b;
     try { b = JSON.parse(await readBody(req)); } catch { return send(res, 400, { error: 'bad request' }); }
@@ -339,7 +340,7 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
       const entry = { id, file, title, artist, year, month };
       try { await writeTexts(root, { [SONGS]: formatSongs({ ...songs.json, songs: [...songs.json.songs, entry] }) }); }
       catch (e) { await rm(dest, { force: true }); throw e; }   // a song with no entry is half a port
-      return [200, { rel, json, output: r.stdout.trim() }];
+      return [200, { rel, json, output: r.stdout.trim(), stamp: await stamps([rel]) }];
     } finally { await rm(tmp, { recursive: true, force: true }); }
   }
   const builtin = { '/admin/api/recolor': recolor, '/admin/api/face': newFace, '/admin/api/port': portSong };
@@ -347,8 +348,13 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
   const server = createServer(async (req, res) => {
     try {
       const path = decodeURIComponent(req.url.split('?')[0]);
+      const p = server.address().port;
+      /* DNS rebinding: a foreign name resolved to 127.0.0.1 is same-origin
+         with itself, so its GETs carry no Origin to refuse. Its Host header
+         still names it: every route answers only to our own name and port. */
+      const hh = req.headers.host;
+      if (hh !== `127.0.0.1:${p}` && hh !== `localhost:${p}`) return send(res, 403, { error: 'host' });
       if (req.method === 'POST') {
-        const p = server.address().port;
         const o = req.headers.origin;
         if (o !== `http://127.0.0.1:${p}` && o !== `http://localhost:${p}`) return send(res, 403, { error: 'origin' });
         if (path === '/admin/api/save') return await save(req, res);

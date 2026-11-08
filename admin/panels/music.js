@@ -180,7 +180,7 @@ async function port(file) {
         method: 'POST', headers: { 'content-type': 'application/json', ...store.headers }, body: JSON.stringify(body) });
       const j = await r.json();
       if (r.status === 200) {
-        store.adopt(j.rel, j.json);           // already on disk: in the working copy, not dirty
+        store.adopt(j.rel, j.json, j.stamp);  // already on disk: in the working copy, not dirty, stamped
         applyNow();
         const m = Array.isArray(lib) && lib.find((x) => x.file === file);
         if (m && !m.ids.includes(id)) m.ids.push(id);

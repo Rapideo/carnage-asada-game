@@ -13,7 +13,7 @@
    by bare name, never globalThis. */
 import '../fields.js';
 import { store } from '../store.js';
-import { SCORE_MAX } from '../../tools/content/validate.mjs';
+import { SCORE_MAX, MIN_SECS, MAX_SECS, FIELD_SCALE, lineMaxChars } from '../../tools/content/validate.mjs';
 
 const Admin = (globalThis.Admin = globalThis.Admin || {});
 const A = 'attract.json', W = 'winners.json', S = 'scores.json';
@@ -138,13 +138,15 @@ function draw(el) {
     btn.addEventListener('click', () => { const g = game(); if (g) go(g); });
     head.appendChild(btn);
     sec.appendChild(head);
-    Admin.field(sec, { rel: A, path: [key, 'seconds'], kind: 'seconds', label: 'Duration', title: '3 to 600 seconds' });
+    Admin.field(sec, { rel: A, path: [key, 'seconds'], kind: 'seconds', label: 'Duration', title: MIN_SECS + ' to ' + MAX_SECS + ' seconds' });
     if (key === 'title')
       Admin.field(sec, { rel: A, path: ['title', 'wordmarkHold'], kind: 'seconds', label: 'Wordmark hold',
         title: 'seconds the badge stands alone before CARNAGE ASADA grows in; at most the duration less 2s' });
     if (key === 'winners') {
-      Admin.field(sec, { rel: W, path: ['slogan'], kind: 'lines', label: 'Message', title: 'one line per row, drawn at scale 2 (31 characters a line)' });
-      Admin.field(sec, { rel: W, path: ['attribution'], kind: 'lines', label: 'Attribution as drawn', title: 'one line per row (62 characters a line)' });
+      Admin.field(sec, { rel: W, path: ['slogan'], kind: 'lines', label: 'Message',
+        title: 'one line per row, drawn at scale ' + FIELD_SCALE.slogan + ' (' + lineMaxChars('slogan') + ' characters a line)' });
+      Admin.field(sec, { rel: W, path: ['attribution'], kind: 'lines', label: 'Attribution as drawn',
+        title: 'one line per row (' + lineMaxChars('attribution') + ' characters a line)' });
       Admin.field(sec, { rel: W, path: ['credit'], kind: 'text', label: 'Credit' });
     }
     if (key === 'scores') {

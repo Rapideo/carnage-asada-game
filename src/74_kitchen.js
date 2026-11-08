@@ -88,6 +88,7 @@ const Kitchen = {
   enter(level, diff, demo) {
     this.era = level.era || 1;
     this.year = level.year || 1972; this.winter = level.season === 'winter';   // the wall calendar
+    this.month = level.month;           // the season rule's month, carried on LEVELS by the validator
     this.diff = diff.kitchen;
     this.demo = !!demo;
     this.menu = (typeof MENUS !== 'undefined' && MENUS[this.era]) || this.fallbackMenu();
@@ -583,9 +584,12 @@ const Kitchen = {
     return t.c;
   },
 
-  /* the calendar shows the level's own month and year */
+  /* the calendar shows the level's own month and year. The month is the
+     level's (validate.mjs levelMonth: winter kitchen levels are December);
+     with none, the season's usual one. */
   calendarText() {
-    return [this.winter ? 'JAN' : 'JUL', String(this.year || 1972)];
+    const m = this.month >= 1 && this.month <= 12 ? this.month : (this.winter ? 12 : 7);
+    return ['JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC'.substr((m - 1) * 3, 3), String(this.year || 1972)];
   },
 
   /* The pieces every shelf is built from. Each is an ink-outlined block with

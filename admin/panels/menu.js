@@ -217,7 +217,7 @@ async function preview(f, read) {
         method: 'POST', headers: { 'content-type': 'application/json', ...store.headers }, body: JSON.stringify(body) });
       const j = await r.json();
       if (r.status === 200) {
-        store.files[j.rel] = j.json;          // already on disk: in the working copy, not dirty
+        store.adopt(j.rel, j.json, j.stamp);  // already on disk: in the working copy, not dirty, stamped
         f.made = j.json;
         f.msg = 'wrote content/' + j.rel + (j.output ? ': ' + j.output : '');
         applyNow();

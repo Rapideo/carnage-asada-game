@@ -1200,16 +1200,25 @@ ok(Kt.castFor(9).join() === 'smokerbust', 'an era with no cast falls back to the
   const kl = G.levels().filter((l) => l.type === 'kitchen');
   let baked = 0, calOk = 0, placed = 0;
   const lowest3 = 5 + 26 + 3 * 8 + 3;              // a 3-item ticket's bottom edge
+  /* the month is the season rule's (validate.mjs levelMonth), carried on LEVELS:
+     every winter kitchen level is December, since no summer of its year follows */
+  const MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  const cal = [];
   for (const l of kl) {
-    try { Kt.era = l.era; Kt.year = l.year; Kt.winter = l.season === 'winter'; Kt.buildBg(); baked++; } catch (e) { console.log('   ', l.n, e.message); }
+    try { Kt.era = l.era; Kt.year = l.year; Kt.month = l.month; Kt.winter = l.season === 'winter'; Kt.buildBg(); baked++; } catch (e) { console.log('   ', l.n, e.message); }
     const [mon, yr] = Kt.calendarText(), c = Kt.calRect, sg = Kt.signRect;
-    if (mon === (l.season === 'winter' ? 'JAN' : 'JUL') && yr === String(l.year) && textW(yr) <= c.w - 4 && textW(mon) <= c.w - 4) calOk++;
+    cal.push(l.n + ':' + mon);
+    if (Number.isInteger(l.month) && mon === MON[l.month - 1] && yr === String(l.year) && textW(yr) <= c.w - 4 && textW(mon) <= c.w - 4) calOk++;
     if (c.y + 10 >= lowest3 && sg.y >= lowest3 && c.y + c.h <= 104 && sg.y + sg.h <= 104 && sg.x + sg.w <= Kt.OV_X) placed++;
   }
   ok(baked === kl.length, `every kitchen level bakes its decade's wall (${baked}/${kl.length})`);
   ok(calOk === kl.length, `the calendar shows each level's month and year, and fits (${calOk}/${kl.length})`);
+  const winterK = kl.filter((l) => l.season === 'winter');
+  ok(winterK.length === 7 && winterK.every((l) => cal.includes(l.n + ':DEC')), `every winter kitchen level's calendar says DEC (${cal.join(' ')})`);
+  ok(G.levels()[2].month === 1 && G.levels()[8].month === 1 && G.levels()[1].month === 12 && G.levels()[0].month === 7,
+     `LEVELS carries each level's month: level 3 January, level 2 December, level 1 July (${G.levels().map((l) => l.month).join()})`);
   ok(placed === kl.length, `calendar text and sign clear a 3-item ticket and the bins (${placed}/${kl.length})`);
-  Kt.era = G.level.era; Kt.year = G.level.year; Kt.winter = G.level.season === 'winter'; Kt.bg = Kt.buildBg();
+  Kt.era = G.level.era; Kt.year = G.level.year; Kt.month = G.level.month; Kt.winter = G.level.season === 'winter'; Kt.bg = Kt.buildBg();
 }
 for (let i = 0; i < 120; i++) { G.update(1 / 60); G.render(ctx); Input.endFrame(); }
 ok(Kt.tickets.length >= 1, `the first ticket is up within 2s (${Kt.tickets.length})`);
@@ -1380,6 +1389,13 @@ console.log('\n— test hooks —');
   G.test = { era: 3, season: 'winter' }; G.setLevel(1);
   ok(G.era === 3 && G.winter && G.mapN === 3 && G.level.era === 3 && LVS[0].era === 1 && LVS[0].season === 'summer',
      `era and season override level 1 (era ${G.era}, map ${G.mapN}, winter ${G.winter}); levels.json is untouched`);
+  ok(G.level.year === 1990 && G.level.month === 12, `and the month follows: winter 1990 is December, as level 14 says (${G.level.year} ${G.level.month})`);
+  G.test = { season: 'winter' }; G.setLevel(1);
+  ok(G.level.month === LVS[1].month && G.level.month === 12, `level 1 made winter takes winter 1972's month from LEVELS (${G.level.month})`);
+  G.test = { season: 'summer' }; G.setLevel(3);
+  ok(G.level.month === 7 && LVS[2].month === 1, `level 3 made summer is July (${G.level.month})`);
+  G.test = { difficulty: 'hard' }; G.setLevel(3);
+  ok(G.level.month === 1, `an override that leaves the season and year leaves the month (${G.level.month})`);
   G.test = null; G.setLevel(1);
   ok(G.diffKey === 'easy' && G.era === 1 && !G.winter && G.mapN === 1 && G.level === LVS[0], 'G.test null: level 1 as authored, the map back to 1');
   G.test = { difficulty: 'hard' }; G.startRun(1);

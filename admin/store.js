@@ -66,13 +66,17 @@ export const store = {
     return res;
   },
 
-  /* A file a server job has just written (a ported song): already on disk, so
-     into the working copy but not dirty. It is remembered, so the table it
-     feeds keeps being applied: were the content invalid at the moment it
-     arrived, the next valid edit still carries it into the game. */
-  adopt(rel, json) {
+  /* A file a server job has just written (a face, a well, a ported song):
+     already on disk, so into the working copy but not dirty. It is
+     remembered, so the table it feeds keeps being applied: were the content
+     invalid at the moment it arrived, the next valid edit still carries it
+     into the game. `stamp` is what the route returned ({ rel: mtimeMs }, or
+     the number): without it a later save of this file is 409 changed. */
+  adopt(rel, json, stamp) {
     this.files[rel] = json;
     this.added.add(rel);
+    if (typeof stamp === 'number') this.stamp[rel] = stamp;
+    else if (stamp && typeof stamp === 'object') Object.assign(this.stamp, stamp);
   },
 
   /* The big baked tables are most of the build; skip comparing them unless a

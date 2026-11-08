@@ -42,16 +42,19 @@
       const s0 = this.state, t0 = this.shift;
       const r = orig.call(this, dt);
       if (frozen && this.state === s0 && SHIFT.includes(s0) && this.shift < t0) this.shift = t0;
-      /* startRun recomputes testRun, so a run begun while frozen would lose the
-         mark clock('freeze') set: re-assert it on every update, the way the
-         autopilot does, so a run frozen at any point is a test run */
-      if (frozen) this.testRun = true;
+      /* startRun recomputes testRun, so a run begun while frozen, slowed or
+         sped up, or paused would lose the mark clock/speed/pause set:
+         re-assert it on every update, the way the autopilot does, so a run
+         touched by any of them at any point is a test run */
+      if (frozen || this.speed !== 1 || this.testPaused) this.testRun = true;
       return r;
     };
     held.__clockHold = true;
     held.__orig = orig;
     g.update = held;
   }
+  /* at load, not at the first freeze: the speed and pause marks need it too */
+  if (typeof G !== 'undefined' && G && typeof G.update === 'function') installHold(G);
 
   /* ---- debug views ---------------------------------------------------------
      Drawn by G.debugDraw (null in the shipped game) in world space, with the
@@ -180,8 +183,8 @@
     cop() { game().spawnCop(); return true; },
 
     /* the line on the dialogue strip, with that face: the Dialog call G.react
-       makes, without react's play-only guard (the strip is drawn only during a
-       shift, so from other screens it waits for one) */
+       makes, without react's play-only guard. It shows on any screen:
+       G.testSay has G update and draw the strip outside a shift. */
     say(line, faceKey) {
       if (typeof Dialog === 'undefined') return false;
       const who = typeof DIALOGUE !== 'undefined' && DIALOGUE && DIALOGUE.who ? DIALOGUE.who : 'CUSTOMER';
@@ -259,10 +262,20 @@
       return g.speed;
     },
 
+    /* No update runs while paused, so the engine would hold its last note and
+       the siren its wail: both go off, and come back on resume (the engine in
+       a delivery shift, the siren with a cruiser on the map). A resume marks
+       the run too, for one that was started under the pause. */
     pause(on) {
-      const g = game();
+      const g = game(), was = !!g.testPaused;
       g.testPaused = !!on;
-      if (on) g.testRun = true;
+      if (on || was) g.testRun = true;
+      if (typeof Audio5 !== 'undefined') {
+        try {
+          if (on) { Audio5.engineOff(); Audio5.sirenOff(); }
+          else if (was && g.state === 'play') { Audio5.engineOn(); if (g.cop) Audio5.sirenOn(); }
+        } catch (e) { /* no audio */ }
+      }
       return g.testPaused;
     },
 
