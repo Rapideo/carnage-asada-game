@@ -5,6 +5,7 @@
   "ink": "#1b1425",
   "skin": "#c47c41",
   "eyes": [],
+  "_eyesByHand": true,
   "pal": [
     "#1b1425",
     "#c47c41",

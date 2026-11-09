@@ -60,7 +60,7 @@ The 1970s.
 
 - From : the start of the era
 
-- Eyes : not set
+- Eyes : none, set by hand
 
 ### H. c70newsman
 
@@ -68,7 +68,7 @@ The 1970s.
 
 - From : the start of the era
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### I. c70militaryguy
 
@@ -76,7 +76,7 @@ The 1970s.
 
 - From : the start of the era
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### J. c70hippiedude
 
@@ -84,7 +84,7 @@ The 1970s.
 
 - From : the start of the era
 
-- Eyes : not set
+- Eyes : none, set by hand
 
 ### K. c70pornstar
 
@@ -92,7 +92,7 @@ The 1970s.
 
 - From : 1975
 
-- Eyes : not set
+- Eyes : none, set by hand
 
 ### L. c70magician
 
@@ -100,7 +100,7 @@ The 1970s.
 
 - From : 1978
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### M. c70jazzmusician
 
@@ -108,7 +108,7 @@ The 1970s.
 
 - From : 1978
 
-- Eyes : not set
+- Eyes : none, set by hand
 
 ### N. c70boatcaptain
 
@@ -116,7 +116,7 @@ The 1970s.
 
 - From : 1975
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### O. c70beekeeper
 
@@ -124,7 +124,7 @@ The 1970s.
 
 - From : 1975
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### P. c70surferdude
 
@@ -132,7 +132,7 @@ The 1970s.
 
 - From : 1975
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### Q. c70rollerskater
 
@@ -140,7 +140,7 @@ The 1970s.
 
 - From : 1975
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### R. c70photographer
 
@@ -148,7 +148,7 @@ The 1970s.
 
 - From : 1975
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### S. c70stagehand
 
@@ -156,7 +156,7 @@ The 1970s.
 
 - From : 1975
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### T. c70racecardriver
 
@@ -164,7 +164,7 @@ The 1970s.
 
 - From : the start of the era
 
-- Eyes : not set
+- Eyes : none, set by hand
 
 ### U. c70soultrainguy
 
@@ -172,7 +172,7 @@ The 1970s.
 
 - From : 1975
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### V. c70longhair2
 
@@ -180,7 +180,7 @@ The 1970s.
 
 - From : the start of the era
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### W. c70flowerchild
 
@@ -188,7 +188,7 @@ The 1970s.
 
 - From : the start of the era
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### X. c70taxman
 
@@ -196,7 +196,7 @@ The 1970s.
 
 - From : 1975
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### Y. c70sportsannouncer
 
@@ -204,7 +204,7 @@ The 1970s.
 
 - From : 1975
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### Z. c70greaser
 
@@ -212,13 +212,13 @@ The 1970s.
 
 - From : the start of the era
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### AA. c70discoqueen
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1978
 
@@ -226,7 +226,7 @@ The 1970s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : the start of the era
 
@@ -234,7 +234,7 @@ The 1970s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1975
 
@@ -242,7 +242,7 @@ The 1970s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : none, set by hand
 
 - From : 1978
 
@@ -250,7 +250,7 @@ The 1970s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1975
 
@@ -258,7 +258,7 @@ The 1970s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1978
 
@@ -266,7 +266,7 @@ The 1970s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : none, set by hand
 
 - From : 1978
 
@@ -274,7 +274,7 @@ The 1970s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1975
 
@@ -282,7 +282,7 @@ The 1970s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1978
 
@@ -290,7 +290,7 @@ The 1970s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1978
 
@@ -298,7 +298,7 @@ The 1970s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1978
 
@@ -306,7 +306,7 @@ The 1970s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1978
 
@@ -982,7 +982,7 @@ Baked, and shipped with the game (everything in `content/faces/` is), but no era
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### B. cop80
 
@@ -1000,7 +1000,7 @@ Baked, and shipped with the game (everything in `content/faces/` is), but no era
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### E. rival80
 
@@ -1024,7 +1024,7 @@ Baked, and shipped with the game (everything in `content/faces/` is), but no era
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### I. staff80
 
