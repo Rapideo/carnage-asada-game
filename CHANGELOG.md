@@ -7,6 +7,12 @@ here, run `node build.mjs` and the tests, commit, and tag it (`git tag v<version
 Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch lists.
 **1.0.0** is when the owner calls it released.
 
+## 0.9.7 (2026-11-09): touch throws like the controller
+
+- **Touch (Mode C):** hold TOSS, aim with the on-screen stick, and let go to throw, the same as
+  holding X on a controller. The car coasts while you aim; it used to keep steering. Dragging on
+  TOSS itself still moves the aim too. The pause screen now reads TOSS + STICK for aiming.
+
 ## 0.9.6 (2026-11-09): Hard and Supreme retuned
 
 Measured with the autoplayer, 32 runs a level (`tools/render/sweep.mjs`):

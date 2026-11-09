@@ -90,7 +90,7 @@ const Pad = {
   LABELS: {
     B: { drive: 'STICK, 1 GAS, 2 REV', throw: 'HOLD 3, RELEASE', aim: 'HOLD 3 + STICK',
          pause: 'START', select: 'BUTTON 1', wrap: 'BUTTON 2', serve: 'BUTTON 3', mute: 'BACK' },
-    C: { drive: 'STICK, GAS, REV', throw: 'HOLD TOSS', aim: 'DRAG TOSS',
+    C: { drive: 'STICK, GAS, REV', throw: 'HOLD TOSS', aim: 'TOSS + STICK',
          pause: 'TAP PAUSE', select: 'TAP A BIN', wrap: 'TAP WRAP', serve: 'TAP SERVE', mute: '' },
   },
 
@@ -486,9 +486,23 @@ const Pad = {
       if (e.b2 || e.lt || e.dd || e.sy > ON) want.KeyS = 1;
     }
     if (this.mode !== 'C') return;
-    // The on-screen set. Its stick keeps steering while TOSS is held: a thumb
-    // is free for it here, where on a cabinet the one stick has to do both.
     const s = this._stick();
+    /* TOSS held: the on-screen stick AIMS, the same convention as the
+       controller (hold X, aim with the stick, let go), and the car coasts
+       (owner, 2026-11-09, on the Pixel: it used to keep steering). It moves
+       the aim's base, so a drag on TOSS still adds its own offset on top. */
+    if (this._aimSrc !== null && this._aimSrc !== 'pad') {
+      const m = hyp(s.x, s.y);
+      if (m >= DZ && this._aimBase) {
+        const k = Math.min(1, (m - DZ) / (1 - DZ)) / m * this.AIM_SPEED * dt;
+        const B = this._aimBase, M = this.AIM_MAX;
+        B.x += s.x * k; B.y += s.y * k;
+        const bd = hyp(B.x, B.y);
+        if (bd > M) { B.x *= M / bd; B.y *= M / bd; }
+        this._aimAt(this.aimX + s.x * k, this.aimY + s.y * k);
+      }
+      return;
+    }
     if (s.x < -DZ) want.ArrowLeft = 1;
     if (s.x > DZ) want.ArrowRight = 1;
     if (s.y < -ON) want.KeyW = 1;
