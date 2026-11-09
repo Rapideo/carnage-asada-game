@@ -360,7 +360,7 @@ The 1980s.
 
 - From : 1984
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### G. c80gijoefan
 
@@ -368,7 +368,7 @@ The 1980s.
 
 - From : 1984
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### H. c80metalhead
 
@@ -376,7 +376,7 @@ The 1980s.
 
 - From : 1987
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### I. c80arcadekid
 
@@ -384,7 +384,7 @@ The 1980s.
 
 - From : 1984
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### J. c80videostoreclerk
 
@@ -392,7 +392,7 @@ The 1980s.
 
 - From : 1987
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### K. c80valleysurfer
 
@@ -400,7 +400,7 @@ The 1980s.
 
 - From : 1984
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### L. c80yuppiegirl
 
@@ -408,7 +408,7 @@ The 1980s.
 
 - From : 1984
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### M. c80newromantic
 
@@ -416,7 +416,7 @@ The 1980s.
 
 - From : the start of the era
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### N. c80jock
 
@@ -424,7 +424,7 @@ The 1980s.
 
 - From : 1984
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### O. c80actionhero
 
@@ -432,7 +432,7 @@ The 1980s.
 
 - From : 1984
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### P. c80girlrocker
 
@@ -440,7 +440,7 @@ The 1980s.
 
 - From : 1987
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### Q. c80computernerd
 
@@ -448,7 +448,7 @@ The 1980s.
 
 - From : 1984
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### R. c80breakfastclubkid
 
@@ -456,7 +456,7 @@ The 1980s.
 
 - From : 1987
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### S. c80dj
 
@@ -464,7 +464,7 @@ The 1980s.
 
 - From : 1984
 
-- Eyes : not set
+- Eyes : none, set by hand
 
 ### T. c80preppyguy
 
@@ -472,7 +472,7 @@ The 1980s.
 
 - From : 1984
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### U. c80heavymetaldude
 
@@ -480,7 +480,7 @@ The 1980s.
 
 - From : 1984
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### V. c80businessman
 
@@ -488,7 +488,7 @@ The 1980s.
 
 - From : 1984
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### W. c80punkrocker
 
@@ -496,7 +496,7 @@ The 1980s.
 
 - From : the start of the era
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### X. c80skibum
 
@@ -504,7 +504,7 @@ The 1980s.
 
 - From : 1987
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### Y. c80valleyguy
 
@@ -512,7 +512,7 @@ The 1980s.
 
 - From : the start of the era
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### Z. c80arcadekid2
 
@@ -520,13 +520,13 @@ The 1980s.
 
 - From : 1984
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### AA. c80newsanchor
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1987
 
@@ -534,7 +534,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1987
 
@@ -542,7 +542,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1984
 
@@ -550,7 +550,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1984
 
@@ -558,7 +558,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : the start of the era
 
@@ -566,7 +566,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1984
 
@@ -574,7 +574,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1984
 
@@ -582,7 +582,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : none, set by hand
 
 - From : 1984
 
@@ -590,7 +590,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1984
 
@@ -598,7 +598,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1987
 
@@ -606,7 +606,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : none, set by hand
 
 - From : 1987
 
@@ -614,7 +614,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1984
 
@@ -622,7 +622,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1984
 
@@ -630,7 +630,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1987
 
@@ -638,7 +638,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1987
 
@@ -646,7 +646,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1984
 
@@ -654,7 +654,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : none, set by hand
 
 - From : 1984
 
@@ -662,7 +662,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : the start of the era
 
@@ -670,7 +670,7 @@ The 1980s.
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1987
 
@@ -988,7 +988,7 @@ Baked, and shipped with the game (everything in `content/faces/` is), but no era
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### C. cop90
 
@@ -1006,7 +1006,7 @@ Baked, and shipped with the game (everything in `content/faces/` is), but no era
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### F. rival90
 
@@ -1030,7 +1030,7 @@ Baked, and shipped with the game (everything in `content/faces/` is), but no era
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### J. staff90
 

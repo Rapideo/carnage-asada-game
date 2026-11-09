@@ -3,8 +3,9 @@
   "w": 60,
   "h": 73,
   "ink": "#1b1425",
-  "skin": "#da2b12",
+  "skin": "#a03b06",
   "eyes": [],
+  "_eyesByHand": true,
   "pal": [
     "#da2b12",
     "#a03b06",
