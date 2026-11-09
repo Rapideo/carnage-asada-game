@@ -1384,6 +1384,24 @@ ok(Kt.castFor(9).join() === 'smokerbust', 'an era with no cast falls back to the
   ok(placed === kl.length, `calendar text and sign clear a 3-item ticket and the bins (${placed}/${kl.length})`);
   Kt.era = G.level.era; Kt.year = G.level.year; Kt.month = G.level.month; Kt.winter = G.level.season === 'winter'; Kt.bg = Kt.buildBg();
 }
+/* snow tracked in, rain on the glass (0.9.3): baked once into the background. The stubs keep no
+   pixels, so buildBg records what it laid down in Kitchen.bgDecor; the real pixels are compared by
+   tools/render/frame.mjs. Winter levels get the snow mat and the footprints; rain is the weather's. */
+{
+  const save = { era: Kt.era, winter: Kt.winter, weather: Kt.weather };
+  const decor = (era, winter, weather) => { Kt.era = era; Kt.winter = winter; Kt.weather = weather; Kt.buildBg(); return Kt.bgDecor || {}; };
+  const w = decor(1, true, 'snowy'), s = decor(1, false, 'sunny'), r = decor(2, false, 'rainy'), wr = decor(3, true, 'rainy');
+  ok(w.snowMat === true && w.footprints > 0, `a winter kitchen has a snow mat and wet footprints (${w.footprints})`);
+  ok(!s.snowMat && !s.footprints && !s.rainWindow, 'a sunny summer kitchen has none of it');
+  ok(r.rainWindow === true && !r.snowMat && !r.footprints, 'a rainy summer kitchen has rain on the glass and nothing tracked in');
+  ok(wr.snowMat === true && wr.rainWindow === true, 'winter and rainy together get both');
+  const every = G.levels().filter((l) => l.type === 'kitchen').every((l) => {
+    Kt.era = l.era; Kt.winter = l.season === 'winter'; Kt.weather = l.weather === 'rainy' ? 'rainy' : (Kt.winter ? 'snowy' : 'sunny'); Kt.buildBg();
+    const d = Kt.bgDecor; return d.snowMat === Kt.winter && !!d.rainWindow === (Kt.weather === 'rainy');
+  });
+  ok(every, 'every kitchen level bakes the decoration its season and weather call for');
+  Kt.era = save.era; Kt.winter = save.winter; Kt.weather = save.weather; Kt.bg = Kt.buildBg();
+}
 for (let i = 0; i < 120; i++) { G.update(1 / 60); G.render(ctx); Input.endFrame(); }
 ok(Kt.tickets.length >= 1, `the first ticket is up within 2s (${Kt.tickets.length})`);
 const tk = Kt.tickets[0], it0 = tk.items[0];

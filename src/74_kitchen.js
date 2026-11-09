@@ -97,6 +97,7 @@ const Kitchen = {
   enter(level, diff, demo) {
     this.era = level.era || 1;
     this.year = level.year || 1972; this.winter = level.season === 'winter';   // the wall calendar
+    this.weather = (typeof G !== 'undefined' && G.weather) || 'sunny';   // decoration only: rain on the glass
     this.month = level.month;           // the season rule's month, carried on LEVELS by the validator
     this.diff = diff.kitchen;
     this.demo = !!demo;
@@ -638,6 +639,7 @@ const Kitchen = {
     const STEEL_D = PAL.roadLo, STEEL_X = PAL.road, STEEL = PAL.walkLo, STEEL_M = PAL.walk, STEEL_H = PAL.walkHi;
     const WOOD = PAL.walkLo, WOOD_H = PAL.walk, WOOD_L = shade(PAL.curb, -0.12);
     const era = clamp(this.era || 1, 1, 3);
+    this.bgDecor = { snowMat: false, footprints: 0, rainWindow: false };   // what the weather laid down
 
     /* back wall, its pantry, the calendar and the sign */
     this.drawWall(x, era);
@@ -930,6 +932,44 @@ const Kitchen = {
     const MAT = era === 1 ? '#5c5040' : era === 2 ? '#7a2f3a' : '#3a5a8a';
     R(x, INK, VW - 26, 84, 13, 16); R(x, MAT, VW - 25, 85, 11, 14);
     for (let i = 0; i < 6; i++) R(x, shade(MAT, -0.25), VW - 24, 86 + i * 2, 9, 1);
+
+    /* winter: snow tracked in. A drift on the mat (white, pale-blue speckle), then wet prints
+       from the door toward the window, under the rope and the props that are drawn after.
+       Each print is a darker floor oval; pairs alternate left and right of the path. */
+    const D = this.bgDecor;
+    if (this.winter) {
+      D.snowMat = true;
+      const rs = makeRng(1972);
+      for (const [sx, sy, sw, sh] of [[VW - 25, 85, 11, 3], [VW - 24, 88, 4, 4], [VW - 19, 90, 5, 3], [VW - 22, 94, 7, 3], [VW - 16, 86, 3, 2]]) {
+        R(x, '#f4f8ff', sx, sy, sw, sh);
+        R(x, '#f4f8ff', sx - 1, sy + 1, sw + 2, Math.max(1, sh - 2));
+      }
+      for (let i = 0; i < 12; i++) R(x, rs.chance(0.5) ? '#b8d4f0' : '#9cbce0', VW - 25 + rs.int(11), 85 + rs.int(14), 1, 1);
+      for (let i = 0; i < 4; i++) R(x, '#f4f8ff', VW - 30 + rs.int(4), 86 + rs.int(14), 1, 1);   // flecks shaken off at the threshold
+      const WET = shade(F[0], -0.24);
+      const way = [[352, 93], [342, 91], [333, 86], [326, 79], [321, 72], [318, 66]];
+      let n = 0;
+      for (let i = 0; i + 1 < way.length; i++) {
+        const [ax, ay] = way[i], [bx, by] = way[i + 1], len = Math.hypot(bx - ax, by - ay), ux = (bx - ax) / len, uy = (by - ay) / len;
+        for (let d = 0; d < len; d += 5, n++) {
+          const side = n % 2 ? 2 : -2, px = Math.round(ax + ux * d - uy * side), py = Math.round(ay + uy * d + ux * side);
+          R(x, WET, px, py, 1, 3); R(x, WET, px + 1, py - 1, 1, 4); R(x, WET, px + 2, py, 1, 3);   // a 3-wide oval
+          x.globalAlpha = 0.5; R(x, '#c8d8ee', px + 1, py, 1, 1); x.globalAlpha = 1;               // a glint of meltwater
+        }
+      }
+      D.footprints = n;
+    }
+
+    /* rain: streaks on the door's glass and down the service window */
+    if (this.weather === 'rainy') {
+      D.rainWindow = true;
+      const rr = makeRng(1984);
+      x.globalAlpha = 0.55; R(x, '#6d93bf', VW - 10, 83, 8, 12); x.globalAlpha = 1;       // the door's pane
+      R(x, INK, VW - 11, 82, 10, 1); R(x, INK, VW - 11, 95, 10, 1); R(x, INK, VW - 11, 82, 1, 14); R(x, INK, VW - 2, 82, 1, 14);
+      for (let i = 0; i < 4; i++) { const sx = VW - 9 + i * 2, sy = 84 + rr.int(5), sl = 3 + rr.int(5); R(x, '#cfe3f8', sx, sy, 1, sl); R(x, '#ffffff', sx, sy + sl, 1, 1); }
+      x.globalAlpha = 0.45; R(x, '#9dc0e6', ox, wy + 4, ow, 8); x.globalAlpha = 1;          // rain on the service glass
+      for (let i = 0; i < 9; i++) { const sx = ox + 2 + i * 4 + rr.int(2), sy = wy + 4 + rr.int(3), sl = 3 + rr.int(4); R(x, '#dcecfa', sx, sy, 1, sl); R(x, '#ffffff', sx, sy + sl, 1, 1); }
+    }
 
     /* the rope line the queue forms along: a velvet rope, a '90s belt */
     const ROPE = era === 3 ? '#3a78c8' : '#a02a2a';
