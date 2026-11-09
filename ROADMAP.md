@@ -266,7 +266,13 @@ Every owner ruling and every invention is recorded in `docs/PURE-CARNAGE-DECISIO
       - Renders to listen to are in `tools/music/preview/*.wav`.
       - To swap a song, edit `tools/music/songs.json`, then run
         `node tools/music/midi2song.mjs --batch tools/music/songs.json`.
-- [ ] **Mode B on a real stick.** A gamepad press does not unlock audio in the
+- [x] **Mode B with the owner's Xbox Series X|S pad** (2026-11-09): the throw did not fire on
+      it, because Chrome reports it without the standard mapping. Fixed in 0.9.4, with the
+      triggers added as gas and brake. Checked on the pad: "X throws and it throws great."
+- [ ] **Operator settings: configurable controller buttons** (owner, 2026-11-09, "we might
+      make this configurable too in our operator settings"), starting with the triggers.
+      No operator settings exist yet; design them before building.
+- [ ] **Mode B on a real arcade stick.** A gamepad press does not unlock audio in the
       browser, so a stick-only cabinet needs Chrome launched with
       `--autoplay-policy=no-user-gesture-required`.
 - [x] **Mode C on a real phone.** Verified on the owner's Pixel 10 over ADB, in landscape, 2026-11-08.

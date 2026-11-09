@@ -7,8 +7,15 @@ here, run `node build.mjs` and the tests, commit, and tag it (`git tag v<version
 Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch lists.
 **1.0.0** is when the owner calls it released.
 
-## Unreleased (branch `tweaks-0.9.4`)
+## 0.9.4 (2026-11-09): the Xbox controller
 
+- **Xbox Wireless Controller (Series X|S) over Bluetooth:** Chrome hands this pad over without
+  the standard button layout, and X, Menu, View and the d-pad were all read from the wrong
+  places, so the bag could not be thrown. The game now reads this pad's own layout: A gas,
+  B reverse, hold X to aim and let go to throw, Menu pauses, View toggles sound, and the
+  d-pad works. Checked on the owner's pad.
+- **Triggers:** on any controller, the right trigger is gas and the left trigger is brake and
+  reverse while driving. They do nothing in menus.
 - **Touch (Mode C):** on a phone held sideways, TOSS, GAS and REV slide down so TOSS no longer
   covers the ORDERS counter.
 - **Wind:** a gust can come no sooner than 3 seconds after the last one; the build refuses less.

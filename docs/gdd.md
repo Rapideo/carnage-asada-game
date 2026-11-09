@@ -536,6 +536,12 @@ There are a total of THREE butons:
 
 HOLDING Button 3 puts the Joysick into Aim Mode; where the joystick no longer moves the car, but instaed allows you to direct the path of the throw, much as the mouse does currently. RELEASING Button 3 tosses the bag.
 
+The triggers are a second gas and brake (owner, 2026-11-09): right trigger accelerates, left
+trigger brakes and reverses, in driving only. The owner's test pad is an **Xbox Wireless
+Controller (Series X|S) over Bluetooth**, which Chrome reports without the standard mapping;
+`Pad.RAW_LAYOUTS` in `src/25_pad.js` maps it (and any other such pad, by USB vendor and
+product) so Button 1, 2 and 3 are A, B and X on it too.
+
 While aiming, the car coasts. Start pauses, and Back / Select toggles sound. Mode B has no
 handbrake. In menus, Button 1, Button 3 and Start confirm, and Button 2 and Back go back.
 

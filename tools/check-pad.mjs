@@ -299,6 +299,66 @@ gamepads = [null, mkPad({ index: 1, b: [1] })];
 s = step('drive'); ok(s.down.KeyS, 'null slots in getGamepads() are skipped');
 gamepads = []; step('drive');
 
+section('triggers: right is gas, left is brake (standard mapping)');
+settle('drive');
+driveCase({ b: [7] }, ['KeyW'], ['KeyS'], 'right trigger accelerates');
+driveCase({ b: [6] }, ['KeyS'], ['KeyW'], 'left trigger brakes');
+setPad({ b: [7] }); s = step('menu'); ok(!s.down.Enter && !s.down.KeyW, 'a trigger does nothing in a menu');
+setPad({}); step('menu');
+setPad({ b: [7] }); step('drive'); Pad._reset('drive');
+s = step('drive'); ok(!s.down.KeyW, 'a trigger held through a context change is ignored until let go');
+setPad({}); step('drive'); setPad({ b: [7] }); s = step('drive'); ok(s.down.KeyW, '...and works again once let go');
+setPad({}); step('drive');
+
+section('raw layout: Xbox Wireless Controller (Series X|S) over Bluetooth');
+settle('drive');
+/* Chrome on Windows reports this pad with no mapping: 15 buttons, 10 axes,
+   the triggers on axes 3/4 resting at -1, and the d-pad as a hat on axis 9
+   that rests far past +1 */
+function xsPad({ b = [], lx = 0, ly = 0, lt = -1, rt = -1, hat = 1227133568, id = 'Unknown Gamepad (Vendor: 045e Product: 0b13)' } = {}) {
+  const buttons = [];
+  for (let i = 0; i < 15; i++) buttons.push({ pressed: b.includes(i), value: b.includes(i) ? 1 : 0 });
+  return { index: 0, mapping: '', connected: true, id, buttons, axes: [lx, ly, 0, lt, rt, 0, 0, 0, 0, hat] };
+}
+const xs = (o) => { gamepads = [xsPad(o)]; };
+const xsCase = (o, ctx, want, not, msg) => {
+  xs({}); step(ctx);                       // enter the context with nothing held: a change latches what is down
+  xs(o); const st = step(ctx);
+  ok(want.every((k) => st.down[k]) && not.every((k) => !st.down[k]), msg + ` (down: ${Object.keys(st.down)})`);
+  xs({}); step(ctx);
+};
+xs({}); s = step('drive'); ok(!Object.keys(s.down).length, 'at rest: nothing held (triggers at -1, hat centred)');
+xsCase({ b: [0] }, 'drive', ['KeyW'], ['KeyS'], 'A (0) accelerates');
+xsCase({ b: [1] }, 'drive', ['KeyS'], ['KeyW'], 'B (1) reverses');
+xsCase({ b: [11] }, 'drive', ['KeyP'], [], 'Menu (11) pauses');
+xsCase({ b: [10] }, 'drive', ['KeyM'], [], 'View (10) mutes');
+xsCase({ b: [2] }, 'drive', [], ['KeyW', 'KeyS', 'KeyP', 'KeyM'], 'the unused slot 2 does nothing');
+xsCase({ rt: 1 }, 'drive', ['KeyW'], ['KeyS'], 'right trigger (axis 4) accelerates');
+xsCase({ lt: 1 }, 'drive', ['KeyS'], ['KeyW'], 'left trigger (axis 3) brakes');
+xsCase({ rt: -0.6 }, 'drive', [], ['KeyW'], 'a trigger barely touched (20%) does nothing');
+xsCase({ hat: -1 }, 'drive', ['KeyW'], [], 'hat up accelerates');
+xsCase({ hat: 1 / 7 }, 'drive', ['KeyS'], [], 'hat down reverses');
+xsCase({ hat: -3 / 7 }, 'drive', ['ArrowRight'], ['ArrowLeft'], 'hat right steers right');
+xsCase({ hat: 5 / 7 }, 'drive', ['ArrowLeft'], ['ArrowRight'], 'hat left steers left');
+xsCase({ hat: -5 / 7 }, 'drive', ['KeyW', 'ArrowRight'], [], 'hat up-right is both');
+xsCase({ hat: 1 }, 'drive', ['KeyW', 'ArrowLeft'], [], 'hat up-left is both');
+xsCase({ b: [0] }, 'menu', ['Enter'], [], 'A confirms in a menu');
+xsCase({ b: [1] }, 'menu', ['Escape'], [], 'B goes back in a menu');
+xsCase({ b: [11] }, 'menu', ['Enter'], [], 'Menu confirms in a menu');
+xsCase({ b: [3] }, 'kitchen', ['Enter'], [], 'X (3) serves in the kitchen');
+xs({}); step('menu'); xs({ hat: -1 }); s = step('menu'); ok(s.down.ArrowUp, 'hat up is ArrowUp in a menu'); xs({}); step('menu');
+Pad.aimHeading = 0;
+xs({}); step('drive');
+xs({ b: [3], lx: -1 }); s = step('drive');
+ok(s.aiming && near(s.aimX, 60 - 160 * DT), `holding X (3) aims (${s.aimX.toFixed(3)})`);
+xs({}); s = step('drive'); ok(s.throwNow && !s.aiming, 'letting go of X throws');
+xs({ id: '045e-0b13-Xbox Wireless Controller', b: [3] }); s = step('drive');
+ok(s.aiming, 'the macOS / Linux id form is recognised too');
+xs({ id: '045e-0b13-Xbox Wireless Controller' }); step('drive');
+gamepads = [{ ...xsPad({ b: [2] }), id: 'Unknown Gamepad (Vendor: 1234 Product: 5678)' }];
+s = step('drive'); ok(s.aiming, 'an unknown raw pad keeps the old order: index 2 is Button 3');
+gamepads = []; step('drive');
+
 /* ---------- touch ---------- */
 section('touch: menu taps (any mode)');
 for (const m of ['C', 'A', 'B']) {
