@@ -85,7 +85,14 @@ function draw(el) {
   Admin.field(form, { rel: REL, path: path('year'), kind: 'int', label: 'Year', title: 'Year, 1970 to 1999; era and name must agree with it' });
   Admin.field(form, { rel: REL, path: path('era'), kind: 'select', label: 'Era', options: [1, 2, 3] });
   Admin.field(form, { rel: REL, path: path('difficulty'), kind: 'select', label: 'Difficulty', options: difficultyKeys() });
-  Admin.field(form, { rel: REL, path: path('season'), kind: 'select', label: 'Season', options: SEASONS });
+  const seasonSel = Admin.field(form, { rel: REL, path: path('season'), kind: 'select', label: 'Season', options: SEASONS });
+  /* the Weather options are the season's: a new season redraws them, and a
+     weather it cannot have becomes random, which both seasons allow */
+  seasonSel.addEventListener('change', () => {
+    const now = store.get(REL, path('season')), w = store.get(REL, path('weather'));
+    if (WEATHERS[now] && !WEATHERS[now].includes(w)) store.set(REL, path('weather'), 'random');
+    draw(el);
+  });
   Admin.field(form, { rel: REL, path: path('weather'), kind: 'select', label: 'Weather', options: WEATHERS[lv.season] || WEATHERS.summer,
     title: 'This level\'s weather; random rolls it each play. A kitchen shows it as decoration only' });
   const wind = Admin.field(form, { rel: REL, path: path('windy'), kind: 'bool', label: 'Windy', title: 'Gusts push the car (Delivery only; a random level rolls its own)' });

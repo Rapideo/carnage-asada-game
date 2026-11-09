@@ -1713,6 +1713,13 @@ console.log('\n— levels panel —');
     ok(w2 && w2.kids.map((o) => o.textContent).join() === 'snowy,sunny,random', 'a winter level offers snowy, sunny, random');
     el.walk().find((n) => n.dataset.level === '1').fire('click');
     ok(find(1, 'windy') && find(1, 'windy').disabled === true, 'Windy is disabled on a Kitchen level');
+    /* a summer rainy level (7) made winter: the Weather select follows the season */
+    el.walk().find((n) => n.dataset.level === '6').fire('click');
+    ok(store.get('levels.json', ['levels', 6, 'weather']) === 'rainy', 'level 7 starts rainy');
+    const ss = find(6, 'season'); ss.value = '1'; ss.fire('change');
+    const w6 = find(6, 'weather');
+    ok(w6 && w6.kids.map((o) => o.textContent).join() === 'snowy,sunny,random', 'after Season goes winter, Weather offers snowy, sunny, random (' + (w6 && w6.kids.map((o) => o.textContent)) + ')');
+    ok(store.get('levels.json', ['levels', 6, 'weather']) === 'random' && w6.value === '2', 'the stored weather became random, and the select shows it');
   }
   globalThis.Admin.applyBuilt = realApply;
 }
