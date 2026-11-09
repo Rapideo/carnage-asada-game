@@ -5,3 +5,5 @@ tools/render/frame-*.png
 # the owner's own files, kept beside the repo but never tracked (owner, 2026-11-07)
 Carnage_Resume.pdf
 Pixel-Art Taco Shop Ingredient Grid.png
+# the Netlify CLI's local state (deploys are manual: see RESUME.md)
+.netlify/

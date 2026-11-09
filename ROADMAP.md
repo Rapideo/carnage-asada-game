@@ -7,15 +7,18 @@ Checkboxes render as a live task list on GitHub:
 
 ---
 
-## NOW: version 0.9.3 done, awaiting the owner's merge and deploy
+## NOW: 0.9.5 live; the owner's playtest passed (2026-11-09)
 
-The game is **feature-complete** (0.9.0, 2026-11-07), **0.9.1 added Service Mode**, and **0.9.3**
-(2026-11-08, branch `v0.9.3`) finished the owner's 0.9.x list: weather set per level, wind, the
-simple level card, the new faces' eyes, and the landscape touch controls (`CHANGELOG.md`). It is
-built and reviewed but not tagged, merged, pushed or deployed. **Next:** the owner's call to merge
-to `master`, push and deploy; then the owner's full playtest brings a new punch list. Open after
-that: kitchen tuning, and the rest
-of the punch list below. Fixes ship as 0.9.x, and 1.0.0 is the owner's call.
+The game is **feature-complete** (0.9.0), **0.9.1 added Service Mode**, **0.9.3** finished the
+owner's 0.9.x list, and on 2026-11-09 the owner's full playtest (a 33-item checklist on the live
+site) passed 30 of 33. Its three findings shipped the same day:
+- **0.9.4:** the owner's Xbox Series X|S pad (the throw did not fire) and the triggers as gas
+  and brake;
+- **0.9.5:** brighter faces (the strip drawn over the vignette and grade), no windsock, and a
+  gust warning that shows on snow.
+
+All on `master`, tagged, pushed and deployed. **Next:** what is left below, chiefly the
+owner's open judgement calls and operator settings. 1.0.0 is the owner's call.
 
 ## DONE: Service Mode (the admin overlay), 0.9.1
 
@@ -258,10 +261,10 @@ Every owner ruling and every invention is recorded in `docs/PURE-CARNAGE-DECISIO
 
 ### Still needs a human
 
-- [ ] **A real browser playtest, in depth.** Everything above is headless. Play
-      delivery and kitchen levels across the eras, in Mode A first:
-      `node serve.mjs`, then <http://localhost:8123/taco-shop.html>.
-- [ ] **The music, by ear.** The arrangements were chosen by structural heuristics,
+- [x] **A real browser playtest, in depth.** Done by the owner on the live site, 2026-11-09,
+      from a checklist: 30 of 33 OK, and the three findings fixed in 0.9.4 and 0.9.5.
+- [x] **The music, by ear.** The owner's 2026-11-09 playtest found no song to swap. The notes
+      below stay for when one is. The arrangements were chosen by structural heuristics,
       because no agent can listen.
       - Renders to listen to are in `tools/music/preview/*.wav`.
       - To swap a song, edit `tools/music/songs.json`, then run
@@ -276,9 +279,9 @@ Every owner ruling and every invention is recorded in `docs/PURE-CARNAGE-DECISIO
       browser, so a stick-only cabinet needs Chrome launched with
       `--autoplay-policy=no-user-gesture-required`.
 - [x] **Mode C on a real phone.** Verified on the owner's Pixel 10 over ADB, in landscape, 2026-11-08.
-- [ ] **Kitchen tuning.** The kitchen numbers are still the paper estimates from
-      `difficulty.md`. The sweep says they are winnable; a person has to say whether
-      they are fun.
+- [x] **Kitchen tuning.** The owner played Easy, Medium and Hard kitchens on 2026-11-09 and
+      called all three fair, and the ingredient hint "works exceptionally well". The numbers
+      stay the `difficulty.md` ones.
 
 ### Owner action before any public deploy
 

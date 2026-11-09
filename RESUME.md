@@ -8,33 +8,30 @@ kitchen surroundings, and version 0.9.0. Updated 2026-11-07 (evening) for Servic
 This is the starting point for a fresh session. It is a snapshot: **`ROADMAP.md` is the
 living plan**, and if the two disagree, the roadmap wins.
 
-**Start here (2026-11-09, end of session): the live game is version 0.9.3, on `master`, tagged
-`v0.9.3`, pushed and deployed to Netlify (https://carnage-asada.netlify.app).** 0.9.3 is the 0.9.x list:
-rain grip 0.75 and no red traffic, one customer face per address, weather set per level, wind, snow and
-rain in the kitchen, the simple level card, eyes on all the new faces, and the Pixel 10 landscape controls
-(`CHANGELOG.md`). It went through a task review per task, a final whole-branch review and one fix wave;
-the touch layout was checked on the owner's Pixel 10 over ADB.
+**Start here (2026-11-09, evening): the live game is version 0.9.5, on `master`, tagged
+`v0.9.5`, pushed and deployed to Netlify (https://carnage-asada.netlify.app).** The owner's full
+playtest of 0.9.3 passed 30 of 33 checks (a checklist page, claude.ai artifact
+LtGvNjXd6zubSeEpFQVRBF, its notes in the page's `checks` collection), and everything it found
+shipped the same day:
+- **0.9.4:** the owner's controller is an **Xbox Wireless Controller (Series X|S) over
+  Bluetooth**, which Chrome reports without the standard mapping, so X (the throw), Menu, View and
+  the d-pad were read from the wrong slots. `Pad.RAW_LAYOUTS` maps it by vendor:product (layout
+  measured on the pad). The triggers are now gas and brake on any pad. Also yesterday's TOSS move
+  (checked on the phone) and the 3 s gust minimum.
+- **0.9.5:** the dialogue strip is drawn after the vignette and the grade (portraits 25-60%
+  brighter; the owner: "the face tweaks were nice"); the windsock is removed (drift kept, by
+  ruling); the gust warning's dust is denser, with a dark underline, so it shows on snow.
 
-**The working copy is checked out on branch `tweaks-0.9.4`, not `master`.** It is one commit
-(`2b4efcf`) ahead of `master`, local only: not merged, pushed or deployed. It holds the owner's three
-small calls (2026-11-09):
-- `gustEvery`'s minimum is at least 3 s (`validate.mjs` refuses less; Service Mode shows it);
-- the tumbleweed and gust sounds play in the attract demo (they already did; no change);
-- the TOSS column slides down off the ORDERS counter in Mode C landscape (`Pad.LAND_HUD`). On the
-  Pixel 10 it now sits 2.5 mm off the bottom edge. Checked by the layout tests only, **not yet seen on
-  the phone**.
+`frame.mjs` gained `--face <key>` and `--gust`. Branches `tweaks-0.9.4` and `tweaks-0.9.5` are merged
+and local only.
 
-`CHANGELOG.md` lists these under "Unreleased". Both suites pass on the branch. `node serve.mjs` serves
-the branch, so a phone test over ADB shows the moved TOSS; the live site does not.
+**Next:** the open items in `ROADMAP.md`, chiefly **operator settings** (configurable controller
+buttons, owner 2026-11-09; nothing designed yet) and the owner's judgement calls left over from
+the 0.9.x list (police cost, downtown targets, the Hard delivery levels 13 and 15).
 
-**Next, in order:**
-1. The owner's full playtest of 0.9.3 (live site), with its punch list.
-2. Fold the punch list into `tweaks-0.9.4`, check TOSS on the phone, and cut 0.9.4: bump
-   `content/release.json`, move "Unreleased" into a 0.9.4 entry, build, test, merge to `master`, tag. Push
-   and deploy only when the owner says so. Deploy as for 0.9.3: wrap `taco-shop.html` as `index.html`
-   with doctype, charset, `viewport-fit=cover` and the manifest link, beside `deploy/manifest.webmanifest`,
-   the two icons and `deploy/_headers`.
-3. Then the remaining ROADMAP items.
+**Deploying** (Netlify is not wired to git): build and test, wrap `taco-shop.html` as `index.html`
+with doctype, charset, `viewport-fit=cover` and the manifest link, beside `deploy/manifest.webmanifest`,
+the two icons and `deploy/_headers`, then `netlify deploy --prod` (see Deployment below).
 
 `docs/art-direction-welcome.md` holds the owner's own uncommitted edits: leave it alone.
 
