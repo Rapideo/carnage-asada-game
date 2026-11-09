@@ -1595,6 +1595,43 @@ console.log('\n— personal lines —');
   } finally { D.people = keep; unrnd(); }
 }
 
+console.log('\n— one face per address —');
+{
+  const rnd = (v) => runScript('globalThis.__rnd = Math.random; Math.random = () => ' + v + ';');
+  const unrnd = () => runScript('if (globalThis.__rnd) Math.random = globalThis.__rnd;');
+  const { Dialog: Dg, Kitchen: Kc, CASTS: CS } = KX;
+  const realSay = Dg.say, savedState = G.state;
+  const said = [];
+  Dg.say = (who, line, o) => { said.push(o && o.face); };
+  try {
+    G.startRun(1);
+    G.state = 'play';
+    const hs = City.houses;
+    const hA = { addr: hs[0].addr }, hB = { addr: hs[1].addr };
+    ok(G.addrFaces && G.addrFaces.size === 0, 'startRun leaves no address with a face yet');
+    said.length = 0;
+    rnd(0.05); G.react('wait', { house: hA, tip: 1, floor: 0, max: 2 }, false); unrnd();
+    rnd(0.95); G.react('wait', { house: hA, tip: 1, floor: 0, max: 2 }, false); unrnd();
+    ok(said.length === 2 && said[0] && said[0] === said[1], `the same house keeps its face whatever the roll (${said.join()})`);
+    ok(G.addrFaces.size === 1, 'one address, one entry');
+    const cast = Kc.castFor(G.era, G.level.year);
+    ok(cast.length > 1, 'the first level has a cast to choose from (' + cast.length + ')');
+    rnd(0.0); const fa = G.faceFor(hA), fb0 = G.faceFor(hB); unrnd();
+    G.addrFaces.clear();
+    rnd(0.99); const fb = G.faceFor(hB); unrnd();
+    ok(fb0 === cast[0] && fb === cast[cast.length - 1] && fb !== fb0, 'a different house may get a different face');
+    G.addrFaces.clear();
+    for (let i = 0; i < 60; i++) G.faceFor({ addr: 'T' + i });
+    const from = CS.from || {};
+    ok([...G.addrFaces.values()].every((f) => cast.includes(f) && (!(f in from) || from[f] <= 1972)),
+       'every face picked in 1972 has arrived by 1972');
+    G.react('wait', null, false);
+    ok(said[said.length - 1], 'a react with no order still picks a face');
+    G.startRun(1);
+    ok(G.addrFaces.size === 0, 'startRun (and so CONTINUE) clears the map');
+  } finally { Dg.say = realSay; unrnd(); G.state = savedState; }
+}
+
 console.log('\n— cast —');
 {
   const rnd = (v) => runScript('globalThis.__rnd = Math.random; Math.random = () => ' + v + ';');

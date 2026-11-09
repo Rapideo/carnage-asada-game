@@ -294,6 +294,7 @@ const G = {
   startRun(n) {
     this.earned = 0; this.stars = 0;
     this.runStart = n;
+    this.addrFaces = new Map();
     this.testRun = !!(this.test || this.autopilot);
     this.toCard(n);
   },
@@ -593,10 +594,23 @@ const G = {
   /* One line from the customer, over the dialogue strip. Kept out of the demo:
      attract mode is a shop window and a talking head over it reads as a
      cutscene rather than as play. */
+  /* The customer at this address for the rest of the run: picked from the
+     cast on first need, then kept, so a house is always the same person (and
+     so the same voice). Keyed by era as well as address, because a new
+     decade's map reuses numbers and streets. */
+  faceFor(house) {
+    const cast = Kitchen.castFor(this.era, this.level && this.level.year);
+    const key = house && house.addr ? this.era + '|' + house.addr : null;
+    if (!key) return cast[(Math.random() * cast.length) | 0];
+    if (!this.addrFaces) this.addrFaces = new Map();
+    let f = this.addrFaces.get(key);
+    if (!f) { f = cast[(Math.random() * cast.length) | 0]; this.addrFaces.set(key, f); }
+    return f;
+  },
+
   react(kind, order, hostile) {
     if (this.state !== 'play' || typeof DIALOGUE === 'undefined') return;
-    const cast = Kitchen.castFor(this.era, this.level && this.level.year);
-    const face = cast[(Math.random() * cast.length) | 0];
+    const face = this.faceFor(order && order.house);
     const line = this.lineFor(kind, face);
     if (!line) return;
     Dialog.say(DIALOGUE.who, line, {
