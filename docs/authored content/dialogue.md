@@ -1,14 +1,18 @@
 # dialogue.md
 
-The customer's lines over the dialogue strip, in both halves of the game. One section per key; a line tagged (1980s on) or (1990s on) is only said from that era, so nobody quotes a film that has not come out yet. The game reads `content/dialogue.json`: that file is the master copy and this page mirrors it, so edit the lines in Service Mode or in the JSON.
+The lines over the dialogue strip, in both halves of the game: the shared pools, then the cast, then each customer face's own lines. In the shared pools a line tagged (1980s on) or (1990s on) is only said from that era, so nobody quotes a film that has not come out yet. The game reads `content/dialogue.json`: that file is the master copy and this page mirrors it, so edit the lines in Service Mode or in the JSON.
 
-## I. Who
+## I. Shared lines
+
+The pools every customer draws from. A line tagged (1980s on) or (1990s on) is only said from that era.
+
+### Who
 
 The name on the speech bubble.
 
 1. "CUSTOMER"
 
-## II. Delivered
+### Delivered
 
 Delivery Shift: the order arrived in good time.
 
@@ -21,7 +25,7 @@ Delivery Shift: the order arrived in good time.
 7. "TELL THE COOK I SAID HOWDY."
 8. "OOH, STILL STEAMING. BLESS YOU."
 
-## III. Missed
+### Missed
 
 Delivery Shift: the bag landed off the porch.
 
@@ -34,7 +38,7 @@ Delivery Shift: the bag landed off the porch.
 7. "WELL I NEVER!"
 8. "HEAVENS TO BETSY! MY SUPPER!"
 
-## IV. Late
+### Late
 
 Delivery Shift: it arrived, but the tip had run down.
 
@@ -48,7 +52,7 @@ Delivery Shift: it arrived, but the tip had run down.
 8. "WELL. THAT'S... INTERESTING."
 9. "TIME IS MONEY, TACO BOY!" (1980s on)
 
-## V. Arrive
+### Arrive
 
 Kitchen Shift: a new ticket goes on the rail.
 
@@ -64,7 +68,7 @@ Kitchen Shift: a new ticket goes on the rail.
 10. "I HAVE A POWER LUNCH AT NOON!" (1980s on)
 11. "MY PAGER'S GOING OFF. HURRY!" (1990s on)
 
-## VI. Wait
+### Wait
 
 Kitchen Shift: a customer's patience is under 30%.
 
@@ -81,7 +85,7 @@ Kitchen Shift: a customer's patience is under 30%.
 11. "SEEN GLACIERS WITH MORE HUSTLE!"
 12. "MY FILOFAX SAYS I'M LATE, PAL!" (1980s on)
 
-## VII. Queue
+### Queue
 
 Kitchen Shift: the line is past three customers.
 
@@ -95,7 +99,7 @@ Kitchen Shift: the line is past three customers.
 8. "DELAY OF GAME! DELAY! OF! GAME!"
 9. "WE'RE STACKED UP LIKE CORDWOOD!"
 
-## VIII. Walkout
+### Walkout
 
 Kitchen Shift: a customer's patience ran out.
 
@@ -111,7 +115,7 @@ Kitchen Shift: a customer's patience ran out.
 10. "A POX UPON THIS ESTABLISHMENT!"
 11. "MAY ALL YOUR TORTILLAS BE SOGGY!"
 
-## IX. Served
+### Served
 
 Kitchen Shift: a ticket was served.
 
@@ -124,7 +128,7 @@ Kitchen Shift: a ticket was served.
 7. "THAT'S WHAT I CAME FOR!"
 8. "I'LL BE BACK. AND I'LL BE HUNGRY."
 
-## X. Wrong
+### Wrong
 
 Kitchen Shift: a wrong pick.
 
@@ -137,3 +141,2862 @@ Kitchen Shift: a wrong pick.
 7. "SORRY! THE ANSWER WAS 'A TACO'!"
 8. "THAT AIN'T ON THE TICKET, BUD!"
 9. "I DIDN'T ORDER THAT. DID I?"
+
+## II. The cast
+
+The officers, rivals and coworkers who speak at their own moments. Their lines carry no era.
+
+### SGT. PFEIFER
+
+Officer, 1970s (key pfeifer, face cop70).
+
+#### Chase
+
+The cruiser is on the player.
+
+1. "PULL IT OVER, TACO BOY."
+2. "THIS IS HAYS PD. PULL OVER!"
+3. "LIGHTS AND SIREN. YOUR MOVE, SON."
+4. "I'VE GOT YOU ON THE RADAR, SON."
+5. "YOU'RE NOT IN DODGE CITY NOW!"
+
+#### Fined
+
+The player was fined.
+
+1. "THAT'S A CITATION, SON."
+2. "SIGN HERE. PRESS HARD. 3 COPIES."
+3. "SPEED LIMIT'S 25 FOR A REASON."
+4. "THAT'S COMING OUT OF YOUR TIPS."
+5. "I'LL BE TELLING YOUR MOTHER."
+
+#### Lost
+
+The player lost the cruiser.
+
+1. "I KNOW WHERE YOU WORK, SON."
+2. "THIS ISN'T OVER, TACO BOY."
+3. "I'LL BE IN FOR LUNCH. WATCH IT."
+4. "LOST HIM BY THE GRAIN ELEVATOR."
+5. "NEXT TIME, SON. NEXT TIME."
+
+### OFC. KARLIN
+
+Officer, 1980s (key karlin, face cop80).
+
+#### Chase
+
+The cruiser is on the player.
+
+1. "DISPATCH, I'VE GOT A TACO RUNNER."
+2. "OH, YOU WANT TO DO THIS? OKAY."
+3. "PULL OVER. DON'T MAKE ME RADIO."
+4. "NICE CAR. SHAME ABOUT THE DRIVER."
+5. "CODE 3 ON A TACO RUN. GREAT."
+
+#### Fined
+
+The player was fined.
+
+1. "LICENSE, REGISTRATION, SALSA."
+2. "THAT'LL COST YOU. AND ME A TACO."
+3. "TICKET'S IN THE MAIL. SMILE."
+4. "YOU'RE KEEPING ME IN BUSINESS."
+5. "WRITE THAT DOWN? ALREADY DID."
+
+#### Lost
+
+The player lost the cruiser.
+
+1. "OKAY. YOU WIN THIS ONE."
+2. "I'LL SEE YOU AT LUNCH, HOTSHOT."
+3. "DISPATCH, LOST 'EM. AGAIN."
+4. "RUN ALL YOU WANT. I'M HUNGRY."
+5. "ENJOY IT. I HAVE YOUR PLATES."
+
+### OFC. DREILING
+
+Officer, 1990s (key dreiling, face cop90).
+
+#### Chase
+
+The cruiser is on the player.
+
+1. "OKAY. ONE. TWO. PULL OVER."
+2. "SIR? MA'AM? PLEASE PULL OVER."
+3. "I JUST WASHED THIS CRUISER, MAN."
+4. "NOT HOW I PICTURED MY SHIFT."
+5. "STOP! I MEAN IT! I THINK!"
+
+#### Fined
+
+The player was fined.
+
+1. "I HAVE TO WRITE THIS. SORRY."
+2. "MY SERGEANT MAKES ME DO THIS."
+3. "THAT'S A TICKET. DON'T HATE ME."
+4. "THREE, TWO... TICKET. WHATEVER."
+5. "IT'S NOT PERSONAL. IT'S A QUOTA."
+
+#### Lost
+
+The player lost the cruiser.
+
+1. "AND... THEY'RE GONE. GREAT."
+2. "I'M TELLING SARGE IT WAS FOG."
+3. "WHATEVER. I'M ON BREAK ANYWAY."
+4. "THAT DIDN'T HAPPEN. OKAY?"
+5. "PAGE ME IF YOU SEE 'EM."
+
+### DUSTY
+
+Rival, 1970s (key dusty, face rival70).
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "NICE ARM. FOR A LAWN SPRINKLER."
+2. "HA! RIGHT IN THE PETUNIAS, MAN!"
+3. "WATCH AND LEARN, ROOKIE."
+4. "SMOOTH. REAL SMOOTH. FAR OUT."
+5. "THAT ONE'S GOING IN MY SCRAPBOOK."
+
+#### Perfect
+
+A rival sees a perfect toss.
+
+1. "LUCKY. TOTALLY LUCKY."
+2. "OKAY, THAT WAS KINDA GROOVY."
+3. "I TAUGHT YOU THAT. DON'T FORGET."
+4. "RIGHT ON THE MAT? NO WAY, MAN."
+5. "ENJOY IT. WON'T HAPPEN AGAIN."
+
+### ACE
+
+Rival, 1980s (key ace, face rival80).
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "GAME OVER, MAN! INSERT COIN!"
+2. "HA! YOU MISSED BY A COUNTY!"
+3. "NEW HIGH SCORE... FOR MISSING!"
+4. "THAT'S NOT HOW YOU PLAY, ROOKIE."
+5. "EVEN MY KID BROTHER HITS THAT."
+
+#### Perfect
+
+A rival sees a perfect toss.
+
+1. "BONUS ROUND! ...LUCKY."
+2. "OKAY, OKAY. THAT'S A HIGH SCORE."
+3. "NICE. STILL NOT MY INITIALS."
+4. "WHOA. RADICAL. I MEAN, WHATEVER."
+5. "YOU'VE BEEN PRACTICING. ADMIT IT."
+
+### JINX
+
+Rival, 1990s (key jinx, face rival90).
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "AS IF! THAT WAS SO NOT IT."
+2. "WHOOPS. I SAW NOTHING. WINK."
+3. "THAT'S GOING IN MY ZINE."
+4. "TALK TO THE HAND. AND THE HEDGE."
+5. "NOT EVEN CLOSE. NOT EVEN!"
+
+#### Perfect
+
+A rival sees a perfect toss.
+
+1. "OKAY, THAT WAS ALL THAT."
+2. "WHATEVER. I'LL DO IT BETTER."
+3. "DID YOU JUST... PSH. LUCKY."
+4. "SCHWING. I MEAN, FINE. GOOD."
+5. "DON'T LET IT GO TO YOUR HEAD."
+
+### MARGE
+
+Coworker, 1970s (key marge, face staff70).
+
+#### Hint
+
+Kitchen: the next ingredient to pick. {ING} is its plate name.
+
+1. "{ING} NEXT, HON."
+2. "DON'T FORGET THE {ING}, SUGAR."
+3. "{ING}. TRUST ME, HON."
+4. "YOU WANT THE {ING} NOW."
+5. "{ING} GOES ON NEXT, DEAR."
+
+#### Clockin
+
+Kitchen: the shift starts.
+
+1. "APRON ON, HON. HERE THEY COME."
+2. "COFFEE'S ON. LET'S ROLL, SUGAR."
+3. "LUNCH RUSH. KEEP UP, HON."
+4. "I'VE DONE THIS SINCE '62. WATCH."
+5. "TICKETS ON THE RAIL. GET MOVING."
+
+#### Streak
+
+Kitchen: a run of clean tickets.
+
+1. "NOW YOU'RE COOKING, HON!"
+2. "LOOK AT YOU GO, SUGAR!"
+3. "WELL, AREN'T YOU SOMETHING."
+4. "KEEP THAT UP AND I'LL RETIRE."
+5. "THAT'S HOW WE DO IT AT THE SHOP."
+
+#### Trouble
+
+Kitchen: the line is backing up.
+
+1. "HON, THE LINE'S OUT THE DOOR!"
+2. "CLOCK'S RUNNING, SUGAR. HUSTLE!"
+3. "THEY'RE GETTING CRANKY OUT THERE."
+4. "PICK UP THE PACE, HON. NOW."
+5. "I'VE SEEN SNAILS WITH MORE PEP."
+
+### DALE
+
+Coworker, 1980s (key dale, face staff80).
+
+#### Hint
+
+Kitchen: the next ingredient to pick. {ING} is its plate name.
+
+1. "PSST. {ING} NEXT, BUDDY."
+2. "I THINK IT'S {ING}. YEAH."
+3. "GO {ING}, DUDE. TRUST ME."
+4. "IT'S {ING} TIME, PAL."
+5. "{ING} GOES NEXT. TOTALLY."
+
+#### Clockin
+
+Kitchen: the shift starts.
+
+1. "OKAY! RUSH HOUR! LET'S DO THIS!"
+2. "I MADE A MIXTAPE FOR THE SHIFT."
+3. "HAIRNETS ON, PEOPLE. GO TIME."
+4. "BIG CROWD TODAY. WE GOT THIS."
+5. "SHIFT'S ON! HIGH FIVE! ...NO?"
+
+#### Streak
+
+Kitchen: a run of clean tickets.
+
+1. "TOTALLY TUBULAR, BUDDY!"
+2. "YOU'RE ON FIRE! NOT LITERALLY."
+3. "THAT'S A COMBO! LIKE IN ARCADES!"
+4. "WHOA. YOU'RE A NATURAL, DUDE."
+5. "RADICAL! KEEP 'EM COMING!"
+
+#### Trouble
+
+Kitchen: the line is backing up.
+
+1. "UH, DUDE? THE LINE'S HUGE."
+2. "CLOCK! CLOCK! WATCH THE CLOCK!"
+3. "THEY'RE STARTING TO CHANT, MAN."
+4. "I DON'T WANNA PANIC, BUT... PANIC."
+5. "WE ARE SO GETTING GROUNDED."
+
+### NIKKI
+
+Coworker, 1990s (key nikki, face staff90).
+
+#### Hint
+
+Kitchen: the next ingredient to pick. {ING} is its plate name.
+
+1. "{ING}. DUH."
+2. "HELLO? {ING} GOES NEXT."
+3. "{ING}. NOT ROCKET SCIENCE."
+4. "THE {ING}, GENIUS."
+5. "TRY {ING}. JUST SAYING."
+
+#### Clockin
+
+Kitchen: the shift starts.
+
+1. "OKAY, CREW. NO DRAMA TODAY."
+2. "SPATULA UP. LET'S DO THIS."
+3. "THEY'RE LINING UP. GAME FACE."
+4. "LUNCH RUSH. I'M SO READY. NOT."
+5. "CLOCK'S ON. MAKE IT SNAPPY."
+
+#### Streak
+
+Kitchen: a run of clean tickets.
+
+1. "OKAY, YOU'RE KIND OF AWESOME."
+2. "BOO-YAH! CLEAN TICKET!"
+3. "ALL THAT AND A BAG OF CHIPS!"
+4. "WHO ARE YOU AND WHAT DID YOU DO?"
+5. "YOU'RE BUGGIN'. IN A GOOD WAY."
+
+#### Trouble
+
+Kitchen: the line is backing up.
+
+1. "UM, THE LINE? IT'S A WHOLE THING."
+2. "CLOCK'S DYING. MOVE IT, MOVE IT."
+3. "THEY'RE GONNA RIOT. JUST SAYING."
+4. "THIS IS SO NOT GOOD. LIKE, AT ALL."
+5. "HURRY. I CAN'T HANDLE THE WHINING."
+
+## III. Customers
+
+A customer face's own lines. Said about 3 times in 4 when the face has one for the moment; otherwise the shared pool.
+
+### c70bellbottom
+
+
+
+#### Wait
+
+1. "I HAVE A CASSEROLE IN THE OVEN AT HOME, YOUNG MAN!"
+2. "OH, SUGAR, I HAVE HALF A MIND TO..."
+3. "IF YOU MAKE ME USE MY MOM VOICE, YOU WILL REGRET IT!"
+
+#### Queue
+
+1. "MOMMY NEEDS HER TACO. MOMMY NEEDS HER TACO."
+
+#### Walkout
+
+1. "I'M GONNA EAT AT TACO BELL AND I'M GONNA ENJOY IT!"
+
+#### Wrong
+
+1. "OH. OH. WELL. THAT'S... DIFFERENT."
+
+### c70leisure
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "WHY I OUGHTA - OH! OH I OUGHTA!"
+
+#### Arrive
+
+1. "CAN I GET A HALLELUJAH FOR A FAST TACO?!"
+
+#### Wait
+
+1. "WE DO TACOS BIGGER IN TEXAS!"
+
+#### Walkout
+
+1. "FORGET ABOUT IT. I SAID FORGET ABOUT IT."
+
+#### Wrong
+
+1. "YOU SHMUCK ON TOAST!"
+2. "WHAT A LOAD OF UTTER ROT!"
+
+### c70longhair
+
+
+
+#### Arrive
+
+1. "I GOT A JACKHAMMER WAITING FOR ME!"
+
+#### Wait
+
+1. "I HAVE AGED BIBLICALLY WAITING FOR THIS!"
+2. "I'M ABOUT TO LOSE IT, PARTNER!"
+
+#### Walkout
+
+1. "YOU WILL HEAR FROM MY ATTORNEY! ...AS SOON AS I GET ONE!"
+2. "NAMA-STAY OUT OF MY WAY, I'M LEAVING!"
+
+### c70teacher
+
+
+
+#### Queue
+
+1. "EXCUSE ME. EXCUSE ME. CAN I HAVE YOUR ATTENTION PLEASE?!"
+2. "I AM REBUKING THIS WAIT TIME IN THE NAME OF ALL THAT IS HOLY!"
+
+#### Walkout
+
+1. "I'M CALLING THE BETTER BUSINESS BUREAU!"
+2. "I'LL BE ADDRESSING THIS IN MY BOOK CLUB."
+
+#### Wrong
+
+1. "YOUR FATHER WOULD BE ASHAMED!"
+2. "I'LL BE HAVING A STERN WORD WITH YOUR MOTHER, YOUNG MAN!"
+
+### c70trucker
+
+
+
+#### Late
+
+1. "THERE'S A HEARTBREAK IN EVERY COUNTRY SONG - THIS IS MINE!"
+
+#### Wait
+
+1. "WHEN I WAS YOUR AGE, I HAD THREE JOBS AND A MORTGAGE!"
+2. "THIS IS A TEN-FOUR ON A SLOW TACO, GOOD BUDDY!"
+3. "LOOK. I HAVE A DAUGHTER. YOU CAN DATE HER. JUST GIVE ME THE TACO."
+
+#### Walkout
+
+1. "BREAKER ONE-NINE, I'M LEAVIN' YOUR PARKING LOT! OVER AND OUT!"
+
+#### Wrong
+
+1. "YOU SALSA-FINGERED FENCEPOST!"
+2. "WHAT KIND OF TRUCK-STOP OPERATION IS THIS?!"
+
+### c70waitress
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "MY NEPHEW IS A LAWYER AND HE'LL BE HEARING ABOUT THIS!"
+
+#### Late
+
+1. "MY HUSBAND WOULD HAVE A WORD WITH YOU, IF HE WERE STILL ALIVE!"
+
+#### Wait
+
+1. "LORD HAVE MERCY ON THIS SLOW KITCHEN!"
+2. "I HAVEN'T SLEPT IN SIX YEARS, DO NOT TEST ME!"
+
+#### Walkout
+
+1. "I LEFT MY BRIDGE CLUB FOR THIS DISASTER!"
+
+#### Wrong
+
+1. "HEAVENS TO BETSY!"
+2. "WE DON'T DO THAT WHERE I'M FROM. WE JUST DON'T."
+
+### c70discoking
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "MOTHER OF MERCY!"
+
+#### Late
+
+1. "MY MERCURY IS IN RETROGRADE AND SO ARE YOU!"
+
+#### Walkout
+
+1. "I CAME IN GOOD FAITH. I CAME IN GOOD FAITH!"
+2. "SOLD! TO THE GENTLEMAN... GOING TO TACO BELL INSTEAD!"
+
+#### Served
+
+1. "YOUR SECRET RECIPE WILL BE MINE!"
+
+### c70newsman
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "WELL, I'LL BE A MONKEY'S UNCLE!"
+
+#### Wait
+
+1. "FOR THE LOVE OF PETE!"
+2. "I STORMED NORMANDY FOR THIS?!"
+
+#### Queue
+
+1. "I CAME IN HERE A YOUNG MAN!"
+2. "I'VE WAITED LONGER THAN THE WAR, KID!"
+
+#### Wrong
+
+1. "OH, I'M SORRY - YOU DIDN'T PHRASE IT IN THE FORM OF A TACO!"
+
+### c70militaryguy
+
+
+
+#### Late
+
+1. "IN THE ARMY, A TACO TOOK THIRTY SECONDS!"
+
+#### Wait
+
+1. "I SERVED IN VIETNAM FOR THIS KIND OF TREATMENT?!"
+2. "TELL MY WIFE I LOVED HER!"
+
+#### Queue
+
+1. "THIS IS EXACTLY WHY I KEEP RICE AND BEANS IN MY GARAGE!"
+2. "I HAVE WAITED LONGER THAN BASIC TRAINING!"
+3. "I'VE BEEN IN FOXHOLES MORE COMFORTABLE THAN THIS LINE!"
+
+### c70hippiedude
+
+
+
+#### Wait
+
+1. "THE GOVERNMENT IS BEHIND THIS TACO DELAY!"
+
+#### Queue
+
+1. "I COULD'VE WALKED TO MEXICO AND BACK BY NOW!"
+2. "I HAD NO BEARD WHEN I GOT IN THIS LINE, MAN!"
+
+#### Walkout
+
+1. "I DROVE MY VAN HERE, MAN. I DROVE MY VAN."
+2. "MY HEALER IS GOING TO HEAR ABOUT THIS!"
+
+### c70pornstar
+
+
+
+#### Wait
+
+1. "DO YOU KNOW WHO I AM?! I'M A HOMEOWNER!"
+2. "YOU THINK YOU'RE GONNA KEEP ME WAITING LIKE I'M SOMEBODY?!"
+3. "LISTEN, I'LL THROW IN MY WATCH! IT'S A SEIKO!"
+
+#### Queue
+
+1. "I KNOW A GUY WHO KNOWS A GUY WHO COULD MAKE THIS TACO FASTER!"
+
+#### Wrong
+
+1. "TELL THE CHEF I WANT TO SEE HIM. NO - I DEMAND TO SEE HIM."
+
+### c70magician
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "BY DAVY JONES' SOMBRERO!"
+
+#### Wait
+
+1. "I'M SUMMONING THE MANAGER - IT'S A LEVEL 9 SPELL!"
+2. "BUT WAIT! THERE'S MORE WAITING!"
+
+#### Walkout
+
+1. "CURSED BE YE AND YOUR DESCENDANTS UNTO THE SEVENTH GENERATION!"
+2. "I SUMMON THE SPIRIT OF MOCTEZUMA UPON YOU ALL!"
+
+#### Wrong
+
+1. "BY THE BEARD OF ZEUS!"
+
+### c70jazzmusician
+
+
+
+#### Late
+
+1. "YOU ARE VERY, VERY SLOW, MY FRIEND!"
+2. "I TRAINED AT JUILLIARD FOR THIS?!"
+
+#### Wait
+
+1. "SORRY TO BE A BOTHER, BUT I'M LOSING MY MIND."
+
+#### Walkout
+
+1. "I'M AFRAID I'LL HAVE TO GIVE THIS EXPERIENCE ZERO STARS."
+
+#### Wrong
+
+1. "WHAT A LOAD OF HORSE FEATHERS!"
+
+### c70boatcaptain
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "YOU FUSTILUGS!"
+2. "SHIVER ME TORTILLAS!"
+
+#### Wait
+
+1. "WE DIDN'T FIGHT A WORLD WAR SO YOU COULD MAKE TACOS SLOW!"
+
+#### Queue
+
+1. "I REMEMBER WHEN THIS WHOLE PLACE WAS A FIELD!"
+2. "I'VE SAILED THE SEVEN SEAS IN LESS TIME THAN THIS!"
+
+#### Wrong
+
+1. "AVAST YE! AVAST I SAY!"
+
+### c70beekeeper
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "LAND SAKES ALIVE!"
+
+#### Wait
+
+1. "WHAT IN THE NAME OF SAM HILL IS GOING ON BACK THERE?!"
+2. "I'VE GOT BEES BUSIER THAN THIS KITCHEN!"
+3. "I WAS GONNA SING THIS TACO'S PRAISES... IF IT EVER ARRIVES!"
+
+#### Walkout
+
+1. "OPE! SORRY! JUST GONNA SQUEEZE PAST YA TO THE DAIRY QUEEN!"
+2. "GOIN' ONCE, GOIN' TWICE, GOIN' OUT THE DOOR!"
+
+### c70surferdude
+
+
+
+#### Late
+
+1. "THIS IS HEAVIER THAN A TWO-FOOT WAVE ON A TUESDAY, DUDE."
+2. "THIS IS HARSHING THE COSMIC BUZZ, MAN!"
+
+#### Arrive
+
+1. "I'M GETTING MARRIED IN TWENTY MINUTES!"
+
+#### Wait
+
+1. "DUUUDE, THIS TACO'S GONNA BE COLD BY THE BEACH, BRAH!"
+
+#### Walkout
+
+1. "I HOPE A SEAGULL STEALS YOUR KEYS!"
+
+### c70rollerskater
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "WHAT A TURKEY!"
+
+#### Wait
+
+1. "IT'S FINE. EVERYTHING'S JUST FINE."
+2. "I'VE BEEN HERE SINCE BREAKFAST!"
+3. "MY BABIES ARE HOME ALONE AND HUNGRY!"
+
+#### Walkout
+
+1. "GOING TO... THAT GREAT... TACO STAND... IN THE SKY..."
+
+#### Wrong
+
+1. "YOU SCALLYWAG OF A SALSA-SLINGER!"
+
+### c70photographer
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "WAIT WAIT WAIT, HOLD ON, I NEED TO FILM THIS!"
+
+#### Late
+
+1. "I TOLD MY WIFE I'D BE HOME BY SIX!"
+2. "FAILURE TO DELIVER! FAILURE TO COMMUNICATE! FAILURE TO COOK!"
+3. "THE TACO WAS A NO-SHOW. LIKE A WITNESS WHO'S BEEN GOTTEN TO."
+
+#### Wait
+
+1. "WELL, I S'POSE I'LL JUST GROW ROOTS HERE THEN. I S'POSE."
+2. "OPERATORS ARE STANDING BY... UNLIKE YOUR TACO MAKER!"
+
+### c70stagehand
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "WHAT A MAROON!"
+
+#### Wait
+
+1. "BREAK A LEG - PREFERABLY YOURS, ON THE WAY TO MY TABLE!"
+
+#### Queue
+
+1. "IF I DIE HERE, BURY ME IN THE SALSA BAR!"
+2. "WELL, THIS IS QUITE THE PRODUCTION, ISN'T IT?"
+
+#### Walkout
+
+1. "TELL... MY TACO... I... LOVED... IT..."
+
+### c70racecardriver
+
+
+
+#### Wait
+
+1. "COME ON! COME ON! PUT THE HAMMER DOWN!"
+2. "MY PIT CREW CHANGES FOUR TIRES QUICKER THAN THIS!"
+3. "NOW-NOW-NOW-NOW-NOW, CAN I GET A TACO OVER HERE-HERE-HERE-HERE?!"
+
+#### Walkout
+
+1. "SADDLE UP, FRIEND - WE'RE RIDIN' BACK TO TACO BELL!"
+
+#### Wrong
+
+1. "YOU SOUR CREAM SCOUNDREL!"
+2. "I OUGHTA RUN YA OUTTA TOWN ON A RAIL!"
+
+### c70soultrainguy
+
+
+
+#### Wait
+
+1. "HONEST TO GOD, THIS IS A JOKE!"
+
+#### Served
+
+1. "YOUR SALSA HAS NO CHUNKS AND NO SOUL!"
+
+#### Wrong
+
+1. "THIS IS A DISGRACE TO TACOS!"
+2. "MERCY ME! MERCY ME, I TELL YOU!"
+
+### c70longhair2
+
+
+
+#### Late
+
+1. "THE MOON LANDING WASN'T REAL AND NEITHER IS THIS TACO!"
+
+#### Wait
+
+1. "WHAT IS TIME? WHAT IS A TACO? WHAT AM I?!"
+2. "HEY, I'M WALKIN' HERE! WELL, I WOULD BE, IF I HAD MY TACO!"
+3. "MAN, THIS IS SO NOT GROOVY!"
+
+#### Walkout
+
+1. "I'M GONNA WRITE A SAD SONG ABOUT THIS TACO SHOP!"
+
+### c70flowerchild
+
+
+
+#### Wait
+
+1. "THIS IS HARSHING MY CHAKRAS!"
+
+#### Queue
+
+1. "I HAVE TRANSCENDED HUNGER. I AM ONE WITH THE LINE."
+
+#### Walkout
+
+1. "MAY YOUR CILANTRO TASTE LIKE SOAP FOREVER!"
+2. "I'M BOYCOTTING THIS RESTAURANT!"
+3. "PEACE, LOVE AND LEAVING - THAT'S WHAT I'M DOING!"
+
+### c70taxman
+
+
+
+#### Late
+
+1. "YOU LITTLE WHIPPERSNAPPER!"
+2. "YOU BETCHA THAT'S COMING OUT OF THE TIP. OH BOY."
+
+#### Walkout
+
+1. "I'D LIKE TO FILE A POLITE COMPLAINT, SORRY."
+
+#### Wrong
+
+1. "THIS GENERATION CAN'T MAKE A TACO WITHOUT THEIR DISCO RECORDS!"
+2. "YOU SNOLLYGOSTER!"
+
+### c70sportsannouncer
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "HOLY COW! HOLY COW, I SAY!"
+
+#### Wait
+
+1. "I'M GONNA MISS THE FIRST QUARTER, JEROME!"
+2. "MY GRANDCHILDREN WILL EAT THIS TACO!"
+
+#### Queue
+
+1. "WE ARE WITNESSING A HISTORIC MELTDOWN HERE TODAY, FOLKS!"
+
+#### Walkout
+
+1. "AND HE'S OUTTA HERE, FOLKS! THE CUSTOMER HAS LEFT THE BUILDING!"
+
+#### Wrong
+
+1. "OFFENSIVE HOLDING ON THE TACO MAKER, FIFTEEN YARDS!"
+
+### c70greaser
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "SWEET MOTHER MARY AND JOSEPH!"
+2. "I HAD MONEY ON THIS TACO, DUDE!"
+
+#### Wait
+
+1. "FIFTY DOLLARS. CASH. NOW."
+
+#### Queue
+
+1. "I THINK I DIED AND THIS IS PURGATORY!"
+
+#### Walkout
+
+1. "I'LL SEE YA IN THE PARKING LOT, TACO BOY!"
+
+#### Wrong
+
+1. "WHAT'S THE MATTER WITH YOU? WHAT'S THE MATTER?!"
+
+### c70discoqueen
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "MAMMA MIA! WHAT IS THIS?!"
+
+#### Wait
+
+1. "OH, FOR HEAVEN'S SAKE, HONEY!"
+2. "IT'S COCKTAIL HOUR AND I'M STILL HERE!"
+
+#### Walkout
+
+1. "I'M GOING HOME AND HAVING A STRONG ICED TEA, I DECLARE!"
+
+#### Wrong
+
+1. "WHAT AN OUTRAGE!"
+2. "YOUR KITCHEN IS A CAPRICORN WITH A PISCES MOON. NOT A COMPLIMENT!"
+
+### c70artist
+
+
+
+#### Late
+
+1. "THE BOUQUET OF THIS PLACE IS... DISAPPOINTMENT."
+2. "BAD VIBES, BROTHER. BAD VIBES."
+
+#### Arrive
+
+1. "ARE THESE TACOS ORGANIC? ARE THE BEANS UNION-PICKED?!"
+
+#### Wait
+
+1. "THE MOUTHFEEL OF THIS WAIT IS JUST... TROUBLING."
+2. "HMM. WELL. I HAVE... THOUGHTS. ABOUT THIS. EXPERIENCE."
+
+#### Queue
+
+1. "I'VE BEEN WAITING SINCE THE TIME OF MOCTEZUMA!"
+
+### c70easyrider
+
+
+
+#### Late
+
+1. "I GOT 5 YEARS OF FREEZE-DRIED FOOD AT HOME AND I CAME HERE!"
+
+#### Wait
+
+1. "WHAT THE DEVIL, MAN?!"
+2. "I RODE MY HOG HERE, PARTNER. AND SHE'S GETTIN' MIGHTY RESTLESS!"
+
+#### Queue
+
+1. "I HAVE KNOWN WAR. I HAVE KNOWN FAMINE. THIS IS WORSE."
+
+#### Walkout
+
+1. "I'D LOSE MY WOMAN, MY HAT, AND MY DOG BEFORE I'D COME BACK HERE!"
+
+### c70discodude
+
+
+
+#### Late
+
+1. "TELL THEM WHAT THEY DON'T GET, BOB!"
+
+#### Walkout
+
+1. "I'LL HAVE MY GUY AT THE CHAMBER OF COMMERCE HEAR ABOUT THIS!"
+2. "I'LL BE BACK TOMORROW, AND I'LL STILL BE UPSET!"
+
+#### Wrong
+
+1. "YOU GADZOOKLING TWIT!"
+2. "I'D KICK YOUR REAR END CLEAR INTO NEXT WEEK!"
+
+### c70stonerdude
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "YOU OVERBAKED FRABJOUS DINGUS!"
+
+#### Wait
+
+1. "AW, MAN, YOU'RE HARSHING MY MUNCHIES!"
+
+#### Queue
+
+1. "THIS IS EXACTLY WHAT THEY WANT US TO DO - WAIT!"
+
+#### Wrong
+
+1. "WHOA, DID I JUST WITNESS A CRIME AGAINST TACOS?"
+2. "DON'T BUM ME OUT, BROTHER!"
+
+### c70newsman2
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "OH, THE HUMANITY!"
+
+#### Wait
+
+1. "YOU'RE SLOWER THAN A TURTLE IN A NORTHER!"
+
+#### Walkout
+
+1. "I'LL WRITE A COLUMN SO DEVASTATING YOUR KIDS WILL FEEL IT!"
+2. "I'LL BE UNPACKING THIS IN MY SEMINAR ON PERSONAL POWER!"
+
+#### Wrong
+
+1. "HOLY MOLY! THIS IS AN ABOMINATION!"
+
+### c70womanwithbigsungla
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "I'LL SMACK YOU WITH MY PURSE, SEE IF I DON'T!"
+
+#### Wait
+
+1. "I WANT TO SPEAK TO YOUR MANAGER'S MANAGER!"
+2. "I DEMAND THE MANAGER, THE REGIONAL MANAGER, AND CORPORATE!"
+3. "THE DEVIL IS IN THIS PLACE AND HIS NAME IS SLOW SERVICE!"
+
+#### Queue
+
+1. "I HAVE SEVEN CATS WHO ARE MORE PUNCTUAL THAN THIS KITCHEN!"
+
+#### Walkout
+
+1. "MARK MY WORDS, THIS SHOP WILL RUE THE DAY!"
+
+### c70bellbottomguy
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "NOT COOL, MAN. NOT COOL AT ALL."
+
+#### Late
+
+1. "THIS WOULDN'T HAPPEN AT SIZZLER!"
+
+#### Arrive
+
+1. "MY CONCRETE'S SETTING WITHOUT ME! MOVE IT!"
+
+#### Wait
+
+1. "I COULD'VE STRUCK OIL IN THE BACK FORTY BY NOW!"
+
+#### Queue
+
+1. "I'LL GIVE YOU MY LUCKY TWO-DOLLAR BILL TO SKIP THE LINE!"
+
+#### Walkout
+
+1. "BRENDA! GET IN THE CAR, WE'RE GOING TO PIZZA HUT!"
+
+### c70foxylady
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "MOTHER OF GOD AND ALL THE SAINTS!"
+2. "WHY, I DO DECLARE!"
+
+#### Wait
+
+1. "CURSE YOU AND YOUR SLOW HANDS!"
+2. "MERCURY IS IN RETROGRADE AND I KNEW THIS WOULD HAPPEN!"
+3. "SAINT ANTHONY, PATRON OF LOST THINGS, PLEASE FIND MY ORDER!"
+
+#### Walkout
+
+1. "SHE CAME IN FOR A MEAL. SHE LEFT WITH NOTHING BUT DISAPPOINTMENT."
+
+### c70bowlcutkid
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "GOOD GRIEF! GOOD GRIEF, I SAY!"
+2. "I'M TELLING MY MOMMY!"
+
+#### Late
+
+1. "IT'S FINE. I'M FINE. WE'RE ALL FINE HERE, NOW."
+2. "MAY THE FORCE BE WITH YOU, BECAUSE THE SPEED CLEARLY ISN'T!"
+
+#### Wait
+
+1. "DRAW, PODNER! DRAW, I SAY! QUICKER THAN THAT!"
+
+#### Wrong
+
+1. "JIMINY CHRISTMAS!"
+2. "Y'ALL ARE UNDER ARREST FOR IMPERSONATIN' A TACO SHOP!"
+
+### c70truckdriver
+
+
+
+#### Late
+
+1. "MY RIG'S IDLING OUT THERE AND SO AM I, FRIEND!"
+
+#### Queue
+
+1. "WE'RE GOING TO OVERTIME WITH THIS TACO, AREN'T WE?"
+2. "I BEEN HAULING THIS HUNGER FOR SIX STATES!"
+
+#### Walkout
+
+1. "I'M TAKING MY BUSINESS TO THE TACO JOHN'S DOWN THE STREET!"
+2. "SMOKEY'S GOT NOTHIN' ON ME - TEN-NINE-NINE THIS TACO OUT!"
+
+### c70flightattendant
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "OH YOU LITTLE STINKER!"
+
+#### Late
+
+1. "I'VE EATEN WITH JULIA CHILD, AND SHE WOULD NEVER!"
+
+#### Wait
+
+1. "CABIN TO TACO BOY, COME IN TACO BOY!"
+2. "OH, DO GET ON WITH IT, DEAR!"
+3. "MR. WHISKERS WILL NOT BE PLEASED!"
+
+#### Queue
+
+1. "THIS WOULDN'T FLY IN HOUSTON!"
+
+### c80aerobics
+
+
+
+#### Late
+
+1. "NO PAIN, NO GAIN - AND SO FAR IT'S ALL PAIN AND ZERO TACOS!"
+
+#### Wait
+
+1. "GET WITH THE PROGRAM, JETHRO!"
+2. "I WANT TO SPEAK TO YOUR MANAGER. NOW."
+3. "I HAVEN'T HAD MY BOX OF WINE TODAY AND I'M LOSING IT!"
+
+#### Queue
+
+1. "I NEED TO BREATHE THROUGH THIS - BUT I CAN'T, I'M HUNGRY!"
+
+#### Walkout
+
+1. "I'M PUTTING THIS IN THE CHURCH BULLETIN!"
+
+### c80breaker
+
+
+
+#### Late
+
+1. "I COULD GET A TACO FASTER ON THE F TRAIN AT 3 AM!"
+2. "MY GRANDMA WOULD WEEP AT THIS SERVICE!"
+
+#### Wait
+
+1. "MY WIFE IS IN LABOR! SHE WANTS A TACO! IT'S HER ONE REQUEST!"
+
+#### Wrong
+
+1. "YOU CHIMICHANGA-CHEEKED CHUMP!"
+2. "I AM BREAKING MY FAST FOR THIS?!"
+
+### c80dad
+
+
+
+#### Wait
+
+1. "I HAVE BEEN A LOYAL CUSTOMER SINCE NINETEEN HUNDRED AND SEVENTY-TWO!"
+2. "I LEFT THE MINIVAN RUNNING. WITH THE DOG IN IT!"
+3. "I HAVE A CARSEAT IN MY CAR WITH A CRYING BABY! GIVE ME MY TACOS!"
+
+#### Queue
+
+1. "I COULD BUILD A BETTER TACO SHOP IN TWENTY MINUTES!"
+
+#### Walkout
+
+1. "I'M CANCELLING THE FAMILY VACATION OVER THIS!"
+2. "BOY. BOY. WAIT'LL I TELL DOLORES ABOUT THIS ONE."
+
+### c80preppy
+
+
+
+#### Late
+
+1. "HEAVENS TO BETSY, THIS IS JUST AWFUL!"
+
+#### Wait
+
+1. "I CANNOT. I SIMPLY CANNOT!"
+2. "SEND MY TACO, OH LORD, SEND IT SWIFTLY!"
+
+#### Walkout
+
+1. "I HAVE HALF A MIND TO - WELL, I WON'T SAY IT!"
+2. "I SHAN'T BE RETURNING. I SHAN'T!"
+3. "YOU'LL BE HEARING FROM MY LETTER TO THE EDITOR."
+
+### c80valley
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "LIKE, OH MY GOD!"
+
+#### Late
+
+1. "MY GRANDMOTHER IS ROLLING IN HER GRAVE AT THIS SERVICE!"
+2. "THIS IS NOT MY LUCKY DAY AND YOU ARE NOT HELPING!"
+
+#### Wait
+
+1. "I LITERALLY CANNOT DEAL RIGHT NOW!"
+
+#### Wrong
+
+1. "I'M SO SURE."
+
+### c80newwaveguy
+
+
+
+#### Late
+
+1. "I'D WEEP, BUT MY TEARS WOULD BE OVER-SALTED."
+
+#### Wait
+
+1. "STUFF IT, METALLICA BREATH!"
+2. "I HAVE LIVED FOUR HUNDRED YEARS. THIS IS THE LONGEST I'VE WAITED."
+
+#### Walkout
+
+1. "RIGHT THEN. RIGHT. THEN."
+
+#### Served
+
+1. "I SHALL STEAL THE VERY SOUL OF THIS RESTAURANT!"
+
+#### Wrong
+
+1. "TAKE ME TO YOUR TACO MAKER. WAIT - NEVER MIND. I JUST MET HIM."
+
+### c80gijoefan
+
+
+
+#### Wait
+
+1. "I HAVE A BUNKER FULL OF MRES AND I SHOULD'VE STAYED THERE!"
+
+#### Queue
+
+1. "I SHALL NOT REST UNTIL MY TACO IS IN HAND!"
+
+#### Wrong
+
+1. "DON'T BE SUCH A SPAZ!"
+2. "YOU PINTO BEAN PEABRAIN!"
+3. "YOU'RE ABOUT AS USEFUL AS A SCREEN DOOR ON A SUBMARINE!"
+
+### c80metalhead
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "BITE THE BIG ONE, TACO FUMBLER!"
+
+#### Late
+
+1. "MY FOREMAN'S GONNA HAVE MY HIDE!"
+
+#### Wait
+
+1. "WHERE'S MY TACO, YOU BARNACLE-ENCRUSTED SWINE?!"
+
+#### Walkout
+
+1. "I HEREBY CURSE THIS SHOP WITH STALE CHIPS FOR A THOUSAND YEARS!"
+
+#### Wrong
+
+1. "PREPARE TO MEET THY MAKER, TACO VARLET!"
+2. "TO BE THE TACO, YOU GOTTA BEAT THE TACO! YOU AIN'T BEATIN' NOTHIN'!"
+
+### c80arcadekid
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "YOU SNORK-FACED FLIBBERGIBBET!"
+
+#### Wait
+
+1. "GET ON WITH IT, YA DOOFUS!"
+2. "I HAVE FOUGHT GALACTIC EVIL, BUT THIS IS MY TRUE NEMESIS!"
+
+#### Queue
+
+1. "MINE! MINE! MINE! THAT TACO IS MINE!"
+
+#### Wrong
+
+1. "WHAT'RE YOU, NUTS?!"
+2. "THIS IS A CRITICAL FAIL ON THE CUSTOMER SERVICE CHECK!"
+
+### c80videostoreclerk
+
+
+
+#### Late
+
+1. "HE'S DEAD, JIM. AND BY 'HE' I MEAN MY APPETITE."
+
+#### Wait
+
+1. "SORRY, BUT UH, SORRY, THIS IS TAKING QUITE A BIT, HUH?"
+
+#### Walkout
+
+1. "TWO THUMBS DOWN! WAY DOWN! NEVER AGAIN!"
+2. "I'LL TAKE 'PLACES I'M NEVER COMING BACK TO' FOR FIVE HUNDRED!"
+
+#### Wrong
+
+1. "YOU COULDN'T FOLD A BURRITO WITH A MAP AND A TUTORIAL!"
+2. "REVIEW THE TAPE! REVIEW THE TAPE!"
+
+### c80valleysurfer
+
+
+
+#### Late
+
+1. "BOGUS, BRAH. TOTALLY BOGUS."
+
+#### Wait
+
+1. "CRIKEY, WHAT'S THE HOLD-UP?!"
+2. "WHATCHA GONNA DO, BROTHER, WHEN MY HUNGER RUNS WILD ON YOU?!"
+
+#### Queue
+
+1. "DAVE, YOU'RE NOT GONNA BELIEVE WHERE I'M STILL STANDING!"
+
+#### Served
+
+1. "THIS VIBE IS RANCID, BRAH."
+
+### c80yuppiegirl
+
+
+
+#### Wait
+
+1. "TIME IS MONEY AND YOU ARE LOSING ME MONEY!"
+2. "I HAVE MY FILOFAX OPEN AND MY BLOCK IS BOOKED!"
+
+#### Walkout
+
+1. "I'M TAKING THIS TO THE BOARD!"
+2. "I'M GOING TO CALL CHANNEL 7 ABOUT THIS!"
+
+#### Wrong
+
+1. "YOUR NAME, YOUR BOSS'S NAME, AND HIS BOSS'S NAME. NOW!"
+2. "WHAT FRESH HELL IS THIS?!"
+
+### c80newromantic
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "BLOODY NORA!"
+
+#### Late
+
+1. "I NO LONGER BELIEVE IN A BENEVOLENT GOD!"
+
+#### Wait
+
+1. "MIRROR, MIRROR, ON THE WALL - WHERE IS MY TACO, AFTER ALL?!"
+
+#### Wrong
+
+1. "YOU FOPDOODLE!"
+2. "BOB'S YOUR UNCLE? WELL YOUR UNCLE IS RUBBISH, SUNSHINE!"
+
+### c80jock
+
+
+
+#### Wait
+
+1. "DID I STUTTER, SKIPPY?!"
+2. "I'M MISSING TIPOFF, YOU FUMBLING LINEBACKER!"
+3. "DOUBLE TIME! TRIPLE TIME! ANY TIME BUT THIS TIME!"
+4. "MY CARB-LOADING IS RUINED!"
+
+#### Walkout
+
+1. "AND THAT, SPORTS FANS, IS HOW YOU LOSE A CUSTOMER!"
+
+#### Wrong
+
+1. "VINCE LOMBARDI WOULD BENCH YA FOR THIS!"
+2. "ARE YOU BIDDING FOR THE TITLE OF WORST TACO SHOP?!"
+
+### c80actionhero
+
+
+
+#### Arrive
+
+1. "THERE'S A NEW SHERIFF IN TOWN, AND HIS NAME IS STARVIN' MARVIN!"
+
+#### Wait
+
+1. "THERE'S GONNA BE A RECKONING IN THIS HERE CANTINA!"
+2. "BRO, MY PUMP IS EVAPORATING!"
+
+#### Queue
+
+1. "PAUSE. PAUSE. WHAT IS MY MOTIVATION FOR STAYING HERE?!"
+
+#### Walkout
+
+1. "TONIGHT, I DINE IN HELL... BECAUSE I'M CLEARLY NOT EATING HERE!"
+2. "I'LL BE BACK. AND I'LL BE HUNGRY. AND I'LL BE ANGRY."
+
+### c80girlrocker
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "YOU MISERABLE LITTLE SNORF-BUCKET!"
+
+#### Wait
+
+1. "MY HAIRSPRAY IS WILTING AND SO IS MY PATIENCE!"
+
+#### Walkout
+
+1. "I'LL GET YOU, MY PRETTY - AND YOUR LITTLE TACO TOO!"
+
+#### Wrong
+
+1. "GET OUTTA HERE WITH THIS - GET OUT!"
+2. "*GASPS* THE SALSA... WAS MEANT FOR ME..."
+
+### c80computernerd
+
+
+
+#### Wait
+
+1. "I COULD BUILD A ROBOT THAT MAKES TACOS FASTER THAN YOU!"
+
+#### Queue
+
+1. "THE CONTINENTS HAVE SHIFTED SINCE I ORDERED!"
+
+#### Walkout
+
+1. "I WILL BE NOTING THIS IN MY NEWSLETTER."
+2. "I'M ROLLING FOR INITIATIVE ON MY WALKOUT!"
+
+#### Wrong
+
+1. "YOU ABSOLUTE SCHMENDRICK!"
+2. "THIS IS HIGHLY ILLOGICAL!"
+
+### c80breakfastclubkid
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "UGH, OF COURSE. THE UNIVERSE HATES ME."
+
+#### Wait
+
+1. "EAT MY SHORTS, YOU TAPE-DECK REJECT!"
+2. "BY THE GODS OF FAERUN, I SHALL BE FED!"
+3. "EVEN THE UNDEAD HAVE SCHEDULES!"
+
+#### Walkout
+
+1. "I'M PUTTING THIS IN MY POETRY JOURNAL. IN BLACK INK."
+
+### c80dj
+
+
+
+#### Late
+
+1. "YOU FAJITA-FOOTED FRAUD!"
+
+#### Wait
+
+1. "PLAY-ACTION TACO FAKE! HE NEVER EVEN STARTED IT!"
+
+#### Walkout
+
+1. "I'M TELLING ALL MY LISTENERS ABOUT THIS!"
+
+#### Wrong
+
+1. "WHAT IS THIS, AMATEUR HOUR?!"
+2. "OH! OH NO! HE BOBBLES THE TORTILLA! IT'S LOOSE! IT'S LOOSE!"
+
+### c80preppyguy
+
+
+
+#### Late
+
+1. "WHAT'S THE ROI ON THIS WAIT TIME, PAL?"
+
+#### Arrive
+
+1. "I HAVE A TEE TIME!"
+
+#### Wait
+
+1. "OF ALL THE - I JUST - UNBELIEVABLE!"
+2. "MY PLEDGES COULD MAKE A TACO FASTER!"
+
+#### Served
+
+1. "THE TERROIR HERE IS OFF, I CAN SENSE IT."
+
+#### Wrong
+
+1. "I'LL HAVE YOU KNOW MY GRANDDADDY INVENTED THE TACO!"
+
+### c80heavymetaldude
+
+
+
+#### Late
+
+1. "EVEN THE DEVIL WOULD HAVE MY TACO BY NOW!"
+2. "I DEMAND TRIAL BY COMBAT FOR MY TACO!"
+
+#### Wait
+
+1. "THIS TOWN AIN'T BIG ENOUGH FOR SLOW TACOS!"
+
+#### Walkout
+
+1. "I'LL MAKE YOU DANCE THE HEMPEN JIG, YOU SALSA-SOAKED SCURVY DOG!"
+2. "OH! IT'S ME, BROTHER! IT'S ME, THE GUY WHO IS LEAVING!"
+
+### c80businessman
+
+
+
+#### Late
+
+1. "I HAVE THIRTY MINUTES! I HAD THIRTY MINUTES!"
+2. "MY POWER LUNCH IS TURNING INTO A POWER DINNER!"
+
+#### Arrive
+
+1. "I'M A BUSY MAN, UNDERSTAND?"
+
+#### Queue
+
+1. "WHAT'S YOUR TACOS-PER-MINUTE QUOTA?!"
+2. "EVERYTHING'S BIGGER IN TEXAS - INCLUDING THIS WAIT!"
+
+#### Walkout
+
+1. "I'LL CALL CORPORATE SO HARD THEIR FAX MACHINE EXPLODES!"
+2. "I'M SHORTING THIS TACO SHOP!"
+
+### c80punkrocker
+
+
+
+#### Wait
+
+1. "THE MAN IS KEEPING ME FROM MY TACO!"
+2. "*INCOHERENT SCREAMING*"
+
+#### Walkout
+
+1. "UP YOURS, BUTT MUNCH!"
+2. "I HAVE DRUNK FROM ROYALTY. I WILL NOT BE IGNORED."
+3. "I HATE YOU AND I HATE THIS PLACE AND I HATE EVERYTHING!"
+
+#### Wrong
+
+1. "YOU ABSOLUTE MUPPET! A RIGHT BERK, YOU ARE!"
+
+### c80skibum
+
+
+
+#### Late
+
+1. "OH, BEAUTY. COLD TACOS. JUST BEAUTY, YOU GUYS."
+
+#### Wait
+
+1. "I'VE SEEN GLACIERS SHRED FASTER THAN THIS!"
+2. "JUST FLOW WITH IT, DUDE - BUT FLOW FASTER!"
+3. "ARE YOU LIVING YOUR DREAM, TACO MAKER?! ARE YOU?!"
+4. "OK FINE, FORGET THE LETTUCE. JUST GIVE IT TO ME."
+
+### c80valleyguy
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "GET A LIFE, TACO FUMBLER!"
+
+#### Late
+
+1. "THIS IS BOGUS TO THE MAX!"
+
+#### Wait
+
+1. "NOT RAGEFUL, JUST CONCERNED... AND ALSO RAGEFUL!"
+
+#### Walkout
+
+1. "I CAME HERE IN PEACE. I LEAVE IN PIECES OF DISAPPOINTMENT."
+
+#### Wrong
+
+1. "BIG GUACAMOLE HAS ITS CLAWS IN THIS PLACE!"
+
+### c80arcadekid2
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "EAT IT, GRAVY DRAWERS!"
+
+#### Wait
+
+1. "MINE TACO! WHERE IS MINE TACO?!"
+2. "CAPTAIN, SENSORS DETECT ZERO PROGRESS ON MY TACO!"
+3. "BIG MONEY! BIG MONEY! NO WHAMMIES! ...JUST A SLOW TACO."
+
+#### Queue
+
+1. "BY MY SWORD, I SHALL LAY SIEGE TO THIS KITCHEN!"
+
+#### Walkout
+
+1. "I HOPE YOU STEP ON A LEGO EVERY DAY FOR A YEAR!"
+
+### c80newsanchor
+
+
+
+#### Late
+
+1. "MY VIEWERS DESERVE TO KNOW!"
+2. "AS A FOOD JOURNALIST... SORT OF... I'M DEEPLY DISAPPOINTED."
+3. "BEAR MARKET ON TACOS TODAY, APPARENTLY!"
+4. "WHAT A COLOSSAL COLLAPSE FROM THIS TACO SHOP!"
+
+#### Queue
+
+1. "I HAVE BEEN STANDING HERE SINCE THE LAST PRESIDENT!"
+
+#### Walkout
+
+1. "THIS IS GOING IN THE PAPER! AND ON THE LOCAL NEWS!"
+
+### c80miamigirl
+
+
+
+#### Wait
+
+1. "YOU'VE BURIED MY PATIENCE AT THE BOTTOM OF THE SEA!"
+2. "I HAVE A PHOTO SHOOT IN AN HOUR AND YOU'RE KILLING ME!"
+3. "I HAVE HALF A GLASS OF PINOT AND A WHOLE LOT OF RAGE!"
+4. "I CAN NOT GET THE DRY CLEANING! I'M A HOSTAGE OF SLOW TACO PEOPLE!"
+
+#### Wrong
+
+1. "YOU HALF-COOKED BURRITO OF A MAN!"
+2. "BLESS YOUR SWEET LITTLE IGNORANT HEART!"
+
+### c80jock2
+
+
+
+#### Arrive
+
+1. "I'M LATE FOR THE TAILGATE, BUDDY!"
+
+#### Wait
+
+1. "I'LL FIGHT YOUR DAD! I'LL FIGHT YOUR DAD! I'LL FIGHT ANY DAD!"
+2. "ICE THE KICKER! ICE THE DANG TACO MAKER!"
+3. "GET THE LEAD OUT, MAGGOT!"
+4. "I COULD DEADLIFT THIS WHOLE BUILDING IN LESS TIME!"
+
+#### Walkout
+
+1. "TAKE A LONG WALK OFF A SHORT PIER, YOU ABSOLUTE MELVIN!"
+
+### c80preppygirl
+
+
+
+#### Late
+
+1. "WHERE I COME FROM, WE SERVE TACOS WITH MANNERS!"
+
+#### Wait
+
+1. "THE CHURCH IS FILLED WITH MY GUESTS!"
+
+#### Walkout
+
+1. "I'M TELLING THE PASTOR!"
+2. "I'M GOING TO MY BIG SISTER ABOUT THIS!"
+
+#### Wrong
+
+1. "YOU GUACAMOLE-BRAINED NINCOMPOOP!"
+2. "THIS KITCHEN NEEDS A MANAGEMENT CONSULTANT. IMMEDIATELY."
+
+### c80gamer
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "YOU COMPLETE AND TOTAL FLARGUS!"
+
+#### Wait
+
+1. "JUST YOU WAIT, TACO BOY. JUST. YOU. WAIT."
+
+#### Queue
+
+1. "OH GEEZ, OH JEEZ, THIS IS UNCOMFORTABLE, HUH?"
+
+#### Walkout
+
+1. "BEAM ME UP, SCOTTY - I'M LEAVING!"
+
+#### Wrong
+
+1. "I CAST MAGIC MISSILE ON THE TACO COOK!"
+
+### c80metalhead2
+
+
+
+#### Arrive
+
+1. "MY UNCLE'S FUNERAL STARTS IN TEN MINUTES! HE LOVED TACOS!"
+
+#### Wait
+
+1. "I'LL GO TO CHURCH EVERY SUNDAY IF MY TACO ARRIVES BY THREE!"
+
+#### Queue
+
+1. "I STARTED THIS ORDER WITH A FULL HEAD OF HAIR!"
+
+#### Walkout
+
+1. "I'LL DEMO THIS PLACE WITH A SLEDGEHAMMER, SEE IF I WON'T!"
+
+#### Wrong
+
+1. "YOU'RE A REAL PISSER, YOU KNOW THAT?"
+
+### c80businessguy
+
+
+
+#### Wait
+
+1. "I'M GONNA DOWNSIZE THIS TACO SHOP!"
+2. "I GOT PEOPLE WAITING ON ME, YOU UNDERSTAND?"
+
+#### Queue
+
+1. "WE DIDN'T HAVE 'FOOD COURTS' - WE HAD DIGNITY!"
+2. "THIS IS WORSE THAN THE TIME I HAD TO WAIT AT THE DMV IN '83!"
+
+#### Walkout
+
+1. "I'LL HAVE YOUR JOB BY THE END OF THE DAY!"
+2. "I'M TAKING MY CAPITAL ELSEWHERE!"
+3. "SUCCESSFUL PEOPLE DON'T WAIT FOR TACOS! THEY MAKE THEIR OWN!"
+
+### c80valleyguy2
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "BRO... BRO... THAT'S LIKE, THE OPPOSITE OF STOKED, BRO."
+
+#### Late
+
+1. "YOU ABSOLUTE SHMORGASBORD OF DISAPPOINTMENT!"
+
+#### Wait
+
+1. "I'LL NAME MY FIRSTBORN AFTER YOU! BOY OR GIRL, I DON'T CARE!"
+
+#### Queue
+
+1. "LOOK, KIDS! IT'S HUNGER! WAVE HELLO TO HUNGER!"
+
+#### Wrong
+
+1. "FORSOOTH, THIS IS INTOLERABLE!"
+2. "YOU'VE ROLLED A NATURAL ONE ON TACO PREP!"
+
+### c80punk
+
+
+
+#### Walkout
+
+1. "I'M PUTTING THIS PLACE ON MY LIST!"
+2. "I'M GETTING A BAGEL ACROSS THE STREET, YOU BUM!"
+
+#### Wrong
+
+1. "THE TACO INDUSTRIAL COMPLEX STRIKES AGAIN!"
+2. "SOMETHING STUNK IN THIS JOINT, AND IT WASN'T THE SALSA."
+3. "THIS IS BUSH-LEAGUE!"
+
+### c80yuppie
+
+
+
+#### Late
+
+1. "YOUR CUSTOMER SATISFACTION IS IN THE TOILET, PAL!"
+2. "I BILL TWO HUNDRED AN HOUR, TACO BOY! DO THE MATH!"
+
+#### Arrive
+
+1. "IS THIS TACO GOURMET? I NEED IT GOURMET."
+
+#### Wait
+
+1. "I COULD'VE MADE TEN TRADES IN THE TIME YOU DIDN'T MAKE THIS TACO!"
+2. "THIS IS NOT WHAT HIGH PERFORMERS DO!"
+
+#### Walkout
+
+1. "YOU'VE BEEN GONGED! GOODBYE!"
+2. "I HAVE VERY SPECIAL SKILLS... AND ONE OF THEM IS COMPLAINING!"
+
+### c80biker
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "I OUGHTA DRAG YA BEHIND MY HOG!"
+
+#### Late
+
+1. "YOU'RE A REAL PIECE OF WORK, YOU KNOW THAT, BARNEY?"
+2. "MY DOG DIED, MY TRUCK BROKE DOWN, AND NOW THIS!"
+
+#### Walkout
+
+1. "YOU HAVEN'T SEEN THE LAST OF ME!"
+
+#### Wrong
+
+1. "THIS HERE TACO SHOP'S GOT A CRACKED FOUNDATION!"
+
+### c80newwaveguy2
+
+
+
+#### Wait
+
+1. "WHAT PLANET ARE YOU LIVING ON, MR. ROBOTO?"
+2. "MY DARK SOUL GROWS DARKER BY THE MINUTE."
+
+#### Walkout
+
+1. "SORRY, BUT I THINK I MIGHT HAVE TO LEAVE, SORRY, I'M SORRY."
+2. "I CAME IN HUNGRY. I LEFT EMPTY. STORY OF EVERY TACO SHOP IN TOWN."
+3. "I WILL OUTLIVE THIS RESTAURANT, AND ITS SUNS!"
+
+#### Wrong
+
+1. "THE MISE EN PLACE HERE IS IN ABSOLUTE SHAMBLES!"
+
+### c80aerobicsgirl
+
+
+
+#### Arrive
+
+1. "MY BOOK CLUB STARTS IN 20 AND SO HELP ME GOD!"
+
+#### Wait
+
+1. "I GOTTA GET BACK, I'M DOUBLE-PARKED OUT THERE!"
+2. "THIS IS BAD FOR MY TARGET HEART RATE!"
+3. "THE WORKOUT OF THE DAY IS WAITING ON DISAPPOINTMENT!"
+4. "TUCKER, LEAVE THE SALSA! TUCKER! SIR - MY TACO!"
+
+#### Walkout
+
+1. "I'M GONNA TELL EVERYONE AT JAZZERCISE ABOUT THIS!"
+
+#### Wrong
+
+1. "DROP AND GIVE ME TWENTY... TACOS!"
+
+### c80skateboarder
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "CHOKE ON A JOLT COLA, YOU LOSER!"
+
+#### Queue
+
+1. "I COULD KICKFLIP TO TIJUANA FASTER THAN THIS!"
+2. "I'M HOLDING MY BREATH UNTIL I GET MY TACO!"
+
+#### Walkout
+
+1. "I CAME FOR THE GNAR. I'M LEAVING WITH NADA."
+
+#### Wrong
+
+1. "EVEN MY ARCH-NEMESIS MAKES BETTER TACOS THAN THIS!"
+
+### c80videostoreclerk2
+
+
+
+#### Queue
+
+1. "THE DINOSAURS WAITED LESS FOR THE METEOR!"
+
+#### Walkout
+
+1. "I'M REPORTING YOU TO THE TACO COUNCIL!"
+
+#### Wrong
+
+1. "I... I JUST DON'T... WELL, NO, I'M NOT GONNA SAY IT..."
+2. "WHAT IS YOUR MAJOR MALFUNCTION, TACO MAKER?!"
+3. "BUT! BUT! BUT IT GETS WORSE!"
+
+### c80girlwithlegwarmers
+
+
+
+#### Late
+
+1. "YOU GUYS ARE LIKE, THE WORST? LIKE, LIT-ER-AL-LY?"
+
+#### Wait
+
+1. "HI KIDS! TODAY WE LEARN PATIENCE! BECAUSE I'M OUT OF IT!"
+
+#### Walkout
+
+1. "I HOPE YOUR SHOELACES ARE PERMANENTLY UNTIED!"
+2. "I SHALL WRITE A ONE-WOMAN-SHOW ABOUT THIS EXPERIENCE!"
+
+#### Wrong
+
+1. "GAG ME WITH A SPOON."
+
+### c80miamiviceguy
+
+
+
+#### Wait
+
+1. "DO YOU SEE THIS CELLULAR PHONE?! I AM ON A CALL!"
+2. "IT WAS A SLOW NIGHT AT THE TACO JOINT... TOO SLOW."
+3. "I'M THE LAW AROUND THESE PARTS - AND THE LAW SAYS MAKE MY TACO!"
+4. "HONEY, I'M STILL AT THE TACO PLACE. WHAT DO YOU MEAN 'AGAIN'?!"
+
+#### Walkout
+
+1. "I'LL SEE YOU IN COURT, YOU SOUR CREAM SCOUNDREL!"
+2. "MY BUG-OUT BAG IS IN THE CAR, RUNNING!"
+
+#### Wrong
+
+1. "YOU'VE GOTTA BE PULLING MY LEG, PAL!"
+
+### c80doctor
+
+
+
+#### Late
+
+1. "I BOUGHT A HOUSE FOR A NICKEL AND WAITED LESS THAN THIS!"
+2. "SLOWER THAN A THREE-LEGGED MULE IN MOLASSES!"
+3. "MY PORTFOLIO IS HEMORRHAGING AND YOU MADE IT WORSE!"
+
+#### Wait
+
+1. "MEDICALLY, I'LL BE DEAD BEFORE THIS TACO ARRIVES!"
+2. "TWENTY MINUTES. IN MY LINE OF WORK, THAT'S A LIFETIME."
+
+#### Queue
+
+1. "I'VE SEEN PRIVATES MOVE FASTER WITH PNEUMONIA!"
+
+### c80rockerchick
+
+
+
+#### Wait
+
+1. "SUNSET IS IN TWO HOURS AND I REFUSE TO STILL BE HERE!"
+
+#### Queue
+
+1. "I KNEW THE END TIMES WERE COMING AND THEY LOOK LIKE THIS!"
+
+#### Walkout
+
+1. "I'M GONNA POLTERGEIST THIS PLACE!"
+2. "I HEX YOU! I HEX THIS ESTABLISHMENT!"
+3. "YOUR INSOLENCE SHALL BE PUNISHED, WITH THUNDER AND LIGHTNING!"
+
+#### Wrong
+
+1. "I HEX THEE WITH WARM SOUR CREAM!"
+
+### c90club
+
+
+
+#### Wait
+
+1. "MWAHAHAHA! ...WAIT, WHERE'S MY TACO?!"
+2. "DROP THE BASS! DROP THE TACO! DROP SOMETHING!"
+
+#### Walkout
+
+1. "I CAME FOR TACOS. I LEAVE WITH TRAUMA."
+2. "I'M TAKING YOU OFF THE GUEST LIST!"
+3. "WE COME IN PEACE. WE LEAVE IN PROTEST."
+
+### c90jock
+
+
+
+#### Late
+
+1. "YOU COULDN'T MOVE THE CHAINS IF YOUR LIFE DEPENDED ON IT!"
+
+#### Wait
+
+1. "YOU'RE COSTING ME MY FANTASY POINTS, BRO!"
+2. "I'M MISSING THE ROYALS GAME OVER HERE!"
+3. "I AM ENTERING MY CATABOLIC STATE!"
+4. "HAIL MARY, FULL OF GRACE, WHERE IS MY TACO FROM THIS PLACE?"
+
+#### Wrong
+
+1. "ARE YOU TRYING TO MAKE ME CRY, SOLDIER?!"
+
+### c90raider
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "YOU GORGON-FACED BLAGGART!"
+
+#### Wait
+
+1. "YOU'LL BE WALKING THE PLANK FOR THIS, TACO WENCH!"
+
+#### Walkout
+
+1. "I'LL MAKE MY OWN TACOS! WITH BLACKJACK! AND POKER!"
+2. "I SHALL REGALE THE BARDS WITH TALES OF THIS SLOW SERVICE!"
+3. "MAY YOUR GUACAMOLE ALWAYS BROWN PREMATURELY!"
+
+### c90rocker
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "I KNEW IT. I KNEW HAPPINESS WAS AN ILLUSION."
+
+#### Late
+
+1. "THIS. IS. NPR. ...JUST KIDDING. THIS IS BAD SERVICE."
+
+#### Walkout
+
+1. "I KNEW THIS PLACE WAS OVER WHEN THEY GOT AN ESPRESSO MACHINE!"
+2. "MAY YOUR ONIONS MAKE YOU WEEP, ETERNALLY!"
+
+#### Wrong
+
+1. "YOU ABSOLUTE TORTILLA GOBLIN!"
+
+### c90soap
+
+
+
+#### Late
+
+1. "BITE ME, YOU SLACKER!"
+2. "THIS IS A TRAGEDY IN THREE ACTS!"
+
+#### Wait
+
+1. "I AM LITERALLY SWOONING OVER HERE!"
+2. "THIS IS RUINING MY WHOLE LOOK!"
+
+#### Wrong
+
+1. "FIE! FIE I SAY!"
+
+### c90hiphopkid
+
+
+
+#### Late
+
+1. "MY GRANDMA MAKES TACOS FASTER AND SHE'S NINETY!"
+
+#### Wait
+
+1. "WHERE MY TACOS AT, WHERE MY TACOS AT, WHERE MY TACOS AT?!"
+2. "I WANT MY TACO NOW NOW NOW NOW NOW!"
+
+#### Walkout
+
+1. "IF I COULD GIVE NEGATIVE STARS, I WOULD GIVE NEGATIVE TWELVE STARS."
+
+#### Wrong
+
+1. "GET OUT OF HERE WITH THIS TACO NONSENSE!"
+
+### c90girlpowerfan
+
+
+
+#### Arrive
+
+1. "MY CHART WARNED ME ABOUT TODAY!"
+
+#### Wait
+
+1. "I REALLY HATE TO BOTHER YOU, BUT, SORRY, MY TACO?"
+
+#### Walkout
+
+1. "I'M TELLING MY ENTIRE HOMEROOM."
+2. "THIS IS GOING IN MY DIARY!"
+
+#### Wrong
+
+1. "CAN YOU SPELL DISAPPOINTMENT? BECAUSE I CAN!"
+
+### c90nintendokid
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "YOU SHMORF!"
+
+#### Late
+
+1. "I HAVE +5 TO PATIENCE AND I'VE BURNED THROUGH ALL OF IT!"
+
+#### Walkout
+
+1. "I'LL SEE YOU AT HIGH NOON, TACO MAKER!"
+
+#### Wrong
+
+1. "CRAM IT WITH WALNUTS, UGLY!"
+2. "HARK! WHAT TREACHERY IS THIS?!"
+
+### c90rbsinger
+
+
+
+#### Late
+
+1. "YOU'RE BREAKING MY HEART. YOU'RE BREAKING MY HEART OVER HERE."
+
+#### Wait
+
+1. "I SEE... A LIGHT... IS THAT... GUACAMOLE?"
+2. "CANCEL THE 2 O'CLOCK. CANCEL THE 3. I'M STILL AT THE TACO PLACE."
+
+#### Walkout
+
+1. "ENCORE? MORE LIKE ENCORE-NOT-COMING-BACK!"
+
+#### Wrong
+
+1. "YOU WET HABANERO OF A HUMAN BEING!"
+
+### c90grungechick
+
+
+
+#### Wait
+
+1. "I'D GIVE MY LEFT DOC MARTEN FOR A TACO RIGHT NOW!"
+2. "I WILL NOT REST IN PEACE UNTIL MY TACO IS MADE!"
+
+#### Walkout
+
+1. "QUOTH THE CUSTOMER: NEVERMORE!"
+
+#### Served
+
+1. "YOUR TORTILLAS ARE STORE-BOUGHT AND YOUR SOUL IS EMPTY!"
+
+#### Wrong
+
+1. "DECONSTRUCT THIS, YOU ABSOLUTE COWARD!"
+
+### c90boybandheartthrob
+
+
+
+#### Late
+
+1. "HONKING RIDICULOUS, THIS IS!"
+
+#### Wait
+
+1. "DO YOU KNOW WHO I AM?!"
+2. "I NEVER... GOT TO... TRY... THE CHURROS..."
+3. "I'LL TIP YOU GENEROUSLY! JUST MAKE THE TACO!"
+
+#### Queue
+
+1. "THIS WILL ABSOLUTELY DESTROY MY TOUR SCHEDULE!"
+
+#### Walkout
+
+1. "THIS PLACE IS OVER. I'M CANCELLING MY ORDER."
+
+### c90miamiclubkid
+
+
+
+#### Wait
+
+1. "SUCK AN EGG, YOU FLANNEL-WEARING FAILURE!"
+
+#### Queue
+
+1. "I CAME HERE TO RAVE, NOT WAIT!"
+
+#### Walkout
+
+1. "FORGET ABOUT IT!"
+2. "THIS STAYS BETWEEN US... BUT YOU'RE DEAD TO ME."
+3. "WHERE'S MY CAR PHONE?! I'M CALLING SOMEONE!"
+
+### c90skater
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "BRO, THIS IS GNARLY, AND NOT IN THE GOOD WAY!"
+
+#### Late
+
+1. "YOU'RE A REAL PRO... NOT! PLUS YOU'RE SLOW."
+2. "THIS IS WICKED LAME, KID!"
+
+#### Wait
+
+1. "BRO. BRO. BROOOOO!"
+2. "THIS IS SO NOT CHILL, BRO!"
+
+### c90alternativegirl
+
+
+
+#### Late
+
+1. "I AM MORE CORPOREAL THAN YOUR COMMITMENT TO FAST SERVICE!"
+
+#### Wait
+
+1. "THIS IS SO LAME."
+2. "I'M COMPOSING A STRONGLY WORDED MIXTAPE ABOUT THIS."
+
+#### Walkout
+
+1. "WHATEVER. THIS WHOLE PLACE IS DEAD TO ME ANYWAY."
+
+#### Wrong
+
+1. "YOU ENCHILADA-EARED ENABLER!"
+2. "ARE THESE HEIRLOOM TORTILLAS? I CANNOT EAT NON-HEIRLOOM TORTILLAS."
+
+### c90rapper
+
+
+
+#### Wait
+
+1. "YOU THINK THIS IS FUNNY? YOU THINK I'M CLOWNING HERE?"
+2. "BABE. BABE. THEY HAVEN'T EVEN STARTED YET. BABE."
+
+#### Walkout
+
+1. "MAY YOUR CHEESE NEVER MELT EVENLY!"
+2. "SERVICE: ZERO STARS. FOOD: NEVER ARRIVED. ATMOSPHERE: APOCALYPTIC."
+
+#### Wrong
+
+1. "YOU CARNITAS-CRANIUMED CLOWN!"
+
+### c90generationxguy
+
+
+
+#### Late
+
+1. "YOU'RE THE CRUNCH AT THE BOTTOM OF THE TACO BAG!"
+2. "I HAVE A MASTER'S DEGREE, YOU KNOW!"
+
+#### Wait
+
+1. "YOU PEOPLE AND YOUR CELL PHONES!"
+2. "THIS IS REMINDING ME OF AN ESSAY I READ IN THE ATLANTIC."
+3. "*LIES ON THE FLOOR AND KICKS*"
+
+#### Queue
+
+1. "I KNEW THIS PLACE BEFORE IT WAS COOL. NOW IT'S JUST SLOW."
+
+### c90itguy
+
+
+
+#### Wait
+
+1. "I AM LITERALLY GOING TO LOSE MY MIND, JANET!"
+2. "RESISTANCE IS FUTILE, BUT APPARENTLY SO IS YOUR KITCHEN!"
+
+#### Queue
+
+1. "I HAVE FORGOTTEN THE FACES OF MY CHILDREN!"
+
+#### Walkout
+
+1. "I'M FAXING THIS TO HEAD OFFICE WITH A 7-PAGE MEMO!"
+2. "WHEN THE GRID GOES DOWN, I'M GONNA LAUGH AT YOU ALL!"
+3. "THIS IS A GROWTH OPPORTUNITY... FOR ME TO LEAVE!"
+
+### c90ravergirl
+
+
+
+#### Wait
+
+1. "MY GLOWSTICKS ARE DYING AND SO IS MY PATIENCE!"
+
+#### Queue
+
+1. "MY PAGER DIED, MY DISCMAN DIED, AND MY WILL TO LIVE IS NEXT!"
+
+#### Walkout
+
+1. "I'M SENDING YOU NEGATIVE ENERGY FOR THIS!"
+2. "PLUR IS DEAD, AND THIS TACO SHOP KILLED IT!"
+3. "DOT DOT DOT... I... HAD... AN... EXPERIENCE..."
+
+### c90technerd
+
+
+
+#### Wait
+
+1. "WHEN SOCIETY COLLAPSES, YOU'LL WISH YOU'D MADE MY TACO!"
+
+#### Queue
+
+1. "I'VE SEEN DUKE NUKEM WITH BETTER CUSTOMER SERVICE!"
+2. "THIS IS NOT SCALABLE!"
+
+#### Wrong
+
+1. "YOU BLITHERING MUMPSIMUS!"
+2. "DUNGEON MASTER, I ATTACK THE DARKNESS! AND THIS TACO SHOP!"
+
+### c90preppycollegekid
+
+
+
+#### Wait
+
+1. "I OPTIMIZE MY TIME AND YOU ARE STEALING IT!"
+
+#### Queue
+
+1. "HAVE YOU HEARD OF LEAN PRINCIPLES?"
+
+#### Walkout
+
+1. "ET TU, TACO SHOP?!"
+2. "EXEUNT, PURSUED BY HUNGER!"
+3. "I'M RUSHING OUT OF HERE, TACO BRO!"
+
+#### Wrong
+
+1. "METHINKS THOU ART THE SLOWEST COOK IN ALL THE LAND!"
+
+### c90cluelessblonde
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "EW. EW. LIKE, EW."
+
+#### Wait
+
+1. "THIS IS DISCRIMINATION AGAINST PUNCTUAL PEOPLE!"
+2. "MOM, I CAN'T TALK, I'M HAVING A CRISIS. NO, A TACO CRISIS!"
+
+#### Walkout
+
+1. "AS IF!"
+2. "YOU'VE MADE A POWERFUL ENEMY TODAY, TACO PEASANT!"
+
+#### Wrong
+
+1. "THIS IS, LIKE, TOTALLY... INCOMPETENT."
+
+### c90rbsinger2
+
+
+
+#### Wait
+
+1. "THIS IS STRAIGHT-UP DISRESPECT!"
+2. "THIS IS OUTRAGEOUS! OUTRAGEOUS I TELL YA!"
+3. "OH GOD ABOVE, HEAR THY HUNGRY SERVANT!"
+
+#### Walkout
+
+1. "SORRY, I REALLY AM SORRY, BUT I'M POLITELY GOING TO LOSE IT NOW."
+2. "REMEMBER ME... FONDLY... AT TACO TUESDAYS..."
+
+### c90dopeybuddy
+
+
+
+#### Late
+
+1. "I KNEW IT. THEY DON'T WANT US TO HAVE FAST TACOS!"
+
+#### Wait
+
+1. "DUDE IS NOT COOKING. DUDE IS LITERALLY NOT COOKING."
+2. "I WANT THE TACOOOOOO!"
+
+#### Queue
+
+1. "I'VE SEEN CONCRETE SET FASTER THAN THIS!"
+
+#### Wrong
+
+1. "YOU'VE GOT TO BE KIDDING ME, DUDE!"
+
+### c90cyberpunkhacker
+
+
+
+#### Wait
+
+1. "IS THIS REAL? AM I REAL? ARE TACOS REAL?!"
+2. "I'M SETTING PHASERS TO STARVING!"
+
+#### Queue
+
+1. "WAKE UP, SHEEPLE! THIS IS TAKING TOO LONG!"
+
+#### Walkout
+
+1. "BY THE OLD GODS AND THE NEW, I CURSE THIS KITCHEN!"
+
+#### Wrong
+
+1. "YOU FRABBING SNARGLEPUSS!"
+2. "THIS IS STRAIGHT-UP CHAOTIC EVIL, DUDE!"
+3. "ON MY PLANET, THIS WOULD BE A WAR CRIME."
+
+### c90hiphophead
+
+
+
+#### Arrive
+
+1. "I HAVE A JOB INTERVIEW! I NEED THIS TACO FOR COURAGE!"
+
+#### Queue
+
+1. "NAME YOUR PRICE! NAME IT!"
+2. "FINE - I'LL TAKE SOMEONE ELSE'S TACO. I'LL PAY FOR THEIRS!"
+
+#### Served
+
+1. "THIS IS WACK. THIS IS SO WACK."
+
+#### Wrong
+
+1. "THIS IS A CARDINAL SIN AGAINST TACOS, DUDE!"
+
+### c90riotgrrrl
+
+
+
+#### Wait
+
+1. "YOU DON'T EVEN HAVE TO FOLD IT. I'LL FOLD IT MYSELF!"
+
+#### Walkout
+
+1. "I'LL GET YOU, AND YOUR LITTLE TONGS TOO!"
+2. "I WILL NOT BE SILENCED ABOUT THIS TACO!"
+3. "MAY YOUR SALSA SEPARATE IN THE FRIDGE!"
+
+#### Wrong
+
+1. "YOU UNWASHED CILANTRO STEM!"
+
+### c90sk8terchick
+
+
+
+#### Late
+
+1. "YOU QUESO-BRAINED QUITTER!"
+
+#### Wait
+
+1. "SKETCHY, DUDE. HELLA SKETCHY."
+2. "CAN YOU SMELL WHAT THE TACO IS COOKING?! NO. BECAUSE IT ISN'T."
+3. "I WILL LITERALLY PAY TRIPLE IF YOU JUST HAND ME A TORTILLA NOW."
+
+#### Wrong
+
+1. "LOSER SHOP. LOSER COOK. LOSER VIBES."
+
+### c90raver
+
+
+
+#### Wait
+
+1. "THIS KITCHEN HAS BAD VIBES, I CAN FEEL IT!"
+2. "MY BEAT DROP WAS SUPPOSED TO BE 20 MINUTES AGO!"
+3. "I AM VISUALIZING MY TACO. I AM VISUALIZING IT."
+4. "I HAVE TRAVELED BILLIONS OF LIGHT YEARS FOR FASTER SERVICE!"
+
+#### Queue
+
+1. "STARS HAVE BEEN BORN AND DIED!"
+
+#### Wrong
+
+1. "COSMICALLY UNCOOL, MY DUDE. COSMICALLY."
+
+### c90grungeguy
+
+
+
+#### Late
+
+1. "THE CLOCK TICKED. AND SO DID MY PATIENCE."
+
+#### Wait
+
+1. "COULD YOU BE ANY SLOWER?"
+2. "THE VOID STARES BACK, AND IT'S HOLDING A SPATULA!"
+3. "PAIN IS MY ONLY TRUE COMPANION. NOW ALSO: HUNGER."
+
+#### Queue
+
+1. "I DIED WAITING FOR A TACO. NOW I HAUNT THE LINE FOREVER."
+
+### c90gangstarapper
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "NO NO NO NO NO NO NO!"
+
+#### Wait
+
+1. "I'LL TAKE IT RAW. I'LL TAKE IT BURNED. I DON'T CARE."
+
+#### Queue
+
+1. "I COULD'VE BOXED A KANGAROO IN LESS TIME!"
+
+#### Walkout
+
+1. "ONE STAR. ONE TINY STAR. AND ONLY BECAUSE I CAN'T GIVE ZERO."
+
+#### Wrong
+
+1. "YOU'RE SOFT SHELL PRETENDING TO BE HARD!"
+
+### c90spicegirlfan
+
+
+
+#### Late
+
+1. "I HAD A WHOLE TACO SLUMBER PARTY PLANNED!"
+
+#### Arrive
+
+1. "MY CATS NEED TO BE FED AT FOUR O'CLOCK SHARP!"
+
+#### Wait
+
+1. "THE STARS WERE ALIGNED FOR ME TO GET A TACO AT 12:15. WHERE IS IT?!"
+
+#### Queue
+
+1. "THIS IS THE MOST TENSE MOMENT SINCE OUR TOWN!"
+
+#### Walkout
+
+1. "THIS IS GOING IN MY SLAM BOOK."
+
+### c90backpacker
+
+
+
+#### Late
+
+1. "POMPEII HAPPENED FASTER THAN THIS!"
+
+#### Wait
+
+1. "TERRY GROSS WOULDN'T STAND FOR THIS!"
+2. "I'M JUST HERE TRYING TO FIND PEACE AND A SOFT TACO, MAN."
+
+#### Walkout
+
+1. "I'M CLEANSING THIS PLACE OUT OF MY AURA, RIGHT NOW!"
+
+#### Served
+
+1. "THERE'S CHEMICALS IN THE SALSA, I JUST KNOW IT!"
+
+#### Wrong
+
+1. "YOU WAFFLE-DRAGGING MUNCHBLISTER!"
+
+### c90daria
+
+
+
+#### Late
+
+1. "WHATEVER, MOM."
+
+#### Wait
+
+1. "I'VE HAUNTED THIS PLACE SINCE 1872. SERVICE HAS GOTTEN WORSE."
+
+#### Queue
+
+1. "I NO LONGER REMEMBER WHAT HUNGER FEELS LIKE."
+2. "EVEN THE RAVENS HAVE ABANDONED THIS PLACE."
+
+#### Wrong
+
+1. "THIS IS SO BENEATH ME."
+
+### c90skaterkid
+
+
+
+#### Missed
+
+A rival sees the bag miss.
+
+1. "AY, CARAMBA! AND I MEAN IT THIS TIME!"
+
+#### Late
+
+1. "THIS IS THE WORST DAY OF MY WHOLE ENTIRE LIFE!"
+
+#### Wait
+
+1. "BRO, MY BOARD HAS MORE PURPOSE THAN THIS KITCHEN!"
+
+#### Walkout
+
+1. "GO CHEW ON A HACKY SACK!"
+2. "EAT IT, TACO SHOP. EAT. IT."
+
+#### Wrong
+
+1. "WITH GREAT POWER COMES GREAT TACOS - AND YOU'RE FAILING ME!"
+
+### c90boybandmember
+
+
+
+#### Wait
+
+1. "HARK! DOTH THE KITCHEN SLUMBER?!"
+2. "I AM RENT, I AM EVITA, I AM UNFED!"
+3. "I'M GONNA LAY THE SMACKDOWN ON THIS WHOLE RESTAURANT!"
+
+#### Wrong
+
+1. "YOU'RE DOOGIE HOWSER ON A BAD DAY!"
+2. "TODAY'S WORD IS FURIOUS! CAN YOU SAY FURIOUS?!"
+
+### c90teenmom
+
+
+
+#### Arrive
+
+1. "I HAVE A COUPON AND A COMPLAINT!"
+
+#### Wait
+
+1. "MY MILK HAS EXPIRED IN MY CART!"
+2. "WELL, THIS IS JUST SOMETHING, ISN'T IT?"
+3. "HAILEY, GET DOWN FROM THERE! AND SIR, WHERE IS MY ORDER?!"
+
+#### Queue
+
+1. "I COULD'VE RAISED A CHILD TO TACO-MAKING AGE BY NOW!"
+
+#### Wrong
+
+1. "DON'T MAKE ME COME BACK THERE, MISTER."
+
+### c90videoclerk
+
+
+
+#### Late
+
+1. "YOU MAKE ENCINO MAN LOOK QUICK!"
+2. "ACT NOW AND YOU MIGHT GET YOUR TACO IN THIS LIFETIME!"
+
+#### Wait
+
+1. "I'M ON MY LUNCH BREAK, YA MORON!"
+2. "I AM VENGEANCE. I AM THE NIGHT. I AM... STILL WAITING FOR A TACO."
+
+#### Queue
+
+1. "I'M HERE ALL DAY WAITING FOR THIS MEAL!"

@@ -185,9 +185,9 @@
     /* the line on the dialogue strip, with that face: the Dialog call G.react
        makes, without react's play-only guard. It shows on any screen:
        G.testSay has G update and draw the strip outside a shift. */
-    say(line, faceKey) {
+    say(line, faceKey, name) {
       if (typeof Dialog === 'undefined') return false;
-      const who = typeof DIALOGUE !== 'undefined' && DIALOGUE && DIALOGUE.who ? DIALOGUE.who : 'CUSTOMER';
+      const who = name || (typeof DIALOGUE !== 'undefined' && DIALOGUE && DIALOGUE.who ? DIALOGUE.who : 'CUSTOMER');
       Dialog.say(who, String(line == null ? '' : line), { face: faceKey || null, hood: 1, secs: 4 });
       game().testSay = true;   // G.update/G.render keep the strip alive outside a shift; a shift takes it over
       return true;

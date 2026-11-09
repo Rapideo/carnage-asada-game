@@ -1151,8 +1151,12 @@ console.log('\n— docs —');
       const gx = (edit) => { const f = structuredClone(files); edit(f['dialogue.json'], f); return f; };
       const dold = existsSync(join(DIR, 'dialogue.md')) ? readFileSync(join(DIR, 'dialogue.md'), 'utf8').replace(/\r\n/g, '\n') : null;
       const fresh = DG.render(files, null);
-      ok(DLG_KEYS.every((k, i) => fresh.includes('\n## ' + roman(i + 1) + '. ' + k[0].toUpperCase() + k.slice(1) + '\n')),
-         'dialogue.md renders one "## <roman>. <Key>" section per key of DLG_KEYS, in order');
+      ok(fresh.includes('\n## I. Shared lines\n') && fresh.includes('\n## II. The cast\n') && fresh.includes('\n## III. Customers\n'),
+         'dialogue.md has the three top sections: Shared lines, The cast, Customers');
+      ok(DLG_KEYS.every((k) => fresh.includes('\n### ' + k[0].toUpperCase() + k.slice(1) + '\n')),
+         'dialogue.md renders one "### <Key>" under Shared lines per key of DLG_KEYS');
+      ok(fresh.includes('\n### MARGE\n') && fresh.includes('\n#### Hint\n') && fresh.includes('\n### SGT. PFEIFER\n') && fresh.includes('\n### c70trucker\n'),
+         'the cast is one ### per character with #### moments, and customers one ### per face');
       ok(fresh.includes('1. "ABOUT TIME. SMELLS ALRIGHT THOUGH."') && fresh.includes('1. "CUSTOMER"'), 'lines are a numbered list in JSON form');
       ok(fresh.includes('9. "TIME IS MONEY, TACO BOY!" (1980s on)') && !fresh.includes('2|'), 'a 2| line shows as (1980s on), the prefix gone');
       ok(fresh.includes('"MY PAGER\'S GOING OFF. HURRY!" (1990s on)'), 'a 3| line shows as (1990s on)');
@@ -1162,7 +1166,7 @@ console.log('\n— docs —');
 
       /* prose: the preamble, a note under a section and a wrapped item line all survive */
       const NOTE = '   (owner: keep this one)';
-      const notes = fresh.replace('\n## I. Who\n', '\n## I. Who\n\nMY OWN NOTE ABOUT WHO.\n')
+      const notes = fresh.replace('\n### Who\n', '\n### Who\n\nMY OWN NOTE ABOUT WHO.\n')
         .replace('1. "ABOUT TIME. SMELLS ALRIGHT THOUGH."', '1. "ABOUT TIME. SMELLS ALRIGHT THOUGH."\n' + NOTE);
       ok(notes !== fresh && DG.render(files, notes) === notes, 'prose under a heading and an item\'s wrapped note survive an unchanged render');
       const grown = DG.render(gx((d) => { d.delivered.push('ONE MORE LINE.'); }), notes);
@@ -1172,15 +1176,17 @@ console.log('\n— docs —');
       const shrunk = DG.render(gx((d) => { d.delivered.length = 3; }), notes);
       ok(shrunk.split('\n').indexOf(NOTE) === shrunk.split('\n').indexOf('1. "ABOUT TIME. SMELLS ALRIGHT THOUGH."') + 1 && !shrunk.includes('4. "STILL WARM'),
          'a note on a line that is still there stays, and the dropped lines go');
-      const pre = fresh.split('\n## I. Who')[0];
+      const pre = fresh.split('\n## I. Shared lines')[0];
       ok(pre.length > 80 && /^# dialogue\.md\n\n\S/.test(pre), 'the preamble is a paragraph under the title');
       const custom = DG.render(files, fresh.replace(pre, '# dialogue.md\n\nMY PREAMBLE.\n'));
       ok(custom.startsWith('# dialogue.md\n\nMY PREAMBLE.\n') && !custom.includes(pre.split('\n')[2]), 'a rewritten preamble is kept, not regenerated');
 
       /* values round-trip */
       if (typeof DG.read === 'function') {
-        const want = (f) => { const d = f['dialogue.json'], o = {}; for (const k of DLG_KEYS) o[k] = [].concat(d[k]); return o; };
-        const cases = { today: files, grown: gx((d) => { d.wait.push('3|HELLO FROM 1990.'); d.queue.shift(); }), who: gx((d) => { d.who = 'PATRON'; }) };
+        const want = (f) => { const d = f['dialogue.json'], s = {}; for (const k of DLG_KEYS) s[k] = [].concat(d[k]);
+          const c = {}; for (const ch of Object.values(d.cast)) c[ch.name] = ch.lines;
+          return { shared: s, cast: c, people: d.people }; };
+        const cases = { today: files, grown: gx((d) => { d.wait.push('3|HELLO FROM 1990.'); d.queue.shift(); d.cast.marge.lines.hint.push('EXTRA {ING}.'); d.people.c70trucker.wait.push('MORE.'); }), who: gx((d) => { d.who = 'PATRON'; }) };
         const bad = Object.entries(cases).filter(([, f]) => JSON.stringify(DG.read(DG.render(f, dold))) !== JSON.stringify(want(f))).map(([n]) => n);
         ok(bad.length === 0, 'dialogue.md round-trips: reading a render back gives the JSON\'s lines (' + bad + ')');
       } else ok(false, 'dialogue.mjs exports read(text)');
@@ -1892,7 +1898,11 @@ console.log('\n— dialogue panel —');
       ok(store.error && store.error.path.join() === 'missed,1' && ctl('missed.1').classList.contains('adm-bad') && /3 rows/.test(ctl('missed.1')._msg.textContent),
          'a too-long line is flagged on its field with the validator\'s row count');
       const ctr = nodes().find((n) => n.dataset.count === 'missed.1');
-      ok(ctr && /^\d+\/34$/.test(ctr.textContent), 'the field carries a live character count against the cap (' + (ctr && ctr.textContent) + ')');
+      ok(ctr && ctr.textContent === 'too long', 'a 3-row line\'s counter says too long (' + (ctr && ctr.textContent) + ')');
+      type(ctl('missed.1'), 'IN THE BUSHES. VERY CLASSY.');
+      ok(ctr.textContent === '1 row', 'the counter counts rows, not characters (' + ctr.textContent + ')');
+      type(ctl('missed.1'), 'WE ARE SO SORRY ABOUT THE WAIT HERE IS YOUR TACOS');
+      ok(ctr.textContent === '2 rows', 'a line that wraps to two rows reads 2 rows (' + ctr.textContent + ')');
       type(ctl('missed.1'), 'IN THE BUSHES. VERY CLASSY.');
       ok(store.error === null && !ctl('missed.1').classList.contains('adm-bad'), 'shortened, the flag clears');
 
@@ -1925,6 +1935,54 @@ console.log('\n— dialogue panel —');
       try { act('say', 'late', 0).fire('click'); } catch (x) { threw = x; }
       ok(!threw && !act('say', 'who'), 'with no game, Say it is harmless; who has no Say it');
       if (realSayFn) globalThis.Admin.test.say = realSayFn;
+
+      /* the speaker picker */
+      const picker = nodes().find((n) => n.dataset.pick === 'speaker');
+      const opts = picker ? picker.kids.map((o) => o.textContent) : [];
+      ok(picker && opts[0] === 'Shared' && opts.slice(1, 10).join() === 'SGT. PFEIFER,OFC. KARLIN,OFC. DREILING,DUSTY,ACE,JINX,MARGE,DALE,NIKKI'
+         && opts.includes('c70trucker'), 'the picker offers Shared, the nine cast names, then customers with personal lines (' + opts.slice(0, 12).join() + ')');
+      const pickBy = (label) => { const pk = nodes().find((n) => n.dataset.pick === 'speaker'); pk.value = pk.kids.find((o) => o.textContent === label).value; pk.fire('change'); };
+      pickBy('MARGE');
+      const secs2 = () => nodes().filter((n) => n.dataset.section !== undefined).map((n) => n.dataset.section);
+      ok(secs2().join() === 'hint,clockin,streak,trouble', 'MARGE shows her four moments (' + secs2().join() + ')');
+      const cp = (m, i) => 'cast.marge.lines.' + m + '.' + i;
+      ok(ctl(cp('hint', 0)) && !nodes().some((n) => n.tagName === 'SELECT' && n.dataset.era), 'her lines are bound at [cast, key, lines, moment, i], with no era dropdown');
+      type(ctl(cp('hint', 0)), 'GRAB THE {ING}, HON.');
+      ok(D().cast.marge.lines.hint[0] === 'GRAB THE {ING}, HON.' && store.error === null, 'editing a cast line writes it');
+      ok(nodes().find((n) => n.dataset.count === cp('hint', 0)).textContent === '1 row', 'the counter works on a cast line');
+      const sayLog = [], realTest = globalThis.Admin.test;
+      globalThis.Admin.test = { say: (l, f, w) => { sayLog.push([l, f, w]); } };
+      globalThis.G = { era: 1 };
+      nodes().find((n) => n.dataset.act === 'say' && n.dataset.key === 'hint' && n.dataset.i === '0').fire('click');
+      ok(sayLog.length === 1 && sayLog[0][0] === 'GRAB THE LETTUCE, HON.' && sayLog[0][2] === 'MARGE' && sayLog[0][1] === D().cast.marge.face,
+         'Say it uses her face and name, {ING} replaced by a plate name (' + JSON.stringify(sayLog[0]) + ')');
+      pickBy('Shared');
+      ok(secs2().join() === DLG_KEYS.join(), 'back on Shared, the shared sections return');
+      pickBy('c70trucker');
+      ok(secs2().join() === 'delivered,missed,late,arrive,wait,queue,walkout,served,wrong', 'a customer shows the nine customer moments (' + secs2().join() + ')');
+      ok(!nodes().some((n) => n.tagName === 'SELECT' && n.dataset.era), 'a customer\'s personal lines have no era dropdown');
+      const w0 = D().people.c70trucker.wait.length;
+      ok(ctl('people.c70trucker.wait.0').value === D().people.c70trucker.wait[0], 'personal lines are bound at [people, face, moment, i]');
+      type(ctl('people.c70trucker.wait.0'), 'MY OWN LINE.');
+      ok(D().people.c70trucker.wait[0] === 'MY OWN LINE.', 'editing a personal line writes people.face.moment.i');
+      nodes().find((n) => n.dataset.act === 'say' && n.dataset.key === 'wait' && n.dataset.i === '0').fire('click');
+      ok(sayLog[1] && sayLog[1][0] === 'MY OWN LINE.' && sayLog[1][1] === 'c70trucker' && sayLog[1][2] === 'CUSTOMER', 'Say it for a customer uses the face and CUSTOMER');
+      nodes().find((n) => n.dataset.act === 'add' && n.dataset.key === 'wait').fire('click');
+      ok(D().people.c70trucker.wait.length === w0 + 1 && D().people.c70trucker.wait[w0] === '', 'Add line appends an empty personal line');
+      nodes().find((n) => n.dataset.act === 'remove' && n.dataset.key === 'wait' && n.dataset.i === String(w0)).fire('click');
+      ok(D().people.c70trucker.wait.length === w0, 'Remove drops it');
+      /* every shipped customer face has lines; drop one so the list has something to offer */
+      { const pp = structuredClone(D().people); delete pp.c90soap; store.set('dialogue.json', 'people', pp); }
+      pickBy('Shared');
+      const addSel = nodes().find((n) => n.dataset.pick === 'addface');
+      const offered2 = addSel ? addSel.kids.map((o) => o.value).filter(Boolean) : [];
+      ok(offered2.length > 0 && offered2.every((v) => !D().people[v]) && !offered2.includes('c70trucker') && !offered2.includes('from'),
+         'an "Add lines for" list offers customer faces without lines yet (' + offered2.length + ')');
+      const fresh1 = offered2[0];
+      addSel.value = fresh1; addSel.fire('change');
+      ok(secs2().length === 9 && nodes().find((n) => n.dataset.pick === 'speaker').kids.some((o) => o.textContent === fresh1),
+         'choosing one opens its nine moments and adds it to the picker (' + fresh1 + ')');
+      globalThis.Admin.test = realTest;
     } finally { delete globalThis.G; delete globalThis.DIALOGUE; }
   }
   store.files = structuredClone(files); store.dirty.clear(); store.error = null;
