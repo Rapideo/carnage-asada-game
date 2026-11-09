@@ -7,6 +7,13 @@ here, run `node build.mjs` and the tests, commit, and tag it (`git tag v<version
 Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch lists.
 **1.0.0** is when the owner calls it released.
 
+## 0.9.9 (2026-11-09): a quick-run switch for playtesting
+
+- **`?target=N` on the address** makes every level, at every difficulty, clear after N
+  deliveries or tickets, so the whole run can be played through quickly
+  (`https://carnage-asada.netlify.app/?target=3`). The real targets are unchanged, and a run
+  played this way never goes on the high-score board.
+
 ## 0.9.8 (2026-11-09): TOSS as it was, with arrows
 
 - **Touch (Mode C): 0.9.7's change is undone.** TOSS works as it did in 0.9.6: hold it and drag

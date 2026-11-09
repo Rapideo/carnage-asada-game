@@ -1654,6 +1654,20 @@ ok(!Scores.board.some((e) => e.cents === G.earned && e.cents > 0 && e.ini === 'Z
 G.toTitle();
 
 console.log('\n— test hooks —');
+{
+  /* ?target=N: a quick run through every level (owner, 2026-11-09) */
+  const G = runScript('G'), DIFF = runScript('DIFFICULTY');
+  const hard = DIFF.hard.target, keep = G.quickTarget;
+  ok(keep === 0, 'no ?target in the address: quickTarget is off');
+  G.quickTarget = 3; G.setLevel(13);
+  ok(G.diff.target === 3 && DIFF.hard.target === hard, `?target=3: level 13 clears at 3, and DIFFICULTY.hard keeps ${hard}`);
+  ok(G.diff.extend === DIFF.hard.extend && G.diff.nav === DIFF.hard.nav, 'every other Hard setting is unchanged');
+  G.startRun(13);
+  ok(G.testRun === true, 'a ?target run is a test run: it never reaches the high-score board');
+  G.quickTarget = keep; G.startRun(1); G.setLevel(1);
+  ok(G.testRun === false && G.diff === DIFF.easy, 'and with it off again, the run is real and Easy is the shipped object');
+  G.toTitle();
+}
 /* Service Mode's Test panel drives the game through a handful of plain G
    fields. They ship, so with G.test null and the autopilot never on the game
    must be exactly what it was: that is the last block here. State is reset

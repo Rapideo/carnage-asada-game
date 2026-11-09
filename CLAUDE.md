@@ -918,4 +918,6 @@ pause screens. The build rejects a malformed one. To cut a version: bump both fi
 `CHANGELOG.md` entry, rebuild, test, commit, and `git tag v<version>` (local; never push).
 0.9.x is the run-up to release; 1.0.0 is the owner's call. It must stay free of external
 requests. `?seed=<int>` on the URL regenerates the city deterministically (mulberry32); the default seed is
-in `90_main.js`.
+in `90_main.js`. `?level=N` starts at level N, `?weather=` pins the weather, and `?target=N` (`G.quickTarget`)
+clears every level at N completions for a quick play-through: a copy of the difficulty with only `target`
+changed, and a test run, so it never reaches the board.

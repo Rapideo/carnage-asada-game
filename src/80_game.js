@@ -112,7 +112,7 @@ const G = {
 
   /* the run */
   seed: 0, levelN: 1, level: null, diffKey: 'easy', diff: DIFF_FALLBACK, nav: NAV_FULL,
-  era: 1, winter: false, weather: 'sunny', windy: false, weatherPin: null, stage: 'delivery', mapN: 0,
+  era: 1, winter: false, weather: 'sunny', windy: false, weatherPin: null, quickTarget: 0, stage: 'delivery', mapN: 0,
   levelEarned: 0, levelStars: 0, stars: 0, done: 0, extUsed: 0,
   cardT: 0, cardTyped: 0, contT: 0, modeIdx: 0, startLevel: 1,
   snow: [], snowMask: null, snowImgs: null,
@@ -128,6 +128,12 @@ const G = {
     this.startLevel = clamp(parseInt(p && p.get('level'), 10) || 1, 1, this.levels().length);
     /* ?weather=rainy|snowy|sunny pins the roll, for looking at one on purpose */
     if (p && p.get('weather')) this.weatherPin = p.get('weather');
+    /* ?target=N: every level, at every difficulty, clears at N completions --
+       for playing the whole run through quickly (owner, 2026-11-09). The
+       difficulty's own target is untouched, and such a run never reaches the
+       board, like any other test run. */
+    const qt = parseInt(p && p.get('target'), 10);
+    this.quickTarget = qt >= 1 ? Math.min(qt, 99) : 0;
     this.setLevel(1);    // builds Map 1, which the title drives over
     Hud.buildMap();
     this.toTitle();
@@ -152,6 +158,7 @@ const G = {
     this.diffKey = this.level.difficulty || 'easy';
     const D = typeof DIFFICULTY !== 'undefined' && DIFFICULTY[this.diffKey];
     this.diff = D || DIFF_FALLBACK;
+    if (this.quickTarget) this.diff = Object.assign({}, this.diff, { target: this.quickTarget });   // ?target=N, a copy: DIFFICULTY is untouched
     this.nav = this.diff.nav || NAV_FULL;
     this.era = this.level.era || 1;
     this.winter = this.level.season === 'winter';
@@ -318,7 +325,7 @@ const G = {
     this.earned = 0; this.stars = 0;
     this.runStart = n;
     this.addrFaces = new Map();
-    this.testRun = !!(this.test || this.autopilot);
+    this.testRun = !!(this.test || this.autopilot || this.quickTarget);
     this.toCard(n);
   },
 
