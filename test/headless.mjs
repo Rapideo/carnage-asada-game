@@ -1563,6 +1563,87 @@ console.log('\n— personal lines —');
   } finally { D.people = keep; unrnd(); }
 }
 
+console.log('\n— cast —');
+{
+  const rnd = (v) => runScript('globalThis.__rnd = Math.random; Math.random = () => ' + v + ';');
+  const unrnd = () => runScript('if (globalThis.__rnd) Math.random = globalThis.__rnd;');
+  const Cx = sandbox.__c;
+  const { Dialog, DIALOGUE: D } = KX;
+  const quiet = () => { Dialog.drop(); Dialog.who = ''; };
+  try {
+    ok(Cx && Cx.Cast && Cx.RIVAL_ODDS === 1 / 3 && Cx.TROUBLE_QUEUE_ODDS === 0.5, 'Cast exists, RIVAL_ODDS is 1/3 and TROUBLE_QUEUE_ODDS is 1/2');
+    const Cast = Cx.Cast;
+    ok(Cast.who('officer', 1).name === 'SGT. PFEIFER' && Cast.who('officer', 2).name === 'OFC. KARLIN' && Cast.who('officer', 3).name === 'OFC. DREILING', 'Cast.who finds the officer of each era');
+    ok(Cast.who('rival', 1).name === 'DUSTY' && Cast.who('rival', 2).name === 'ACE' && Cast.who('rival', 3).name === 'JINX', 'and the rival of each era');
+    ok(Cast.who('coworker', 1) === null, 'a role with nobody in the cast (the coworkers are not written yet) is null');
+    ok(Cast.line(Cast.who('officer', 1), 'chase') !== null && Cast.line(Cast.who('officer', 1), 'nonsense') === null, 'Cast.line picks a line for a moment, or null');
+    ok(Cast.line({ lines: { hint: ['TRY {ING} NEXT.'] } }, 'hint', { ING: 'BEEF' }) === 'TRY BEEF NEXT.', '{ING} is replaced from vars');
+
+    reset0();
+    G.startRun(1); G.beginShift();
+    ok(G.state === 'play' && G.era === 1 && G.stage === 'delivery', 'a delivery level of era 1 is in play');
+    quiet(); G.cop = null;
+    G.spawnCop();
+    ok(Dialog.active && Dialog.who === 'SGT. PFEIFER' && Dialog.face === 'cop70' && Dialog.hostile, 'spawnCop raises the strip with SGT. PFEIFER, hostile (' + Dialog.who + ')');
+    ok(D.cast.pfeifer.lines.chase.includes(Dialog.lines.join(' ')), 'and the line is one of his chase lines');
+
+    /* pulled over */
+    quiet();
+    G.dropCop(); G.cop = new Cop(G.player.x, G.player.y, 0); G.cop.hitCd = 0; G.heat = 100;
+    G.update(1 / 60);
+    ok(Dialog.active && Dialog.who === 'SGT. PFEIFER' && D.cast.pfeifer.lines.fined.includes(Dialog.lines.join(' ')), 'the ticket raises a fined line');
+
+    /* the pedestrian fine */
+    quiet(); G.cop = null;
+    const pp = G.player; pp.vx = 80; pp.vy = 0;
+    G.peds.length = 0; G.spawnPed(); const q = G.peds[0]; q.x = pp.x; q.y = pp.y; q.tumble = 0; q.update = () => {};
+    G.update(1 / 60);
+    ok(Dialog.active && Dialog.who === 'SGT. PFEIFER' && D.cast.pfeifer.lines.fined.includes(Dialog.lines.join(' ')), 'the pedestrian fine raises a fined line');
+
+    /* lost them */
+    quiet(); G.dropCop(); G.cop = new Cop(G.player.x + 700, G.player.y, 0); G.heat = 20; G.copT = 20;
+    G.update(1 / 60);
+    ok(G.cop === null && Dialog.active && Dialog.who === 'SGT. PFEIFER' && !Dialog.hostile && D.cast.pfeifer.lines.lost.includes(Dialog.lines.join(' ')), 'losing the cop raises a lost line, not hostile');
+
+    /* a miss: the rival 1 in 3, else the customer */
+    G.state = 'play'; if (!G.order) G.newOrder();
+    quiet(); rnd(0.1); G.miss({ x: G.player.x, y: G.player.y }, false); unrnd();
+    ok(Dialog.active && Dialog.who === 'DUSTY' && Dialog.hostile && Dialog.face === 'rival70' && Dialog.who !== D.who, 'a miss under RIVAL_ODDS shows DUSTY and not the customer (' + Dialog.who + ')');
+    ok(!Dialog.lines.length || D.cast.dusty.lines.missed.includes(Dialog.lines.join(' ')), 'with one of his missed lines');
+    quiet(); if (!G.order) G.newOrder(); rnd(0.9); G.miss({ x: G.player.x, y: G.player.y }, false); unrnd();
+    ok(Dialog.active && Dialog.who === D.who, 'a miss over RIVAL_ODDS shows the customer (' + Dialog.who + ')');
+
+    /* a perfect toss: the rival's is not hostile */
+    quiet(); if (!G.order) G.newOrder(); rnd(0.1); G.complete(true, { x: G.player.x, y: G.player.y }); unrnd();
+    ok(Dialog.active && Dialog.who === 'DUSTY' && !Dialog.hostile && D.cast.dusty.lines.perfect.includes(Dialog.lines.join(' ')), 'a perfect toss under RIVAL_ODDS shows DUSTY, not hostile');
+    quiet(); if (!G.order) G.newOrder(); rnd(0.1); G.complete(false, { x: G.player.x, y: G.player.y }); unrnd();
+    ok(Dialog.active && Dialog.who === D.who, 'a plain delivery is never a rival moment');
+
+    /* one line shows: a hostile line with more than a second left wins */
+    quiet(); Dialog.say('CUSTOMER', 'WALKOUT', { hostile: true, secs: 3 });
+    ok(Cast.say('rival', 'missed') === false && Dialog.who === 'CUSTOMER', 'a hostile line with more than 1s left is not interrupted');
+    Dialog.t = 0.16 + 2.5;
+    ok(Cast.say('rival', 'missed') === true && Dialog.who === 'DUSTY', 'with 1s or less left it may be replaced');
+    quiet(); Dialog.say('CUSTOMER', 'FINE', { hostile: false, secs: 3 });
+    ok(Cast.say('rival', 'missed') === true && Dialog.who === 'DUSTY', 'a friendly line does not block the cast');
+    /* and when the rival cannot speak the customer does */
+    if (!G.order) G.newOrder();
+    quiet(); Dialog.say('CUSTOMER', 'WALKOUT', { hostile: true, secs: 3 });
+    rnd(0.1); G.miss({ x: G.player.x, y: G.player.y }, false); unrnd();
+    ok(Dialog.who !== 'DUSTY', 'a miss while a hostile line shows does not let the rival cut in (' + Dialog.who + ')');
+
+    /* never in the demo, attract or the kitchen demo */
+    for (const st of ['demo', 'kdemo', 'title', 'winners', 'scores']) {
+      G.state = st; quiet(); G.cop = null;
+      G.spawnCop();
+      ok(!Dialog.active, 'G.spawnCop raises nothing in ' + st);
+      ok(Cast.say('rival', 'missed') === false && Cast.say('officer', 'lost') === false && !Dialog.active, 'Cast.say returns false in ' + st);
+    }
+    G.state = 'play'; G.cop = null; quiet();
+  } finally { unrnd(); G.state = 'play'; }
+  function reset0() { G.test = null; G.autopilot = false; G.testRun = false; Input.down = Object.create(null); Input.hit = Object.create(null); }
+}
+
 console.log('\n— copy —');
 const dl = KX.DIALOGUE;
 let longLine = 0;

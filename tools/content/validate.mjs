@@ -381,6 +381,17 @@ export const DLG_KEYS = ['who', 'delivered', 'missed', 'late', 'arrive', 'wait',
 export const DLG_MOMENTS = DLG_KEYS.filter((k) => k !== 'who');
 const ERA_PREFIX = /^([0-9])\|/;
 
+/* the cast: officers chase and fine the player, rivals taunt a miss or a perfect
+   toss, coworkers speak in the kitchen. The moments each role speaks at. */
+export const CAST_MOMENTS = {
+  officer: ['chase', 'fined', 'lost'],
+  rival: ['missed', 'perfect'],
+  coworker: ['hint', 'clockin', 'streak', 'trouble'],
+};
+/* {ING} is the next ingredient's plate name; only a coworker's hint may use it,
+   and its width is checked as the longest plate name (CHICKEN) */
+const CAST_ING = '{ING}', CAST_ING_WIDEST = 'CHICKEN';
+
 /* Greedy word wrap with the 5x7 font's width. null when one word alone is wider
    than a row. Dialog.wrap in src/72_dialog.js is the same rule (src/ cannot
    import); the headless suite asserts the two agree. */
@@ -454,9 +465,9 @@ function buildDialogue(src, faces) {
   const out = {};
   for (const [k, v] of Object.entries(raw)) {
     if (k.startsWith('_')) continue;
-    if (k === 'people') continue;                       // built below, once the shared pools are in
+    if (k === 'people' || k === 'cast') continue;                     // built below, once the shared pools are in
     if (!DLG_KEYS.includes(k))
-      fail(F, [k], `${F}: unknown key "${k}". The game reads: ${DLG_KEYS.join(' ')} people. (Prefix a note with _ to keep it out of the build.)`);
+      fail(F, [k], `${F}: unknown key "${k}". The game reads: ${DLG_KEYS.join(' ')} people cast. (Prefix a note with _ to keep it out of the build.)`);
     if (k === 'who' ? typeof v !== 'string' : !Array.isArray(v) || !v.length)
       fail(F, [k], `${F}: "${k}" must be ${k === 'who' ? 'a string' : 'a non-empty array of lines'}`);
     const list = Array.isArray(v) ? v : [v];
@@ -498,6 +509,53 @@ function buildDialogue(src, faces) {
     people[face] = mo;
   }
   out.people = people;
+
+  /* the cast: cast[key] = { name, face, era, role, lines: { moment: [lines] } }.
+     The coworkers may be absent; an entry present must give every moment of its role. */
+  const cast = {};
+  const rawCast = raw.cast === undefined ? {} : raw.cast;
+  if (!rawCast || typeof rawCast !== 'object' || Array.isArray(rawCast))
+    fail(F, ['cast'], `${F}: "cast" must be an object of key to character`);
+  for (const [key, c] of Object.entries(rawCast)) {
+    if (key.startsWith('_')) continue;
+    const at = (...p) => ['cast', key, ...p];
+    if (!c || typeof c !== 'object' || Array.isArray(c))
+      fail(F, at(), `${F}: cast.${key} must be an object`);
+    if (typeof c.name !== 'string' || !c.name.trim())
+      fail(F, at('name'), `${F}: cast.${key}.name must be the name on the strip`);
+    if (c.name !== c.name.toUpperCase()) fail(F, at('name'), `${F}: cast.${key}.name must be ALL CAPS, as it is drawn`);
+    drawable(F, at('name'), `${F}: cast.${key}.name`, c.name);
+    if (!CAST_MOMENTS[c.role])
+      fail(F, at('role'), `${F}: cast.${key}.role ${JSON.stringify(c.role)} is not a role. Roles are: ${Object.keys(CAST_MOMENTS).join(' ')}.`);
+    if (!faces[c.face])
+      fail(F, at('face'), `${F}: cast.${key}.face ${JSON.stringify(c.face)} is not a face in content/faces/ (${Object.keys(faces).join(' ')})`);
+    if (![1, 2, 3].includes(c.era))
+      fail(F, at('era'), `${F}: cast.${key}.era must be 1, 2 or 3, got ${JSON.stringify(c.era)}`);
+    if (!c.lines || typeof c.lines !== 'object' || Array.isArray(c.lines))
+      fail(F, at('lines'), `${F}: cast.${key}.lines must be an object of moment to lines`);
+    const mine = CAST_MOMENTS[c.role];
+    const lines = {};
+    for (const [moment, list] of Object.entries(c.lines)) {
+      if (moment.startsWith('_')) continue;
+      if (!mine.includes(moment))
+        fail(F, at('lines', moment), `${F}: cast.${key} is a ${c.role}; its moments are: ${mine.join(' ')}, not "${moment}".`);
+      if (!Array.isArray(list) || !list.length)
+        fail(F, at('lines', moment), `${F}: cast.${key}.lines.${moment} must be a non-empty array of lines`);
+      list.forEach((s, li) => {
+        const P = at('lines', moment, li), label = `cast.${key}.${moment}`;
+        if (typeof s === 'string' && s.includes(CAST_ING)) {
+          if (c.role !== 'coworker' || moment !== 'hint')
+            fail(F, P, `${F}: ${label} line ${JSON.stringify(s)} uses ${CAST_ING}, which only a coworker's hint line may. Say the ingredient another way.`);
+          checkLine(P, label, s.split(CAST_ING).join(CAST_ING_WIDEST), false);
+        } else checkLine(P, label, s, false);
+      });
+      lines[moment] = list;
+    }
+    for (const need of mine)
+      if (!lines[need]) fail(F, at('lines', need), `${F}: cast.${key} (${c.role}) is missing "${need}" lines`);
+    cast[key] = { name: c.name, face: c.face, era: c.era, role: c.role, lines };
+  }
+  out.cast = cast;
   return out;
 }
 

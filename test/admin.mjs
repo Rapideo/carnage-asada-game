@@ -1221,6 +1221,34 @@ console.log('\n— docs —');
         const { e } = pe(people);
         ok(e instanceof ContentError && e.file === 'content/dialogue.json' && e.path.join() === 'people,' + path, name + ' is a ContentError on people,' + path + ' (' + (e && e.path.join() + ': ' + e.message.split('\n')[0]) + ')');
       }
+      /* the cast: DIALOGUE.cast[key] = { name, face, era, role, lines: { moment: [lines] } } */
+      const { CAST_MOMENTS } = await import('../tools/content/validate.mjs');
+      ok(CAST_MOMENTS && CAST_MOMENTS.officer.join() === 'chase,fined,lost' && CAST_MOMENTS.rival.join() === 'missed,perfect' && CAST_MOMENTS.coworker.join() === 'hint,clockin,streak,trouble',
+         'CAST_MOMENTS names the moments of each role');
+      const realCast = validateContent(memSource(files)).dialogue.cast;
+      ok(realCast && ['pfeifer', 'karlin', 'dreiling', 'dusty', 'ace', 'jinx'].every((k) => realCast[k] && realCast[k].name && realCast[k].face && Object.keys(realCast[k].lines).length),
+         'the shipped dialogue builds a cast with the officers and rivals');
+      ok(realCast.pfeifer.name === 'SGT. PFEIFER' && realCast.pfeifer.face === 'cop70' && realCast.pfeifer.era === 1 && realCast.pfeifer.role === 'officer' && realCast.jinx.era === 3,
+         'and their names, faces, eras and roles are as authored');
+      const ce = (key, entry) => { let e = null, r = null; try { r = validateContent(memSource(gx((d) => { d.cast = { [key]: entry }; }))); } catch (x) { e = x; } return { e, r }; };
+      const ent = (o) => ({ name: 'MARGE', face: 'staff70', era: 1, role: 'coworker', lines: { hint: ['TRY {ING} NEXT.'], clockin: ['MORNING.'], streak: ['NICE.'], trouble: ['TICKETS!'] }, ...o });
+      const cgood = ce('marge', ent({}));
+      ok(cgood.e === null && cgood.r.dialogue.cast.marge.lines.hint[0] === 'TRY {ING} NEXT.', 'a coworker with {ING} in a hint line validates, and the token is kept (' + (cgood.e && cgood.e.message.split('\n')[0]) + ')');
+      const cbads = [
+        ['an unknown role', ent({ role: 'janitor' }), 'marge,role'],
+        ['a moment not in the role', ent({ role: 'officer', name: 'OFC. X', face: 'cop70', lines: { chase: ['STOP.'], fined: ['PAID.'], lost: ['GONE.'], hint: ['NO.'] } }), 'marge,lines,hint'],
+        ['a face not in content/faces', ent({ face: 'nobody' }), 'marge,face'],
+        ['{ING} outside a hint', ent({ lines: { hint: ['TRY {ING}.'], clockin: ['HI {ING}.'], streak: ['NICE.'], trouble: ['TICKETS!'] } }), 'marge,lines,clockin,0'],
+        ['{ING} in an officer line', ent({ role: 'officer', name: 'OFC. X', face: 'cop70', lines: { chase: ['STOP {ING}.'], fined: ['PAID.'], lost: ['GONE.'] } }), 'marge,lines,chase,0'],
+        ['a hint too wide once {ING} is CHICKEN', ent({ lines: { hint: ['THIS HINT IS LONG ENOUGH THAT {ING} PUSHES IT OVER THE EDGE OF TWO ROWS AND MORE'], clockin: ['HI.'], streak: ['NICE.'], trouble: ['TICKETS!'] } }), 'marge,lines,hint,0'],
+        ['a lowercase cast line', ent({ lines: { hint: ['try it.'], clockin: ['HI.'], streak: ['NICE.'], trouble: ['TICKETS!'] } }), 'marge,lines,hint,0'],
+        ['an era-prefixed cast line', ent({ lines: { hint: ['2|TRY IT.'], clockin: ['HI.'], streak: ['NICE.'], trouble: ['TICKETS!'] } }), 'marge,lines,hint,0'],
+        ['an era outside 1 to 3', ent({ era: 4 }), 'marge,era'],
+      ];
+      for (const [name, entry, path] of cbads) {
+        const { e } = ce('marge', entry);
+        ok(e instanceof ContentError && e.file === 'content/dialogue.json' && e.path.join() === 'cast,' + path, name + ' is a ContentError on cast,' + path + ' (' + (e && e.path.join() + ': ' + e.message.split('\n')[0]) + ')');
+      }
     }
 
     /* faces.md: per era, the cast; each face's name, size and whether its eyes are set */

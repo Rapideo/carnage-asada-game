@@ -384,7 +384,72 @@ const DIALOGUE = {
   "walkout": ["I'LL DARKEN THIS DOOR NEVERMORE!", "I'M TELLING MY BRIDGE CLUB!", "SUSAN! GET IN THE CAR. ARBY'S!", "...SHOULD'VE GONE TO WENDY'S...", "...WAIT 'TIL I TELL LINDA...", "NEVER COMING BACK. MAYBE TUESDAY.", "...I DROVE TWENTY MINUTES FOR THIS", "OPE! SORRY! OUT THE DOOR FOREVER!", "CONVOY OF ONE, OVER AND OUT!", "A POX UPON THIS ESTABLISHMENT!", "MAY ALL YOUR TORTILLAS BE SOGGY!"],
   "served": ["NOW THAT'S A TACO!", "WORTH EVERY PENNY. MOSTLY.", "WELL, BLESS YOUR HEART, SUGAR.", "BEAUTY. JUST BEAUTY.", "MY COMPLIMENTS TO THE CHEF!", "YOU'RE ALRIGHT, KID.", "THAT'S WHAT I CAME FOR!", "I'LL BE BACK. AND I'LL BE HUNGRY."],
   "wrong": ["WHOA WHOA WHOA. NOT THAT ONE!", "DID I JUST WITNESS A CRIME?", "THIS IS A CRIME AGAINST TORTILLAS!", "OH NO! A FUMBLE ON THE TORTILLA!", "YOU COULDN'T FOLD IT WITH A MAP!", "FOR THE LOVE OF PETE, NOT THAT!", "SORRY! THE ANSWER WAS 'A TACO'!", "THAT AIN'T ON THE TICKET, BUD!", "I DIDN'T ORDER THAT. DID I?"],
-  "people": {}
+  "people": {},
+  "cast": {
+    "pfeifer": {
+      "name": "SGT. PFEIFER",
+      "face": "cop70",
+      "era": 1,
+      "role": "officer",
+      "lines": {
+        "chase": ["PULL IT OVER, TACO BOY.", "THIS IS HAYS PD. PULL OVER!", "LIGHTS AND SIREN. YOUR MOVE, SON.", "I'VE GOT YOU ON THE RADAR, SON.", "YOU'RE NOT IN DODGE CITY NOW!"],
+        "fined": ["THAT'S A CITATION, SON.", "SIGN HERE. PRESS HARD. 3 COPIES.", "SPEED LIMIT'S 25 FOR A REASON.", "THAT'S COMING OUT OF YOUR TIPS.", "I'LL BE TELLING YOUR MOTHER."],
+        "lost": ["I KNOW WHERE YOU WORK, SON.", "THIS ISN'T OVER, TACO BOY.", "I'LL BE IN FOR LUNCH. WATCH IT.", "LOST HIM BY THE GRAIN ELEVATOR.", "NEXT TIME, SON. NEXT TIME."]
+      }
+    },
+    "karlin": {
+      "name": "OFC. KARLIN",
+      "face": "cop80",
+      "era": 2,
+      "role": "officer",
+      "lines": {
+        "chase": ["DISPATCH, I'VE GOT A TACO RUNNER.", "OH, YOU WANT TO DO THIS? OKAY.", "PULL OVER. DON'T MAKE ME RADIO.", "NICE CAR. SHAME ABOUT THE DRIVER.", "CODE 3 ON A TACO RUN. GREAT."],
+        "fined": ["LICENSE, REGISTRATION, SALSA.", "THAT'LL COST YOU. AND ME A TACO.", "TICKET'S IN THE MAIL. SMILE.", "YOU'RE KEEPING ME IN BUSINESS.", "WRITE THAT DOWN? ALREADY DID."],
+        "lost": ["OKAY. YOU WIN THIS ONE.", "I'LL SEE YOU AT LUNCH, HOTSHOT.", "DISPATCH, LOST 'EM. AGAIN.", "RUN ALL YOU WANT. I'M HUNGRY.", "ENJOY IT. I HAVE YOUR PLATES."]
+      }
+    },
+    "dreiling": {
+      "name": "OFC. DREILING",
+      "face": "cop90",
+      "era": 3,
+      "role": "officer",
+      "lines": {
+        "chase": ["OKAY. ONE. TWO. PULL OVER.", "SIR? MA'AM? PLEASE PULL OVER.", "I JUST WASHED THIS CRUISER, MAN.", "NOT HOW I PICTURED MY SHIFT.", "STOP! I MEAN IT! I THINK!"],
+        "fined": ["I HAVE TO WRITE THIS. SORRY.", "MY SERGEANT MAKES ME DO THIS.", "THAT'S A TICKET. DON'T HATE ME.", "THREE, TWO... TICKET. WHATEVER.", "IT'S NOT PERSONAL. IT'S A QUOTA."],
+        "lost": ["AND... THEY'RE GONE. GREAT.", "I'M TELLING SARGE IT WAS FOG.", "WHATEVER. I'M ON BREAK ANYWAY.", "THAT DIDN'T HAPPEN. OKAY?", "PAGE ME IF YOU SEE 'EM."]
+      }
+    },
+    "dusty": {
+      "name": "DUSTY",
+      "face": "rival70",
+      "era": 1,
+      "role": "rival",
+      "lines": {
+        "missed": ["NICE ARM. FOR A LAWN SPRINKLER.", "HA! RIGHT IN THE PETUNIAS, MAN!", "WATCH AND LEARN, ROOKIE.", "SMOOTH. REAL SMOOTH. FAR OUT.", "THAT ONE'S GOING IN MY SCRAPBOOK."],
+        "perfect": ["LUCKY. TOTALLY LUCKY.", "OKAY, THAT WAS KINDA GROOVY.", "I TAUGHT YOU THAT. DON'T FORGET.", "RIGHT ON THE MAT? NO WAY, MAN.", "ENJOY IT. WON'T HAPPEN AGAIN."]
+      }
+    },
+    "ace": {
+      "name": "ACE",
+      "face": "rival80",
+      "era": 2,
+      "role": "rival",
+      "lines": {
+        "missed": ["GAME OVER, MAN! INSERT COIN!", "HA! YOU MISSED BY A COUNTY!", "NEW HIGH SCORE... FOR MISSING!", "THAT'S NOT HOW YOU PLAY, ROOKIE.", "EVEN MY KID BROTHER HITS THAT."],
+        "perfect": ["BONUS ROUND! ...LUCKY.", "OKAY, OKAY. THAT'S A HIGH SCORE.", "NICE. STILL NOT MY INITIALS.", "WHOA. RADICAL. I MEAN, WHATEVER.", "YOU'VE BEEN PRACTICING. ADMIT IT."]
+      }
+    },
+    "jinx": {
+      "name": "JINX",
+      "face": "rival90",
+      "era": 3,
+      "role": "rival",
+      "lines": {
+        "missed": ["AS IF! THAT WAS SO NOT IT.", "WHOOPS. I SAW NOTHING. WINK.", "THAT'S GOING IN MY ZINE.", "TALK TO THE HAND. AND THE HEDGE.", "NOT EVEN CLOSE. NOT EVEN!"],
+        "perfect": ["OKAY, THAT WAS ALL THAT.", "WHATEVER. I'LL DO IT BETTER.", "DID YOU JUST... PSH. LUCKY.", "SCHWING. I MEAN, FINE. GOOD.", "DON'T LET IT GO TO YOUR HEAD."]
+      }
+    }
+  }
 };
 
 const LEVELS = [
@@ -5695,6 +5760,84 @@ const Dialog = {
 };
 
 
+/* ===== 73_cast.js ===== */
+/* ============================================================
+   THE CAST -- the people who are not the customer
+   ============================================================
+
+   Officers chase and fine you, rivals taunt a miss or a perfect toss, and the
+   coworkers speak in the kitchen. They are in content/dialogue.json under
+   `cast` (DIALOGUE.cast), one entry per character, each placed in an era.
+
+   They speak over the same dialogue strip the customer does, so there are
+   rules about who gets it:
+   - never in attract mode or either demo: a talking head over the shop window
+     reads as a cutscene, and the demo would have the cops chatting at nobody;
+   - one line at a time. A hostile line (a walkout, a complaint, a cop) with
+     more than a second left is not talked over, and Cast.say says so by
+     returning false, so the caller can fall back to the customer or say
+     nothing. A friendly line yields to the cast.
+*/
+'use strict';
+
+const RIVAL_ODDS = 1 / 3;            // a rival speaks instead of the customer on a miss or a perfect toss
+const TROUBLE_QUEUE_ODDS = 0.5;      // a coworker replaces the customer's queue line
+const CAST_SECS = 2.4;
+const CAST_YIELD = 1;                // a hostile line this close to done may be replaced
+
+/* which moments are hostile (a red name plate): the law and a taunt are; a
+   lost pursuit and a rival's grudging praise are not */
+const CAST_HOSTILE = { chase: true, fined: true, lost: false, missed: true, perfect: false };
+
+const Cast = {
+  /** the character of this role in this era, or null */
+  who(role, era) {
+    if (typeof DIALOGUE === 'undefined' || !DIALOGUE.cast) return null;
+    for (const k of Object.keys(DIALOGUE.cast)) {
+      const c = DIALOGUE.cast[k];
+      if (c.role === role && c.era === era) return c;
+    }
+    return null;
+  },
+
+  /** one line for a moment, with {ING} filled in from vars; null when there is none */
+  line(entry, moment, vars) {
+    const list = entry && entry.lines && entry.lines[moment];
+    if (!list || !list.length) return null;
+    const s = list[(Math.random() * list.length) | 0];
+    return vars && vars.ING != null ? s.split('{ING}').join(vars.ING) : s;
+  },
+
+  /** whether the strip may be taken now */
+  free() {
+    if (G.state !== 'play' && G.state !== 'kitchen') return false;
+    if (Kitchen.demo) return false;
+    if (Dialog.active && Dialog.hostile && DLG_RISE + Dialog.hold - Dialog.t > CAST_YIELD) return false;
+    return true;
+  },
+
+  /** raise the strip for this role's character in the current era. Returns whether
+      it spoke. opts: { vars, hostile, secs, sub } */
+  say(role, moment, opts) {
+    opts = opts || {};
+    if (!this.free()) return false;
+    const c = this.who(role, G.era);
+    if (!c) return false;
+    const line = this.line(c, moment, opts.vars);
+    if (!line) return false;
+    const hostile = opts.hostile != null ? !!opts.hostile : !!CAST_HOSTILE[moment];
+    Dialog.say(c.name, line, {
+      face: c.face,
+      hostile: hostile,
+      hood: hostile ? 3 : 1,
+      sub: opts.sub || '',
+      secs: opts.secs || CAST_SECS,
+    });
+    return true;
+  },
+};
+
+
 /* ===== 74_kitchen.js ===== */
 /* ============================================================
    KITCHEN SHIFT -- the other half of the game
@@ -8053,7 +8196,9 @@ const G = {
     if (perfect) Fx.pop(z.x, z.y - 26, 'ON THE DOORSTEP! +' + money(this.diff.perfectBonus), PAL.amber);
     this.say(perfect ? 'PERFECT TOSS!' : 'DELIVERED!', perfect ? PAL.amber : PAL.good);
     const late = o.tip < (o.floor + (o.max - o.floor) * 0.25);
-    this.react(late && DIALOGUE.late ? 'late' : 'delivered', o, late);
+    /* only a perfect toss is a rival moment; the rival speaks instead of the customer */
+    if (!(perfect && Math.random() < RIVAL_ODDS && Cast.say('rival', 'perfect')))
+      this.react(late && DIALOGUE.late ? 'late' : 'delivered', o, late);
     Audio5.sfx(perfect ? 'perfect' : 'deliver');
     Audio5.sfx('cash');
     this.flash = 0.14;
@@ -8068,7 +8213,8 @@ const G = {
     Fx.splat(z.x, z.y);
     Fx.spill(z.x, z.y);
     Audio5.sfx('splat');
-    this.react('missed', this.order, true);
+    /* the rival takes it 1 time in 3; if he cannot (a hostile line is up) the customer does */
+    if (!(Math.random() < RIVAL_ODDS && Cast.say('rival', 'missed'))) this.react('missed', this.order, true);
     this.stats.splat++;
     const fee = this.diff.fines.remake;
     this.fine(fee);
@@ -8172,6 +8318,7 @@ const G = {
     this.cop = new Cop(x, y, Math.atan2(p.y - y, p.x - x));
     this.copT = 26;
     this.say("HAYS PD! LOSE 'EM!", PAL.bad);
+    Cast.say('officer', 'chase');
     Audio5.sirenOn();
   },
   dropCop() { this.cop = null; this.heat = Math.min(this.heat, 45); Audio5.sirenOff(); },
@@ -8454,6 +8601,7 @@ const G = {
         Fx.pop(q.x, q.y - 18, 'OW! -' + money(f), PAL.bad);
         this.shake = 5; this.hitstop = 0.05;
         Audio5.sfx('ped');
+        Cast.say('officer', 'fined');
       }
     }
     while (this.peds.length < 24) this.spawnPed();
@@ -8476,6 +8624,7 @@ const G = {
         this.shake = Math.max(this.shake, 7);
         Audio5.sfx('crash');
         this.say('THE TRAIN GOT THEM', PAL.good);
+        Cast.say('officer', 'lost');
         this.heat = 0;
         this.dropCop();
       }
@@ -8500,11 +8649,13 @@ const G = {
         this.shake = 9; this.hitstop = 0.1;
         Fx.pop(p.x, p.y - 22, 'TICKET! -' + money(f), PAL.bad, true);
         this.say('PULLED OVER', PAL.bad);
+        Cast.say('officer', 'fined');
         Audio5.sfx('ticket');
         this.heat = 0;
         this.dropCop();
       } else if (this.copT <= 0 || (d > 620 && this.heat < 55)) {
         this.say('LOST THEM', PAL.good);
+        Cast.say('officer', 'lost');
         this.dropCop();
       }
     }

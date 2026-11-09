@@ -14,5 +14,70 @@
   "walkout": ["I'LL DARKEN THIS DOOR NEVERMORE!", "I'M TELLING MY BRIDGE CLUB!", "SUSAN! GET IN THE CAR. ARBY'S!", "...SHOULD'VE GONE TO WENDY'S...", "...WAIT 'TIL I TELL LINDA...", "NEVER COMING BACK. MAYBE TUESDAY.", "...I DROVE TWENTY MINUTES FOR THIS", "OPE! SORRY! OUT THE DOOR FOREVER!", "CONVOY OF ONE, OVER AND OUT!", "A POX UPON THIS ESTABLISHMENT!", "MAY ALL YOUR TORTILLAS BE SOGGY!"],
   "served": ["NOW THAT'S A TACO!", "WORTH EVERY PENNY. MOSTLY.", "WELL, BLESS YOUR HEART, SUGAR.", "BEAUTY. JUST BEAUTY.", "MY COMPLIMENTS TO THE CHEF!", "YOU'RE ALRIGHT, KID.", "THAT'S WHAT I CAME FOR!", "I'LL BE BACK. AND I'LL BE HUNGRY."],
   "wrong": ["WHOA WHOA WHOA. NOT THAT ONE!", "DID I JUST WITNESS A CRIME?", "THIS IS A CRIME AGAINST TORTILLAS!", "OH NO! A FUMBLE ON THE TORTILLA!", "YOU COULDN'T FOLD IT WITH A MAP!", "FOR THE LOVE OF PETE, NOT THAT!", "SORRY! THE ANSWER WAS 'A TACO'!", "THAT AIN'T ON THE TICKET, BUD!", "I DIDN'T ORDER THAT. DID I?"],
-  "people": {}
+  "people": {},
+  "cast": {
+    "pfeifer": {
+      "name": "SGT. PFEIFER",
+      "face": "cop70",
+      "era": 1,
+      "role": "officer",
+      "lines": {
+        "chase": ["PULL IT OVER, TACO BOY.", "THIS IS HAYS PD. PULL OVER!", "LIGHTS AND SIREN. YOUR MOVE, SON.", "I'VE GOT YOU ON THE RADAR, SON.", "YOU'RE NOT IN DODGE CITY NOW!"],
+        "fined": ["THAT'S A CITATION, SON.", "SIGN HERE. PRESS HARD. 3 COPIES.", "SPEED LIMIT'S 25 FOR A REASON.", "THAT'S COMING OUT OF YOUR TIPS.", "I'LL BE TELLING YOUR MOTHER."],
+        "lost": ["I KNOW WHERE YOU WORK, SON.", "THIS ISN'T OVER, TACO BOY.", "I'LL BE IN FOR LUNCH. WATCH IT.", "LOST HIM BY THE GRAIN ELEVATOR.", "NEXT TIME, SON. NEXT TIME."]
+      }
+    },
+    "karlin": {
+      "name": "OFC. KARLIN",
+      "face": "cop80",
+      "era": 2,
+      "role": "officer",
+      "lines": {
+        "chase": ["DISPATCH, I'VE GOT A TACO RUNNER.", "OH, YOU WANT TO DO THIS? OKAY.", "PULL OVER. DON'T MAKE ME RADIO.", "NICE CAR. SHAME ABOUT THE DRIVER.", "CODE 3 ON A TACO RUN. GREAT."],
+        "fined": ["LICENSE, REGISTRATION, SALSA.", "THAT'LL COST YOU. AND ME A TACO.", "TICKET'S IN THE MAIL. SMILE.", "YOU'RE KEEPING ME IN BUSINESS.", "WRITE THAT DOWN? ALREADY DID."],
+        "lost": ["OKAY. YOU WIN THIS ONE.", "I'LL SEE YOU AT LUNCH, HOTSHOT.", "DISPATCH, LOST 'EM. AGAIN.", "RUN ALL YOU WANT. I'M HUNGRY.", "ENJOY IT. I HAVE YOUR PLATES."]
+      }
+    },
+    "dreiling": {
+      "name": "OFC. DREILING",
+      "face": "cop90",
+      "era": 3,
+      "role": "officer",
+      "lines": {
+        "chase": ["OKAY. ONE. TWO. PULL OVER.", "SIR? MA'AM? PLEASE PULL OVER.", "I JUST WASHED THIS CRUISER, MAN.", "NOT HOW I PICTURED MY SHIFT.", "STOP! I MEAN IT! I THINK!"],
+        "fined": ["I HAVE TO WRITE THIS. SORRY.", "MY SERGEANT MAKES ME DO THIS.", "THAT'S A TICKET. DON'T HATE ME.", "THREE, TWO... TICKET. WHATEVER.", "IT'S NOT PERSONAL. IT'S A QUOTA."],
+        "lost": ["AND... THEY'RE GONE. GREAT.", "I'M TELLING SARGE IT WAS FOG.", "WHATEVER. I'M ON BREAK ANYWAY.", "THAT DIDN'T HAPPEN. OKAY?", "PAGE ME IF YOU SEE 'EM."]
+      }
+    },
+    "dusty": {
+      "name": "DUSTY",
+      "face": "rival70",
+      "era": 1,
+      "role": "rival",
+      "lines": {
+        "missed": ["NICE ARM. FOR A LAWN SPRINKLER.", "HA! RIGHT IN THE PETUNIAS, MAN!", "WATCH AND LEARN, ROOKIE.", "SMOOTH. REAL SMOOTH. FAR OUT.", "THAT ONE'S GOING IN MY SCRAPBOOK."],
+        "perfect": ["LUCKY. TOTALLY LUCKY.", "OKAY, THAT WAS KINDA GROOVY.", "I TAUGHT YOU THAT. DON'T FORGET.", "RIGHT ON THE MAT? NO WAY, MAN.", "ENJOY IT. WON'T HAPPEN AGAIN."]
+      }
+    },
+    "ace": {
+      "name": "ACE",
+      "face": "rival80",
+      "era": 2,
+      "role": "rival",
+      "lines": {
+        "missed": ["GAME OVER, MAN! INSERT COIN!", "HA! YOU MISSED BY A COUNTY!", "NEW HIGH SCORE... FOR MISSING!", "THAT'S NOT HOW YOU PLAY, ROOKIE.", "EVEN MY KID BROTHER HITS THAT."],
+        "perfect": ["BONUS ROUND! ...LUCKY.", "OKAY, OKAY. THAT'S A HIGH SCORE.", "NICE. STILL NOT MY INITIALS.", "WHOA. RADICAL. I MEAN, WHATEVER.", "YOU'VE BEEN PRACTICING. ADMIT IT."]
+      }
+    },
+    "jinx": {
+      "name": "JINX",
+      "face": "rival90",
+      "era": 3,
+      "role": "rival",
+      "lines": {
+        "missed": ["AS IF! THAT WAS SO NOT IT.", "WHOOPS. I SAW NOTHING. WINK.", "THAT'S GOING IN MY ZINE.", "TALK TO THE HAND. AND THE HEDGE.", "NOT EVEN CLOSE. NOT EVEN!"],
+        "perfect": ["OKAY, THAT WAS ALL THAT.", "WHATEVER. I'LL DO IT BETTER.", "DID YOU JUST... PSH. LUCKY.", "SCHWING. I MEAN, FINE. GOOD.", "DON'T LET IT GO TO YOUR HEAD."]
+      }
+    }
+  }
 }

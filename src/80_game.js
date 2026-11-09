@@ -623,7 +623,9 @@ const G = {
     if (perfect) Fx.pop(z.x, z.y - 26, 'ON THE DOORSTEP! +' + money(this.diff.perfectBonus), PAL.amber);
     this.say(perfect ? 'PERFECT TOSS!' : 'DELIVERED!', perfect ? PAL.amber : PAL.good);
     const late = o.tip < (o.floor + (o.max - o.floor) * 0.25);
-    this.react(late && DIALOGUE.late ? 'late' : 'delivered', o, late);
+    /* only a perfect toss is a rival moment; the rival speaks instead of the customer */
+    if (!(perfect && Math.random() < RIVAL_ODDS && Cast.say('rival', 'perfect')))
+      this.react(late && DIALOGUE.late ? 'late' : 'delivered', o, late);
     Audio5.sfx(perfect ? 'perfect' : 'deliver');
     Audio5.sfx('cash');
     this.flash = 0.14;
@@ -638,7 +640,8 @@ const G = {
     Fx.splat(z.x, z.y);
     Fx.spill(z.x, z.y);
     Audio5.sfx('splat');
-    this.react('missed', this.order, true);
+    /* the rival takes it 1 time in 3; if he cannot (a hostile line is up) the customer does */
+    if (!(Math.random() < RIVAL_ODDS && Cast.say('rival', 'missed'))) this.react('missed', this.order, true);
     this.stats.splat++;
     const fee = this.diff.fines.remake;
     this.fine(fee);
@@ -742,6 +745,7 @@ const G = {
     this.cop = new Cop(x, y, Math.atan2(p.y - y, p.x - x));
     this.copT = 26;
     this.say("HAYS PD! LOSE 'EM!", PAL.bad);
+    Cast.say('officer', 'chase');
     Audio5.sirenOn();
   },
   dropCop() { this.cop = null; this.heat = Math.min(this.heat, 45); Audio5.sirenOff(); },
@@ -1024,6 +1028,7 @@ const G = {
         Fx.pop(q.x, q.y - 18, 'OW! -' + money(f), PAL.bad);
         this.shake = 5; this.hitstop = 0.05;
         Audio5.sfx('ped');
+        Cast.say('officer', 'fined');
       }
     }
     while (this.peds.length < 24) this.spawnPed();
@@ -1046,6 +1051,7 @@ const G = {
         this.shake = Math.max(this.shake, 7);
         Audio5.sfx('crash');
         this.say('THE TRAIN GOT THEM', PAL.good);
+        Cast.say('officer', 'lost');
         this.heat = 0;
         this.dropCop();
       }
@@ -1070,11 +1076,13 @@ const G = {
         this.shake = 9; this.hitstop = 0.1;
         Fx.pop(p.x, p.y - 22, 'TICKET! -' + money(f), PAL.bad, true);
         this.say('PULLED OVER', PAL.bad);
+        Cast.say('officer', 'fined');
         Audio5.sfx('ticket');
         this.heat = 0;
         this.dropCop();
       } else if (this.copT <= 0 || (d > 620 && this.heat < 55)) {
         this.say('LOST THEM', PAL.good);
+        Cast.say('officer', 'lost');
         this.dropCop();
       }
     }
