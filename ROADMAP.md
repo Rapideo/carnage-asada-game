@@ -44,7 +44,7 @@ after Service Mode and not before; the rest are decisions that need no work.
       hazards beyond grip are post-1.0.
 - [ ] **Q4 (C): the player's car stays red;** remove the red (#d94f4f) from the traffic
       colours (`CAR_COLORS`).
-- [ ] **Q7 (C): a full speaking cast before 1.0:** police, a rival delivery driver and kitchen
+- [x] **Q7 (C): a full speaking cast before 1.0 (DONE 2026-11-08):** police, a rival delivery driver and kitchen
       staff, one face per decade each (9 faces). The art director's nine portraits are
       **approved** (`reference/faces/cast/`, untracked). Baking them needs reserved palette
       slots (olive cactus on the rivals' caps; jade #1fa37e and gold #f3bd46 on the staff
@@ -85,13 +85,16 @@ after Service Mode and not before; the rest are decisions that need no work.
           - Five existing faces now first appear later: c80breaker from 1981; c90rocker and
             c90soap from 1993; c90raider and c90club from 1999.
           - **No regulars for now** (owner ruling).
-          - The line review is still to come.
+          - The line review is done: the owner kept every attributed line (2026-11-08), and the
+            per-face lines are built (670 lines on 120 faces, used 3 times in 4).
         - **DONE 2026-11-08: all 104 baked and cast.**
           - The owner approved the Face proofs and chose **Matched** for all.
           - The casts are '70s 38, '80s 45, '90s 37, with first years in `casts.json`'s `from`.
           - **Still to do: eyes.** Detection was wrong on most (boxes on chins and hats), so
             they were cleared and the new faces do not blink yet. Set them by hand in Service
-            Mode's Faces tab.
+            Mode's Faces tab. **The same goes for the nine cast portraits** (officers PFEIFER,
+            KARLIN, DREILING; rivals DUSTY, ACE, JINX; coworkers MARGE, DALE, NIKKI): eyes are
+            cleared and need setting by hand.
           - **Note:** the '90s start thin. At 1990, 4 faces (c90jock and three picks) are there,
             because four of the original five were moved to 1993 or 1999.
         - **Baking them** (Claude's plan, owner agreed 2026-11-08):
@@ -178,7 +181,7 @@ after Service Mode and not before; the rest are decisions that need no work.
         and trial and error teach the recipes. *Claude's assumption, to confirm:* the pause
         screen keeps its menu, at the cost of clock time.
       - The other cards (clear, game over, continue) are unchanged.
-- [ ] **A next-ingredient hint:** the right bin blinks briefly to show what comes next.
+- [x] **A next-ingredient hint (DONE 2026-11-08; `hint`/`hintNewOnly`/`hintStall` in `difficulty.json`):** the right bin blinks briefly to show what comes next.
       - It blinks **after a stall** (about 3 seconds with no pick while building) **and after
         a wrong pick.**
       - **Easy:** always. **Medium:** only for dishes new to this decade's menu (not on the

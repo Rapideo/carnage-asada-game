@@ -73,7 +73,7 @@ the ticket. A wrong pick flashes the bin's plate red and holds it until you pick
 the item's star and the ticket's +$5 clean bonus, but never your progress. A ticket's tip is the
 customer's patience — at zero they walk out. More than three waiting and the line complains, and every
 tip drains half again as fast. Bins never move between levels; the 1980s fill two empty ones (sauce,
-chili), the 1990s the last (chicken).
+chili), the 1990s the last (chicken). On Easy (and for new dishes on Medium) a stall or a wrong pick blinks the right bin, and your coworker says what's next.
 
 Leave it alone and it runs a cabinet-style attract loop: title, a public-service card, the high-score
 board, then a random level playing itself.

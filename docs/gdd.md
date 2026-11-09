@@ -239,6 +239,9 @@ drawn the same way over a live delivery frame and over the kitchen.
 - **The lines** are in `content/dialogue.json`, grouped by moment:
   - Delivery: `delivered`, `late`, `missed`.
   - Kitchen: `arrive`, `wait`, `queue`, `walkout`, `served`, `wrong`.
+  - **A line wraps to at most two rows** in the bubble; the build checks every row.
+  - `people`: personal lines for 120 customer faces, used three times in four.
+  - `cast`: the nine named characters' lines (see 2 and 3 below).
 - **A line can carry an era floor.** For example, `2|HELLOOO? MCFLY?` only plays from the
   1980s on, so nobody quotes a film that has not come out yet.
 - **The strip is rate-limited in the kitchen**, because it covers the lower bins. A
@@ -248,7 +251,7 @@ drawn the same way over a live delivery frame and over the kitchen.
 
 #### 1. Customers - move to game type
 
-Customers are the only speakers. Each era has its own **cast** of baked portraits:
+Customers are the main speakers (the officers, rivals and staff below speak too). Each era has its own **cast** of baked portraits:
 
 - six for the 1970s, five for the 1980s and five for the 1990s;
 - baked from the first reference sheet of each era with `tools/render/bake-face.mjs`
@@ -270,11 +273,17 @@ cleared in the shipped face data. Setting them by hand brings the blink back.
 
 #### 2.  Drivers - move to game type
 
-Not built. The 2026-10-25 build gave no other driver a voice.
+Built 2026-11-08, as a voice only, with no car in the city. The rivals (DUSTY '70s, ACE '80s, JINX '90s)
+speak on your missed toss and your perfect toss, instead of the customer one time in three. The officers
+(SGT. PFEIFER, OFC. KARLIN, OFC. DREILING) speak when a chase starts, when you are fined (pulled over or a
+pedestrian) and when you lose them.
 
 #### 3. Taco Shop Staff - move to game type
 
-Not built. The 2026-10-25 build gave the staff no lines.
+Built 2026-11-08. The coworker (MARGE '70s, DALE '80s, NIKKI '90s) speaks at clock-in, after three clean
+tickets, when the clock first drops under 0:30, when the line backs up (one time in two), and with the
+next-ingredient hint ("CHEESE NEXT, HON"). The hint blinks the right bin after a stall or a wrong pick: Easy
+always, Medium for dishes new to the decade, Hard and Supreme off. None of them speak in the demo or attract mode.
 
 ### J. Eras
 

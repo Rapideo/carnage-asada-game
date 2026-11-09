@@ -98,11 +98,18 @@ missing field; and it rejects copy too wide for the 384px screen, reporting how 
 That last one exists because the width limit was a comment in the JSON before it was a guard, and the first
 person to edit the file immediately exceeded it — **a note is not a guard.**
 
-**`content/dialogue.json`** holds the customer's lines, and **`content/faces/*.json`** the baked character
+**`content/dialogue.json`** holds every spoken line, and **`content/faces/*.json`** the baked character
 likenesses (see the Faces section below). Both are inlined the same way, becoming `DIALOGUE` and `FACES`.
+It has three parts: the shared pools by moment, **`people`** (670 personal lines on 120 customer faces,
+keyed by face) and **`cast`** (the 9 named characters: name, face, and lines by moment). The docs mirror
+covers all three: `dialogue.md` is grouped Shared / The cast / Customers.
 The dialogue width check is **not** the 384px one every other field uses: the portrait sits beside the
-bubble, so the limit is computed from the widest baked face. A line that passes the screen-width check can
-still overflow the bubble, and nothing in the test suite can see it.
+bubble, so the limit is computed from the widest baked face (`dlgLimitPx` in `validate.mjs`). **A line
+wraps to at most two rows**, and the build checks every row of the wrap (`wrapRows`, the same rule as
+`Dialog.wrap`), not the whole line's width. A line that passes the screen-width check can still overflow
+the bubble, and nothing in the test suite can see it. The attribution record for the personal lines is
+`reference/assets/line-attribution/part-1..3.json`; the owner reviewed and kept every attributed line
+(2026-11-08).
 
 **`content/lattice/*.json`** holds the baked steam-table wells and the two base stations. It ships: `build.mjs` inlines and validates it as
 `LATTICE`, the same way it does the faces, and `74_kitchen.js` draws from it. Re-bake with
@@ -224,7 +231,8 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 | `50_entities` | `Player`, `Traffic`, `Train`, `Crossing`, `Ped`, `Cop`, `Bag`, `Fx`; shared car physics + collision |
 | `60_nav` | `Nav` (TACO-NAV unit) and `solve()` — Dijkstra over the intersection graph |
 | `70_hud` | `Hud.draw()` — order card, tip meter, nav panel, minimap; `navArrow`, `triArrow` |
-| `72_dialog` | `Dialog` — the dialogue strip: portrait box, speech bubble, slide-in. Shared by both halves |
+| `72_dialog` | `Dialog` — the dialogue strip: portrait box, speech bubble (two rows, `Dialog.wrap`), slide-in. Shared by both halves |
+| `73_cast` | `Cast` — the nine named characters speak: officers, rivals, coworkers. Decides who and when; `Dialog` draws it |
 | `74_kitchen` | `Kitchen` — the whole Kitchen Shift as one object: tickets, queue, lattice, picking, wrap/send, the board picture, its own clock card, and the attract-mode cook |
 | `75_demo` | `Demo.drive()` — the attract-mode driver; follows a lane-centre polyline, sets the same fields `Player.control` does |
 | `78_scores` | `Scores` — the high-score board: factory content, guarded `localStorage`, qualification, insertion. Model only, never draws. |
@@ -596,6 +604,18 @@ Four things the demo driver must keep doing, all learned by watching it fail:
 
 ### Faces and the dialogue strip
 
+**Who speaks.** The strip carries two rows of text. A customer's line comes from `G.lineFor`, which uses a
+personal line from `people` for that face three times in four and the shared pool otherwise. The cast
+speak through `Cast` (`73_cast.js`): officers PFEIFER/KARLIN/DREILING (faces `cop70`..) on a chase, a fine
+(pulled over, a pedestrian) and losing them; rivals DUSTY/ACE/JINX on a missed or perfect toss, in place of
+the customer one time in three; coworkers MARGE/DALE/NIKKI at clock-in, after 3 clean tickets, in trouble
+(under 0:30, once; and the line backing up, 1 in 2) and with the ingredient hint (`{ING}` takes the
+ingredient's name). `Cast` never speaks in the demo or attract mode, and yields to a hostile line with more
+than 1 s left. The nine portraits are baked by `tools/render/bake-cast.mjs` with reserved accent colours
+(`COLOURS`/`ACCENTS` in `bake-face.mjs`: olive on the rivals' caps, jade and gold on the staff badge). **Eyes
+are not set yet** on the 104 new customer faces or the 9 cast: detection was wrong, so they were cleared
+and those faces do not blink until set by hand in Service Mode's Faces tab.
+
 **The likeness is data; the variation is code.** A parameterised drawing routine composes axis-aligned
 rectangles, which is fine for a car and hopeless for a face: at 44px a likeness needs irregular, diagonal
 edges, and every attempt to re-derive one from parameters produced a face made of bars — two hard brow
@@ -658,6 +678,13 @@ docket goes on the rail; past three tickets customers queue in the OVERHEAD and 
 `COMPLAIN_MUL` (1.5). The recipes are hidden in play; the level card and the pause overlay show the menu.
 Barks are rate-limited to one per 5s (a walkout always speaks), because the strip covers the lower bins.
 
+**The next-ingredient hint** blinks the right bin after a stall or a wrong pick, and the coworker says it
+("CHEESE NEXT, HON"). Per difficulty in `content/difficulty.json` kitchen: `hint` (on/off), `hintNewOnly`
+(only dishes new to the decade's menu) and `hintStall` (seconds with no pick). Easy always, Medium for new
+dishes only, Hard and Supreme off. The hinted plate is redrawn over the strip, since the strip covers the
+lower bins. There is no player switch. The coworker also speaks at clock-in, on a streak and in trouble
+(see Faces and the dialogue strip).
+
 **The surroundings change with the decade; the bins never do.** `buildBg` bakes, once per level:
 - a back wall (`drawWall`): '70s enamel tile, '80s wood paneling, '90s laminate and plastic;
 - a dining room (`drawDining`);
@@ -673,7 +700,9 @@ that the calendar is right and fits, and that the calendar and sign clear a 3-it
 ### Service Mode (the admin overlay)
 
 A dev-only content editor and test panel that runs inside the dev build of the game. Press **F2**.
-Tabs: Levels, Menu, Attract, Music, Difficulty, Dialogue, Faces, Test. Code keeps the names `Admin`,
+Tabs: Levels, Menu, Attract, Music, Difficulty, Dialogue, Faces, Test. The Dialogue tab has a speaker
+picker (shared pools, each of the nine cast, each customer face) and edits `people` and `cast` as well as
+the pools; the Difficulty tab has the kitchen hint rows (`hint`, `hintNewOnly`, `hintStall`). Code keeps the names `Admin`,
 `admin.mjs` and `/admin/api`; everything the owner sees says SERVICE MODE. Design:
 `docs/superpowers/specs/2026-10-25-admin-overlay-design.md` (owner rulings at its head).
 
