@@ -13,9 +13,9 @@ at 9e5d26f). Not merged, pushed, tagged or deployed yet.** 0.9.3 is the 0.9.x li
 no red traffic, one customer face per address, weather set per level, wind, snow and rain in the kitchen, the
 simple level card, eyes on all the new faces, and the Pixel 10 landscape controls (`CHANGELOG.md`).
 **Next, in order:**
-1. The final whole-branch review and its fix wave. Known minor items for it: a key held from the previous screen
-   can auto-repeat past the level card (ignore `e.repeat`); the eyes test checks counts only; the TOSS ghost
-   overlaps the ORDERS counter at the picture's right edge (owner's option).
+1. The final whole-branch review and its fix wave are DONE (commit `0.9.3: final review fixes`: held keys
+   no longer skip the level card, the eyes test checks geometry, the windy-demo bound is 7 of 14). Still open:
+   the TOSS ghost overlaps the ORDERS counter at the picture's right edge (owner's option).
 2. Then `git tag v0.9.3` on the final commit (deliberately not made yet).
 3. The owner's call: merge to `master`, push, and deploy. The deploy steps (below) now include
    `deploy/manifest.webmanifest` and the two icons.
@@ -41,11 +41,10 @@ copy, and `docs/authored content/*.md` are generated from it (do not hand-edit t
 **The owner's full playtest (Monday, 2026-11-09). The 0.9.x list below is DONE in 0.9.3**
 (full list in `ROADMAP.md`, "NEXT: the 0.9.x list"):
 - rain grip 0.84 to 0.75; remove red (#d94f4f) from the traffic colours;
-- the nine-portrait speaking cast (police, rival driver, kitchen staff), baked with reserved
-  palette slots, with the lines written by the owner in the Dialogue tab;
 - one customer face per address for the whole run;
-- snow tracked in on winter kitchen levels; the Mode C minimap moved to a free corner;
-- the kitchen calendar: winter kitchen levels are December, not JAN.
+- snow tracked in on winter kitchen levels; the Mode C landscape stick moved to mid-left, which
+  frees the minimap's corner (the minimap itself did not move).
+(The nine-portrait cast was 0.9.2 and the kitchen calendar 0.9.1; both are in `CHANGELOG.md`.)
 Decisions needing no work (keep mouse-aim, police cost, downtown targets, long tickets over
 the calendar, the flaky demo test, the branch name `master`) are in the roadmap too, along
 with E5: judge graded frames by eye, not by the GDD X.1 targets. **E8, music clearance, is
@@ -357,8 +356,11 @@ Known soft spots:
      `<meta charset="utf-8">`, the viewport tag
      `<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">`
      (`viewport-fit=cover` is what lets the safe-area insets see the camera cutout) and
-     `<link rel="manifest" href="manifest.webmanifest">`, the way `build.mjs` does for the
-     dev `index.html`; Netlify does not add them.
+     `<link rel="manifest" href="manifest.webmanifest">`. `build.mjs` adds none of these to
+     `taco-shop.html` (its dev `index.html` wrapper has the doctype and charset only), and
+     Netlify does not add them, so the deploy wrapper must.
+     **`viewport-fit=cover` is essential:** without it the safe-area insets read 0 and the
+     stick sits under the camera.
   3. Copy `deploy/manifest.webmanifest`, `deploy/icon-192.png` and `deploy/icon-512.png`
      into the same folder, beside `index.html`. They make it installable to the home
      screen (`display: fullscreen`, landscape). Redraw the icons with

@@ -2939,6 +2939,19 @@ console.log('\n— eyes on every face —');
     const n = Array.isArray(f.eyes) ? f.eyes.length : -1;
     if (!(n === 2 || (f._eyesByHand === true && (n === 0 || n === 1)))) bad.push(name + ' (' + n + ' eyes' + (f._eyesByHand ? ', by hand' : '') + ')');
   }
+  /* and the rects themselves must be sane: inside the bitmap, at least 1x2, a pair level, skin one of the face's own colours */
+  const geo = [];
+  for (const name of readdirSync('content/faces').filter((n) => n.endsWith('.json'))) {
+    const f = JSON.parse(readFileSync('content/faces/' + name, 'utf8'));
+    const E = Array.isArray(f.eyes) ? f.eyes : [];
+    for (const r of E) {
+      const [x, y, w, h] = r;
+      if (![x, y, w, h].every(Number.isInteger) || x < 0 || y < 0 || w < 1 || h < 2 || x + w > f.w || y + h > f.h) geo.push(name + ' rect ' + JSON.stringify(r));
+    }
+    if (E.length === 2 && Math.abs(E[0][1] - E[1][1]) > 2) geo.push(name + ' pair y ' + E[0][1] + '/' + E[1][1]);
+    if (!Array.isArray(f.pal) || !f.pal.includes(f.skin)) geo.push(name + ' skin ' + f.skin + ' not in pal');
+  }
+  ok(geo.length === 0, 'every eye rect is inside its bitmap (w>=1, h>=2), a pair is within 2 rows, and skin is in the face palette' + (geo.length ? ': ' + geo.slice(0, 10).join(', ') : ''));
   ok(bad.length === 0, 'every face in content/faces/ has 2 eye rects, or 0-1 set by hand' + (bad.length ? ': ' + bad.join(', ') : ''));
 }
 

@@ -153,11 +153,12 @@ level 20 done -> victory   -> initials (if the run places) -> high scores -> att
 
 - **The level card** comes before every shift. The shift is already set up behind it, so
   it reads as the start of a shift rather than a loading screen.
-  - It shows the level number and name, the shift type and the difficulty.
-  - A delivery card lists the target, the clock and extension rules, the tips, the fines,
-    the TACO-NAV level, and the roads (dry, or snow).
-  - A kitchen card shows the target and **the menu** (§IV.B).
-  - Enter starts the shift, and so does waiting 12 seconds.
+  - It shows only `LEVEL n` and the date (month and year), typed on letter by letter
+    (a tick per letter) under the decade's three-colour stripe, on black.
+  - There is no menu, target, nav mode, roads line or prompt. The kitchen's menu is on the
+    pause screen only (§IV.B).
+  - It moves on by itself 2.0 s after the date finishes, and any key, click or tap skips it.
+    A held key does not: only a fresh press skips.
 - **LEVEL CLEAR** shows the level's own tally and stars (§II.E), the money from this shift,
   the run total, and what the next level is.
 - **GAME OVER** (`TIME'S UP`) shows the level you died on, the run total, the run's stars
@@ -324,24 +325,27 @@ As built:
 - **Winter, in the Delivery Shift:**
   - Snow lies on everything that is not road. The ploughed streets keep a little slush.
   - Every building roof has snow on it, and snow falls across the screen.
-  - The car's grip drops to x0.62, so the back end steps out. The level card warns
-    `SNOW - THE BACK END STEPS OUT`.
+  - The car's grip drops to x0.62, so the back end steps out. The road itself is the
+    warning; the level card no longer says anything about it.
 - **Winter, in the Kitchen Shift:** the customers have snow on their hats. Nothing else
   changes.
 
-**Weather (owner ruling, 2026-11-07).** A Delivery level rolls its weather each time it
-is played. Summer is sunny or rainy, an even chance; winter is snowy four times in five
-and sunny the fifth. The values are in
-`levels.md`, and the code is `G.rollWeather` and the `WEATHER_*` constants in
-`80_game.js`.
+**Weather (owner ruling, 2026-11-07; set per level from 0.9.3).** Each level's weather is
+authored in `content/levels.json`: `sunny` or `rainy` in summer, `snowy` or `sunny` in winter,
+or `random`. A `random` level rolls its weather each time it is played (summer: sunny or rainy,
+an even chance; winter: snowy four times in five and sunny the fifth). A separate `windy`
+flag exists on Delivery levels only; a `random` level also rolls wind, at 30% in summer and
+25% in winter. The values are in `levels.md`, and the code is `G.rollWeather` and the
+`WEATHER_*` constants in `80_game.js`.
 - **Rain:** a baked wet-road layer (darker tarmac, pale sky streaks, the odd puddle), an
   overcast tint, falling rain with splashes, and grip x0.75.
 - **Sunny winter:** the snow on the ground and roofs stays, because that is the winter
   look, but nothing falls and the ploughed roads grip at x0.9.
-- **Kitchen levels** keep the season's default, because there is no sky to see from the
-  line.
-
-There are no weather hazards beyond grip yet.
+- **Kitchen levels** follow their level's weather as decoration only: snow tracked in on
+  winter levels, rain on the window. It changes nothing about play.
+- **Windy (Delivery only):** a crosswind pushes the bag on the toss, with a windsock at the
+  top centre of the screen, telegraphed gusts that shove the car, and tumbleweeds. Values are
+  in `content/difficulty.json` `wind`.
 
 ### L. Music
 
@@ -690,9 +694,8 @@ The core loop is the owner's paragraph and rules under §IV.F.2. The built rules
   tally), and `SERVED n/15` with the streak. In the Delivery Shift those last two sit
   under the card. In the kitchen that spot is the service window.
 - **Where the menu is shown.** The recipes are hidden during play (rule 1), so they are
-  written down in only two places:
-  - **the kitchen's level card**, before the shift;
-  - **the kitchen pause screen**, at the cost of clock time.
+  written down in one place: **the kitchen pause screen**, at the cost of clock time. The
+  level card does not carry them.
 
   Each recipe is the ticket name followed by the build in order, each step in its
   ingredient's colour. Long builds shorten every step to four letters. Learning the menu
@@ -925,8 +928,8 @@ this document.
 - The combo resets at the start of every level. See §II.E.
 - The flow: mode select, level cards, LEVEL CLEAR, and a victory card after level 20. See
   §II.D.4.
-- The kitchen level card carries the menu, and so does the kitchen pause screen. See
-  §IV.B.
+- The kitchen pause screen carries the menu (the level card shows only the level and date).
+  See §IV.B.
 - Rank thresholds rescaled for a 20-level run, and the factory board with them. See §II.E.
 - The $1.50 remake fee is kept. See §III.E.2.
 - A train hit resets the combo. See §III.E.2.

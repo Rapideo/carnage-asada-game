@@ -59,7 +59,7 @@ groups.push({ label: 'CAST', keys: ['70', '80', '90'].flatMap((y) => ['cop' + y,
 const UNSURE = new Set([
   'c70easyrider', 'c70stonerdude', 'c70beekeeper', 'c70taxman', 'staff70',
   'c80heavymetaldude', 'c80newwaveguy2', 'c80miamigirl', 'rival80', 'staff80', 'c80newwaveguy', 'c80metalhead',
-  'c90girlpowerfan', 'c90sk8terchick', 'c90teenmom', 'c90dopeybuddy', 'c90ravergirl', 'c90raver', 'staff90',
+  'c90girlpowerfan', 'c90sk8terchick', 'c90teenmom', 'c90dopeybuddy', 'c90ravergirl', 'staff90',
 ]);
 
 /* the build has to be current, or the proof shows yesterday's eyes */

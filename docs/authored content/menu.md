@@ -762,4 +762,4 @@ Same as Era 1.
 | Nachos | NACHOS | NACHOS |
 
 - The game reads the menus from `content/menus.json`. The recipes are hidden during
-  play; the Kitchen level card and the kitchen pause screen show them.
+  play; only the kitchen pause screen shows them (the level card shows just the level and date).

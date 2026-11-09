@@ -227,7 +227,7 @@ const Input = {
     const codes = (e) => (e.key && e.key.length > 1 && e.key !== e.code) ? [e.code, e.key] : [e.code];
     addEventListener('keydown', (e) => {
       for (const k of codes(e)) { if (!this.down[k]) this.hit[k] = true; this.down[k] = true; }
-      this.anyKey = true;
+      if (!e.repeat) this.anyKey = true;   // an auto-repeat is a held key, not a fresh press
       if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','Tab'].includes(e.code)) e.preventDefault();
     });
     addEventListener('keyup', (e) => { for (const k of codes(e)) this.down[k] = false; });

@@ -1288,6 +1288,22 @@ ok(cardsOk === 20, 'all twenty level cards render');
     ok(G.state === 'card', 'level 1 card is typing');
     Input.anyKey = true; G.update(1 / 60); Input.endFrame();
     ok(G.state === 'play', 'any key mid-typing goes straight into play');
+    /* a held key is not a press: the real keydown handler, with OS auto-repeat (I1) */
+    {
+      const hs = {}, realAdd = sandbox.addEventListener, ds = Input.down;
+      sandbox.addEventListener = (t, f) => { hs[t] = f; };
+      try { Input.init(makeCanvas(), () => 1); } finally { sandbox.addEventListener = realAdd; }
+      const kd = (repeat) => hs.keydown({ code: 'KeyX', key: 'x', repeat, preventDefault() {} });
+      G.toCard(2); run(30); Input.endFrame();
+      kd(true); G.update(1 / 60); Input.endFrame();
+      ok(G.state === 'card' && G.cardT > 0.3, 'a repeating keydown (held key) does not skip the level card');
+      kd(false); G.update(1 / 60); Input.endFrame();
+      ok(G.state === 'kitchen', 'a fresh keydown skips the level card');
+      hs.keyup({ code: 'KeyX', key: 'x' });
+      G.toTitle(); Input.endFrame(); kd(false);
+      ok(Input.anyKey === true, 'a fresh keydown sets anyKey for the attract screens');
+      Input.endFrame(); hs.keyup({ code: 'KeyX', key: 'x' });
+    }
     G.toCard(2); run(30);
     Input.mhit = true; G.update(1 / 60); Input.endFrame();
     ok(G.state === 'kitchen', 'a click or tap skips the kitchen card too');
@@ -2252,10 +2268,14 @@ console.log('\n— wind —');
 
   /* --- Review Focus 2: the demo on a windy level still delivers --- */
   const pin = G.demoPin;
+  /* Bound: 14 runs, at least 7 deliver. Measured per-run success is about 0.85
+     (7-10 of 10 observed). At p=0.85 P(X<=6 of 14) is about 1e-4; even at p=0.75
+     it is about 0.2%. The old 6-of-10 failed 1-3% of runs at p=0.85. A demo that
+     is actually broken by wind delivers in roughly 0 runs and still fails clearly. */
   let runs = 0, delivered = 0;
   try {
     G.demoPin = 5;
-    for (let r = 0; r < 10; r++) {
+    for (let r = 0; r < 14; r++) {
       reset(); G.toDemo(); runs++;
       const d0 = G.stats.delivered;
       for (let i = 0; i < ATTRACT.demo.seconds * 60 && G.state === 'demo'; i++) { G.update(1 / 60); Input.endFrame(); }
@@ -2263,7 +2283,7 @@ console.log('\n— wind —');
     }
   } finally { G.demoPin = pin; }
   console.log(`  --    windy demo (level 5): a delivery in ${delivered} of ${runs} ${ATTRACT.demo.seconds}s runs`);
-  ok(G.windy !== undefined && delivered >= 6, `the attract demo on windy level 5 still delivers in most runs (${delivered}/${runs})`);
+  ok(G.windy !== undefined && delivered >= 7, `the attract demo on windy level 5 still delivers in most runs (${delivered}/${runs})`);
 
   reset(); G.toTitle();
   ok(!!Wind && Wind.on === false && weeds().length === 0, 'the title is calm');

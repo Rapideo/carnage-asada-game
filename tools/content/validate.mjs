@@ -852,7 +852,7 @@ function buildMenus(src) {
 export const SEASONS = ['summer', 'winter'], TYPES = ['delivery', 'kitchen'];
 /* a level's weather: what each season can have, plus `random` (rolled each play) */
 export const WEATHERS = { summer: ['sunny', 'rainy', 'random'], winter: ['snowy', 'sunny', 'random'] };
-const LEVEL_COUNT = 20, LEVEL_CARD_SCALE = 2;
+const LEVEL_COUNT = 20, LEVEL_NEXT_SCALE = 1;   // the level name is drawn only on the clear screen's NEXT line, at scale 1
 function buildLevels(src, difficulty, maps, menus) {
   const F = 'content/levels.json';
   const raw = stripNotes(src.readJSON('levels.json'));
@@ -864,8 +864,9 @@ function buildLevels(src, difficulty, maps, menus) {
     if (v.n !== i + 1) fail(F, [...P, 'n'], `${W} has n ${JSON.stringify(v.n)}; levels must be listed in order, n = 1..${LEVEL_COUNT}`);
     if (!TYPES.includes(v.type)) fail(F, [...P, 'type'], `${W}.type must be ${TYPES.join(' or ')}, got ${JSON.stringify(v.type)}`);
     const name = drawable(F, [...P, 'name'], `${W}.name`, v.name);
-    if (textPx(name, LEVEL_CARD_SCALE) > VW - 2 * EDGE)
-      fail(F, [...P, 'name'], `${W}.name ${JSON.stringify(v.name)} is ${textPx(name, LEVEL_CARD_SCALE)}px at scale ${LEVEL_CARD_SCALE}, wider than the ${VW}px screen.`);
+    const nextLine = `NEXT: LEVEL ${v.n} ${name} - ${v.type === 'kitchen' ? 'KITCHEN' : 'DELIVERY'}`;
+    if (textPx(nextLine, LEVEL_NEXT_SCALE) > VW - 2 * EDGE)
+      fail(F, [...P, 'name'], `${W}.name ${JSON.stringify(v.name)} makes the clear screen's "${nextLine}" ${textPx(nextLine, LEVEL_NEXT_SCALE)}px, wider than the ${VW}px screen.`);
     if (!Number.isInteger(v.year) || v.year < 1970 || v.year > 1999) fail(F, [...P, 'year'], `${W}.year must be 1970..1999, got ${JSON.stringify(v.year)}`);
     if (!name.includes(String(v.year))) fail(F, [...P, 'name'], `${W}.name ${JSON.stringify(v.name)} does not show its year ${v.year}`);
     const era = Math.floor((v.year - 1970) / 10) + 1;

@@ -31,15 +31,17 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
     the handbrake bites harder.
   - Sunny winter : the old snow stays on the ground and the roofs, nothing falls, and the
     ploughed roads grip at 0.9 of normal.
-  - The level card names the weather when it is not the season's default (`RAINY SUMMER
-    1972`, `SUNNY WINTER 1975`), and its ROADS line says what the roads are like.
+  - The level card does not name the weather; the road and the sky show it.
+  - Windy (Delivery only) : a crosswind drifts the bag on the toss, shown by a windsock at
+    the top centre of the screen, with telegraphed gusts that shove the car and
+    tumbleweeds.
 
 - Music : names the music.md section the level plays
 
-- Level Card : `LEVEL n` over the season and year, for example `SUMMER 1972`, with the
-  weather in front when it is not the season's default (see Weather). A Kitchen
-  level's card also carries that era's menu, every recipe in build order, because the
-  recipes are hidden during play
+- Level Card : `LEVEL n` over the date (month and year, for example `JULY 1972`), typed on
+  letter by letter under the decade's three-colour stripe, on black. It moves on 2.0 s
+  after the date finishes, and any key, click or tap skips it. It shows no menu, target,
+  nav mode, roads line or prompt; the Kitchen menu is on the pause screen only
 
 - Clearing : reach the difficulty's level target before the clock runs out (see
   difficulty.md). Then comes the LEVEL CLEAR card and the next level's card; after Level

@@ -5,7 +5,7 @@
 
      Sequence    n
      Game Type   Delivery | Kitchen
-     Name        the JSON `name`, as stored (the level card's title)
+     Name        the JSON `name`, as stored (shown on the clear screen's NEXT line and in Service Mode; the level card no longer shows it)
      Era         1970s | 1980s | 1990s
      Music       <year> - <Delivery|Kitchen>  (the music.md section it plays)
      Difficulty  the difficulty.json key, capitalised

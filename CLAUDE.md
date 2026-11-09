@@ -231,7 +231,7 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 | `50_entities` | `Player`, `Traffic`, `Train`, `Crossing`, `Ped`, `Cop`, `Bag`, `Fx`; shared car physics + collision |
 | `55_wind` | `Wind` and `Tumbleweed` — windy Delivery levels: the bag's crosswind drift (`Wind.push`), gusts that shove the car through `Player.update`'s normal collision path (`Wind.lateral`), dust streaks, tumbleweeds. Off unless `G.windy`; values in `content/difficulty.json` `wind` |
 | `60_nav` | `Nav` (TACO-NAV unit) and `solve()` — Dijkstra over the intersection graph |
-| `70_hud` | `Hud.draw()` — order card, tip meter, nav panel, minimap; `navArrow`, `triArrow` |
+| `70_hud` | `Hud.draw()` — order card, tip meter, nav panel, minimap, the windsock on windy levels (top centre); `navArrow`, `triArrow` |
 | `72_dialog` | `Dialog` — the dialogue strip: portrait box, speech bubble (two rows, `Dialog.wrap`), slide-in. Shared by both halves |
 | `73_cast` | `Cast` — the nine named characters speak: officers, rivals, coworkers. Decides who and when; `Dialog` draws it |
 | `74_kitchen` | `Kitchen` — the whole Kitchen Shift as one object: tickets, queue, lattice, picking, wrap/send, the board picture, its own clock card, and the attract-mode cook |
@@ -777,7 +777,8 @@ well as the pools; the Difficulty tab has the kitchen hint rows (`hint`, `hintNe
 `overlayCard` is deliberately bare (0.9.3, owner): black, `LEVEL n`, a thin three-colour stripe in the decade's
 colours, and the month and year typing on beneath it in the decade colour (`CARD_TYPE`, `CARD_HOLD`,
 `CARD_STRIPE`, `cardDate()`). It moves on by itself when the date has typed and held about 2 s; any key or
-click skips ahead, but only after 0.3 s, so a key still held from the previous screen cannot skip it. It no
+click skips ahead, but only after 0.3 s, and `Input` ignores OS auto-repeat (`e.repeat`) when setting `anyKey`,
+so a key still held from the previous screen cannot skip it; only a fresh press does. It no
 longer shows the target, the clock, tips, fines, the TACO-NAV mode, the road conditions or the kitchen's ticket
 count or menu; the player learns the target from the ORDERS counter. **Do not put them back without asking**:
 the card was cut on purpose. The clear, game over and continue cards are unchanged.
@@ -797,8 +798,8 @@ and burst into twigs, wobbling the car, with no fine. `Wind.reset(windy, diff)` 
 Mode C landscape (`Pad.layout`, pure, CSS px) was measured on the owner's Pixel 10 over ADB: 923x411 CSS px at dpr
 2.625, a left safe-area inset of 66 for the camera band. The picture fills the height (scale 1.9 in both shifts).
 The controls are ghosts in the margins: the stick on the left (18 mm, vertically centred), TOSS, GAS and REV in a
-column on the right, PAUSE top left. **Only the stick, PAUSE and the buttons avoid the inset**; the picture does
-not. The kitchen shows PAUSE only, since its bins and buttons are tapped directly. Touches in the margins come
+column on the right, PAUSE top left. **Only the stick, PAUSE and the buttons avoid the inset**; the delivery picture
+does not, but the kitchen picture is clamped inside the safe area. The kitchen shows PAUSE only, since its bins and buttons are tapped directly. Touches in the margins come
 through a second listener on `#stage`, and the TOSS aim reads the unclamped drag. Portrait, and Modes A and B,
 keep the on-canvas set (`Pad.onCanvas()`). The first tap in Mode C asks for full screen and the landscape lock;
 the wake lock is held only while playing in Mode C and released otherwise. `deploy/manifest.webmanifest` and
@@ -891,7 +892,7 @@ There is no per-test filter — it is one sequential script with labelled sectio
 `— build —`,
 `— hud layout —`, `— collision —`, `— guidance —`, `— simulation —`, `— scoring —`, `— attract —`,
 `— hays map —`, `— block kinds —`, `— downtown addresses —`, `— shop apron —`, `— rail —`,
-`— high scores —`, `— heat —`, `— run structure —`, `— kitchen —`, `— kitchen demo —`, `— test hooks —`, `— wind —`, `— touch layout —`, `— copy —`). To
+`— high scores —`, `— heat —`, `— run structure —`, `— kitchen —`, `— dialogue —`, `— kitchen demo —`, `— test hooks —`, `— personal lines —`, `— one face per address —`, `— cast —`, `— wind —`, `— touch layout —`, `— copy —`). To
 isolate one, edit the script.
 
 **`tools/render/frame.mjs <level> [secs]`** renders a real frame of any level to a PNG with the

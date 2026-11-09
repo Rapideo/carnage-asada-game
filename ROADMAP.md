@@ -7,11 +7,15 @@ Checkboxes render as a live task list on GitHub:
 
 ---
 
-## NOW: version 0.9.1 (Service Mode), then the owner's 0.9.x list
+## NOW: version 0.9.3 done, awaiting the owner's merge and deploy
 
-The game is **feature-complete at 0.9.0** (2026-11-07) and **0.9.1 adds Service Mode** (same
-day; see `CHANGELOG.md`). The owner playtests the whole game on Monday 2026-11-09 and brings a
-punch list. Fixes ship as 0.9.x, and 1.0.0 is the owner's call.
+The game is **feature-complete** (0.9.0, 2026-11-07), **0.9.1 added Service Mode**, and **0.9.3**
+(2026-11-08, branch `v0.9.3`) finished the owner's 0.9.x list: weather set per level, wind, the
+simple level card, the new faces' eyes, and the landscape touch controls (`CHANGELOG.md`). It is
+built and reviewed but not tagged, merged, pushed or deployed. **Next:** the owner's call to merge
+to `master`, push and deploy; then the owner's full playtest brings a new punch list. Open after
+that: the TOSS ghost overlapping the ORDERS counter (owner's option), kitchen tuning, and the rest
+of the punch list below. Fixes ship as 0.9.x, and 1.0.0 is the owner's call.
 
 ## DONE: Service Mode (the admin overlay), 0.9.1
 
@@ -116,7 +120,7 @@ after Service Mode and not before; the rest are decisions that need no work.
       nine cast faces once baked, and for any other era face that lacks them.
 - [x] **E2 (DONE 0.9.3): snow tracked in** onto the dining-room door mat, and wet footprints along the line,
       on winter kitchen levels.
-- [x] **E3 (DONE 0.9.3, checked on the Pixel 10): Mode C (touch) only:** move the minimap to a free corner; check on a real phone.
+- [x] **E3 (DONE 0.9.3, checked on the Pixel 10): Mode C (touch) only:** the landscape stick went to mid-left, which frees the minimap's corner (the minimap did not move); checked on a real phone.
 - [x] **Touch controls in the landscape margins (DONE 0.9.3, ADB-verified on the Pixel 10)** (owner, 2026-11-08). In landscape the 16:9
       picture does not use all the screen it could. Move the Mode C controls out into the left
       and right margins, and make them larger. Fold E3 into it, since freeing the picture may
@@ -265,7 +269,7 @@ Every owner ruling and every invention is recorded in `docs/PURE-CARNAGE-DECISIO
 - [ ] **Mode B on a real stick.** A gamepad press does not unlock audio in the
       browser, so a stick-only cabinet needs Chrome launched with
       `--autoplay-policy=no-user-gesture-required`.
-- [ ] **Mode C on a real phone.**
+- [x] **Mode C on a real phone.** Verified on the owner's Pixel 10 over ADB, in landscape, 2026-11-08.
 - [ ] **Kitchen tuning.** The kitchen numbers are still the paper estimates from
       `difficulty.md`. The sweep says they are winnable; a person has to say whether
       they are fun.
@@ -599,9 +603,11 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
       settled carried over: menu, ingredients and build order as a **JSON settings file** on the
       `content/` pattern; **concurrent** tickets, up to three live at once; 1–5 items per order.
 
-- [ ] **Seasonal hazards. Partly done 2026-10-25, weather added 2026-11-07.**
-      - Weather is rolled each play (`G.rollWeather`): summer sunny or rainy (an even
-        chance), winter snowy four times in five, sunny the fifth.
+- [ ] **Seasonal hazards. Partly done 2026-10-25, weather added 2026-11-07, wind added 0.9.3.**
+      - Weather is set per level in 0.9.3 (a `random` level rolls it with `G.rollWeather`): summer
+        sunny or rainy (an even chance), winter snowy four times in five, sunny the fifth.
+      - Wind (0.9.3, Delivery only): bag drift with a windsock, gusts that shove the car, and
+        tumbleweeds.
       - Built: snow on the ground and roofs and falling flakes (grip x0.62); rain with
         wet roads, puddles, splashes and its own sound (grip x0.84); a sunny winter's
         ploughed roads (grip x0.9). In the kitchen, snow on the customers' hats while
