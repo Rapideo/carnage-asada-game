@@ -7,7 +7,7 @@ here, run `node build.mjs` and the tests, commit, and tag it (`git tag v<version
 Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch lists.
 **1.0.0** is when the owner calls it released.
 
-## Unreleased (branch `tweaks-0.9.5`), from the owner's playtest of 2026-11-09
+## 0.9.5 (2026-11-09): the owner's playtest
 
 - **Brighter faces:** the dialogue strip is drawn over the screen's corner darkening and the
   decade colour grade instead of under them. Portraits measure 25 to 60% brighter.
