@@ -1259,20 +1259,61 @@ let cardsOk = 0;
 for (let n = 1; n <= 20; n++) { G.toCard(n); G.render(ctx); for (let i = 0; i < 3; i++) { G.update(1 / 60); Input.endFrame(); } cardsOk++; }
 ok(cardsOk === 20, 'all twenty level cards render');
 
+/* The level card (0.9.3): LEVEL n and the date, typed on a black field. No menu,
+   no delivery rows, no PRESS ENTER; it advances itself; any key skips. */
+{
+  const realText = sandbox.text, A5c = KX.Audio5, realSfx = A5c.sfx;
+  let seen = [], ticks = 0;
+  sandbox.text = (x, s, ...r) => { seen.push(s); return realText(x, s, ...r); };
+  A5c.sfx = (k, ...r) => { if (k === 'tick') ticks++; return realSfx.call(A5c, k, ...r); };
+  const run = (n) => { for (let i = 0; i < n; i++) { G.update(1 / 60); Input.endFrame(); } };
+  const draw = () => { seen = []; G.render(ctx); return seen; };
+  const hasAny = (list, re) => list.some((s) => re.test(s));
+  try {
+    G.toCard(2); ticks = 0;
+    run(20);                                         // 0.33s: five letters
+    const part = draw(), pd = part.find((s) => /^DEC/.test(s));
+    ok(part.includes('LEVEL 2'), 'the card draws LEVEL 2');
+    ok(pd && pd.length > 0 && pd.length < 'DECEMBER 1972'.length, `the date types on letter by letter (${pd})`);
+    run(60);
+    const full = draw();
+    ok(full.includes('DECEMBER 1972'), 'the whole date is month name and year: DECEMBER 1972');
+    ok(ticks === 12, `a tick per typed letter, none for the space (${ticks})`);
+    ok(!hasAny(full, /MENU|PRESS ENTER|TARGET|CLOCK|TIPS|FINES|TACO-NAV|ROADS|CLOCK IN/), 'the card draws no menu, no delivery rows and no PRESS ENTER');
+    ok(G.state === 'card', 'still on the card while the date is held');
+    run(100);                                        // 13*0.06 + 2.0 = 2.78s < 1.67+1.67
+    ok(G.state === 'kitchen', `the card advances by itself after the type-on and CARD_HOLD (${G.state})`);
+
+    G.toCard(1); run(30);                            // mid-typing
+    ok(G.state === 'card', 'level 1 card is typing');
+    Input.anyKey = true; G.update(1 / 60); Input.endFrame();
+    ok(G.state === 'play', 'any key mid-typing goes straight into play');
+    G.toCard(2); run(30);
+    Input.mhit = true; G.update(1 / 60); Input.endFrame();
+    ok(G.state === 'kitchen', 'a click or tap skips the kitchen card too');
+
+    /* the pause overlay still carries the menu (at the cost of clock time) */
+    G.paused = true;
+    const pz = draw();
+    ok(pz.includes('THE MENU'), 'the kitchen pause overlay still shows THE MENU');
+    G.paused = false;
+  } finally { sandbox.text = realText; A5c.sfx = realSfx; }
+  G.toCard(1);
+}
+
 /* weather: set per level in content/levels.json (sunny|rainy|snowy, or random,
    which rolls within the season), with a windy flag; the kitchen follows its
    level as decoration only. ?weather= and the Test panel's season win. Every
-   weather's card title must clear LEVEL n on the 364px card. */
+   (the card no longer names the weather; the road tells you). */
 const pinW = G.weatherPin; G.weatherPin = null;
 const WLV = G.levels();
-let weatherOk = 0, windOk = 0, titleTooWide = 0, rainDraws = true, kitchenGrip = true;
+let weatherOk = 0, windOk = 0, rainDraws = true, kitchenGrip = true;
 for (const lv of WLV) {
   G.toCard(lv.n);
   const fixed = lv.weather !== 'random', pick = lv.season === 'winter' ? ['snowy', 'sunny'] : ['sunny', 'rainy'];
   if (fixed ? G.weather === lv.weather : pick.includes(G.weather)) weatherOk++;
   if (lv.type === 'kitchen' ? G.windy === false : (lv.weather === 'random' ? typeof G.windy === 'boolean' : G.windy === lv.windy)) windOk++;
   if (lv.type === 'kitchen' && Player.gripMul !== 1) kitchenGrip = false;
-  if (textW('LEVEL ' + lv.n, 2) + 12 + textW(G.levelTitle(), 2) > 352 - 12) titleTooWide++;
   if (G.weather === 'rainy' && lv.type === 'delivery') { G.state = 'play'; try { G.update(1 / 60); G.render(ctx); } catch (e) { rainDraws = false; } G.toCard(lv.n); }
 }
 ok(weatherOk === 20, `all twenty levels play the weather their level sets (${weatherOk}/20)`);
@@ -1328,7 +1369,6 @@ G.winter = wasWinter; G.level = wasLevel;
 G.weatherPin = pinW; G.toCard(1);
 ok(odds.winter > 0.14 && odds.winter < 0.26, `a random winter is mostly snowy (sunny ${(odds.winter * 100).toFixed(1)}%)`);
 ok(odds.summer > 0.44 && odds.summer < 0.56, `a random summer is an even chance of rain (rainy ${(odds.summer * 100).toFixed(1)}%)`);
-ok(titleTooWide === 0, 'every weather\'s level-card title fits beside LEVEL n');
 ok(rainDraws, 'a rainy street updates and draws without throwing');
 ok(City.houses.length > 80, `the 1990s map has addresses (${City.houses.length})`);
 
@@ -1566,9 +1606,9 @@ for (const era of [1, 2, 3]) {
     if (w > 340) w = 78 + parts.reduce((a, p) => a + textW(p.slice(0, 4), 1) + 6, 0);
     if (w > 344) tooWideRecipe++;
   }
-  ok(Kt.menu.items.length * 8 + 72 <= 198, `era ${era}'s menu fits the level card (${Kt.menu.items.length} rows)`);
+  ok(Kt.menu.items.length * 8 + 72 <= 198, `era ${era}'s menu fits the pause overlay (${Kt.menu.items.length} rows)`);
 }
-ok(tooWideRecipe === 0, 'every recipe line fits the menu card');
+ok(tooWideRecipe === 0, 'every recipe line fits the pause menu');
 
 /* The wrap rule exists twice: wrapRows in validate.mjs (the build) and Dialog.wrap
    (the game; src/ cannot import). This keeps them from drifting. */

@@ -8781,10 +8781,16 @@ const WEATHER_CHANCE = { summer: 0.5, winter: 0.2 };
 /* the chance a level whose weather is `random` is also windy (a fixed level says windy itself) */
 const WIND_CHANCE = { summer: 0.30, winter: 0.25 };
 const WEATHER_GRIP = { summer: { sunny: 1, rainy: 0.75 }, winter: { snowy: 0.62, sunny: 0.9 } };
-const WEATHER_ROADS = {
-  summer: { sunny: 'DRY', rainy: 'WET - A LITTLE SLICK' },
-  winter: { snowy: 'SNOW - THE BACK END STEPS OUT', sunny: 'PLOUGHED - THE ODD ICY PATCH' },
+/* The level card: LEVEL n and the date, typed on, over a three-bar stripe in the
+   era's colours (owner, 2026-11-08: concepts D and B together). */
+const CARD_TYPE = 0.06;     // seconds per letter of the date
+const CARD_HOLD = 2.0;      // seconds the finished date is held before the shift starts
+const CARD_STRIPE = {
+  1: { bars: ['#e0902c', '#f2c14e', '#9c5a2a'], date: 0 },
+  2: { bars: ['#ff4fa3', '#3fd6e8', '#ffd84a'], date: 1 },
+  3: { bars: ['#2fc4a0', '#8a5cf0', '#f2e05a'], date: 0 },
 };
+const MONTH_NAMES = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
 const BAG_MAX = 3;
 /* how often a face with personal lines for a moment uses one instead of the shared pool */
 const PERSONAL_ODDS = 0.75;
@@ -8860,7 +8866,7 @@ const G = {
   seed: 0, levelN: 1, level: null, diffKey: 'easy', diff: DIFF_FALLBACK, nav: NAV_FULL,
   era: 1, winter: false, weather: 'sunny', windy: false, weatherPin: null, stage: 'delivery', mapN: 0,
   levelEarned: 0, levelStars: 0, stars: 0, done: 0, extUsed: 0,
-  cardT: 0, contT: 0, modeIdx: 0, startLevel: 1,
+  cardT: 0, cardTyped: 0, contT: 0, modeIdx: 0, startLevel: 1,
   snow: [], snowMask: null, snowImgs: null,
   rain: [], splash: [], rainMask: null,
 
@@ -8967,13 +8973,11 @@ const G = {
     return Math.random() < WIND_CHANCE[this.winter ? 'winter' : 'summer'];
   },
 
-  /* the level card's title: the weather is news only when it is not the
-     season's default, so a rainy summer and a sunny winter say so */
-  levelTitle() {
-    const n = (this.level && this.level.name) || '';
-    if (this.weather === 'rainy') return 'RAINY ' + n;
-    if (this.winter && this.weather === 'sunny') return 'SUNNY ' + n;
-    return n;
+  /* the level card's date: the month's name and the year, e.g. DECEMBER 1972 */
+  cardDate() {
+    const L = this.level || {};
+    const m = L.month >= 1 && L.month <= 12 ? L.month : (this.winter ? 12 : 7);
+    return MONTH_NAMES[m - 1] + ' ' + (L.year || 1972);
   },
 
   toTitle() {
@@ -9076,7 +9080,7 @@ const G = {
   toCard(n) {
     this.setLevel(n);
     this.state = 'card';
-    this.cardT = 0;
+    this.cardT = 0; this.cardTyped = 0;
     this.paused = false;
     Dialog.drop();
     Kitchen.demo = false;
@@ -9155,7 +9159,7 @@ const G = {
 
   levelClear() {
     this.state = 'clear';
-    this.cardT = 0;
+    this.cardT = 0; this.cardTyped = 0;
     Audio5.engineOff(); Audio5.sirenOff();
     this.cop = null; Nav.clear(); Dialog.drop();
     Audio5.sfx('clear');
@@ -9169,7 +9173,7 @@ const G = {
 
   timeUp() {
     this.state = 'over';
-    this.cardT = 0;
+    this.cardT = 0; this.cardTyped = 0;
     this.shift = 0;
     this.placed = !this.testRun && Scores.qualifies(this.earned);
     this.scoreIdx = -1;
@@ -9192,7 +9196,7 @@ const G = {
 
   toVictory() {
     this.state = 'victory';
-    this.cardT = 0;
+    this.cardT = 0; this.cardTyped = 0;
     this.placed = !this.testRun && Scores.qualifies(this.earned);
     this.scoreIdx = -1;
     Audio5.sfx('clear');
@@ -9666,10 +9670,14 @@ const G = {
     }
 
     if (S === 'card') {
+      const date = this.cardDate(), was = this.cardTyped;
       this.cardT += dt;
+      this.cardTyped = Math.min(date.length, Math.floor(this.cardT / CARD_TYPE + 1e-6));
+      if (this.cardTyped > was && date[this.cardTyped - 1] !== ' ') Audio5.sfx('tick');   // the typewriter
       if (this.stage === 'delivery') this.simCrowd(dt);
-      const go = Input.p('Enter', 'NumpadEnter', 'Space') || Input.mhit;
-      if ((go && this.cardT > 0.5) || this.cardT > 12) { Audio5.sfx('select'); this.beginShift(); }
+      // a key, click or tap skips straight to play; otherwise it goes when the date has been held
+      if ((Input.anyKey || Input.mhit || Input.p('Enter', 'NumpadEnter', 'Space')) && this.cardT > 0.3) { Audio5.sfx('select'); this.beginShift(); }
+      else if (this.cardT >= date.length * CARD_TYPE + CARD_HOLD) this.beginShift();
       return;
     }
 
@@ -10373,46 +10381,19 @@ const G = {
 
   shiftName() { return this.stage === 'kitchen' ? 'KITCHEN SHIFT' : 'DELIVERY SHIFT'; },
 
-  /* The level card. For a kitchen level it carries the MENU: the recipes are
-     hidden during play (GDD IV rule 1), so this card and the pause overlay are
-     the only places they are written down -- learning them is the mastery
-     curve, and you get one look before the clock starts. [INVENTED] */
+  /* The level card: black, LEVEL n, a stripe in the era's colours, and the date
+     typing on beneath it. Nothing else: the kitchen's recipes live in the pause
+     overlay, and the target is the HUD's ORDERS counter. */
   overlayCard(x) {
-    x.fillStyle = 'rgba(20,12,28,0.84)'; x.fillRect(0, 0, VW, VH);
-    const L = this.level, D = this.diff;
-    const px = this.card(x, 364, 204, 6);
-    text(x, 'LEVEL ' + this.levelN, px + 12, 14, PAL.amber, 2);
-    text(x, this.levelTitle(), px + 352, 14, PAL.bone, 2, 2);
-    const kind = this.shiftName() + '  -  ' + this.diffKey.toUpperCase();
-    text(x, kind, px + 12, 34, PAL.boneDim, 1);
-    R(x, PAL.red, px + 12, 44, 340, 1);
-    if (this.stage === 'kitchen') {
-      text(x, 'SERVE ' + D.target + ' TICKETS BEFORE THE CLOCK RUNS OUT', px + 12, 50, PAL.bone, 1);
-      text(x, 'THE MENU', px + 12, 62, PAL.amber, 1);
-      this.drawRecipes(x, px + 12, 72, 352 - 12);
-    } else {
-      const rows = [
-        ['TARGET', D.target + ' DELIVERIES'],
-        ['CLOCK', clockStr(D.start) + '  +' + clockStr(D.extend) + ' EVERY 3, UP TO ' + D.maxExt],
-        ['TIPS', money(D.tipStart) + ' FALLING TO ' + money(D.tipFloor)],
-        ['FINES', 'TICKET ' + money(D.fines.ticket) + '  PED ' + money(D.fines.ped) + '  TRAIN ' + money(D.fines.train)],
-        ['TACO-NAV', this.navName()],
-        ['ROADS', WEATHER_ROADS[this.winter ? 'winter' : 'summer'][this.weather]],
-      ];
-      rows.forEach((r, i) => {
-        text(x, r[0], px + 12, 56 + i * 14, PAL.boneDim, 1);
-        text(x, r[1], px + 80, 56 + i * 14, PAL.bone, 1);
-      });
-    }
-    if ((this.time * 2 | 0) % 2) text(x, 'PRESS ENTER TO CLOCK IN', VW / 2, 198, PAL.amber, 1, 1);
-  },
-
-  navName() {
-    const n = this.nav;
-    if (n.panel && n.line && n.edge) return 'FULL GUIDANCE';
-    if (n.panel) return 'PANEL AND MAP DOT ONLY';
-    if (n.dot) return 'MAP DOT ONLY - YOU KNOW THE WAY';
-    return 'NONE. READ THE ADDRESS.';
+    x.fillStyle = '#000'; x.fillRect(0, 0, VW, VH);
+    const era = CARD_STRIPE[this.era] || CARD_STRIPE[1];
+    const head = 'LEVEL ' + this.levelN, date = this.cardDate();
+    text(x, head, VW / 2, 66, PAL.bone, 3, 1);
+    const sw = textW(head, 3) + 16, sx = (VW - sw) / 2 | 0;
+    era.bars.forEach((c, i) => R(x, c, sx, 98 + i * 3, sw, 2));
+    const x0 = (VW - textW(date, 2)) / 2 | 0, n = this.cardTyped;
+    if (n > 0) text(x, date.slice(0, n), x0, 120, era.bars[era.date], 2, 0);
+    if (n < date.length && (this.time * 4 | 0) % 2 === 0) R(x, PAL.bone, x0 + (n ? textW(date.slice(0, n), 2) + 2 : 0), 120, 8, 14);
   },
 
   /* Ticket name, then the build in order, each step in its ingredient's own
