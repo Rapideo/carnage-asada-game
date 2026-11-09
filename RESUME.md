@@ -8,7 +8,7 @@ kitchen surroundings, and version 0.9.0. Updated 2026-11-07 (evening) for Servic
 This is the starting point for a fresh session. It is a snapshot: **`ROADMAP.md` is the
 living plan**, and if the two disagree, the roadmap wins.
 
-**Start here (2026-11-09, evening): the live game is version 0.9.6 (Hard eased, Supreme the hardest again; see `CHANGELOG.md`). Before it came 0.9.5, on `master`, tagged
+**Start here (2026-11-09, night): the live game is version 0.9.8, and the owner says it is "playing wonderfully" on the Pixel.** 0.9.6 eased Hard and toughened Supreme; 0.9.7 made the touch stick aim while TOSS is held, and the owner had it reverted in 0.9.8, which instead gives TOSS four arrow pips and lifts it to 3 rows under ORDERS. The right end of the streak line now sits partly behind TOSS: **the owner has accepted that overlap for now**, so do not "fix" it unasked. A phone checklist is open (claude.ai artifact 7rKhSJctnKCc7oZmLtJvUJ, collection `checks`); read it when the owner says it is done. Before that came 0.9.5, on `master`, tagged
 `v0.9.5`, pushed and deployed to Netlify (https://carnage-asada.netlify.app).** The owner's full
 playtest of 0.9.3 passed 30 of 33 checks (a checklist page, claude.ai artifact
 LtGvNjXd6zubSeEpFQVRBF, its notes in the page's `checks` collection), and everything it found
