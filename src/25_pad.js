@@ -61,6 +61,26 @@ const Pad = {
   },
   PAUSE: { x: 182, y: 4, w: 20, h: 11 },
 
+  /* ---- Mode C on a landscape phone: concept C, ghost controls in the side
+     margins (reference/touch-concepts/, owner rulings 2026-11-08). The game
+     picture fills the height and the controls live in the margins either side
+     of it, drawn on the #pad overlay in CSS px rather than on the 384x216
+     canvas. Sizes are physical: PX_PER_MM = dpr * DPI / 25.4 device px, which
+     is DPI / 25.4 = 6.3 CSS px per mm whatever the dpr, because on Android one
+     CSS px is one dp, 1/160 in. A 17 mm stick is then wider than the Pixel
+     10's 15.3 mm margin, so it bleeds onto the picture's edge as concept C
+     shows; the picture shrinks only if a control would reach its centre 80%.
+     THE TUNABLES for the phone: DPI (if the controls come out the wrong
+     physical size), LAND_MM (sizes and the edge gap), LAND_ASPECT (what counts
+     as landscape), LAND_CLEAR (how much of the picture is kept clear). ---- */
+  DPI: 160,
+  LAND_MM: { stick: 18, gas: 15, toss: 12.7, rev: 10, pause: 7.2, edge: 2.5, gap: 2, slop: 2, throw: 5 },
+  LAND_ASPECT: 1.5,     // vw / vh above this is landscape
+  LAND_CLEAR: 0.8,      // no control reaches the picture's centre 80%
+  LAND_BTN: ['toss', 'gas', 'rev'],   // top to bottom, centred as a group on the right
+  /* ghost styling: a 2 CSS px bone outline and a faint fill, both brighter under a thumb */
+  GHOST: { line: 2, lineA: 0.45, fillA: 0.12, lineOn: 0.85, fillOn: 0.35 },
+
   LABELS: {
     B: { drive: 'STICK, 1 GAS, 2 REV', throw: 'HOLD 3, RELEASE', aim: 'HOLD 3 + STICK',
          pause: 'START', select: 'BUTTON 1', wrap: 'BUTTON 2', serve: 'BUTTON 3', mute: 'BACK' },
@@ -85,13 +105,108 @@ const Pad = {
   _canvas: null,
   _pi: -1,                       // index of the gamepad in use
   _spr: null,                    // baked overlay sprites
+  _lay: null,                    // the current layout (relayout), null until the page measures
+  _view: null,                   // ...and the viewport it was measured from
+  _ov: null,                     // the #pad overlay canvas, over the whole page
+  _ovSig: '',                    // what the overlay last drew, so an idle frame redraws nothing
+
+  /* 90_main sets this to its resize(), so choosing Mode C refits the canvas */
+  onModeChange: null,
 
   setMode(m) {
     m = m === 'B' || m === 'C' ? m : 'A';
     if (m === this.mode) return;
     this.mode = m;
     this._reset(this.context);
+    if (this._view) this.relayout(this._view.vw, this._view.vh, this._view.dpr, this._view.insets);
+    if (typeof this.onModeChange === 'function') this.onModeChange();
   },
+
+  /** The control layout for a viewport, in CSS px; pure. vw/vh: the page,
+      dpr: devicePixelRatio, insets: the safe area {top,right,bottom,left}.
+      opts: { mode (default this.mode), context: 'drive' | 'kitchen' | 'menu' }.
+      Landscape Mode C returns { landscape: true, units: 'css', picture, stick,
+      buttons: [{id, cx, cy, r}], pause: {cx, cy, r} } -- the kitchen has only
+      PAUSE, a menu nothing. Anything else is today's on-canvas layout in
+      virtual px ({ landscape: false, units: 'virtual', ... }), and its
+      picture is exactly the fit 90_main has always made. */
+  layout(vw, vh, dpr, insets, opts) {
+    opts = opts || {};
+    const mode = opts.mode || this.mode;
+    const ctx = opts.context === 'kitchen' || opts.context === 'menu' ? opts.context : 'drive';
+    vw = +vw || 0; vh = +vh || 0; dpr = dpr > 0 ? +dpr : 1;
+    const ins = {};
+    for (const k of ['top', 'right', 'bottom', 'left']) ins[k] = Math.max(0, +(insets && insets[k]) || 0);
+    // 90_main's own rule: fit in 0.05 steps, or below 1:1 fit exactly
+    const fit = (w, h) => { const raw = Math.max(0, Math.min(w / VW, h / VH)); return raw >= 1 ? Math.floor(raw * 20) / 20 : raw; };
+    const pic = (s) => ({ x: (vw - VW * s) / 2, y: (vh - VH * s) / 2, w: VW * s, h: VH * s });
+
+    if (mode !== 'C' || !(vh > 0 && vw / vh > this.LAND_ASPECT)) {
+      const s = fit(vw, vh), on = mode === 'C' && ctx === 'drive', S = this.STICK, P = this.PAUSE;
+      return {
+        landscape: false, units: 'virtual', dpr, scale: s, picture: pic(s),
+        stick: on ? { cx: S.x, cy: S.y, r: S.r } : null,
+        buttons: on ? Object.keys(this.BTN).map((id) => ({ id, cx: this.BTN[id].x, cy: this.BTN[id].y, r: this.BTN[id].r })) : [],
+        pause: on ? { x: P.x, y: P.y, w: P.w, h: P.h } : null,
+      };
+    }
+
+    const mm = this.DPI / 25.4, M = this.LAND_MM;          // CSS px per mm
+    const e = M.edge * mm, gap = M.gap * mm;
+    const left = ins.left + e, right = vw - ins.right - e, top = ins.top + e;
+    const cy = (ins.top + vh - ins.bottom) / 2;
+    const sr = M.stick * mm / 2;
+    const stick = { cx: left + sr, cy, r: sr };
+    const rs = this.LAND_BTN.map((id) => M[id] * mm / 2);
+    const col = right - Math.max(...rs);
+    let y = cy - (rs.reduce((a, r) => a + 2 * r, 0) + gap * (rs.length - 1)) / 2;
+    const buttons = this.LAND_BTN.map((id, i) => {
+      const b = { id, cx: col, cy: y + rs[i], r: rs[i] };
+      y += 2 * rs[i] + gap;
+      return b;
+    });
+    const pr = M.pause * mm / 2;
+    const pause = { cx: left + pr, cy: top + pr, r: pr };
+    /* The picture fills the height. Only if that would put a control on its
+       centre LAND_CLEAR does it shrink: picture.x + (1 - CLEAR)/2 * w, which
+       is vw/2 - CLEAR/2 * w, must clear the furthest reach on either side. */
+    const reachL = Math.max(stick.cx + stick.r, pause.cx + pause.r);
+    const reachR = Math.min(...buttons.map((b) => b.cx - b.r));
+    const maxW = Math.max(0, Math.min(vw / 2 - reachL, reachR - vw / 2) / (this.LAND_CLEAR / 2));
+    const s = fit(Math.min(vw, maxW), vh);
+    return {
+      landscape: true, units: 'css', dpr, scale: s, picture: pic(s), mm,
+      stick: ctx === 'drive' ? stick : null,
+      buttons: ctx === 'drive' ? buttons : [],
+      pause: ctx === 'menu' ? null : pause,
+    };
+  },
+
+  /** 90_main measures the page and calls this on every resize; it keeps the
+      drive layout for hit-testing and sizes the overlay to the page. */
+  relayout(vw, vh, dpr, insets) {
+    this._view = { vw, vh, dpr, insets };
+    const L = this._lay = this.layout(vw, vh, dpr, insets, { mode: this.mode, context: 'drive' });
+    const ov = this._ov;
+    if (ov) {
+      try {
+        if (L.landscape) {
+          ov.width = Math.max(1, Math.round(vw * L.dpr)); ov.height = Math.max(1, Math.round(vh * L.dpr));
+          if (ov.style) { ov.style.width = vw + 'px'; ov.style.height = vh + 'px'; }
+        } else { ov.width = 1; ov.height = 1; }
+        if (ov.style) ov.style.display = 'none';
+      } catch (e) { /* a stub or a detached canvas: nothing to size */ }
+    }
+    this._ovSig = '';
+    return L;
+  },
+
+  /** Mode C with the controls drawn ON the picture, as they always were: a
+      portrait phone, or before the page has measured. The HUD makes room for
+      them (bag, windsock, edge arrow) only then. */
+  onCanvas() { return this.mode === 'C' && !(this._lay && this._lay.landscape); },
+  /** Mode C with the controls in the margins: hit-tested in CSS px. */
+  _margins() { return this.mode === 'C' && !!(this._lay && this._lay.landscape); },
 
   /** Release every code Pad holds, cancel any aim without throwing, and latch
       whatever is still physically down -- what poll() does on a context
@@ -109,8 +224,11 @@ const Pad = {
     return this._pads().length ? 'B' : 'A';
   },
 
-  init(canvas) {
+  /** stage: the page element under the margins; overlay: the #pad canvas.
+      Both are optional -- without them Mode C stays on the canvas. */
+  init(canvas, stage, overlay) {
     this._canvas = canvas || null;
+    this._ov = overlay && typeof overlay.getContext === 'function' ? overlay : null;
     if (typeof addEventListener === 'function') {
       // the same codes Input.init records, so the two always agree on names
       const codes = (e) => (e.key && e.key.length > 1 && e.key !== e.code) ? [e.code, e.key] : [e.code];
@@ -133,6 +251,27 @@ const Pad = {
       for (let i = 0; i < list.length; i++) this._push(t, list[i].identifier, list[i].clientX, list[i].clientY);
     }, { passive: false });
     on('touchstart', 's'); on('touchmove', 'm'); on('touchend', 'e'); on('touchcancel', 'c');
+
+    /* The margins: touches that land on the page outside the canvas. They are
+       queued only while the margin layout is up -- anywhere else they did
+       nothing before and still do nothing -- but an end is always passed on,
+       so a thumb held on GAS through a rotation cannot leave KeyW stuck. A
+       touch that started on the canvas is the canvas listener's. */
+    if (!stage || stage === canvas || typeof stage.addEventListener !== 'function') return;
+    if (stage.style) stage.style.touchAction = 'none';
+    const onS = (type, t) => stage.addEventListener(type, (e) => {
+      const list = e.changedTouches || [], live = this._margins();
+      let mine = false;
+      for (let i = 0; i < list.length; i++) {
+        const tc = list[i];
+        if (tc.target === canvas) continue;
+        if (!live && (t === 's' || t === 'm')) continue;
+        mine = true;
+        this._push(t, tc.identifier, tc.clientX, tc.clientY);
+      }
+      if (mine && e.cancelable) e.preventDefault();
+    }, { passive: false });
+    onS('touchstart', 's'); onS('touchmove', 'm'); onS('touchend', 'e'); onS('touchcancel', 'c');
   },
 
   /** Once per fixed step, before G.update. context: 'menu' | 'kitchen' | 'drive'. */
@@ -350,10 +489,15 @@ const Pad = {
     // exactly Input.init's toVirtual
     const c = this._canvas, r = c && c.getBoundingClientRect ? c.getBoundingClientRect() : null;
     const s = r && r.width ? r.width / VW : 1;
-    const x = clamp((cx - (r ? r.left : 0)) / s, 0, VW), y = clamp((cy - (r ? r.top : 0)) / s, 0, VH);
+    /* ux/uy: the same mapping unclamped, so a drag in a margin still moves;
+       cx/cy: the page's CSS px, which the margin layout is hit-tested in */
+    const ux = (cx - (r ? r.left : 0)) / s, uy = (cy - (r ? r.top : 0)) / s;
+    const x = clamp(ux, 0, VW), y = clamp(uy, 0, VH);
     const q = this._q, last = q[q.length - 1];
-    if (t === 'm' && last && last.t === 'm' && last.id === id) { last.x = x; last.y = y; return; }
-    q.push({ t, id, x, y });
+    if (t === 'm' && last && last.t === 'm' && last.id === id) {
+      last.x = x; last.y = y; last.ux = ux; last.uy = uy; last.cx = cx; last.cy = cy; return;
+    }
+    q.push({ t, id, x, y, ux, uy, cx, cy });
     if (q.length > 64) q.splice(0, q.length - 64);   // nobody is polling: drop the oldest
   },
 
@@ -365,15 +509,25 @@ const Pad = {
       if (ev.t === 's') { this._tStart(ctx, ev, pulse); continue; }
       const t = this._t.get(ev.id);
       if (!t) continue;
-      t.x = ev.x; t.y = ev.y;
+      t.x = ev.x; t.y = ev.y; t.ux = ev.ux; t.uy = ev.uy; t.cx = ev.cx; t.cy = ev.cy;
       if (ev.t === 'm') this._tMove(t);
       else { this._t.delete(ev.id); this._tEnd(t, ev.t === 'c'); }
     }
   },
 
   _tStart(ctx, ev, pulse) {
-    const t = { id: ev.id, x: ev.x, y: ev.y, x0: ev.x, y0: ev.y, t0: this._clock, role: 'dead' };
+    const t = { id: ev.id, x: ev.x, y: ev.y, x0: ev.x, y0: ev.y, t0: this._clock, role: 'dead',
+                ux: ev.ux, uy: ev.uy, ux0: ev.ux, uy0: ev.uy, cx: ev.cx, cy: ev.cy, cx0: ev.cx, cy0: ev.cy };
     this._t.set(ev.id, t);
+    const land = this._margins();
+    /* The kitchen in landscape: PAUSE in the margin, and the picture is tapped
+       as always. Any other margin touch is nothing -- clamped to the canvas it
+       would be a tap on whichever edge bin it happened to line up with. */
+    if (land && ctx === 'kitchen') {
+      if (this._hitLand(ev.cx, ev.cy, ctx) === 'pause') { pulse.push('KeyP'); this._pauseLit = 0.2; return; }
+      const P = this._lay.picture;
+      if (!(ev.cx >= P.x && ev.cx < P.x + P.w && ev.cy >= P.y && ev.cy < P.y + P.h)) return;
+    }
     /* Outside the drive overlay a tap is a click, in every mode: a phone that
        has not been switched to C yet still has to tap its way past the title.
        The kitchen gets Input.mx/my/mhit but NOT hasMouse, which would make
@@ -388,7 +542,7 @@ const Pad = {
       return;
     }
     if (this.mode !== 'C') return;                  // Mode B drives on the stick alone
-    const hit = this._hitTest(ev.x, ev.y);
+    const hit = land ? this._hitLand(ev.cx, ev.cy, ctx) : this._hitTest(ev.x, ev.y);
     if (hit === 'pause') { pulse.push('KeyP'); this._pauseLit = 0.2; return; }
     if (hit === 'toss' && this._aimSrc !== null) return;
     t.role = hit;
@@ -407,13 +561,15 @@ const Pad = {
     if (t.role === 'tap') { Input.mx = t.x; Input.my = t.y; }
     else if (t.role === 'gas' || t.role === 'rev') {
       // a thumb can rock from one pedal to the other without lifting
-      const h = this._hitTest(t.x, t.y);
+      const h = this._margins() ? this._hitLand(t.cx, t.cy, 'drive') : this._hitTest(t.x, t.y);
       if (h === 'gas' || h === 'rev') t.role = h;
     } else if (t.role === 'toss' && this._aimSrc === t.id) {
       // relative to where the finger landed, so a plain tap always throws
-      // straight ahead however far off-centre on the button it came down
-      this._aimAt(this._aimBase.x + (t.x - t.x0) * this.AIM_DRAG,
-                  this._aimBase.y + (t.y - t.y0) * this.AIM_DRAG);
+      // straight ahead however far off-centre on the button it came down.
+      // In the margins TOSS is off the picture, so the drag is read unclamped.
+      const m = this._margins();
+      const dx = m ? t.ux - t.ux0 : t.x - t.x0, dy = m ? t.uy - t.uy0 : t.y - t.y0;
+      this._aimAt(this._aimBase.x + dx * this.AIM_DRAG, this._aimBase.y + dy * this.AIM_DRAG);
     }
   },
 
@@ -442,6 +598,26 @@ const Pad = {
     return 'none';
   },
 
+  /* The margin layout, in CSS px. PAUSE first; then the nearest button within
+     the slop -- or the nearest at all, anywhere in the right margin -- and the
+     stick for anything in the left margin or near its ring. */
+  _hitLand(cx, cy, ctx) {
+    const L = this._lay;
+    if (!L || !L.landscape) return 'none';
+    const sl = this.LAND_MM.slop * L.mm, pz = L.pause, P = L.picture;
+    if (pz && hyp(cx - pz.cx, cy - pz.cy) < pz.r + sl) return 'pause';
+    if (ctx !== 'drive') return 'none';
+    let best = 'none', bd = cx >= P.x + P.w ? Infinity : sl;
+    for (const b of L.buttons) {
+      const d = hyp(cx - b.cx, cy - b.cy) - b.r;
+      if (d < bd) { bd = d; best = b.id; }
+    }
+    if (best !== 'none') return best;
+    const S = L.stick;
+    if (S && (cx < P.x || hyp(cx - S.cx, cy - S.cy) < S.r + sl)) return 'stick';
+    return 'none';
+  },
+
   _touching(role) {
     for (const t of this._t.values()) if (t.role === role) return t;
     return null;
@@ -453,7 +629,9 @@ const Pad = {
   _stick() {
     const t = this._touching('stick');
     if (!t) return { x: 0, y: 0, on: false };
-    let x = (t.x - t.x0) / this.STICK.r, y = (t.y - t.y0) / this.STICK.r;
+    // in the margins: full lock at LAND_MM.throw of drag, not the whole 9 mm radius
+    const land = this._margins(), th = land ? this.LAND_MM.throw * this._lay.mm : this.STICK.r;
+    let x = land ? (t.cx - t.cx0) / th : (t.x - t.x0) / th, y = land ? (t.cy - t.cy0) / th : (t.y - t.y0) / th;
     const m = hyp(x, y);
     if (m > 1) { x /= m; y /= m; }
     return { x, y, on: true };
@@ -546,7 +724,7 @@ const Pad = {
   },
 
   draw(x, context) {
-    if (this.mode !== 'C' || context !== 'drive') return;
+    if (this.mode !== 'C' || context !== 'drive' || !this.onCanvas()) return;
     if (!this._spr) this._bake();
     const spr = this._spr, S = this.STICK;
     const ga = x.globalAlpha;
@@ -571,6 +749,98 @@ const Pad = {
     const lit = this._pauseLit > 0;
     x.globalAlpha = lit ? 0.9 : 0.6;
     x.drawImage(spr.pause[lit ? 1 : 0], this.PAUSE.x, this.PAUSE.y);
+    x.globalAlpha = ga;
+  },
+
+  /* ---------------- drawing (Mode C, landscape: the margins) ---------------- */
+  /** 90_main calls this every frame after G.render. scene: 'drive' (a delivery
+      shift, paused or not), 'kitchen', or null for anything else, which hides
+      the overlay. It repaints only when something it shows has changed. */
+  drawOverlay(scene) {
+    const ov = this._ov;
+    if (!ov) return;
+    const on = this._margins() && (scene === 'drive' || scene === 'kitchen');
+    if (!on) {
+      if (this._ovSig !== 'off') { this._ovSig = 'off'; if (ov.style) ov.style.display = 'none'; }
+      return;
+    }
+    const st = this.ghostState(scene);
+    const sig = scene + JSON.stringify(st);
+    if (sig === this._ovSig) return;
+    this._ovSig = sig;
+    if (ov.style) ov.style.display = 'block';
+    const x = ov.getContext('2d');
+    if (!x) return;
+    x.clearRect(0, 0, ov.width, ov.height);
+    this.paintGhosts(x, this._lay, scene, st);
+  },
+
+  /** What the ghosts show: the knob's deflection and which control is lit. */
+  ghostState(scene) {
+    const s = this._stick(), q = (v) => Math.round(v * 50) / 50;
+    return { sx: q(s.x), sy: q(s.y), stick: s.on, toss: this.aiming,
+             gas: !!this._touching('gas'), rev: !!this._touching('rev'), pause: this._pauseLit > 0, scene };
+  },
+
+  /** Paint the ghosts for layout L into x, a canvas of the page at L.dpr.
+      Coordinates are device px. Separate from drawOverlay so a render
+      script can draw the same thing into a picture of the whole screen. */
+  paintGhosts(x, L, scene, st) {
+    if (!L || !L.landscape) return;
+    st = st || {};
+    const k = L.dpr, G = this.GHOST, TAU = Math.PI * 2, ga = x.globalAlpha;
+    const circle = (X, Y, r, back) => { if (back) x.arc(X, Y, r, TAU, 0, true); else x.arc(X, Y, r, 0, TAU); };
+    const ghost = (c, fill, lit, cx, cy, r) => {
+      const X = (cx == null ? c.cx : cx) * k, Y = (cy == null ? c.cy : cy) * k, Rr = (r == null ? c.r : r) * k, w = G.line * k;
+      x.globalAlpha = lit ? G.fillOn : G.fillA; x.fillStyle = fill;
+      x.beginPath(); circle(X, Y, Rr); x.closePath(); x.fill();
+      // the outline: an annulus, so its width is exact at any dpr
+      x.globalAlpha = lit ? G.lineOn : G.lineA; x.fillStyle = PAL.bone;
+      x.beginPath(); circle(X, Y, Rr); x.closePath();
+      x.moveTo(X + Rr - w, Y); circle(X, Y, Rr - w, true); x.closePath(); x.fill();
+    };
+    const tri = (X, Y, a, s) => {                         // a pip pointing along angle a
+      const c = Math.cos(a), n = Math.sin(a);
+      x.beginPath();
+      x.moveTo(X + c * s, Y + n * s);
+      x.lineTo(X - c * s * 0.6 - n * s * 0.8, Y - n * s * 0.6 + c * s * 0.8);
+      x.lineTo(X - c * s * 0.6 + n * s * 0.8, Y - n * s * 0.6 - c * s * 0.8);
+      x.closePath(); x.fill();
+    };
+
+    if (scene === 'drive' && L.stick) {
+      const S = L.stick, lit = !!st.stick, kr = S.r * 0.42, tr = S.r - kr - G.line;
+      ghost(S, PAL.bone, lit);
+      x.globalAlpha = lit ? G.lineOn : G.lineA; x.fillStyle = PAL.bone;
+      for (let i = 0; i < 4; i++) {
+        const a = i * Math.PI / 2;
+        tri((S.cx + Math.cos(a) * S.r * 0.8) * k, (S.cy + Math.sin(a) * S.r * 0.8) * k, a, S.r * 0.09 * k);
+      }
+      // the knob, the arcade ball-top: red, like the stick it stands in for
+      ghost(S, PAL.red, lit, S.cx + (st.sx || 0) * tr, S.cy + (st.sy || 0) * tr, kr);
+    }
+    if (scene === 'drive') {
+      /* one label scale for all three, the largest that keeps each word
+         inside about 90% of its button's radius */
+      let ls = Infinity;
+      for (const b of L.buttons) ls = Math.min(ls, Math.floor(0.9 * b.r * k / textW(this.BTN[b.id].label, 1)));
+      ls = Math.max(1, ls === Infinity ? 1 : ls);
+      for (const b of L.buttons) {
+        const B = this.BTN[b.id], lit = !!st[b.id];
+        ghost(b, PAL[B.pal], lit);
+        x.globalAlpha = lit ? G.lineOn : G.lineA;
+        text(x, B.label, Math.round(b.cx * k), Math.round(b.cy * k - FH * ls / 2), PAL.bone, ls, 1);
+      }
+    }
+    if (L.pause) {
+      const P = L.pause, lit = !!st.pause;
+      ghost(P, PAL.bone, lit);
+      x.globalAlpha = lit ? G.lineOn : G.lineA; x.fillStyle = PAL.bone;
+      const bw = Math.max(1, Math.round(P.r * 0.22 * k)), bh = Math.round(P.r * 0.9 * k);
+      const X = Math.round(P.cx * k), Y = Math.round(P.cy * k - bh / 2);
+      x.fillRect(X - bw - Math.round(bw * 0.6), Y, bw, bh);
+      x.fillRect(X + Math.round(bw * 0.6), Y, bw, bh);
+    }
     x.globalAlpha = ga;
   },
 };

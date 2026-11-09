@@ -329,7 +329,8 @@ Known soft spots:
 - ~~The era faces don't blink.~~ Fixed 2026-11-07: eyes hand-set on the 15 decade faces in
   the Faces tab, and they survive a re-bake.
 - The kitchen's winter is light: hats only.
-- In Mode C the minimap sits under the on-screen stick.
+- In Mode C **portrait** the minimap sits under the on-screen stick (portrait is unchanged
+  by ruling). In landscape (0.9.3) the stick is mid-left in the margin and clears it.
 
 ## Deployment
 
@@ -343,10 +344,19 @@ Known soft spots:
 - **It is not wired to GitHub**: a push does not redeploy it.
 - **To update it:**
   1. Run `node build.mjs` and `node test/headless.mjs`.
-  2. Wrap `taco-shop.html` as the only file in a folder, named `index.html`. The wrap adds
-     `<!doctype html>`, `<meta charset="utf-8">` and the viewport tag, the way `build.mjs`
-     does for the dev `index.html`; Netlify does not add them.
-  3. Run `netlify deploy --prod --dir <folder> --site 4e57ea7d-9859-443a-a44d-7d9c4c60b46d`.
+  2. Wrap `taco-shop.html` in a folder as `index.html`. The wrap adds `<!doctype html>`,
+     `<meta charset="utf-8">`, the viewport tag
+     `<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">`
+     (`viewport-fit=cover` is what lets the safe-area insets see the camera cutout) and
+     `<link rel="manifest" href="manifest.webmanifest">`, the way `build.mjs` does for the
+     dev `index.html`; Netlify does not add them.
+  3. Copy `deploy/manifest.webmanifest`, `deploy/icon-192.png` and `deploy/icon-512.png`
+     into the same folder, beside `index.html`. They make it installable to the home
+     screen (`display: fullscreen`, landscape). Redraw the icons with
+     `node tools/render/icons.mjs`. **The manifest link goes in the deployed wrapper only,
+     never in `taco-shop.html`**: the single file stays free of external requests, and
+     `— artifact —` in `test/admin.mjs` checks it.
+  4. Run `netlify deploy --prod --dir <folder> --site 4e57ea7d-9859-443a-a44d-7d9c4c60b46d`.
 - Never deploy the repo itself: it holds the reference art, the MIDI library and
   `Migrated/`.
 - The "Powered by Netlify" badge is off (`built_with_badge_enabled: false`).

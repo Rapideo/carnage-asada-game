@@ -102,7 +102,7 @@ const Hud = {
     const nav = G.state === 'demo' || !G.nav ? { panel: 1, line: 1, dot: 1, edge: 1, beacon: 1 } : G.nav;
 
     /* ---------- minimap ---------- */
-    const mx0 = 4, my0 = VH - MM - 4;
+    const mr = this.mapRect(), mx0 = mr.x, my0 = mr.y;
     R(x, PAL.ink, mx0 - 2, my0 - 2, MM + 4, MM + 4);
     x.globalAlpha = 0.88; x.drawImage(this.mapImg, mx0, my0); x.globalAlpha = 1;
     const w2m = (wx) => mx0 + wx / WW * MM, h2m = (wy) => my0 + wy / WH * MM;
@@ -135,8 +135,10 @@ const Hud = {
 
     /* ---------- taco bag ---------- */
     /* Mode C's GAS and REV buttons sit on the bag's corner, so on a phone the
-       bag moves up under the order card where nothing is pressed. */
-    const touchC = typeof Pad !== 'undefined' && Pad.mode === 'C';
+       bag moves up under the order card where nothing is pressed -- while the
+       controls are on the canvas (portrait). In landscape they are in the
+       margins and the bag stays in its corner. */
+    const touchC = typeof Pad !== 'undefined' && Pad.onCanvas();
     const bx0 = touchC ? 6 : VW - 76, by0 = touchC ? 61 : VH - 20;
     text(x, 'DELIVERIES', bx0, by0 - 9, PAL.boneDim, 1);
     for (let i = 0; i < G.bagMax; i++) {
@@ -176,14 +178,24 @@ const Hud = {
   /* The windsock: top centre, in the 110px between the order card (ends x 143)
      and the clock card (starts x 253). Mode C's PAUSE button shares that gap
      (x 182-202, y 4-15), so on a phone it drops below it, staying above the
-     demo's PRESS ESC line at y 52. No corner is used: Task 8 moves the
-     minimap to a free corner in Mode C. `— hud layout —` asserts all of it. */
+     demo's PRESS ESC line at y 52. On a landscape phone PAUSE is in the
+     margin, off the picture, so touchC is false there and the sock stays at
+     y 3. No corner is used. `— hud layout —` asserts all of it. */
+  /* The minimap: the bottom-left corner, in every mode. Task 8 was to move it
+     to a free corner in Mode C so the stick never covers it; the owner's
+     ruling put the landscape stick at the MIDDLE of the left margin, which
+     leaves this corner free, so it stays where Modes A and B have it. Mode C
+     in portrait keeps the on-canvas stick over it, as before (no change to
+     portrait was the ruling). `— touch layout —` asserts the stick, the
+     buttons and the windsock all clear it. */
+  mapRect() { return { x: 4, y: VH - MM - 4, w: MM, h: MM }; },
+
   sockRect(touchC) { return { x: (VW - 32) / 2 | 0, y: touchC ? 17 : 3, w: 32, h: 32 }; },
   /* the sock's length is the strength (6.7px on Easy, 11.6 on Supreme), and a gust fills it out */
   sockLen(strength, gust) { return 3.5 + 9 * strength + 1.5 * gust; },
 
   drawSock(x, G) {
-    const touchC = typeof Pad !== 'undefined' && Pad.mode === 'C';
+    const touchC = typeof Pad !== 'undefined' && Pad.onCanvas();
     const r = this.sockRect(touchC);
     /* the telegraph: the rim blinks amber in the second before a gust */
     const warn = Wind.telegraph > 0 && ((G.time * 8) | 0) % 2 === 0;
@@ -256,7 +268,7 @@ const Hud = {
     const cx = VW / 2, cy = VH / 2;
     const a = Math.atan2(sy - cy, sx - cx);
     // Mode C: keep it above the on-screen controls, which start at y146
-    const touchC = typeof Pad !== 'undefined' && Pad.mode === 'C';
+    const touchC = typeof Pad !== 'undefined' && Pad.onCanvas();
     const hw = VW / 2 - 26, hh = VH / 2 - (touchC ? 70 : 52);
     const t = Math.min(Math.abs(hw / Math.cos(a)), Math.abs(hh / Math.sin(a)));
     const ex = cx + Math.cos(a) * t, ey = cy + Math.sin(a) * t;

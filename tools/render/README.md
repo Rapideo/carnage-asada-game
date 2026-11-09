@@ -41,6 +41,7 @@ node tools/render/eyes-proof.mjs         # every new face open | blinking -> ref
 | `bake-cast.mjs` | the nine approved cast portraits (`reference/faces/cast/`) → `content/faces/` with the reserved accent colours (`COLOURS`/`ACCENTS` in `bake-face.mjs`); eyes are cleared, to be set by hand in Service Mode |
 | `png-read.mjs` | decode a PNG we did not write — real filters, so outside reference images load |
 | `fit-portrait.mjs` | reduce an outside reference into the 56×56 box and compare against what ships |
+| `icons.mjs` | the install icons (`deploy/icon-192.png`, `deploy/icon-512.png`) from `Art.mkBadge`, drawn at 10× and box-filtered down; deploy-only, never in `taco-shop.html` |
 | `artboard.mjs` | the lattice wells and the 56×56 face box at 6×, with their constraints drawn on |
 | `reference-frame.png` | a checked-in Delivery Shift frame, the comparison target |
 

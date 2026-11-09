@@ -9,11 +9,44 @@
   canvas.width = VW; canvas.height = VH;
   ctx.imageSmoothingEnabled = false;
 
+  /* The safe area (a camera cutout, the gesture bar), read off a probe styled
+     with env(safe-area-inset-*): JS has no other way to see it. Zero on a
+     desktop, on file://, and wherever viewport-fit=cover is not in force. */
+  let probe = null;
+  try {
+    if (document.body && document.createElement) {
+      probe = document.createElement('div');
+      probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;' +
+        'padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
+      document.body.appendChild(probe);
+    }
+  } catch (e) { probe = null; }
+  function readInsets() {
+    const z = { top: 0, right: 0, bottom: 0, left: 0 };
+    try {
+      if (!probe || typeof getComputedStyle !== 'function') return z;
+      const cs = getComputedStyle(probe);
+      return { top: parseFloat(cs.paddingTop) || 0, right: parseFloat(cs.paddingRight) || 0,
+               bottom: parseFloat(cs.paddingBottom) || 0, left: parseFloat(cs.paddingLeft) || 0 };
+    } catch (e) { return z; }
+  }
+
   let scale = 3;
   function resize() {
     const wrap = document.getElementById('stage');
     const availW = wrap.clientWidth || window.innerWidth;
     const availH = wrap.clientHeight || window.innerHeight;
+    /* Mode C on a landscape phone: Pad lays the ghost controls out in the
+       margins and says how big the picture may be (the full height, unless a
+       control would reach its centre 80%). Everything else fits as below. */
+    const lay = typeof Pad !== 'undefined'
+      ? Pad.relayout(availW, availH, window.devicePixelRatio || 1, readInsets()) : null;
+    if (lay && lay.landscape) {
+      scale = lay.scale;
+      canvas.style.width = (VW * scale) + 'px';
+      canvas.style.height = (VH * scale) + 'px';
+      return;
+    }
     // Integer scaling keeps pixels perfectly square, but a window only a few
     // px short of the next step throws away a third of the picture, so take
     // the fit instead and accept that some rows land on 2 device px.
@@ -30,12 +63,53 @@
     canvas.style.height = (VH * scale) + 'px';
   }
   addEventListener('resize', resize);
+  addEventListener('orientationchange', resize);
+  try { document.addEventListener('fullscreenchange', resize); } catch (e) { /* no fullscreen API */ }
 
   Input.init(canvas, () => scale);
   /* Modes B and C: the gamepad and the touch layer. It injects into Input
      the same codes a keyboard would, so nothing downstream has a second
-     input path to keep in step. */
-  if (typeof Pad !== 'undefined') Pad.init(canvas);
+     input path to keep in step. The stage carries the margin touches and
+     #pad is the overlay the landscape ghost controls are drawn on. */
+  if (typeof Pad !== 'undefined') {
+    Pad.init(canvas, document.getElementById('stage'), document.getElementById('pad'));
+    Pad.onModeChange = resize;      // choosing Mode C on a landscape phone refits the picture
+  }
+
+  /* Near-native on a phone. The first tap asks for full screen, then locks
+     landscape (Chrome allows the lock only in full screen), and holds a wake
+     lock, re-taken whenever the page comes back. Every one of these throws or
+     rejects somewhere -- file://, desktop, iOS, an insecure origin -- and
+     every one is optional, so each is wrapped and ignored. touchend, not
+     touchstart: it is the gesture Chrome accepts for full screen. */
+  let wake = null, wantWake = false, nativeAsked = false;
+  const lockWake = () => {
+    try {
+      if (!wantWake || wake || document.hidden || !navigator.wakeLock) return;
+      navigator.wakeLock.request('screen').then((w) => {
+        wake = w;
+        try { w.addEventListener('release', () => { wake = null; }); } catch (e) { /* older API */ }
+      }).catch(() => {});
+    } catch (e) { /* no wake lock */ }
+  };
+  const goNative = () => {
+    if (nativeAsked) return;
+    nativeAsked = true;
+    removeEventListener('touchend', goNative);
+    wantWake = true; lockWake();
+    try {
+      const el = document.documentElement;
+      if (document.fullscreenElement || !el || !el.requestFullscreen) return;
+      const p = el.requestFullscreen({ navigationUI: 'hide' });
+      const lock = () => {
+        try {
+          if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {});
+        } catch (e) { /* no orientation lock */ }
+      };
+      if (p && p.then) p.then(lock).catch(() => {}); else lock();
+    } catch (e) { /* no fullscreen */ }
+  };
+  addEventListener('touchend', goNative);
 
   /* First gesture unlocks WebAudio. The music for whatever screen is up was
      asked for before there was a context to play it on, so ask again. */
@@ -77,7 +151,7 @@
 
   // coming back from a hidden tab hands us one enormous frame; drop it rather
   // than fast-forwarding the shift the player was not watching
-  addEventListener('visibilitychange', () => { if (!document.hidden) { last = 0; acc = 0; } });
+  addEventListener('visibilitychange', () => { if (!document.hidden) { last = 0; acc = 0; lockWake(); } });
 
   function frame(now) {
     requestAnimationFrame(frame);
@@ -103,6 +177,9 @@
       else if (Audio5.rainV) Audio5.rainOff();
     }
     G.render(ctx);
+    /* the landscape ghost controls, over the margins: a delivery shift
+       (paused or not, as on the canvas before) and the kitchen's PAUSE */
+    if (typeof Pad !== 'undefined') Pad.drawOverlay(G.state === 'play' ? 'drive' : G.state === 'kitchen' ? 'kitchen' : null);
   }
 
   /* Console bridge. Browsers pause requestAnimationFrame in a hidden tab, so
@@ -114,6 +191,26 @@
     step(n = 1) {
       for (let i = 0; i < n; i++) tick();
       G.render(ctx);
+    },
+    /* For the phone check over Chrome remote debugging: what the page
+       measured, and what Pad laid out from it. */
+    layoutInfo() {
+      const wrap = document.getElementById('stage'), r = canvas.getBoundingClientRect ? canvas.getBoundingClientRect() : null;
+      let orientation = null, fullscreen = false;
+      try { orientation = screen.orientation ? screen.orientation.type : null; } catch (e) { /* none */ }
+      try { fullscreen = !!document.fullscreenElement; } catch (e) { /* none */ }
+      return {
+        innerWidth: window.innerWidth, innerHeight: window.innerHeight,
+        devicePixelRatio: window.devicePixelRatio || 1,
+        stage: wrap ? { w: wrap.clientWidth, h: wrap.clientHeight } : null,
+        insets: readInsets(),
+        canvas: r ? { x: r.left, y: r.top, w: r.width, h: r.height } : null, scale,
+        mode: typeof Pad !== 'undefined' ? Pad.mode : null,
+        layout: typeof Pad !== 'undefined' ? Pad._lay : null,
+        drive: typeof Pad !== 'undefined' && Pad._view
+          ? Pad.layout(Pad._view.vw, Pad._view.vh, Pad._view.dpr, Pad._view.insets, { mode: 'C', context: 'drive' }) : null,
+        orientation, fullscreen, wakeLock: !!wake,
+      };
     },
   };
 

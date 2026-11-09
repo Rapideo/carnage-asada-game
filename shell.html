@@ -3,20 +3,25 @@
 <title>Taco Shop &mdash; Carnage Asada</title>
 <style>
   *{box-sizing:border-box;}
-  html,body{height:100%;}
+  /* overscroll-behavior: no pull-to-refresh on a phone */
+  html,body{height:100%;overscroll-behavior:none;}
   body{
     margin:0;
     background:#120d1a;
     overflow:hidden;
     display:flex;
+    -webkit-tap-highlight-color:transparent;
   }
 
   /* No page chrome by design — the canvas is the whole product. #stage is
      kept because 90_main.js measures it to size the canvas; removing it
-     would silently fall back to window.innerWidth. */
+     would silently fall back to window.innerWidth. touch-action: no pan, no
+     pinch and no double-tap zoom anywhere on it, margins included. */
   #stage{
     flex:1 1 auto;min-height:0;
     display:flex;align-items:center;justify-content:center;
+    touch-action:none;
+    user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
   }
 
   canvas{
@@ -28,11 +33,24 @@
     outline:none;
   }
   canvas:focus-visible{box-shadow:0 0 0 2px #3fb8b0;}
+
+  /* Mode C on a landscape phone: the ghost controls, drawn over the whole
+     page in the margins beside the picture. It never takes a touch itself;
+     the stage and the game canvas under it do (25_pad.js). */
+  #pad{
+    position:fixed;left:0;top:0;
+    display:none;
+    pointer-events:none;touch-action:none;
+    background:transparent;
+    image-rendering:auto;
+    z-index:1;
+  }
 </style>
 
 <div id="stage">
   <canvas id="screen" width="384" height="216" tabindex="0" aria-label="Taco Shop: Carnage Asada, a top-down taco delivery arcade game"></canvas>
 </div>
+<canvas id="pad" width="1" height="1" aria-hidden="true"></canvas>
 
 <script>
 /*__GAME__*/

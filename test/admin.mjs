@@ -2911,6 +2911,9 @@ console.log('\n— artifact —');
   /* the code, that is: 35_faces.js explains in a comment why it never calls fetch() */
   const code = shipped.replace(/\/\*[\s\S]*?\*\//g, '');
   for (const s of ['fetch(', 'import(']) ok(!code.includes(s), 'taco-shop.html calls no ' + s + ') outside its comments');
+  /* the install manifest is deploy-only (RESUME.md's deploy steps): a link in
+     the single file would be an external request under the artifact's CSP */
+  ok(!/rel=["']?manifest/i.test(shipped) && !/webmanifest/i.test(shipped), 'taco-shop.html links no manifest');
 }
 
 console.log('\n— cast portraits —');

@@ -2269,6 +2269,205 @@ console.log('\n— wind —');
   ok(!!Wind && Wind.on === false && weeds().length === 0, 'the title is calm');
 }
 
+/* Task 8 (0.9.3): Mode C on a landscape phone puts ghost controls in the side
+   margins, outside the game picture (concept C, owner rulings 2026-11-08: the
+   stick at the vertical middle of the left margin, TOSS / GAS / REV centred on
+   the right, the kitchen with no controls but pause). Pad.layout is pure and
+   in CSS px; hit-testing and drawing both read it. Everything else -- Modes A
+   and B, and Mode C in portrait -- must draw exactly as it did. */
+console.log('\n— touch layout —');
+{
+  const { readFileSync, existsSync } = await import('node:fs');
+  const Pad = KX.Pad, Hud = runScript('Hud'), MMv = runScript('MM');
+  const MMPX = 160 / 25.4;                  // CSS px per mm: on Android 1 CSS px is 1 dp, 1/160 in
+  const Z = { top: 0, right: 0, bottom: 0, left: 0 };
+  const has = typeof Pad.layout === 'function';
+  const lay = (vw, vh, dpr, ins, mode, context) => (has ? Pad.layout(vw, vh, dpr, ins || Z, { mode, context }) : null);
+  const cl = (v, a, b) => Math.max(a, Math.min(b, v));
+  const hitsRect = (c, r) => Math.hypot(c.cx - cl(c.cx, r.x, r.x + r.w), c.cy - cl(c.cy, r.y, r.y + r.h)) < c.r;
+  const c80 = (p) => ({ x: p.x + p.w * 0.1, y: p.y + p.h * 0.1, w: p.w * 0.8, h: p.h * 0.8 });
+  const inView = (c, vw, vh) => c.cx - c.r >= -0.01 && c.cx + c.r <= vw + 0.01 && c.cy - c.r >= -0.01 && c.cy + c.r <= vh + 0.01;
+  const circles = (L) => [L.stick, ...L.buttons, L.pause].filter(Boolean);
+  const apart = (a, b) => Math.hypot(a.cx - b.cx, a.cy - b.cy) >= a.r + b.r;
+
+  /* --- the Pixel 10 in landscape, the estimate from reference/touch-concepts/NOTE.md --- */
+  const P = lay(923, 411, 2.625, Z, 'C', 'drive');
+  ok(!!P && P.landscape === true, 'Pixel 10 landscape (923x411 @2.625) gets the margin layout');
+  if (P && P.landscape) {
+    const pic = P.picture;
+    ok(pic.h >= 411 - VH * 0.05 && pic.h <= 411 && Math.abs(pic.w / pic.h - VW / VH) < 1e-9,
+       `the picture fills the height (${pic.w.toFixed(1)}x${pic.h.toFixed(1)})`);
+    ok(Math.abs(pic.x - (923 - pic.w) / 2) < 0.01 && Math.abs(pic.y - (411 - pic.h) / 2) < 0.01, 'the picture is centred, as #stage centres the canvas');
+    ok(!!P.stick && Math.abs(P.stick.cy - 411 / 2) <= 1, `the stick is centred vertically (cy ${P.stick && P.stick.cy.toFixed(1)}, vh/2 ${411 / 2})`);
+    /* "fully left of the picture" cannot hold at 17 mm: the margin is 96.7 CSS
+       px, 15.3 mm, so concept C bleeds the stick onto the picture's edge. The
+       guard is that its centre is in the margin and it stays off the centre 80%. */
+    ok(!!P.stick && P.stick.cx < pic.x && !hitsRect(P.stick, c80(pic)),
+       `the stick sits in the left margin, clear of the picture's centre 80% (right edge ${P.stick && (P.stick.cx + P.stick.r).toFixed(1)}, picture ${pic.x.toFixed(1)})`);
+    ok(!!P.stick && 2 * P.stick.r >= 17 * MMPX, `the stick is at least 17 mm across (${P.stick && (2 * P.stick.r / MMPX).toFixed(1)} mm)`);
+    ok(!!P.stick && Math.abs(P.stick.cx - P.stick.r - 2.5 * MMPX) < 0.5, 'and 2.5 mm off the left edge');
+    const ids = P.buttons.map((b) => b.id).join(',');
+    ok(ids === 'toss,gas,rev', `TOSS, GAS and REV, top to bottom, on the right (${ids})`);
+    ok(P.buttons.every((b) => b.cx > pic.x + pic.w && !hitsRect(b, c80(pic))), 'every button is centred in the right margin, clear of the centre 80%');
+    const top = Math.min(...P.buttons.map((b) => b.cy - b.r)), bot = Math.max(...P.buttons.map((b) => b.cy + b.r));
+    ok(Math.abs((top + bot) / 2 - 411 / 2) <= 1, `the three are centred vertically as a group (${top.toFixed(1)}..${bot.toFixed(1)})`);
+    const mm = (id) => { const b = P.buttons.find((q) => q.id === id); return b ? 2 * b.r / MMPX : 0; };
+    ok(Math.abs(mm('gas') - 15) < 0.1 && Math.abs(mm('toss') - 12.7) < 0.1 && Math.abs(mm('rev') - 10) < 0.1,
+       `sizes from mm: GAS ${mm('gas').toFixed(1)}, TOSS ${mm('toss').toFixed(1)}, REV ${mm('rev').toFixed(1)}`);
+    ok(Math.max(...P.buttons.map((b) => b.cx + b.r)) <= 923 - 2.5 * MMPX + 0.5, 'and 2.5 mm off the right edge');
+    ok(P.buttons.every((a, i) => P.buttons.every((b, j) => i === j || apart(a, b))), 'no two buttons overlap');
+    ok(!!P.pause && P.pause.cx + P.pause.r <= pic.x && circles(P).every((c) => inView(c, 923, 411)),
+       'PAUSE sits in the left margin, and every control is on the screen');
+    ok(!!P.pause && apart(P.pause, P.stick), 'PAUSE does not overlap the stick');
+
+    /* the camera cutout: controls stay inside the safe area */
+    const I = lay(923, 411, 2.625, { top: 0, right: 0, bottom: 0, left: 40 }, 'C', 'drive');
+    ok(!!I && Math.abs(I.stick.cx - P.stick.cx - 40) < 0.01 && Math.abs(I.pause.cx - P.pause.cx - 40) < 0.01, 'a 40px left inset moves the stick and PAUSE in by 40px');
+    const Ir = lay(923, 411, 2.625, { top: 0, right: 30, bottom: 0, left: 0 }, 'C', 'drive');
+    ok(!!Ir && Ir.buttons.every((b, i) => Math.abs(b.cx - P.buttons[i].cx + 30) < 0.01), 'a 30px right inset moves the buttons in by 30px');
+
+    /* the minimap: a free corner in Mode C, never under the stick, never on the windsock (Ledger Ruling 1) */
+    ok(typeof Hud.mapRect === 'function', 'Hud.mapRect says where the minimap is');
+    if (typeof Hud.mapRect === 'function') {
+      const m = Hud.mapRect(), s = pic.w / VW;
+      const css = { x: pic.x + (m.x - 2) * s, y: pic.y + (m.y - 2) * s, w: (m.w + 4) * s, h: (m.h + 4) * s };
+      ok(!hitsRect(P.stick, css) && P.buttons.every((b) => !hitsRect(b, css)), `the minimap is not under the stick or a button (${JSON.stringify(m)})`);
+      const sk = Hud.sockRect(false);
+      const ov = !(sk.x + sk.w <= m.x - 2 || m.x + m.w + 2 <= sk.x || sk.y + sk.h <= m.y - 2 || m.y + m.h + 2 <= sk.y);
+      ok(!ov, `the windsock and the minimap do not overlap (${JSON.stringify(sk)})`);
+      ok(m.x === 4 && m.y === VH - MMv - 4 && m.w === MMv, 'the minimap is in the bottom-left corner (the stick, now mid-height, left it free)');
+    }
+  }
+
+  /* --- other phones and windows: never on the picture's centre 80%, never off the screen --- */
+  for (const [vw, vh, dpr] of [[914, 410, 3.125], [921, 414, 3.25], [740, 360, 3], [800, 360, 2], [640, 360, 2], [1280, 720, 1], [1920, 1080, 1], [2000, 800, 1], [1600, 1000, 1]]) {
+    const L = lay(vw, vh, dpr, Z, 'C', 'drive');
+    const okL = !!L && L.landscape && L.stick && L.buttons.length === 3 && circles(L).every((c) => !hitsRect(c, c80(L.picture)) && inView(c, vw, vh))
+      && Math.abs(L.stick.cy - vh / 2) <= 1 && L.picture.h <= vh && L.picture.w <= vw;
+    ok(okL, `${vw}x${vh} @${dpr}: controls clear of the picture's centre 80% and on the screen` +
+       (L && L.picture ? ` (picture ${L.picture.w.toFixed(0)}x${L.picture.h.toFixed(0)})` : ''));
+  }
+
+  /* --- the Kitchen Shift: the player taps the bins; only PAUSE --- */
+  const K = lay(923, 411, 2.625, Z, 'C', 'kitchen');
+  ok(!!K && K.landscape && !K.stick && K.buttons.length === 0 && !!K.pause, 'the Kitchen Shift has no stick and no buttons, only PAUSE');
+  ok(!!K && !!P && JSON.stringify(K.picture) === JSON.stringify(P.picture), 'and the same picture, so nothing jumps between shifts');
+
+  /* --- portrait, and Modes A and B: today's layout --- */
+  const Po = lay(411, 923, 2.625, Z, 'C', 'drive');
+  ok(!!Po && Po.landscape === false && !!Po.stick && Po.stick.cx === Pad.STICK.x && Po.stick.cy === Pad.STICK.y && Po.stick.r === Pad.STICK.r,
+     'portrait (411x923) keeps today\'s on-canvas stick');
+  ok(!!Po && Po.buttons.length === 3 && Po.buttons.every((b) => { const B = Pad.BTN[b.id]; return B && b.cx === B.x && b.cy === B.y && b.r === B.r; }),
+     'and today\'s buttons');
+  ok(!!Po && !!Po.pause && Po.pause.x === Pad.PAUSE.x && Po.pause.y === Pad.PAUSE.y && Po.pause.w === Pad.PAUSE.w, 'and today\'s PAUSE');
+  for (const m of ['A', 'B']) {
+    const L = lay(923, 411, 2.625, Z, m, 'drive');
+    ok(!!L && L.landscape === false && !L.stick && L.buttons.length === 0 && Math.abs(L.scale - 1.9) < 1e-9, `Mode ${m} in landscape: no overlay, today's fit (scale ${L && L.scale})`);
+  }
+
+  /* --- Modes A, B and C portrait draw exactly as before; C landscape draws nothing on the picture --- */
+  const rec = () => {
+    const log = [];
+    const fmt = (v) => (v && typeof v === 'object' ? (v.width ? 'img' + v.width + 'x' + v.height : 'o') : typeof v === 'number' ? +v.toFixed(3) : String(v));
+    const o = { globalAlpha: 1, fillStyle: '#000', strokeStyle: '#000', lineWidth: 1, imageSmoothingEnabled: false, canvas: {}, measureText: () => ({ width: 0 }),
+                createLinearGradient: () => ({ addColorStop() {} }), createRadialGradient: () => ({ addColorStop() {} }) };
+    const x = new Proxy(o, {
+      get(t, k) { if (k in t) return t[k]; return (...a) => { log.push(String(k) + '(' + a.map(fmt).join(',') + ')'); }; },
+      set(t, k, v) { t[k] = v; log.push(String(k) + '=' + fmt(v)); return true; },
+    });
+    return { x, log };
+  };
+  const m0 = Pad.mode, lay0 = Pad._lay;
+  G.startShift();
+  const hudLog = () => { const r = rec(); Hud.draw(r.x, G); return r.log.join('\n'); };
+  const padLog = () => { const r = rec(); Pad.draw(r.x, 'drive'); return r.log.join('\n'); };
+  const relay = (vw, vh, dpr) => { if (typeof Pad.relayout === 'function') Pad.relayout(vw, vh, dpr, Z); };
+  Pad.setMode('A'); Pad._lay = null;
+  const hudA = hudLog();
+  for (const m of ['A', 'B']) {
+    Pad.setMode(m); Pad._lay = null;
+    const h0 = hudLog(), p0 = padLog();
+    relay(923, 411, 2.625);
+    ok(hudLog() === h0 && padLog() === p0 && p0 === '', `Mode ${m}: the HUD draws the same with a landscape layout as without one`);
+    relay(411, 923, 2.625);
+    ok(hudLog() === h0 && padLog() === p0, `Mode ${m}: ...and with a portrait one`);
+  }
+  Pad.setMode('C'); Pad._lay = null;
+  const hC = hudLog(), pC = padLog();
+  relay(411, 923, 2.625);
+  ok(hudLog() === hC && padLog() === pC && pC.includes('drawImage'), 'Mode C portrait draws exactly as before: the same HUD and the on-canvas controls');
+  ok(hC !== hudA, '(and that HUD is the Mode C one, with the bag moved up)');
+  relay(923, 411, 2.625);
+  ok(typeof Pad.onCanvas === 'function' && Pad.onCanvas() === false, 'Mode C landscape: the controls are not on the canvas');
+  ok(padLog() === '', 'Mode C landscape draws no controls on the game picture');
+  ok(hudLog() === hudA, 'Mode C landscape: the HUD is the keyboard one (bag, windsock and edge arrow back where Mode A has them)');
+
+  /* --- hit-testing in CSS px, before the game's clamped mapping --- */
+  if (P && typeof Pad.relayout === 'function') {
+    Pad.relayout(923, 411, 2.625, Z);
+    const L = Pad._lay, gas = L.buttons.find((b) => b.id === 'gas'), toss = L.buttons.find((b) => b.id === 'toss');
+    Input.down = Object.create(null); Input.hit = Object.create(null); Input.mhit = false;
+    const step = (ctx) => { Pad.poll(ctx, 1 / 60); };
+    let id = 900;
+    const touch = (x, y) => { const i = id++; Pad._push('s', i, x, y); return i; };
+    let t = touch(gas.cx, gas.cy); step('drive');
+    ok(Input.down.KeyW === true, 'a thumb on GAS, in the right margin, holds KeyW');
+    Pad._push('e', t, gas.cx, gas.cy); step('drive');
+    ok(!Input.down.KeyW, 'and letting go releases it');
+    t = touch(30, 411 / 2); Pad._push('m', t, 30 + L.stick.r, 411 / 2); step('drive');
+    ok(Input.down.ArrowRight === true && !Input.down.ArrowLeft, 'a thumb in the left margin, dragged right, steers right');
+    Pad._push('e', t, 30 + L.stick.r, 411 / 2); step('drive');
+    t = touch(toss.cx, toss.cy); step('drive');
+    ok(Pad.aiming === true, 'TOSS in the margin starts the aim');
+    const ax0 = Pad.aimX;
+    Pad._push('m', t, toss.cx - 20, toss.cy); step('drive');
+    ok(Pad.aimX < ax0 - 1, `dragging inside the margin moves the reticle (the margin is not clamped to the picture's edge: ${ax0.toFixed(1)} -> ${Pad.aimX.toFixed(1)})`);
+    Pad._push('e', t, toss.cx - 20, toss.cy); step('drive');
+    ok(Pad.throwNow === true && Pad.aiming === false, 'and letting go throws');
+    Input.endFrame();
+    t = touch(L.pause.cx, L.pause.cy); step('drive');
+    ok(Input.hit.KeyP === true, 'PAUSE in the margin pauses'); Pad._push('e', t, L.pause.cx, L.pause.cy); Input.endFrame();
+    step('kitchen'); Input.endFrame(); Input.mhit = false;
+    t = touch(gas.cx, gas.cy); step('kitchen');
+    ok(!Input.mhit && !Input.down.KeyW, 'in the kitchen, a touch in the margin is not a tap on the edge bin');
+    Pad._push('e', t, gas.cx, gas.cy); step('kitchen'); Input.endFrame();
+    t = touch(L.pause.cx, L.pause.cy); step('kitchen');
+    ok(Input.hit.KeyP === true, 'PAUSE still pauses the kitchen'); Pad._push('e', t, L.pause.cx, L.pause.cy); step('kitchen'); Input.endFrame();
+    t = touch(461, 200); step('kitchen');
+    ok(Input.mhit === true, 'and a touch on the picture is still a tap');
+    Pad._push('e', t, 461, 200); step('kitchen'); Input.endFrame();
+    step('menu'); Input.endFrame();
+    t = touch(gas.cx, gas.cy); step('menu');
+    ok(Input.hit.Enter === true || Input.anyKey === true, 'on a card, a touch on a ghost control is "any key"');
+    Pad._push('e', t, gas.cx, gas.cy); step('menu'); Input.endFrame();
+    Input.down = Object.create(null); Input.mhit = false;
+  }
+  Pad.setMode(m0); Pad._lay = lay0;
+  G.toTitle();
+
+  /* --- the page: near-native on a phone, the single file still self-contained --- */
+  const shell = readFileSync('shell.html', 'utf8'), dev = readFileSync('index.html', 'utf8'), ship = readFileSync('taco-shop.html', 'utf8');
+  ok(/viewport-fit=cover/.test(dev), 'the dev page\'s viewport covers the cutout (viewport-fit=cover)');
+  ok(/overscroll-behavior:\s*none/.test(shell) && /#stage\{[^}]*touch-action:\s*none/.test(shell), 'no pull-to-refresh, no double-tap zoom (overscroll-behavior, touch-action on #stage)');
+  ok(/env\(safe-area-inset/.test(ship), 'the safe-area insets are read');
+  ok(!/rel=["']?manifest/i.test(ship) && !/webmanifest/i.test(ship), 'taco-shop.html links no manifest (that is deploy-only)');
+  const src90 = readFileSync('src/90_main.js', 'utf8');
+  ok(/requestFullscreen/.test(src90) && /orientation\.lock\(\s*'landscape'\s*\)/.test(src90) && /wakeLock\.request\(\s*'screen'\s*\)/.test(src90),
+     'full screen, the landscape lock and the wake lock are asked for');
+  const TS_ = sandbox.window.TacoShop;
+  ok(!!TS_ && typeof TS_.layoutInfo === 'function', 'window.TacoShop.layoutInfo() reports the viewport for remote debugging');
+  if (TS_ && typeof TS_.layoutInfo === 'function') {
+    const li = TS_.layoutInfo();
+    ok(['innerWidth', 'innerHeight', 'devicePixelRatio', 'insets', 'layout'].every((k) => k in li), `it has innerWidth, innerHeight, devicePixelRatio, insets and layout (${Object.keys(li).join(', ')})`);
+  }
+  let man = null;
+  try { man = JSON.parse(readFileSync('deploy/manifest.webmanifest', 'utf8')); } catch (e) { man = null; }
+  ok(!!man && man.display === 'fullscreen' && man.orientation === 'landscape', 'deploy/manifest.webmanifest: display fullscreen, landscape');
+  const png = (f) => { try { const b = readFileSync(f); return b.readUInt32BE(16) + 'x' + b.readUInt32BE(20); } catch (e) { return null; } };
+  ok(png('deploy/icon-192.png') === '192x192' && png('deploy/icon-512.png') === '512x512', `the icons are 192 and 512 (${png('deploy/icon-192.png')}, ${png('deploy/icon-512.png')})`);
+  ok(!!man && Array.isArray(man.icons) && ['192x192', '512x512'].every((s) => man.icons.some((i) => i.sizes === s && existsSync('deploy/' + i.src))), 'and the manifest names them');
+}
+
 console.log('\n— copy —');
 const dl = KX.DIALOGUE;
 {

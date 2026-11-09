@@ -1,0 +1,17 @@
+{
+  "name": "Taco Shop: Carnage Asada",
+  "short_name": "Taco Shop",
+  "description": "A 16-bit taco delivery arcade game set in Hays, Kansas.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#120d1a",
+  "theme_color": "#120d1a",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
