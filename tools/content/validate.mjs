@@ -79,6 +79,7 @@ function drawable(file, path, where, s) {
   return up;
 }
 const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
+const GUST_FLOOR = 3;          // seconds: the least wind.gustEvery[0] may be
 const isCents = (v) => Number.isInteger(v) && v >= 0;
 
 function buildContent(src) {
@@ -749,6 +750,9 @@ function buildDifficulty(src) {
     ge.forEach((v, i) => {
       if (!isNum(v) || v <= 0) fail(F, [k, 'wind', 'gustEvery', i], `${W}.wind.gustEvery[${i}] must be a positive number of seconds, got ${JSON.stringify(v)}`);
     });
+    /* a floor of 3 s (owner, 2026-11-09): a gust is a 1 s warning and a 1 s
+       shove, so anything closer runs one gust into the next */
+    if (ge[0] < GUST_FLOOR) fail(F, [k, 'wind', 'gustEvery', 0], `${W}.wind.gustEvery min must be at least ${GUST_FLOOR}s, so one gust ends before the next is warned, got ${ge[0]}s`);
     if (ge[0] > ge[1]) fail(F, [k, 'wind', 'gustEvery', 0], `${W}.wind.gustEvery min (${ge[0]}s) is above its max (${ge[1]}s)`);
     if (!Number.isInteger(wd.tumbleweeds) || wd.tumbleweeds < 0 || wd.tumbleweeds > 12)
       fail(F, [k, 'wind', 'tumbleweeds'], `${W}.wind.tumbleweeds must be a whole number from 0 to 12, got ${JSON.stringify(wd.tumbleweeds)}`);

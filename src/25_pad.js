@@ -77,7 +77,12 @@ const Pad = {
   LAND_MM: { stick: 18, gas: 15, toss: 12.7, rev: 10, pause: 7.2, edge: 2.5, gap: 2, slop: 2, throw: 5 },
   LAND_ASPECT: 1.5,     // vw / vh above this is landscape
   LAND_CLEAR: 0.8,      // no control reaches the picture's centre 80%
-  LAND_BTN: ['toss', 'gas', 'rev'],   // top to bottom, centred as a group on the right
+  LAND_BTN: ['toss', 'gas', 'rev'],   // top to bottom on the right: centred, or slid down off LAND_HUD
+  /* The HUD's top-right stack in the city, in virtual px: the clock card
+     (x 253..381, y 3..47), then ORDERS and the stars (y 50..58) and the
+     streak (y 60..68), each with its 1px outline. The right column slides
+     down off it rather than sitting on the ORDERS counter (owner, 2026-11-09). */
+  LAND_HUD: { x: 250, y: 0, w: VW - 250, h: 70 },
   /* ghost styling: a 2 CSS px bone outline and a faint fill, both brighter under a thumb */
   GHOST: { line: 2, lineA: 0.45, fillA: 0.12, lineOn: 0.85, fillOn: 0.35 },
 
@@ -199,8 +204,19 @@ const Pad = {
     const s = fit(Math.min(vw, maxW), vh), w = VW * s, h = VH * s;
     let x = clamp((vw - w) / 2, 0, Math.max(0, vw - w));
     x = clamp(x, reachL + AIR - lo * w, Math.max(reachL + AIR - lo * w, reachR - AIR - hi * w));
+    const picture = box(s, x, (vh - h) / 2);
+    /* The column is centred unless TOSS would sit on the HUD's top-right
+       stack: then it slides down to clear it by the gap, or as far as the
+       bottom edge allows. Only y moves, so the picture's fit is unchanged. */
+    const H = this.LAND_HUD, hud = { x: picture.x + H.x * s, y: picture.y + H.y * s, w: H.w * s, h: H.h * s };
+    const t0 = buttons[0], nx = clamp(t0.cx, hud.x, hud.x + hud.w), ny = clamp(t0.cy, hud.y, hud.y + hud.h);
+    if (Math.hypot(t0.cx - nx, t0.cy - ny) < t0.r) {
+      const top = t0.cy - t0.r, bot = buttons[buttons.length - 1].cy + buttons[buttons.length - 1].r;
+      const dy = Math.max(0, Math.min(hud.y + hud.h + gap, vh - ins.bottom - e - (bot - top)) - top);
+      for (const b of buttons) b.cy += dy;
+    }
     return {
-      landscape: true, units: 'css', dpr, scale: s, picture: box(s, x, (vh - h) / 2), mm,
+      landscape: true, units: 'css', dpr, scale: s, picture, mm,
       stick: ctx === 'drive' ? stick : null,
       buttons: ctx === 'drive' ? buttons : [],
       pause: ctx === 'menu' ? null : pause,

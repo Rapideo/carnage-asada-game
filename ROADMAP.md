@@ -14,7 +14,7 @@ The game is **feature-complete** (0.9.0, 2026-11-07), **0.9.1 added Service Mode
 simple level card, the new faces' eyes, and the landscape touch controls (`CHANGELOG.md`). It is
 built and reviewed but not tagged, merged, pushed or deployed. **Next:** the owner's call to merge
 to `master`, push and deploy; then the owner's full playtest brings a new punch list. Open after
-that: the TOSS ghost overlapping the ORDERS counter (owner's option), kitchen tuning, and the rest
+that: kitchen tuning, and the rest
 of the punch list below. Fixes ship as 0.9.x, and 1.0.0 is the owner's call.
 
 ## DONE: Service Mode (the admin overlay), 0.9.1

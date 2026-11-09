@@ -7,6 +7,12 @@ here, run `node build.mjs` and the tests, commit, and tag it (`git tag v<version
 Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch lists.
 **1.0.0** is when the owner calls it released.
 
+## Unreleased (branch `tweaks-0.9.4`)
+
+- **Touch (Mode C):** on a phone held sideways, TOSS, GAS and REV slide down so TOSS no longer
+  covers the ORDERS counter.
+- **Wind:** a gust can come no sooner than 3 seconds after the last one; the build refuses less.
+
 ## 0.9.3 (2026-11-08): weather and wind
 
 **Delivery**

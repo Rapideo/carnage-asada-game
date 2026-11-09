@@ -15,8 +15,10 @@ new faces, and the Pixel 10 landscape controls (`CHANGELOG.md`). It went through
 a final whole-branch review and one fix wave; the touch layout was checked on the owner's Pixel 10 over ADB.
 **Next, in order:**
 1. The owner's full playtest of 0.9.3.
-2. Small calls the owner has not made yet: a floor on `gustEvery` (3 s suggested); whether the
-   tumbleweed and gust sounds should play in the attract demo; the TOSS ghost over the ORDERS counter.
+2. The three small calls are made (owner, 2026-11-09) and are on branch `tweaks-0.9.4`, not yet merged:
+   - `gustEvery`'s minimum is at least 3 s (the build refuses less);
+   - the tumbleweed and gust sounds play in the attract demo (they already did; no change);
+   - the TOSS column slides down off the ORDERS counter in Mode C landscape (`Pad.LAND_HUD`).
 3. Then the remaining ROADMAP items.
 
 Before that, 0.9.2 was on `master`, tagged `v0.9.2`, pushed and deployed to Netlify. It added:

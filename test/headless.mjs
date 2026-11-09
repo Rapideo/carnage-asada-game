@@ -2330,7 +2330,13 @@ console.log('\n— touch layout —');
     ok(ids === 'toss,gas,rev', `TOSS, GAS and REV, top to bottom, on the right (${ids})`);
     ok(P.buttons.every((b) => b.cx > pic.x + pic.w && !hitsRect(b, c80(pic))), 'every button is centred in the right margin, clear of the centre 80%');
     const top = Math.min(...P.buttons.map((b) => b.cy - b.r)), bot = Math.max(...P.buttons.map((b) => b.cy + b.r));
-    ok(Math.abs((top + bot) / 2 - 411 / 2) <= 1, `the three are centred vertically as a group (${top.toFixed(1)}..${bot.toFixed(1)})`);
+    /* owner, 2026-11-09: centred, TOSS sat on the ORDERS counter at the
+       picture's right edge, so the column slides down off the HUD stack */
+    const H = Pad.LAND_HUD, hud = { x: pic.x + H.x * P.scale, y: pic.y + H.y * P.scale, w: H.w * P.scale, h: H.h * P.scale };
+    const tossB = P.buttons[0];
+    ok(!hitsRect(tossB, hud), `TOSS is off the HUD's top-right stack, ORDERS and the streak (TOSS top ${top.toFixed(1)}, stack bottom ${(hud.y + hud.h).toFixed(1)})`);
+    ok(top > (411 - (bot - top)) / 2 + 1 && Math.abs(bot - (411 - 2.5 * MMPX)) < 0.5, `so the column sits low, 2.5 mm off the bottom edge (${top.toFixed(1)}..${bot.toFixed(1)})`);
+    ok(H.y === 0 && H.h >= 69 && H.x + H.w === VW && H.x <= VW - 128 - 3, 'LAND_HUD covers the clock card, ORDERS and the streak line (to y 68 and from the clock card leftwards)');
     const mm = (id) => { const b = P.buttons.find((q) => q.id === id); return b ? 2 * b.r / MMPX : 0; };
     ok(Math.abs(mm('gas') - 15) < 0.1 && Math.abs(mm('toss') - 12.7) < 0.1 && Math.abs(mm('rev') - 10) < 0.1,
        `sizes from mm: GAS ${mm('gas').toFixed(1)}, TOSS ${mm('toss').toFixed(1)}, REV ${mm('rev').toFixed(1)}`);
@@ -2364,6 +2370,16 @@ console.log('\n— touch layout —');
     const L = lay(vw, vh, dpr, Z, 'C', 'drive');
     const okL = !!L && L.landscape && L.stick && L.buttons.length === 3 && circles(L).every((c) => !hitsRect(c, c80(L.picture)) && inView(c, vw, vh))
       && Math.abs(L.stick.cy - vh / 2) <= 1 && L.picture.h <= vh && L.picture.w <= vw;
+    {
+      /* TOSS clears the HUD stack wherever the screen is tall enough to hold
+         the column below it; it is centred, or moved just clear of the stack
+         by the 2 mm gap, or as low as the screen allows */
+      const H = Pad.LAND_HUD, s = L.scale, pc = L.picture, hud = { x: pc.x + H.x * s, y: pc.y + H.y * s, w: H.w * s, h: H.h * s };
+      const t = L.buttons[0], top = t.cy - t.r, bot = L.buttons[2].cy + L.buttons[2].r;
+      const centred = Math.abs((top + bot) / 2 - vh / 2) <= 1, low = Math.abs(bot - (vh - 2.5 * MMPX)) < 0.5;
+      ok(L.buttons[0].id === 'toss' && (centred || low || Math.abs(top - (hud.y + hud.h + 2 * MMPX)) < 0.5) && (!hitsRect(t, hud) || low),
+         `${vw}x${vh}: TOSS is off the ORDERS counter, or as low as the screen allows (${top.toFixed(0)}..${bot.toFixed(0)}, stack to ${(hud.y + hud.h).toFixed(0)})`);
+    }
     ok(okL, `${vw}x${vh} @${dpr}: controls clear of the picture's centre 80% and on the screen` +
        (L && L.picture ? ` (picture ${L.picture.w.toFixed(0)}x${L.picture.h.toFixed(0)})` : ''));
   }

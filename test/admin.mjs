@@ -72,6 +72,10 @@ ok(e && e.path.join('.') === 'medium.wind.gustEvery.0' && /min/.test(e.message),
 ok([[0, 10], [10], [10, 'x'], 12, null].every((v) => { const x = windBad('medium', (w) => { w.gustEvery = v; }); return x && /^medium\.wind\.gustEvery/.test(x.path.join('.')); }),
    'and so are [0, 10], [10], [10, "x"], 12 and null');
 ok(windBad('medium', (w) => { w.gustEvery = [9, 9]; }) === null, 'gustEvery [9, 9] is accepted');
+e = windBad('supreme', (w) => { w.gustEvery = [2.5, 6]; });
+ok(e && e.path.join('.') === 'supreme.wind.gustEvery.0' && /at least 3s/.test(e.message),
+   'a gust minimum under the 3 s floor is refused on the minimum' + (e ? ' (' + e.message + ')' : ''));
+ok(windBad('supreme', (w) => { w.gustEvery = [3, 3]; }) === null, 'gustEvery [3, 3] is accepted: the floor itself');
 ok([13, -1, 2.5, '3'].every((v) => { const x = windBad('hard', (w) => { w.tumbleweeds = v; }); return x && x.path.join('.') === 'hard.wind.tumbleweeds'; })
    && windBad('hard', (w) => { w.tumbleweeds = 0; }) === null && windBad('hard', (w) => { w.tumbleweeds = 12; }) === null,
    'tumbleweeds is a whole number 0-12');
