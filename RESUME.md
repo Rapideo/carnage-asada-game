@@ -8,18 +8,16 @@ kitchen surroundings, and version 0.9.0. Updated 2026-11-07 (evening) for Servic
 This is the starting point for a fresh session. It is a snapshot: **`ROADMAP.md` is the
 living plan**, and if the two disagree, the roadmap wins.
 
-**Start here (2026-11-08, evening): the game is version 0.9.3, built on branch `v0.9.3` (from `master`
-at 9e5d26f). Not merged, pushed, tagged or deployed yet.** 0.9.3 is the 0.9.x list: rain grip 0.75 and
-no red traffic, one customer face per address, weather set per level, wind, snow and rain in the kitchen, the
-simple level card, eyes on all the new faces, and the Pixel 10 landscape controls (`CHANGELOG.md`).
+**Start here (2026-11-09): the game is version 0.9.3, on `master`, tagged `v0.9.3`, pushed and
+deployed to Netlify.** 0.9.3 is the 0.9.x list: rain grip 0.75 and no red traffic, one customer face per
+address, weather set per level, wind, snow and rain in the kitchen, the simple level card, eyes on all the
+new faces, and the Pixel 10 landscape controls (`CHANGELOG.md`). It went through a task review per task,
+a final whole-branch review and one fix wave; the touch layout was checked on the owner's Pixel 10 over ADB.
 **Next, in order:**
-1. The final whole-branch review and its fix wave are DONE (commit `0.9.3: final review fixes`: held keys
-   no longer skip the level card, the eyes test checks geometry, the windy-demo bound is 7 of 14). Still open:
-   the TOSS ghost overlaps the ORDERS counter at the picture's right edge (owner's option).
-2. Then `git tag v0.9.3` on the final commit (deliberately not made yet).
-3. The owner's call: merge to `master`, push, and deploy. The deploy steps (below) now include
-   `deploy/manifest.webmanifest` and the two icons.
-4. The owner's full playtest, then the remaining ROADMAP items.
+1. The owner's full playtest of 0.9.3.
+2. Small calls the owner has not made yet: a floor on `gustEvery` (3 s suggested); whether the
+   tumbleweed and gust sounds should play in the attract demo; the TOSS ghost over the ORDERS counter.
+3. Then the remaining ROADMAP items.
 
 Before that, 0.9.2 was on `master`, tagged `v0.9.2`, pushed and deployed to Netlify. It added:
 - 104 new customers, growing through each decade;
@@ -342,8 +340,9 @@ Known soft spots:
 
 ## Deployment
 
-- **<https://carnage-asada.netlify.app>** is public and runs **0.9.2**, deployed
-  2026-11-08 from the commit tagged `v0.9.2` (pushed to GitHub the same day). 0.9.0 was
+- **<https://carnage-asada.netlify.app>** is public and runs **0.9.3**, deployed
+  2026-11-09 from the commit tagged `v0.9.3` (pushed to GitHub the same day). 0.9.2 was
+  deployed on 2026-11-08 from `v0.9.2`. 0.9.0 was
   deployed on 2026-11-07 from `d717fee`. The owner
   ruled the same day that music clearance is not a concern for deploying; don't raise it
   again.
@@ -362,7 +361,8 @@ Known soft spots:
      **`viewport-fit=cover` is essential:** without it the safe-area insets read 0 and the
      stick sits under the camera.
   3. Copy `deploy/manifest.webmanifest`, `deploy/icon-192.png` and `deploy/icon-512.png`
-     into the same folder, beside `index.html`. They make it installable to the home
+     into the same folder, beside `index.html`, and `deploy/_headers` too (it serves the
+     manifest as `application/manifest+json`; Netlify would otherwise send it as a binary). They make it installable to the home
      screen (`display: fullscreen`, landscape). Redraw the icons with
      `node tools/render/icons.mjs`. **The manifest link goes in the deployed wrapper only,
      never in `taco-shop.html`**: the single file stays free of external requests, and
