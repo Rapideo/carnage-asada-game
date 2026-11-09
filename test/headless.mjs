@@ -2459,6 +2459,31 @@ console.log('\n— touch layout —');
   if (TS_ && typeof TS_.layoutInfo === 'function') {
     const li = TS_.layoutInfo();
     ok(['innerWidth', 'innerHeight', 'devicePixelRatio', 'insets', 'layout'].every((k) => k in li), `it has innerWidth, innerHeight, devicePixelRatio, insets and layout (${Object.keys(li).join(', ')})`);
+    ok(li.layout === null || li.layout !== Pad._lay, 'and its layout is a copy, not Pad\'s own object');
+  }
+
+  /* The wake lock: only while playing, only in Mode C, and let go after.
+     A stub navigator.wakeLock counts what the page asks for. */
+  if (TS_ && typeof TS_.step === 'function') {
+    let req = 0, rel = 0;
+    sandbox.navigator = { wakeLock: { request: () => { req++; return Promise.resolve({ release() { rel++; return Promise.resolve(); }, addEventListener() {} }); } } };
+    const flush = () => new Promise((r) => setImmediate(r));
+    const mw = Pad.mode;
+    try {
+      Pad.setMode('A'); G.startShift();
+      TS_.step(1); await flush(); TS_.step(1); await flush();
+      ok(req === 0, `Mode A: a shift never takes the wake lock (${req} requests)`);
+      Pad.setMode('C');
+      TS_.step(1); await flush(); TS_.step(2); await flush();
+      ok(req === 1 && rel === 0 && TS_.layoutInfo().wakeLock === true, `Mode C: a shift takes it, once (${req} requests, ${rel} releases)`);
+      G.toTitle(); TS_.step(1); await flush();
+      ok(rel === 1 && TS_.layoutInfo().wakeLock === false, `back on the title it is released (${rel} releases)`);
+      TS_.step(3); await flush();
+      ok(req === 1, `and not taken again there (${req} requests)`);
+    } finally {
+      delete sandbox.navigator; Pad.setMode(mw); Pad._lay = lay0; G.toTitle();
+      Input.down = Object.create(null); Input.hit = Object.create(null); Input.mhit = false;
+    }
   }
   let man = null;
   try { man = JSON.parse(readFileSync('deploy/manifest.webmanifest', 'utf8')); } catch (e) { man = null; }

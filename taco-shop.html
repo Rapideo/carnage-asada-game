@@ -11067,27 +11067,37 @@ const Post = {
     Pad.onModeChange = resize;      // choosing Mode C on a landscape phone refits the picture
   }
 
-  /* Near-native on a phone. The first tap asks for full screen, then locks
-     landscape (Chrome allows the lock only in full screen), and holds a wake
-     lock, re-taken whenever the page comes back. Every one of these throws or
-     rejects somewhere -- file://, desktop, iOS, an insecure origin -- and
-     every one is optional, so each is wrapped and ignored. touchend, not
-     touchstart: it is the gesture Chrome accepts for full screen. */
-  let wake = null, wantWake = false, nativeAsked = false;
-  const lockWake = () => {
+  /* Near-native on a phone, in Mode C only. The first tap in Mode C asks for
+     full screen, then locks landscape (Chrome allows the lock only in full
+     screen). The wake lock is held only while playing -- a shift, its card or
+     its clear -- and syncWake() lets it go the moment that stops, so a phone
+     left on the title still sleeps. Every one of these throws or rejects
+     somewhere -- file://, desktop, iOS, an insecure origin -- and every one is
+     optional, so each is wrapped and ignored. touchend, not touchstart: it is
+     the gesture Chrome accepts for full screen. */
+  let wake = null, wakePending = false, wakeFailed = false, nativeAsked = false;
+  const PLAYING = { play: 1, kitchen: 1, card: 1, clear: 1 };
+  const wakeWanted = () => !document.hidden && typeof Pad !== 'undefined' && Pad.mode === 'C' && !!PLAYING[G.state];
+  const dropWake = (w) => { try { const r = w.release(); if (r && r.catch) r.catch(() => {}); } catch (e) { /* gone already */ } };
+  function syncWake() {
     try {
-      if (!wantWake || wake || document.hidden || !navigator.wakeLock) return;
+      const want = wakeWanted();
+      if (!want && wake) { const w = wake; wake = null; dropWake(w); }
+      if (!want || wake || wakePending || wakeFailed) return;
+      if (typeof navigator === 'undefined' || !navigator.wakeLock) return;
+      wakePending = true;
       navigator.wakeLock.request('screen').then((w) => {
+        wakePending = false;
+        if (!wakeWanted()) { dropWake(w); return; }          // play ended while it was asked for
         wake = w;
-        try { w.addEventListener('release', () => { wake = null; }); } catch (e) { /* older API */ }
-      }).catch(() => {});
-    } catch (e) { /* no wake lock */ }
-  };
+        try { w.addEventListener('release', () => { if (wake === w) wake = null; }); } catch (e) { /* older API */ }
+      }, () => { wakePending = false; wakeFailed = true; }); // refused: not again until the page comes back
+    } catch (e) { wakePending = false; }
+  }
   const goNative = () => {
-    if (nativeAsked) return;
+    if (nativeAsked || typeof Pad === 'undefined' || Pad.mode !== 'C') return;
     nativeAsked = true;
     removeEventListener('touchend', goNative);
-    wantWake = true; lockWake();
     try {
       const el = document.documentElement;
       if (document.fullscreenElement || !el || !el.requestFullscreen) return;
@@ -11142,7 +11152,7 @@ const Post = {
 
   // coming back from a hidden tab hands us one enormous frame; drop it rather
   // than fast-forwarding the shift the player was not watching
-  addEventListener('visibilitychange', () => { if (!document.hidden) { last = 0; acc = 0; lockWake(); } });
+  addEventListener('visibilitychange', () => { if (!document.hidden) { last = 0; acc = 0; wakeFailed = false; syncWake(); } });
 
   function frame(now) {
     requestAnimationFrame(frame);
@@ -11171,6 +11181,7 @@ const Post = {
     /* the landscape ghost controls, over the margins: a delivery shift
        (paused or not, as on the canvas before) and the kitchen's PAUSE */
     if (typeof Pad !== 'undefined') Pad.drawOverlay(G.state === 'play' ? 'drive' : G.state === 'kitchen' ? 'kitchen' : null);
+    syncWake();
   }
 
   /* Console bridge. Browsers pause requestAnimationFrame in a hidden tab, so
@@ -11182,6 +11193,7 @@ const Post = {
     step(n = 1) {
       for (let i = 0; i < n; i++) tick();
       G.render(ctx);
+      syncWake();
     },
     /* For the phone check over Chrome remote debugging: what the page
        measured, and what Pad laid out from it. */
@@ -11197,7 +11209,7 @@ const Post = {
         insets: readInsets(),
         canvas: r ? { x: r.left, y: r.top, w: r.width, h: r.height } : null, scale,
         mode: typeof Pad !== 'undefined' ? Pad.mode : null,
-        layout: typeof Pad !== 'undefined' ? Pad._lay : null,
+        layout: typeof Pad !== 'undefined' && Pad._lay ? JSON.parse(JSON.stringify(Pad._lay)) : null,   // a copy
         drive: typeof Pad !== 'undefined' && Pad._view
           ? Pad.layout(Pad._view.vw, Pad._view.vh, Pad._view.dpr, Pad._view.insets, { mode: 'C', context: 'drive' }) : null,
         orientation, fullscreen, wakeLock: !!wake,
