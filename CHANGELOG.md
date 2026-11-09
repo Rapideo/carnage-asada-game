@@ -7,6 +7,16 @@ here, run `node build.mjs` and the tests, commit, and tag it (`git tag v<version
 Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch lists.
 **1.0.0** is when the owner calls it released.
 
+## 0.9.8 (2026-11-09): TOSS as it was, with arrows
+
+- **Touch (Mode C): 0.9.7's change is undone.** TOSS works as it did in 0.9.6: hold it and drag
+  on it to aim, let go to throw, and the stick keeps steering (owner: "the mechanic works quite
+  nicely").
+- **TOSS shows four arrows** on a phone held sideways, like the stick's, so it says how it is
+  used: hold and drag.
+- **TOSS moves up** to sit just under the ORDERS counter, three rows below it. GAS and REV stay
+  where they were.
+
 ## 0.9.7 (2026-11-09): touch throws like the controller
 
 - **Touch (Mode C):** hold TOSS, aim with the on-screen stick, and let go to throw, the same as

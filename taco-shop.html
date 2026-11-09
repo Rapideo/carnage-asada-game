@@ -266,7 +266,7 @@ const CONTENT = {
   "credit": "CREDIT: 0"
 };
 
-const RELEASE = {"version":"0.9.7","date":"2026-11-09"};
+const RELEASE = {"version":"0.9.8","date":"2026-11-09"};
 
 /* one map per era; LEVELS[i].map picks one. HAYS is Map 1, kept for the
    modules that read it directly. */
@@ -2679,19 +2679,25 @@ const Pad = {
   LAND_MM: { stick: 18, gas: 15, toss: 12.7, rev: 10, pause: 7.2, edge: 2.5, gap: 2, slop: 2, throw: 5 },
   LAND_ASPECT: 1.5,     // vw / vh above this is landscape
   LAND_CLEAR: 0.8,      // no control reaches the picture's centre 80%
-  LAND_BTN: ['toss', 'gas', 'rev'],   // top to bottom on the right: centred, or slid down off LAND_HUD
+  LAND_BTN: ['toss', 'gas', 'rev'],   // top to bottom on the right: centred, or slid down off LAND_HUD with TOSS under ORDERS
   /* The HUD's top-right stack in the city, in virtual px: the clock card
      (x 253..381, y 3..47), then ORDERS and the stars (y 50..58) and the
      streak (y 60..68), each with its 1px outline. The right column slides
      down off it rather than sitting on the ORDERS counter (owner, 2026-11-09). */
   LAND_HUD: { x: 250, y: 0, w: VW - 250, h: 70 },
+  /* ...but when it has, TOSS alone comes back up to sit just under ORDERS:
+     its top edge on this row of the picture. ORDERS is drawn at y 51, seven
+     rows with a 1px outline, so it ends at 58 and 62 leaves three clear rows
+     (owner, 2026-11-09: "3 or 4 scan lines under the 1 out of 15"). GAS and
+     REV stay where the slide put them. */
+  LAND_TOSS_TOP: 62,
   /* ghost styling: a 2 CSS px bone outline and a faint fill, both brighter under a thumb */
   GHOST: { line: 2, lineA: 0.45, fillA: 0.12, lineOn: 0.85, fillOn: 0.35 },
 
   LABELS: {
     B: { drive: 'STICK, 1 GAS, 2 REV', throw: 'HOLD 3, RELEASE', aim: 'HOLD 3 + STICK',
          pause: 'START', select: 'BUTTON 1', wrap: 'BUTTON 2', serve: 'BUTTON 3', mute: 'BACK' },
-    C: { drive: 'STICK, GAS, REV', throw: 'HOLD TOSS', aim: 'TOSS + STICK',
+    C: { drive: 'STICK, GAS, REV', throw: 'HOLD TOSS', aim: 'DRAG TOSS',
          pause: 'TAP PAUSE', select: 'TAP A BIN', wrap: 'TAP WRAP', serve: 'TAP SERVE', mute: '' },
   },
 
@@ -2816,6 +2822,10 @@ const Pad = {
       const top = t0.cy - t0.r, bot = buttons[buttons.length - 1].cy + buttons[buttons.length - 1].r;
       const dy = Math.max(0, Math.min(hud.y + hud.h + gap, vh - ins.bottom - e - (bot - top)) - top);
       for (const b of buttons) b.cy += dy;
+      /* TOSS back up under ORDERS (LAND_TOSS_TOP), never off the top of the
+         screen and never closer to GAS than the column's gap */
+      const g1 = buttons[1], want = picture.y + this.LAND_TOSS_TOP * s;
+      t0.cy = clamp(want, ins.top + e, g1.cy - g1.r - gap - 2 * t0.r) + t0.r;
     }
     return {
       landscape: true, units: 'css', dpr, scale: s, picture, mm,
@@ -3087,23 +3097,9 @@ const Pad = {
       if (e.b2 || e.lt || e.dd || e.sy > ON) want.KeyS = 1;
     }
     if (this.mode !== 'C') return;
+    // The on-screen set. Its stick keeps steering while TOSS is held: a thumb
+    // is free for it here, where on a cabinet the one stick has to do both.
     const s = this._stick();
-    /* TOSS held: the on-screen stick AIMS, the same convention as the
-       controller (hold X, aim with the stick, let go), and the car coasts
-       (owner, 2026-11-09, on the Pixel: it used to keep steering). It moves
-       the aim's base, so a drag on TOSS still adds its own offset on top. */
-    if (this._aimSrc !== null && this._aimSrc !== 'pad') {
-      const m = hyp(s.x, s.y);
-      if (m >= DZ && this._aimBase) {
-        const k = Math.min(1, (m - DZ) / (1 - DZ)) / m * this.AIM_SPEED * dt;
-        const B = this._aimBase, M = this.AIM_MAX;
-        B.x += s.x * k; B.y += s.y * k;
-        const bd = hyp(B.x, B.y);
-        if (bd > M) { B.x *= M / bd; B.y *= M / bd; }
-        this._aimAt(this.aimX + s.x * k, this.aimY + s.y * k);
-      }
-      return;
-    }
     if (s.x < -DZ) want.ArrowLeft = 1;
     if (s.x > DZ) want.ArrowRight = 1;
     if (s.y < -ON) want.KeyW = 1;
@@ -3533,6 +3529,16 @@ const Pad = {
         ghost(b, PAL[B.pal], lit);
         x.globalAlpha = lit ? G.lineOn : G.lineA;
         text(x, B.label, Math.round(b.cx * k), Math.round(b.cy * k - FH * ls / 2), PAL.bone, ls, 1);
+        /* TOSS carries the stick's four pips: hold it and drag to aim (owner,
+           2026-11-09, so the button says how it is used). The label stays
+           inside 45% of the radius, and the pips (tips at 92%, bases at 70%) clear it. */
+        if (b.id === 'toss') {
+          x.fillStyle = PAL.bone;
+          for (let i = 0; i < 4; i++) {
+            const a = i * Math.PI / 2;
+            tri((b.cx + Math.cos(a) * b.r * 0.78) * k, (b.cy + Math.sin(a) * b.r * 0.78) * k, a, b.r * 0.14 * k);
+          }
+        }
       }
     }
     if (L.pause) {

@@ -406,18 +406,9 @@ touch('touchstart', 5, 327, 170); s = step('drive');
 ok(s.aiming && near(s.aimX, 60) && near(s.aimY, 0), 'TOSS: aiming, 60px ahead, however off-centre the finger landed');
 touch('touchmove', 5, 331, 162); s = step('drive');
 ok(near(s.aimX, 70) && near(s.aimY, -20), `drag (+4,-8) moves the aim by 2.5x (${s.aimX}, ${s.aimY})`);
-{
-  const ax0 = s.aimX, ay0 = s.aimY;
-  touch('touchstart', 6, 34, 178); touch('touchmove', 6, 10, 178); s = step('drive');
-  ok(s.aiming && !s.down.ArrowLeft && !s.down.KeyW && !s.down.KeyS, 'Mode C: while TOSS is held the stick does not steer or drive (the car coasts)');
-  ok(near(s.aimX, ax0 - 160 * DT, 1e-6) && near(s.aimY, ay0), `...it aims, like the controller's stick: full left moves the aim 160px/s (${s.aimX.toFixed(3)} from ${ax0})`);
-  touch('touchmove', 5, 335, 162); s = step('drive');
-  /* the stick, still held, has moved the base 160*DT left on each of two steps; the finger now sits (+8,-8) from where it landed */
-  ok(near(s.aimX, 60 - 2 * 160 * DT + 8 * 2.5, 1e-6) && near(s.aimY, -8 * 2.5, 1e-6),
-     `a drag on TOSS still adds its own offset on top of the stick's (${s.aimX.toFixed(3)}, ${s.aimY.toFixed(3)})`);
-  touch('touchend', 6, 10, 178); s = step('drive');
-  touch('touchmove', 5, 331, 162);
-}
+touch('touchstart', 6, 34, 178); touch('touchmove', 6, 20, 178); s = step('drive');
+ok(s.down.ArrowLeft && s.aiming, 'Mode C: the on-screen stick still steers while TOSS is held');
+touch('touchend', 6, 20, 178);
 touch('touchmove', 5, 380, 100); s = step('drive');
 ok(near(Math.hypot(s.aimX, s.aimY), 120, 1e-9), 'aim clamped to 120px');
 touch('touchend', 5, 380, 100); s = step('drive');

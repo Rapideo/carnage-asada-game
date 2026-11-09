@@ -805,7 +805,8 @@ Mode C landscape (`Pad.layout`, pure, CSS px) was measured on the owner's Pixel 
 The controls are ghosts in the margins: the stick on the left (18 mm, vertically centred), TOSS, GAS and REV in a
 column on the right, PAUSE top left. The column is centred unless TOSS would sit on the HUD's top-right stack (the clock
 card, ORDERS and the streak, `Pad.LAND_HUD`); then it slides down clear of it, or as low as the screen allows (owner,
-2026-11-09). On the Pixel 10 it sits 2.5 mm off the bottom edge. **Only the stick, PAUSE and the buttons avoid the inset**; the delivery picture
+2026-11-09), and TOSS alone comes back up to sit 3 rows under ORDERS (`Pad.LAND_TOSS_TOP`, row 62),
+with four arrow pips on it like the stick's. On the Pixel 10 it sits 2.5 mm off the bottom edge. **Only the stick, PAUSE and the buttons avoid the inset**; the delivery picture
 does not, but the kitchen picture is clamped inside the safe area. The kitchen shows PAUSE only, since its bins and buttons are tapped directly. Touches in the margins come
 through a second listener on `#stage`, and the TOSS aim reads the unclamped drag. Portrait, and Modes A and B,
 keep the on-canvas set (`Pad.onCanvas()`). The first tap in Mode C asks for full screen and the landscape lock;

@@ -552,9 +552,12 @@ handbrake. In menus, Button 1, Button 3 and Start confirm, and Button 2 and Back
 - **Three buttons** sit bottom right:
   - **GAS**, the largest, nearest the corner, where the right thumb rests.
   - **REV**.
-  - **TOSS**, up and in from GAS. Hold it, aim with the stick, and let go to throw: the
-    controller's convention (owner, 2026-11-09). The car coasts while you aim. A drag on
-    TOSS itself also moves the reticle, on top of the stick.
+  - **TOSS**, up and in from GAS. Hold it to aim and drag on it to move the reticle;
+    release to throw. Unlike Mode B, the stick keeps steering while TOSS is held, because
+    a phone has a thumb free for it. In landscape TOSS carries four arrow pips, like the
+    stick's, to show it is dragged (owner, 2026-11-09). *0.9.7 tried making the stick aim
+    while TOSS is held, the controller's way; the owner had it reverted in 0.9.8: "the
+    mechanic works quite nicely".*
 - **A PAUSE button** sits at the top centre.
 
 The minimap sits under the stick in this mode.
