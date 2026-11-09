@@ -40,9 +40,9 @@ The owner answered the Open Calls page. Items marked **build** are queued work, 
 after Service Mode and not before; the rest are decisions that need no work.
 
 **Build in 0.9.x**
-- [ ] **Q2 (B): rain bites more.** Rain grip 0.84 to 0.75 (`WEATHER_GRIP.summer.rainy`). Weather
+- [x] **Q2 (B): rain bites more (DONE 0.9.3).** Rain grip 0.84 to 0.75 (`WEATHER_GRIP.summer.rainy`). Weather
       hazards beyond grip are post-1.0.
-- [ ] **Q4 (C): the player's car stays red;** remove the red (#d94f4f) from the traffic
+- [x] **Q4 (C) (DONE 0.9.3): the player's car stays red;** remove the red (#d94f4f) from the traffic
       colours (`CAR_COLORS`).
 - [x] **Q7 (C): a full speaking cast before 1.0 (DONE 2026-11-08):** police, a rival delivery driver and kitchen
       staff, one face per decade each (9 faces). The art director's nine portraits are
@@ -110,14 +110,14 @@ after Service Mode and not before; the rest are decisions that need no work.
           lower bins;
         - one speaker at a time, with customers' walkouts still taking priority;
         - the existing rate limit covers the whole cast.
-- [ ] **Q8 (B): each address keeps one customer face for the whole run,** picked from that
+- [x] **Q8 (B) (DONE 0.9.3): each address keeps one customer face for the whole run,** picked from that
       decade's cast.
-- [ ] **Eyes on the new faces:** the owner sets eyes by hand in Service Mode's Faces tab for the
+- [x] **Eyes on the new faces (DONE 0.9.3: set by hand on all 113; 14 behind opaque sunglasses have none; owner: "let them all blink"):** the owner sets eyes by hand in Service Mode's Faces tab for the
       nine cast faces once baked, and for any other era face that lacks them.
-- [ ] **E2: snow tracked in** onto the dining-room door mat, and wet footprints along the line,
+- [x] **E2 (DONE 0.9.3): snow tracked in** onto the dining-room door mat, and wet footprints along the line,
       on winter kitchen levels.
-- [ ] **E3: Mode C (touch) only:** move the minimap to a free corner; check on a real phone.
-- [ ] **Touch controls in the landscape margins** (owner, 2026-11-08). In landscape the 16:9
+- [x] **E3 (DONE 0.9.3, checked on the Pixel 10): Mode C (touch) only:** move the minimap to a free corner; check on a real phone.
+- [x] **Touch controls in the landscape margins (DONE 0.9.3, ADB-verified on the Pixel 10)** (owner, 2026-11-08). In landscape the 16:9
       picture does not use all the screen it could. Move the Mode C controls out into the left
       and right margins, and make them larger. Fold E3 into it, since freeing the picture may
       settle where the minimap goes.
@@ -139,11 +139,11 @@ after Service Mode and not before; the rest are decisions that need no work.
           manifest beside the game on Netlify (display fullscreen, landscape, icons).
         - **Check first on the phone:** the browser's screen scale and where the camera sits
           (ADB is set up on the owner's PC).
-- [ ] **Fix: the kitchen wall calendar** shows JAN on every winter level, but by the season
+- [x] **Fix: the kitchen wall calendar (DONE; fixed in 0.9.1, winter kitchen levels read DEC)** shows JAN on every winter level, but by the season
       rule all seven winter kitchen levels are December. (Final wave of this work.)
 
 **Added by the owner, 2026-11-08 (rulings the same day)**
-- [ ] **Windy weather, Delivery Shift only,** because Hays is known for it. This reverses
+- [x] **Windy weather, Delivery Shift only (DONE 0.9.3),** because Hays is known for it. This reverses
       Q2's "weather hazards beyond grip are post-1.0" for wind.
       - **Wind is its own roll and stacks** with the season's weather: windy and sunny, windy
         and rainy, a windy snowstorm. (Owner, 2026-11-08.)
@@ -171,7 +171,7 @@ after Service Mode and not before; the rest are decisions that need no work.
         - wind strength rises with difficulty;
         - a tumbleweed bursts into twigs and wobbles the car, with no fine;
         - swaying trees and dust streaks are the telegraph, not extra hazards.
-- [ ] **A much simpler level card:** "LEVEL #" and the date (month and year), text on black.
+- [x] **A much simpler level card (DONE 0.9.3):** "LEVEL #" and the date (month and year), text on black.
       - **Concepts D and B together:** a thin three-colour stripe in the decade's colours,
         with the date typing on beneath it in the decade colour.
         (`reference/level-card/2026-11-08-concepts.png`)

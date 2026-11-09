@@ -7,6 +7,38 @@ here, run `node build.mjs` and the tests, commit, and tag it (`git tag v<version
 Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch lists.
 **1.0.0** is when the owner calls it released.
 
+## 0.9.3 (2026-11-08): weather and wind
+
+**Delivery**
+- **Rain bites harder:** grip in rain is 0.75, down from 0.84.
+- **No red traffic cars,** so the red car is always you.
+- **Each address keeps its customer** for the whole run.
+- **Wind** on some Delivery levels, on top of the weather:
+  - the bag drifts downwind in the air, and a windsock in the corner shows which way and how hard;
+  - gusts warn you, then shove the car sideways for about a second;
+  - tumbleweeds roll the streets with the wind and burst if you hit them. No fine.
+
+**Weather is set per level,** not rolled: each level is sunny, rainy, snowy or windy as the owner
+chose it, and a few are left to chance. Service Mode's Levels tab sets it.
+
+**Kitchen**
+- Snow is tracked in on the door mat on winter levels, and rain runs down the window on rainy ones.
+- The wall calendar reads the level's own month.
+
+**The level card** is just LEVEL and the date, typed on beneath a stripe in the decade's colours. It moves
+on by itself, and any key skips it. The target, tips, fines and menu are no longer shown there; the pause
+screen still has the kitchen menu.
+
+**Faces:** all the new customers and the cast now blink (eyes placed by hand, 113 faces). Only 14 wearing
+opaque sunglasses have none.
+
+**Touch (Mode C):** on a phone held sideways the picture fills the height and the controls sit in the
+margins, as see-through outlines that light up under your thumb:
+- a stick on the left; TOSS, GAS and REV on the right; PAUSE top left; only PAUSE in the kitchen;
+- the first tap goes full screen and locks landscape, and the screen stays awake while you play;
+- the controls keep clear of the camera cutout;
+- an install manifest and icons ship beside the game when it is deployed.
+
 ## 0.9.2 (2026-11-08): the town talks
 
 **Customers**

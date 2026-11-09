@@ -25,7 +25,7 @@ corner of the title and pause screens; `CHANGELOG.md` has what each build contai
 |---|---|
 | Levels | 20, alternating Delivery and Kitchen, delivery first |
 | Eras | 1970s (levels 1–6), 1980s (7–12), 1990s (13–20) — each with its own colour grade, map, menu, customers and music |
-| Seasons | summer and winter, with weather rolled each play: summer is sunny or rainy (rain is a little slick), winter is mostly snowy (snow takes the grip out of your tyres) and sometimes sunny |
+| Seasons | summer and winter. Each level has its own weather, set by the owner: summer is sunny or rainy (rain is slick), winter is snowy (snow takes the grip out of your tyres) or sunny. Some Delivery levels are also windy, with a crosswind on the toss, gusts and tumbleweeds. A few levels leave it to chance |
 | Difficulty | Easy 1–6, Medium 7–12, Hard 13–18, Supreme 19–20 |
 | A level | a checkpoint race: 15 deliveries or 15 tickets served (9 on Supreme) before 0:00 |
 | The clock | 3:00, plus an extension for every third completion (up to 5; 3 on Supreme) |
@@ -35,7 +35,9 @@ corner of the title and pause screens; `CHANGELOG.md` has what each build contai
 ## Controls
 
 Pick a mode after the title: **A** keyboard + mouse, **B** arcade stick (any browser gamepad),
-**C** touch.
+**C** touch. On a phone held sideways the game fills the height and the controls sit in the margins:
+a stick on the left, TOSS, GAS and REV on the right, PAUSE top left (the kitchen is tapped directly). The
+first tap goes full screen and locks landscape.
 
 **Delivery Shift**
 

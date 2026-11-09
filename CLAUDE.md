@@ -46,9 +46,9 @@ folder is not a pointer.
 ```bash
 node build.mjs           # bundle src/*.js -> taco-shop.html (ship) + index.html (dev)
 node serve.mjs           # static server on http://localhost:8123 (no-store; edits are live in dev)
-node test/headless.mjs   # full test suite (about 280 assertions); exits non-zero on failure
+node test/headless.mjs   # full test suite (about 560 assertions); exits non-zero on failure
 node admin.mjs           # Service Mode: the dev game plus the content editor on http://127.0.0.1:8124
-node test/admin.mjs      # Service Mode's suite (about 650 assertions): validator, server, panels, docs, test hooks
+node test/admin.mjs      # Service Mode's suite (about 800 assertions): validator, server, panels, docs, test hooks
 ```
 
 **`node admin.mjs` and `node serve.mjs` must be run from the owner's own terminal.** A server started
@@ -224,7 +224,7 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 | `10_font` | hand-authored 5×7 glyph table; `text()`, `textOut()`, `money()`, `clockStr()` |
 | `20_audio` | `Audio5`: WebAudio SFX (both shifts), engine voice, siren, and the fallback 4-bar loop |
 | `22_music` | `Music` — plays the arranged songs in `MUSIC` through `Audio5.musBus`; `playList()` per level from `PLAYLIST` |
-| `25_pad` | `Pad` — control Modes B (Gamepad API) and C (touch overlay). Injects into `Input` the same codes a keyboard would; `Pad.aiming/aimX/aimY/throwNow` for hold-to-aim |
+| `25_pad` | `Pad` — control Modes B (Gamepad API) and C (touch overlay; landscape ghost controls in the margins, `Pad.layout`). Injects into `Input` the same codes a keyboard would; `Pad.aiming/aimX/aimY/throwNow` for hold-to-aim |
 | `30_art` | `Art.build()` — bakes every sprite/tile once at boot; `rotFrames`/`drawRot`; `shade()`, `disc()`, `keyline()`; `LOGO` display face + `logoText()`/`mkLogoText()` |
 | `35_faces` | `Faces` — decodes the baked likenesses in `FACES` at boot; draws them with blink/hood variation |
 | `40_city` | `City.gen()` — street grid, addressed houses, baked ground layer, spatial buckets |
@@ -614,8 +614,12 @@ the customer one time in three; coworkers MARGE/DALE/NIKKI at clock-in, after 3 
 ingredient's name). `Cast` never speaks in the demo or attract mode, and yields to a hostile line with more
 than 1 s left. The nine portraits are baked by `tools/render/bake-cast.mjs` with reserved accent colours
 (`COLOURS`/`ACCENTS` in `bake-face.mjs`: olive on the rivals' caps, jade and gold on the staff badge). **Eyes
-are not set yet** on the 104 new customer faces or the 9 cast: detection was wrong, so they were cleared
-and those faces do not blink until set by hand in Service Mode's Faces tab.
+are set** on the 104 new customer faces and the 9 cast (0.9.3): detection was wrong, so they were cleared and
+then placed by hand, 113 faces in all. 14 stay without eyes because they wear opaque sunglasses; the owner saw
+the proof sheets (`reference/faces/eyes-proof-*.png`, from `tools/render/eyes-proof.mjs` and
+`eye-sheet.mjs`) and ruled "let them all blink", so goggles and lenses with visible eyes blink too, and
+`c90raver` blinks with a lid tinted to his lenses. A test asserts every baked face has two eye rects or is
+marked by hand.
 
 **The likeness is data; the variation is code.** A parameterised drawing routine composes axis-aligned
 rectangles, which is fine for a car and hopeless for a face: at 44px a likeness needs irregular, diagonal
@@ -645,8 +649,12 @@ card, the stage built underneath) → `play` or `kitchen` → `clear` → next `
 (only if the run places) → `cont` (CONTINUE? 10s); after level 20 `victory` → `entry`/`scores`.
 
 **`G.setLevel(n)` is the single switch** for a level's difficulty (`G.diff` from `DIFFICULTY`), era,
-season (`G.winter`), weather (`G.weather`, rolled per play by `G.rollWeather`: summer sunny|rainy,
-winter snowy|sunny, the kitchen always the default; `Player.gripMul` follows it), nav ladder (`G.nav`) and map — it regenerates the city when the
+season (`G.winter`), weather (`G.weather` and `G.windy`, **set per level** in `content/levels.json` as `weather`
+and `windy`, because weather is part of a level's difficulty; `random` is a choice a level can make, and
+only then does `G.rollWeather` roll, summer sunny|rainy, winter snowy|sunny, windy about 30% / 25%. The build
+refuses snow in summer, rain in winter and windy on a kitchen level. On a kitchen level weather is decoration only:
+snow tracked onto the door mat, rain on the window, grip untouched. `Player.gripMul` follows delivery weather,
+rain 0.75), nav ladder (`G.nav`) and map — it regenerates the city when the
 era's map changes (`City.map`, read by `City.gen`). `G.stage` is `'delivery'` or `'kitchen'` and decides
 which world renders under the cards. `G.startShift()` is still the direct way into a delivery shift; the
 tests and the demo both use it.
@@ -676,7 +684,7 @@ order of the baked rack art), so the cursor treats column 0 as three stops. Focu
 ticket, its next unwrapped item. A wrong pick flashes and HOLDS the bin's plate red until the right pick,
 costs the item's star and the ticket's clean bonus, and never undoes progress. The tip starts when the
 docket goes on the rail; past three tickets customers queue in the OVERHEAD and every live tip drains at
-`COMPLAIN_MUL` (1.5). The recipes are hidden in play; the level card and the pause overlay show the menu.
+`COMPLAIN_MUL` (1.5). The recipes are hidden in play and on the level card; only the pause overlay shows the menu.
 Barks are rate-limited to one per 5s (a walkout always speaks), because the strip covers the lower bins.
 
 **The next-ingredient hint** blinks the right bin after a stall or a wrong pick, and the coworker says it
@@ -752,7 +760,8 @@ well as the pools; the Difficulty tab has the kitchen hint rows (`hint`, `hintNe
   tab sets it per tile. 120 customers since the 2026-11-08 casting (38 / 45 / 37), 104 of them
   baked from the owner's picks by `tools/render/bake-picks.mjs`
   (`reference/assets/casting-picks.json`). **Their detected eyes were wrong on most and were
-  cleared**: they do not blink until eyes are set by hand in the Faces tab.
+  cleared**, then set by hand in 0.9.3 (all but the 14 behind opaque sunglasses); the Faces tab is still where to
+  change one.
 - **Release months are advice.** Every `content/music/*.json` has a `month`. A level plays songs
   from its own year or up to 2 years before (refused otherwise, the title list excepted); a
   same-year song released after the level's month is a **warning** in the build and the Music tab,
@@ -762,6 +771,39 @@ well as the pools; the Difficulty tab has the kitchen hint rows (`hint`, `hintNe
 - **`test/admin.mjs`** is the suite. `test/fixtures/` holds the hand-edited `menu.md` and `music.md`
   from before the 0.9.1 regeneration, because the migration tests need a doc that still differs
   from its render.
+
+### The level card
+
+`overlayCard` is deliberately bare (0.9.3, owner): black, `LEVEL n`, a thin three-colour stripe in the decade's
+colours, and the month and year typing on beneath it in the decade colour (`CARD_TYPE`, `CARD_HOLD`,
+`CARD_STRIPE`, `cardDate()`). It moves on by itself when the date has typed and held about 2 s; any key or
+click skips ahead, but only after 0.3 s, so a key still held from the previous screen cannot skip it. It no
+longer shows the target, the clock, tips, fines, the TACO-NAV mode, the road conditions or the kitchen's ticket
+count or menu; the player learns the target from the ORDERS counter. **Do not put them back without asking**:
+the card was cut on purpose. The clear, game over and continue cards are unchanged.
+
+### Wind
+
+`55_wind.js` (windy Delivery levels only) has three effects. The bag drifts downwind in flight, and the aim
+reticle does not correct for it: the windsock in the HUD is the telegraph, and the player aims upwind. Telegraphed
+gusts (a 1 s warning) shove the car **laterally only**, through the same collision path as steering, since a push
+along the heading is barely resisted by drag and launched parked cars tens of pixels. Tumbleweeds roll the streets
+and burst into twigs, wobbling the car, with no fine. `Wind.reset(windy, diff)` takes the rolled `G.windy`, not
+`level.windy`, since a `random` level rolls it. Strength and counts are per difficulty in
+`content/difficulty.json` `wind`.
+
+### Touch, Mode C
+
+Mode C landscape (`Pad.layout`, pure, CSS px) was measured on the owner's Pixel 10 over ADB: 923x411 CSS px at dpr
+2.625, a left safe-area inset of 66 for the camera band. The picture fills the height (scale 1.9 in both shifts).
+The controls are ghosts in the margins: the stick on the left (18 mm, vertically centred), TOSS, GAS and REV in a
+column on the right, PAUSE top left. **Only the stick, PAUSE and the buttons avoid the inset**; the picture does
+not. The kitchen shows PAUSE only, since its bins and buttons are tapped directly. Touches in the margins come
+through a second listener on `#stage`, and the TOSS aim reads the unclamped drag. Portrait, and Modes A and B,
+keep the on-canvas set (`Pad.onCanvas()`). The first tap in Mode C asks for full screen and the landscape lock;
+the wake lock is held only while playing in Mode C and released otherwise. `deploy/manifest.webmanifest` and
+its icons (`tools/render/icons.mjs`) are deploy-only: `taco-shop.html` links no manifest. `TacoShop.layoutInfo()`
+reports the layout for ADB checks. The owner: "it plays VERY well", and of the full-height picture, "way better".
 
 ### Loop and input
 
@@ -784,7 +826,7 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. About 280 assertions (as of 0.9.1) covering city invariants (address
+every drawing call is a no-op but all logic executes. About 560 assertions (as of 0.9.3) covering city invariants (address
 uniqueness, porch reachability), HUD text widths, wedge escapability, 250 solved routes, 9000 fuzzed
 simulation frames checked for NaN and out-of-world drift, the attract rotation and 85s of autonomous
 demo driving, the full scoring loop, heat/cop behaviour, and the railway.
@@ -849,7 +891,7 @@ There is no per-test filter — it is one sequential script with labelled sectio
 `— build —`,
 `— hud layout —`, `— collision —`, `— guidance —`, `— simulation —`, `— scoring —`, `— attract —`,
 `— hays map —`, `— block kinds —`, `— downtown addresses —`, `— shop apron —`, `— rail —`,
-`— high scores —`, `— heat —`, `— run structure —`, `— kitchen —`, `— kitchen demo —`, `— test hooks —`, `— wind —`, `— copy —`). To
+`— high scores —`, `— heat —`, `— run structure —`, `— kitchen —`, `— kitchen demo —`, `— test hooks —`, `— wind —`, `— touch layout —`, `— copy —`). To
 isolate one, edit the script.
 
 **`tools/render/frame.mjs <level> [secs]`** renders a real frame of any level to a PNG with the

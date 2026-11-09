@@ -4,12 +4,24 @@
 day once the admin overlay had been designed and planned. Updated 2026-11-06 with two
 pinned art threads, and 2026-11-07 with the art director's prep-board work (below), the
 kitchen surroundings, and version 0.9.0. Updated 2026-11-07 (evening) for Service Mode, version 0.9.1, and
-2026-11-08 for version 0.9.2 (the new customers, their lines, and the speaking cast).*
+2026-11-08 for version 0.9.2 (the new customers, their lines, and the speaking cast), and again the same day for 0.9.3.*
 This is the starting point for a fresh session. It is a snapshot: **`ROADMAP.md` is the
 living plan**, and if the two disagree, the roadmap wins.
 
-**Start here (2026-11-08): the game is version 0.9.2, on `master`, tagged `v0.9.2`, pushed
-and deployed to Netlify.** It adds:
+**Start here (2026-11-08, evening): the game is version 0.9.3, built on branch `v0.9.3` (from `master`
+at 9e5d26f). Not merged, pushed, tagged or deployed yet.** 0.9.3 is the 0.9.x list: rain grip 0.75 and
+no red traffic, one customer face per address, weather set per level, wind, snow and rain in the kitchen, the
+simple level card, eyes on all the new faces, and the Pixel 10 landscape controls (`CHANGELOG.md`).
+**Next, in order:**
+1. The final whole-branch review and its fix wave. Known minor items for it: a key held from the previous screen
+   can auto-repeat past the level card (ignore `e.repeat`); the eyes test checks counts only; the TOSS ghost
+   overlaps the ORDERS counter at the picture's right edge (owner's option).
+2. Then `git tag v0.9.3` on the final commit (deliberately not made yet).
+3. The owner's call: merge to `master`, push, and deploy. The deploy steps (below) now include
+   `deploy/manifest.webmanifest` and the two icons.
+4. The owner's full playtest, then the remaining ROADMAP items.
+
+Before that, 0.9.2 was on `master`, tagged `v0.9.2`, pushed and deployed to Netlify. It added:
 - 104 new customers, growing through each decade;
 - their 670 lines of their own;
 - the nine-character speaking cast;
@@ -18,10 +30,7 @@ and deployed to Netlify.** It adds:
 
 0.9.1 added Service Mode to the feature-complete 0.9.0. The version is `content/release.json`,
 shown in the corner of the title and pause screens; `CHANGELOG.md` says what is in each.
-**Next:**
-- the eyes on the 113 new faces (set by hand in Service Mode);
-- the Pixel 10 touch controls (ROADMAP, concept C, decided);
-- the rest of the 0.9.x list.
+(0.9.2's "next" list, the eyes on the 113 new faces and the Pixel 10 touch controls, is done in 0.9.3.)
 
 **Service Mode** is the owner's name for the admin overlay: run `node admin.mjs` in your
 own terminal, open <http://localhost:8124/>, press **F2**. It edits Levels, Menu, Attract,
@@ -29,8 +38,8 @@ Music, Difficulty, Dialogue and Faces, and has a Test tab. Its code is `admin/` 
 `tools/content/`; `CLAUDE.md` has the architecture. The JSON in `content/` is now the master
 copy, and `docs/authored content/*.md` are generated from it (do not hand-edit them).
 
-**Next: the owner's full playtest (Monday, 2026-11-09), and the 0.9.x list from the owner's
-2026-11-07 rulings** (full list in `ROADMAP.md`, "NEXT: the 0.9.x list"):
+**The owner's full playtest (Monday, 2026-11-09). The 0.9.x list below is DONE in 0.9.3**
+(full list in `ROADMAP.md`, "NEXT: the 0.9.x list"):
 - rain grip 0.84 to 0.75; remove red (#d94f4f) from the traffic colours;
 - the nine-portrait speaking cast (police, rival driver, kitchen staff), baked with reserved
   palette slots, with the lines written by the owner in the Dialogue tab;
