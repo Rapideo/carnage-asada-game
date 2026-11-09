@@ -724,7 +724,7 @@ The 1990s.
 
 - From : 1996
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### G. c90girlpowerfan
 
@@ -732,7 +732,7 @@ The 1990s.
 
 - From : 1996
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### H. c90nintendokid
 
@@ -740,7 +740,7 @@ The 1990s.
 
 - From : 1996
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### I. c90rbsinger
 
@@ -748,7 +748,7 @@ The 1990s.
 
 - From : 1993
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### J. c90grungechick
 
@@ -756,7 +756,7 @@ The 1990s.
 
 - From : 1993
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### K. c90boybandheartthrob
 
@@ -764,7 +764,7 @@ The 1990s.
 
 - From : 1999
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### L. c90miamiclubkid
 
@@ -772,7 +772,7 @@ The 1990s.
 
 - From : 1993
 
-- Eyes : not set
+- Eyes : none, set by hand
 
 ### M. c90skater
 
@@ -780,7 +780,7 @@ The 1990s.
 
 - From : 1996
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### N. c90alternativegirl
 
@@ -788,7 +788,7 @@ The 1990s.
 
 - From : 1993
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### O. c90rapper
 
@@ -796,7 +796,7 @@ The 1990s.
 
 - From : 1993
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### P. c90generationxguy
 
@@ -804,7 +804,7 @@ The 1990s.
 
 - From : 1999
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### Q. c90itguy
 
@@ -812,7 +812,7 @@ The 1990s.
 
 - From : 1993
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### R. c90ravergirl
 
@@ -820,7 +820,7 @@ The 1990s.
 
 - From : 1996
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### S. c90technerd
 
@@ -828,7 +828,7 @@ The 1990s.
 
 - From : 1996
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### T. c90preppycollegekid
 
@@ -836,7 +836,7 @@ The 1990s.
 
 - From : 1996
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### U. c90cluelessblonde
 
@@ -844,7 +844,7 @@ The 1990s.
 
 - From : 1996
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### V. c90rbsinger2
 
@@ -852,7 +852,7 @@ The 1990s.
 
 - From : 1993
 
-- Eyes : not set
+- Eyes : none, set by hand
 
 ### W. c90dopeybuddy
 
@@ -860,7 +860,7 @@ The 1990s.
 
 - From : 1996
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### X. c90cyberpunkhacker
 
@@ -868,7 +868,7 @@ The 1990s.
 
 - From : 1996
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### Y. c90hiphophead
 
@@ -876,7 +876,7 @@ The 1990s.
 
 - From : the start of the era
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### Z. c90riotgrrrl
 
@@ -884,13 +884,13 @@ The 1990s.
 
 - From : the start of the era
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### AA. c90sk8terchick
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1999
 
@@ -898,7 +898,7 @@ The 1990s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : none, set by hand
 
 - From : 1996
 
@@ -906,7 +906,7 @@ The 1990s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1993
 
@@ -914,7 +914,7 @@ The 1990s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : none, set by hand
 
 - From : the start of the era
 
@@ -922,7 +922,7 @@ The 1990s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1996
 
@@ -930,7 +930,7 @@ The 1990s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1996
 
@@ -938,7 +938,7 @@ The 1990s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1996
 
@@ -946,7 +946,7 @@ The 1990s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1996
 
@@ -954,7 +954,7 @@ The 1990s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1999
 
@@ -962,7 +962,7 @@ The 1990s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1999
 
@@ -970,7 +970,7 @@ The 1990s.
 
 - Size : 60x73
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 - From : 1993
 
@@ -994,7 +994,7 @@ Baked, and shipped with the game (everything in `content/faces/` is), but no era
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### D. rival70
 
@@ -1012,7 +1012,7 @@ Baked, and shipped with the game (everything in `content/faces/` is), but no era
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)
 
 ### G. smokerbust
 
@@ -1036,4 +1036,4 @@ Baked, and shipped with the game (everything in `content/faces/` is), but no era
 
 - Size : 60x74
 
-- Eyes : not set
+- Eyes : set by hand (2)

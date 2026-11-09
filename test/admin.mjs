@@ -2925,5 +2925,19 @@ console.log('\n— cast portraits —');
   ok(['staff70', 'staff80', 'staff90'].every((k) => F[k] && F[k].pal.includes('#1fa37e') && F[k].pal.includes('#f3bd46')), 'the coworkers keep jade and gold');
 }
 
+console.log('\n— eyes on every face —');
+{
+  /* Two eyes, or a hand-set exception: none (sunglasses, goggles) or one (a
+     profile). A face with no eyes and no note is one the detector missed and
+     nobody looked at -- it would never blink, and nothing else would say so. */
+  const bad = [];
+  for (const name of readdirSync('content/faces').filter((n) => n.endsWith('.json'))) {
+    const f = JSON.parse(readFileSync('content/faces/' + name, 'utf8'));
+    const n = Array.isArray(f.eyes) ? f.eyes.length : -1;
+    if (!(n === 2 || (f._eyesByHand === true && (n === 0 || n === 1)))) bad.push(name + ' (' + n + ' eyes' + (f._eyesByHand ? ', by hand' : '') + ')');
+  }
+  ok(bad.length === 0, 'every face in content/faces/ has 2 eye rects, or 0-1 set by hand' + (bad.length ? ': ' + bad.join(', ') : ''));
+}
+
 console.log(`\n${fails === 0 ? 'PASS' : 'FAIL (' + fails + ')'}`);
 process.exit(fails ? 1 : 0);

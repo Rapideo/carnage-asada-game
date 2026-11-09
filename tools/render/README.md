@@ -20,6 +20,8 @@ node tools/render/bake-face.mjs <name> <src.png> <x> <y> <w> <h>
 node tools/render/bake-picks.mjs         # the owner's picks off the art sheets -> faces + casts.json
 node tools/render/bake-cast.mjs          # the nine cast portraits (officers, rivals, coworkers) -> faces
 node tools/render/bake-lattice.mjs <sheet.png> --tray --pad 2
+node tools/render/eye-sheet.mjs <outDir> <key>... [--rows y0-y1]  # a face at 8x on a numbered grid, for setting eyes
+node tools/render/eyes-proof.mjs         # every new face open | blinking -> reference/faces/eyes-proof-N.png (build first)
 ```
 
 | file | what it is |
