@@ -20,6 +20,28 @@ site) passed 30 of 33. Its three findings shipped the same day:
 All on `master`, tagged, pushed and deployed. **Next:** what is left below, chiefly the
 owner's open judgement calls and operator settings. 1.0.0 is the owner's call.
 
+## LATER: two release builds (owner, 2026-11-09)
+
+The web build is the **master build**: where the engine is tried and tuned. Once that is
+done, it is to be formalised into two final deliverables. Heads-up only; nothing is planned
+or built yet, and neither is to be started until the owner says so.
+
+1. **Mobile:** effectively a native Android app, whether a wrapper or another route. It shows
+   the on-screen touch controls (Mode C) when the player has no physical controls, and uses
+   the built-in controls of an Android handheld when there are some.
+2. **Arcade / console, which is probably also the PC release:** Windows or Linux, for a
+   cabinet with cabinet controls or an Xbox controller, and playable like any PC game with a
+   controller or keyboard and mouse.
+
+**The control-mode select screen is temporary** (owner): it is there for this master build.
+
+Things this build already knows that will matter then:
+- a stick-only cabinet needs Chrome's `--autoplay-policy=no-user-gesture-required`, or
+  whatever the wrapper's equivalent is, because a controller press does not unlock audio;
+- controllers Chrome reports without the standard mapping need a `Pad.RAW_LAYOUTS` entry (the
+  Series X|S pad over Bluetooth was the first);
+- the deploy-only manifest and icons in `deploy/` are the start of an installable app.
+
 ## DONE: Service Mode (the admin overlay), 0.9.1
 
 - [x] **Service Mode**, built 2026-11-07 on branch `admin-overlay` (never pushed): F2 in the
