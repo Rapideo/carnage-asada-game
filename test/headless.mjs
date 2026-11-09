@@ -1159,27 +1159,75 @@ let cardsOk = 0;
 for (let n = 1; n <= 20; n++) { G.toCard(n); G.render(ctx); for (let i = 0; i < 3; i++) { G.update(1 / 60); Input.endFrame(); } cardsOk++; }
 ok(cardsOk === 20, 'all twenty level cards render');
 
-/* weather: rolled per delivery level, within its season; the kitchen keeps the
-   default. Every weather's card title must clear LEVEL n on the 364px card. */
+/* weather: set per level in content/levels.json (sunny|rainy|snowy, or random,
+   which rolls within the season), with a windy flag; the kitchen follows its
+   level as decoration only. ?weather= and the Test panel's season win. Every
+   weather's card title must clear LEVEL n on the 364px card. */
 const pinW = G.weatherPin; G.weatherPin = null;
-const seen = { summer: new Set(), winter: new Set(), kitchen: new Set() };
-let titleTooWide = 0, rainDraws = true;
-for (let k = 0; k < 40; k++) for (const n of [1, 2, 3, 13]) {
-  G.toCard(n);
-  seen[G.stage === 'kitchen' ? 'kitchen' : G.winter ? 'winter' : 'summer'].add(G.weather);
-  if (textW('LEVEL ' + n, 2) + 12 + textW(G.levelTitle(), 2) > 352 - 12) titleTooWide++;
-  if (G.weather === 'rainy' && k < 3) { G.state = 'play'; G.stage = 'delivery'; try { G.update(1 / 60); G.render(ctx); } catch (e) { rainDraws = false; } G.toCard(n); }
+const WLV = G.levels();
+let weatherOk = 0, windOk = 0, titleTooWide = 0, rainDraws = true, kitchenGrip = true;
+for (const lv of WLV) {
+  G.toCard(lv.n);
+  const fixed = lv.weather !== 'random', pick = lv.season === 'winter' ? ['snowy', 'sunny'] : ['sunny', 'rainy'];
+  if (fixed ? G.weather === lv.weather : pick.includes(G.weather)) weatherOk++;
+  if (lv.type === 'kitchen' ? G.windy === false : (lv.weather === 'random' ? typeof G.windy === 'boolean' : G.windy === lv.windy)) windOk++;
+  if (lv.type === 'kitchen' && Player.gripMul !== 1) kitchenGrip = false;
+  if (textW('LEVEL ' + lv.n, 2) + 12 + textW(G.levelTitle(), 2) > 352 - 12) titleTooWide++;
+  if (G.weather === 'rainy' && lv.type === 'delivery') { G.state = 'play'; try { G.update(1 / 60); G.render(ctx); } catch (e) { rainDraws = false; } G.toCard(lv.n); }
 }
-/* the odds: winter mostly snowy, summer an even chance (owner ruling, 2026-11-07) */
-const wasWinter = G.winter, odds = {};
+ok(weatherOk === 20, `all twenty levels play the weather their level sets (${weatherOk}/20)`);
+ok(windOk === 20, `G.windy follows the level's flag (${windOk}/20)`);
+G.toCard(1);
+ok(G.weather === 'sunny' && G.windy === false, 'level 1 is sunny and not windy');
+G.toCard(5);
+ok(G.weather === 'sunny' && G.windy === true, 'level 5 is sunny and windy');
+G.toCard(7);
+ok(G.weather === 'rainy' && Player.gripMul === WEATHER_GRIP.summer.rainy, `level 7 is rainy, and the car grips at ${Player.gripMul}`);
+G.toCard(9);
+ok(G.weather === 'snowy' && G.windy === true && Player.gripMul === WEATHER_GRIP.winter.snowy, 'level 9 is snowy and windy');
+/* the kitchen follows its level, as decoration: no grip, no wind */
+const kw = {};
+for (const n of [2, 4, 10, 16]) { G.toCard(n); kw[n] = G.weather; }
+ok(kw[2] === 'snowy' && kw[4] === 'sunny' && kw[10] === 'rainy' && kw[16] === 'rainy', `a kitchen level's weather follows its level (${JSON.stringify(kw)})`);
+ok(kitchenGrip && G.windy === false, 'a kitchen applies no grip and no wind');
+/* random is a choice: it rolls within the season, every time */
+const rolled = { summer: new Set(), winter: new Set() }, windsR = { summer: 0, winter: 0 };
+for (let k = 0; k < 600; k++) {
+  G.toCard(11); rolled.summer.add(G.weather); if (G.windy) windsR.summer++;
+  G.test = { season: 'winter' }; G.toCard(11); rolled.winter.add(G.weather); if (G.windy) windsR.winter++;
+  G.test = null;
+}
+ok(rolled.summer.size === 2 && rolled.summer.has('sunny') && rolled.summer.has('rainy'), `a random summer level rolls sunny or rainy (${[...rolled.summer]})`);
+ok(rolled.winter.size === 2 && rolled.winter.has('snowy') && rolled.winter.has('sunny'), `a random level under a winter season override rolls snowy or sunny (${[...rolled.winter]})`);
+ok(Math.abs(windsR.summer / 600 - 0.30) < 0.08 && Math.abs(windsR.winter / 600 - 0.25) < 0.08,
+   `a random level rolls its wind at 30% summer, 25% winter (${windsR.summer / 6}%, ${windsR.winter / 6}%)`);
+/* the Test panel's season override on a fixed level the season cannot have: still valid for the season */
+const wxBad = new Set();
+for (let k = 0; k < 100; k++) { G.test = { season: 'summer' }; G.toCard(3); wxBad.add(G.weather); G.test = { season: 'winter' }; G.toCard(7); wxBad.add(G.weather); }
+G.test = null;
+ok([...wxBad].every((w) => ['sunny', 'rainy', 'snowy'].includes(w)), `an override that leaves a weather impossible for the season rolls a valid one (${[...wxBad]})`);
+G.test = { season: 'summer' }; let snowOnSummer = 0; for (let k = 0; k < 100; k++) { G.toCard(3); if (G.weather === 'snowy') snowOnSummer++; } G.test = null;
+ok(snowOnSummer === 0, 'level 3 made summer never snows');
+/* the pin wins over the level */
+G.weatherPin = 'rainy'; G.toCard(1);
+ok(G.weather === 'rainy', '?weather=rainy beats level 1 being sunny');
+G.weatherPin = 'season'; G.toCard(7);
+ok(G.weather === 'sunny', "?weather=season gives the season's default on a rainy level");
+G.weatherPin = 'snowy'; G.toCard(1);
+ok(G.weather === 'sunny', 'a pin the season cannot have is ignored, the level stands');
+G.weatherPin = null;
+/* CONTINUE re-applies the level's weather */
+G.startRun(7); G.weather = 'sunny'; Player.gripMul = 1; G.windy = true;
+G.startRun(7);
+ok(G.weather === 'rainy' && Player.gripMul === WEATHER_GRIP.summer.rainy && G.windy === false, 'starting the level again (CONTINUE) re-applies its weather');
+/* the odds of a random roll: winter mostly snowy, summer an even chance (owner ruling, 2026-11-07) */
+const wasWinter = G.winter, wasLevel = G.level, odds = {};
+G.level = { weather: 'random' };
 for (const w of [false, true]) { G.winter = w; let alt = 0; for (let i = 0; i < 4000; i++) if (G.rollWeather() !== (w ? 'snowy' : 'sunny')) alt++; odds[w ? 'winter' : 'summer'] = alt / 4000; }
-G.winter = wasWinter;
+G.winter = wasWinter; G.level = wasLevel;
 G.weatherPin = pinW; G.toCard(1);
-ok(odds.winter > 0.14 && odds.winter < 0.26, `winter is mostly snowy (sunny ${(odds.winter * 100).toFixed(1)}%)`);
-ok(odds.summer > 0.44 && odds.summer < 0.56, `summer is an even chance of rain (rainy ${(odds.summer * 100).toFixed(1)}%)`);
-ok(seen.summer.has('sunny') && seen.summer.has('rainy') && seen.summer.size === 2, `summer rolls sunny or rainy (${[...seen.summer]})`);
-ok(seen.winter.has('snowy') && seen.winter.has('sunny') && seen.winter.size === 2, `winter rolls snowy or sunny (${[...seen.winter]})`);
-ok(seen.kitchen.size === 1 && !seen.kitchen.has('rainy'), `a kitchen level keeps its season's default (${[...seen.kitchen]})`);
+ok(odds.winter > 0.14 && odds.winter < 0.26, `a random winter is mostly snowy (sunny ${(odds.winter * 100).toFixed(1)}%)`);
+ok(odds.summer > 0.44 && odds.summer < 0.56, `a random summer is an even chance of rain (rainy ${(odds.summer * 100).toFixed(1)}%)`);
 ok(titleTooWide === 0, 'every weather\'s level-card title fits beside LEVEL n');
 ok(rainDraws, 'a rainy street updates and draws without throwing');
 ok(City.houses.length > 80, `the 1990s map has addresses (${City.houses.length})`);

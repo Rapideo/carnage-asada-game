@@ -912,8 +912,8 @@ console.log('\n— docs —');
     ok(pre.length > 100 && out.startsWith(pre), 'every line of the levels.md preamble survives');
     ok(LV.render(files, out) === out, 'rendering levels.md is idempotent');
     ok(out.includes('- Name : SUMMER 1972\n') && !out.includes('Level 1 - Summer 1972'), 'Name shows the JSON\'s form');
-    ok(out.includes('## V. Level 5\n\n- Sequence : 5\n\n- Game Type : Delivery\n\n- Name : SUMMER 1978\n\n- Era : 1970s\n\n- Music : 1978 - Delivery\n\n- Difficulty : Easy\n\n- Season : Summer\n\n## VI.'),
-       'a level node carries all seven fields, in order');
+    ok(out.includes('## V. Level 5\n\n- Sequence : 5\n\n- Game Type : Delivery\n\n- Name : SUMMER 1978\n\n- Era : 1970s\n\n- Music : 1978 - Delivery\n\n- Difficulty : Easy\n\n- Season : Summer\n\n- Weather : Sunny\n\n- Windy : Yes\n\n## VI.'),
+       'a level node carries all nine fields, in order');
     const w5 = structuredClone(files); w5['levels.json'].levels[4].season = 'winter';
     const l5 = parseMd(LV.render(w5, old)).children[0].children.find((n) => n.heading === 'V. Level 5');
     ok(l5 && l5.lines.includes('- Season : Winter'), "level 5's season set to winter shows in its node");
@@ -1568,7 +1568,7 @@ console.log('\n— docs —');
       ok(doc.includes('- Name : SUMMER 1972!\n') && doc.startsWith(pre), 'the save rewrote docs/authored content/levels.md, preamble intact');
       const d1 = await (await fetch(srv.url + '/admin/api/drift')).json();
       ok(d1.find((x) => x.file === 'levels.md').lines === 0, 'after a save, levels.md has no drift');
-      writeFileSync(tl, doc.replace('- Season : Winter\n\n## III.', '- Season : Summer\n\n## III.'));
+      writeFileSync(tl, doc.replace('- Season : Winter\n\n- Weather : Snowy\n\n- Windy : No\n\n## III.', '- Season : Summer\n\n- Weather : Snowy\n\n- Windy : No\n\n## III.'));
       const d2 = await (await fetch(srv.url + '/admin/api/drift')).json();
       ok(d2.find((x) => x.file === 'levels.md').lines === 1, 'a one-value edit to the doc is one line of drift');
 
@@ -1623,6 +1623,18 @@ console.log('\n— docs —');
   PLL[String(l0.n)] = PLL[String(LS[k + 1].n)];
   let mb = null; le = null; try { mb = validateContent(memSource(mv)); } catch (x) { le = x; }
   ok(mb && mb.levels[k].year === l0.year && mb.levels[k].era === 2, 'year, era and name changed together validate (' + (le ? le.path.join('.') + ': ' + le.message : 'ok') + ')');
+  /* weather and windy (0.9.3): per level, season-valid, Delivery-only wind */
+  const wx = (i, k, v) => { const f = structuredClone(files); f['levels.json'].levels[i][k] = v; let x = null; try { validateContent(memSource(f)); } catch (y) { x = y; } return x; };
+  const on = (x, i, k) => x instanceof ContentError && x.file === 'content/levels.json' && x.path.join('.') === 'levels.' + i + '.' + k;
+  ok(on(wx(0, 'weather', 'snowy'), 0, 'weather'), 'snow on a summer level is refused on levels.0.weather');
+  ok(on(wx(2, 'weather', 'rainy'), 2, 'weather'), 'rain on a winter level is refused on levels.2.weather');
+  ok([undefined, 'foggy', 'RANDOM', 3].every((v) => on(wx(0, 'weather', v), 0, 'weather')), 'an unknown or missing weather is refused');
+  ok(wx(0, 'weather', 'random') === null && wx(2, 'weather', 'random') === null && wx(2, 'weather', 'sunny') === null, 'random is allowed in both seasons, and a sunny winter');
+  ok([undefined, 'yes', 1, null].every((v) => on(wx(4, 'windy', v), 4, 'windy')), 'a windy that is not a boolean is refused');
+  const kx = wx(1, 'windy', true);
+  ok(on(kx, 1, 'windy') && /delivery-only/i.test(kx.message), 'windy on a Kitchen level is refused, saying wind is Delivery-only (' + (kx && kx.message) + ')');
+  ok(disk.levels.every((l) => typeof l.windy === 'boolean' && ['sunny', 'rainy', 'snowy', 'random'].includes(l.weather)) && disk.levels[4].windy && disk.levels[0].weather === 'sunny',
+     'the built LEVELS carry weather and windy');
   const { existsSync: ex } = await import('node:fs');
   const ov = readFileSync('admin/overlay.js', 'utf8');
   ok(ex('admin/panels/levels.js') && /import '\.\/panels\/levels\.js'/.test(ov), 'the Levels panel exists and the overlay imports it');
@@ -1669,11 +1681,41 @@ const fakeDoc = () => {
     fire(t) { for (const f of this.on[t] || []) f({ type: t, target: this, preventDefault() {} }); }
     setAttribute(k, v) { this.attrs[k] = String(v); }
     walk() { return [this, ...this.kids.flatMap((k) => k.walk())]; }
+    querySelector(sel) { const c = sel.replace(/^\./, ''); return this.walk().find((n) => n !== this && n.className.split(/\s+/).includes(c)) || null; }
   }
   doc.createElement = (t) => new N(t);
   doc.body = new N('body');
   return doc;
 };
+
+console.log('\n— levels panel —');
+{
+  const { store } = await import('../admin/store.js');
+  const FL = await import('../admin/fields.js');
+  const realApply = globalThis.Admin.applyBuilt;
+  globalThis.Admin.applyBuilt = () => {};
+  store.files = structuredClone(files); store.dirty.clear(); store.error = null;
+  let loaded = true;
+  try { await import('../admin/panels/levels.js'); } catch (x) { loaded = false; console.error('  (' + x.message + ')'); }
+  const tab = FL.tabs.get('levels');
+  ok(loaded && tab, 'the Levels panel registers its tab');
+  if (tab) {
+    const doc = fakeDoc(), el = doc.createElement('div');
+    doc.body.appendChild(el);
+    tab.render(el);
+    const find = (i, k) => el.walk().find((n) => n.dataset.rel === 'levels.json' && n.dataset.path === 'levels.' + i + '.' + k);
+    const w0 = find(0, 'weather'), wd0 = find(0, 'windy');
+    ok(w0 && w0.dataset.kind === 'select' && wd0 && wd0.dataset.kind === 'bool', 'the Levels tab renders a Weather select and a Windy checkbox');
+    ok(w0 && w0.kids.map((o) => o.textContent).join() === 'sunny,rainy,random', 'a summer level offers sunny, rainy, random');
+    ok(wd0 && !wd0.disabled, 'Windy is enabled on a Delivery level');
+    el.walk().find((n) => n.dataset.level === '2').fire('click');
+    const w2 = find(2, 'weather');
+    ok(w2 && w2.kids.map((o) => o.textContent).join() === 'snowy,sunny,random', 'a winter level offers snowy, sunny, random');
+    el.walk().find((n) => n.dataset.level === '1').fire('click');
+    ok(find(1, 'windy') && find(1, 'windy').disabled === true, 'Windy is disabled on a Kitchen level');
+  }
+  globalThis.Admin.applyBuilt = realApply;
+}
 
 console.log('\n— difficulty panel —');
 {

@@ -10,6 +10,8 @@
      Music       <year> - <Delivery|Kitchen>  (the music.md section it plays)
      Difficulty  the difficulty.json key, capitalised
      Season      Summer | Winter
+     Weather     Sunny | Rainy | Snowy | Random
+     Windy       Yes | No  (always No on a Kitchen level)
 
    Anything else written inside a level node is prose and stays. */
 import { parseMd, toMd, setField, syncList, roman } from './engine.mjs';
@@ -26,6 +28,8 @@ function fill(node, lv) {
   setField(node, 'Music', lv.year + ' - ' + type, { match: /^\d{4} - (Delivery|Kitchen)\b/i });
   setField(node, 'Difficulty', cap(lv.difficulty), { match: /^[A-Za-z]+\b/ });
   setField(node, 'Season', cap(lv.season), { match: /^(Summer|Winter)\b/i });
+  setField(node, 'Weather', cap(lv.weather), { match: /^[A-Za-z]+\b/ });
+  setField(node, 'Windy', lv.windy ? 'Yes' : 'No', { match: /^(Yes|No)\b/i });
 }
 
 export default {

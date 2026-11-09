@@ -833,6 +833,8 @@ function buildMenus(src) {
 }
 
 export const SEASONS = ['summer', 'winter'], TYPES = ['delivery', 'kitchen'];
+/* a level's weather: what each season can have, plus `random` (rolled each play) */
+export const WEATHERS = { summer: ['sunny', 'rainy', 'random'], winter: ['snowy', 'sunny', 'random'] };
 const LEVEL_COUNT = 20, LEVEL_CARD_SCALE = 2;
 function buildLevels(src, difficulty, maps, menus) {
   const F = 'content/levels.json';
@@ -853,6 +855,10 @@ function buildLevels(src, difficulty, maps, menus) {
     if (v.era !== era) fail(F, [...P, 'era'], `${W}.era is ${JSON.stringify(v.era)} but ${v.year} is era ${era} (1 = 1970s, 2 = 1980s, 3 = 1990s)`);
     if (!SEASONS.includes(v.season)) fail(F, [...P, 'season'], `${W}.season must be ${SEASONS.join(' or ')}, got ${JSON.stringify(v.season)}`);
     if (!name.includes(v.season.toUpperCase())) fail(F, [...P, 'name'], `${W}.name ${JSON.stringify(v.name)} does not match its season "${v.season}"`);
+    if (!WEATHERS[v.season].includes(v.weather))
+      fail(F, [...P, 'weather'], `${W}.weather must be ${WEATHERS[v.season].join(', ')} for a ${v.season} level (summer has no snow, winter no rain), got ${JSON.stringify(v.weather)}`);
+    if (typeof v.windy !== 'boolean') fail(F, [...P, 'windy'], `${W}.windy must be true or false, got ${JSON.stringify(v.windy)}`);
+    if (v.windy && v.type === 'kitchen') fail(F, [...P, 'windy'], `${W}.windy is true on a Kitchen level; wind is Delivery-only (a kitchen has no road to blow across)`);
     if (!difficulty[v.difficulty]) fail(F, [...P, 'difficulty'], `${W}.difficulty "${v.difficulty}" is not in content/difficulty.json (${Object.keys(difficulty).join(' ')})`);
     if (v.map !== v.era || !maps[v.map]) fail(F, [...P, 'map'], `${W}.map is ${JSON.stringify(v.map)}; it must equal the era (${v.era}) and name a map in ${Object.values(MAP_FILES).join(', ')}`);
     if (v.menu !== v.era || !menus[v.menu]) fail(F, [...P, 'menu'], `${W}.menu is ${JSON.stringify(v.menu)}; it must equal the era (${v.era}) and name an era in content/menus.json`);

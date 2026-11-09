@@ -946,26 +946,26 @@ const DIALOGUE = {
 };
 
 const LEVELS = [
-  { "n": 1, "type": "delivery", "name": "SUMMER 1972", "year": 1972, "era": 1, "season": "summer", "difficulty": "easy", "map": 1, "menu": 1, "month": 7 },
-  { "n": 2, "type": "kitchen", "name": "WINTER 1972", "year": 1972, "era": 1, "season": "winter", "difficulty": "easy", "map": 1, "menu": 1, "month": 12 },
-  { "n": 3, "type": "delivery", "name": "WINTER 1975", "year": 1975, "era": 1, "season": "winter", "difficulty": "easy", "map": 1, "menu": 1, "month": 1 },
-  { "n": 4, "type": "kitchen", "name": "SUMMER 1975", "year": 1975, "era": 1, "season": "summer", "difficulty": "easy", "map": 1, "menu": 1, "month": 7 },
-  { "n": 5, "type": "delivery", "name": "SUMMER 1978", "year": 1978, "era": 1, "season": "summer", "difficulty": "easy", "map": 1, "menu": 1, "month": 7 },
-  { "n": 6, "type": "kitchen", "name": "WINTER 1978", "year": 1978, "era": 1, "season": "winter", "difficulty": "easy", "map": 1, "menu": 1, "month": 12 },
-  { "n": 7, "type": "delivery", "name": "SUMMER 1981", "year": 1981, "era": 2, "season": "summer", "difficulty": "medium", "map": 2, "menu": 2, "month": 7 },
-  { "n": 8, "type": "kitchen", "name": "WINTER 1981", "year": 1981, "era": 2, "season": "winter", "difficulty": "medium", "map": 2, "menu": 2, "month": 12 },
-  { "n": 9, "type": "delivery", "name": "WINTER 1984", "year": 1984, "era": 2, "season": "winter", "difficulty": "medium", "map": 2, "menu": 2, "month": 1 },
-  { "n": 10, "type": "kitchen", "name": "SUMMER 1984", "year": 1984, "era": 2, "season": "summer", "difficulty": "medium", "map": 2, "menu": 2, "month": 7 },
-  { "n": 11, "type": "delivery", "name": "SUMMER 1987", "year": 1987, "era": 2, "season": "summer", "difficulty": "medium", "map": 2, "menu": 2, "month": 7 },
-  { "n": 12, "type": "kitchen", "name": "WINTER 1987", "year": 1987, "era": 2, "season": "winter", "difficulty": "medium", "map": 2, "menu": 2, "month": 12 },
-  { "n": 13, "type": "delivery", "name": "SUMMER 1990", "year": 1990, "era": 3, "season": "summer", "difficulty": "hard", "map": 3, "menu": 3, "month": 7 },
-  { "n": 14, "type": "kitchen", "name": "WINTER 1990", "year": 1990, "era": 3, "season": "winter", "difficulty": "hard", "map": 3, "menu": 3, "month": 12 },
-  { "n": 15, "type": "delivery", "name": "WINTER 1993", "year": 1993, "era": 3, "season": "winter", "difficulty": "hard", "map": 3, "menu": 3, "month": 1 },
-  { "n": 16, "type": "kitchen", "name": "SUMMER 1993", "year": 1993, "era": 3, "season": "summer", "difficulty": "hard", "map": 3, "menu": 3, "month": 7 },
-  { "n": 17, "type": "delivery", "name": "SUMMER 1996", "year": 1996, "era": 3, "season": "summer", "difficulty": "hard", "map": 3, "menu": 3, "month": 7 },
-  { "n": 18, "type": "kitchen", "name": "WINTER 1996", "year": 1996, "era": 3, "season": "winter", "difficulty": "hard", "map": 3, "menu": 3, "month": 12 },
-  { "n": 19, "type": "delivery", "name": "SUMMER 1999", "year": 1999, "era": 3, "season": "summer", "difficulty": "supreme", "map": 3, "menu": 3, "month": 7 },
-  { "n": 20, "type": "kitchen", "name": "WINTER 1999", "year": 1999, "era": 3, "season": "winter", "difficulty": "supreme", "map": 3, "menu": 3, "month": 12 }
+  { "n": 1, "type": "delivery", "name": "SUMMER 1972", "year": 1972, "era": 1, "season": "summer", "difficulty": "easy", "map": 1, "menu": 1, "weather": "sunny", "windy": false, "month": 7 },
+  { "n": 2, "type": "kitchen", "name": "WINTER 1972", "year": 1972, "era": 1, "season": "winter", "difficulty": "easy", "map": 1, "menu": 1, "weather": "snowy", "windy": false, "month": 12 },
+  { "n": 3, "type": "delivery", "name": "WINTER 1975", "year": 1975, "era": 1, "season": "winter", "difficulty": "easy", "map": 1, "menu": 1, "weather": "snowy", "windy": false, "month": 1 },
+  { "n": 4, "type": "kitchen", "name": "SUMMER 1975", "year": 1975, "era": 1, "season": "summer", "difficulty": "easy", "map": 1, "menu": 1, "weather": "sunny", "windy": false, "month": 7 },
+  { "n": 5, "type": "delivery", "name": "SUMMER 1978", "year": 1978, "era": 1, "season": "summer", "difficulty": "easy", "map": 1, "menu": 1, "weather": "sunny", "windy": true, "month": 7 },
+  { "n": 6, "type": "kitchen", "name": "WINTER 1978", "year": 1978, "era": 1, "season": "winter", "difficulty": "easy", "map": 1, "menu": 1, "weather": "snowy", "windy": false, "month": 12 },
+  { "n": 7, "type": "delivery", "name": "SUMMER 1981", "year": 1981, "era": 2, "season": "summer", "difficulty": "medium", "map": 2, "menu": 2, "weather": "rainy", "windy": false, "month": 7 },
+  { "n": 8, "type": "kitchen", "name": "WINTER 1981", "year": 1981, "era": 2, "season": "winter", "difficulty": "medium", "map": 2, "menu": 2, "weather": "snowy", "windy": false, "month": 12 },
+  { "n": 9, "type": "delivery", "name": "WINTER 1984", "year": 1984, "era": 2, "season": "winter", "difficulty": "medium", "map": 2, "menu": 2, "weather": "snowy", "windy": true, "month": 1 },
+  { "n": 10, "type": "kitchen", "name": "SUMMER 1984", "year": 1984, "era": 2, "season": "summer", "difficulty": "medium", "map": 2, "menu": 2, "weather": "rainy", "windy": false, "month": 7 },
+  { "n": 11, "type": "delivery", "name": "SUMMER 1987", "year": 1987, "era": 2, "season": "summer", "difficulty": "medium", "map": 2, "menu": 2, "weather": "random", "windy": false, "month": 7 },
+  { "n": 12, "type": "kitchen", "name": "WINTER 1987", "year": 1987, "era": 2, "season": "winter", "difficulty": "medium", "map": 2, "menu": 2, "weather": "snowy", "windy": false, "month": 12 },
+  { "n": 13, "type": "delivery", "name": "SUMMER 1990", "year": 1990, "era": 3, "season": "summer", "difficulty": "hard", "map": 3, "menu": 3, "weather": "rainy", "windy": true, "month": 7 },
+  { "n": 14, "type": "kitchen", "name": "WINTER 1990", "year": 1990, "era": 3, "season": "winter", "difficulty": "hard", "map": 3, "menu": 3, "weather": "snowy", "windy": false, "month": 12 },
+  { "n": 15, "type": "delivery", "name": "WINTER 1993", "year": 1993, "era": 3, "season": "winter", "difficulty": "hard", "map": 3, "menu": 3, "weather": "snowy", "windy": true, "month": 1 },
+  { "n": 16, "type": "kitchen", "name": "SUMMER 1993", "year": 1993, "era": 3, "season": "summer", "difficulty": "hard", "map": 3, "menu": 3, "weather": "rainy", "windy": false, "month": 7 },
+  { "n": 17, "type": "delivery", "name": "SUMMER 1996", "year": 1996, "era": 3, "season": "summer", "difficulty": "hard", "map": 3, "menu": 3, "weather": "random", "windy": false, "month": 7 },
+  { "n": 18, "type": "kitchen", "name": "WINTER 1996", "year": 1996, "era": 3, "season": "winter", "difficulty": "hard", "map": 3, "menu": 3, "weather": "snowy", "windy": false, "month": 12 },
+  { "n": 19, "type": "delivery", "name": "SUMMER 1999", "year": 1999, "era": 3, "season": "summer", "difficulty": "supreme", "map": 3, "menu": 3, "weather": "rainy", "windy": true, "month": 7 },
+  { "n": 20, "type": "kitchen", "name": "WINTER 1999", "year": 1999, "era": 3, "season": "winter", "difficulty": "supreme", "map": 3, "menu": 3, "weather": "snowy", "windy": false, "month": 12 }
 ];
 
 const DIFFICULTY = {

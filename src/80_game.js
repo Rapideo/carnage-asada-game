@@ -26,6 +26,8 @@ const HEAT_MAX = 100;
    is mostly snowy (owner ruling, 2026-11-07): snow is the winter the game was
    tuned in, and an even chance made half of all winters nearly as easy as summer. */
 const WEATHER_CHANCE = { summer: 0.5, winter: 0.2 };
+/* the chance a level whose weather is `random` is also windy (a fixed level says windy itself) */
+const WIND_CHANCE = { summer: 0.30, winter: 0.25 };
 const WEATHER_GRIP = { summer: { sunny: 1, rainy: 0.75 }, winter: { snowy: 0.62, sunny: 0.9 } };
 const WEATHER_ROADS = {
   summer: { sunny: 'DRY', rainy: 'WET - A LITTLE SLICK' },
@@ -103,7 +105,7 @@ const G = {
 
   /* the run */
   seed: 0, levelN: 1, level: null, diffKey: 'easy', diff: DIFF_FALLBACK, nav: NAV_FULL,
-  era: 1, winter: false, weather: 'sunny', weatherPin: null, stage: 'delivery', mapN: 0,
+  era: 1, winter: false, weather: 'sunny', windy: false, weatherPin: null, stage: 'delivery', mapN: 0,
   levelEarned: 0, levelStars: 0, stars: 0, done: 0, extUsed: 0,
   cardT: 0, contT: 0, modeIdx: 0, startLevel: 1,
   snow: [], snowMask: null, snowImgs: null,
@@ -148,7 +150,9 @@ const G = {
     this.winter = this.level.season === 'winter';
     this.stage = this.level.type === 'kitchen' ? 'kitchen' : 'delivery';
     this.weather = this.rollWeather();
-    Player.gripMul = WEATHER_GRIP[this.winter ? 'winter' : 'summer'][this.weather];
+    this.windy = this.rollWindy();
+    /* grip is a delivery matter: a kitchen's weather is decoration only */
+    Player.gripMul = this.stage === 'kitchen' ? 1 : WEATHER_GRIP[this.winter ? 'winter' : 'summer'][this.weather];
     const map = this.level.map || this.era;
     if (map !== this.mapN) {
       City.map = typeof MAPS !== 'undefined' && MAPS[map] ? MAPS[map] : HAYS;
@@ -157,7 +161,7 @@ const G = {
       this.snowMask = null; this.snowImgs = null; this.rainMask = null;
     }
     if (this.winter && !this.snowMask) this.buildSnow();
-    if (this.weather === 'rainy' && !this.rainMask) this.buildRain();
+    if (this.weather === 'rainy' && this.stage === 'delivery' && !this.rainMask) this.buildRain();
   },
 
   /* The level as played: the level itself, unless the Test panel has set an
@@ -180,21 +184,33 @@ const G = {
     return out;
   },
 
-  /* Weather, the owner's ruling of 2026-11-07: a delivery level rolls its own
-     every time it is played. Summer is sunny or rainy; winter is snowy or
-     sunny, and a sunny winter keeps the old snow on the ground and roofs --
-     the look -- with the roads ploughed and nothing falling. The kitchen keeps
-     the season's default: there is no sky to see from the line, and a level
-     card promising rain over a steam table would be a lie.
-     weatherPin (?weather=, or 'season' for the default) fixes the roll; the
-     test suite pins 'season' so the driving it measures is the summer it was
-     tuned in. */
+  /* Weather is set per level (0.9.3, owner): content/levels.json says sunny,
+     rainy or snowy, or `random`, which rolls it fresh each play within the
+     season (summer sunny|rainy, winter snowy|sunny; a sunny winter keeps the
+     old snow on the ground and roofs, the roads ploughed, nothing falling).
+     A kitchen level has the weather of its level too, as decoration only.
+     A value the season cannot have (the Test panel's season override on a
+     snowy level) is treated as random, so the result is always valid.
+     weatherPin (?weather=, or 'season' for the season's default) beats the
+     level; the test suite pins 'season' so the driving it measures is the
+     summer it was tuned in. */
   rollWeather() {
     const pick = this.winter ? ['snowy', 'sunny'] : ['sunny', 'rainy'];
     const pin = this.weatherPin;
-    if (this.stage === 'kitchen' || pin === 'season') return pick[0];
+    if (pin === 'season') return pick[0];
     if (pick.includes(pin)) return pin;
+    const set = this.level && this.level.weather;
+    if (pick.includes(set)) return set;
     return Math.random() < WEATHER_CHANCE[this.winter ? 'winter' : 'summer'] ? pick[1] : pick[0];
+  },
+
+  /* windy: the level's flag, unless its weather is random (or unusable for
+     the season), when it rolls WIND_CHANCE. Delivery only. */
+  rollWindy() {
+    if (this.stage === 'kitchen') return false;
+    const lv = this.level || {}, pick = this.winter ? ['snowy', 'sunny'] : ['sunny', 'rainy'];
+    if (pick.includes(lv.weather)) return !!lv.windy;
+    return Math.random() < WIND_CHANCE[this.winter ? 'winter' : 'summer'];
   },
 
   /* the level card's title: the weather is news only when it is not the

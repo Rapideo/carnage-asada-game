@@ -5,7 +5,7 @@
    PLAYLIST) are read by bare name, never globalThis. */
 import '../fields.js';
 import { store } from '../store.js';
-import { TYPES, SEASONS } from '../../tools/content/validate.mjs';
+import { TYPES, SEASONS, WEATHERS } from '../../tools/content/validate.mjs';
 
 const Admin = (globalThis.Admin = globalThis.Admin || {});
 const REL = 'levels.json';
@@ -86,6 +86,10 @@ function draw(el) {
   Admin.field(form, { rel: REL, path: path('era'), kind: 'select', label: 'Era', options: [1, 2, 3] });
   Admin.field(form, { rel: REL, path: path('difficulty'), kind: 'select', label: 'Difficulty', options: difficultyKeys() });
   Admin.field(form, { rel: REL, path: path('season'), kind: 'select', label: 'Season', options: SEASONS });
+  Admin.field(form, { rel: REL, path: path('weather'), kind: 'select', label: 'Weather', options: WEATHERS[lv.season] || WEATHERS.summer,
+    title: 'This level\'s weather; random rolls it each play. A kitchen shows it as decoration only' });
+  const wind = Admin.field(form, { rel: REL, path: path('windy'), kind: 'bool', label: 'Windy', title: 'Gusts push the car (Delivery only; a random level rolls its own)' });
+  if (lv.type === 'kitchen') { wind.disabled = true; wind.title = 'Wind is Delivery-only'; }
   const mus = ro('Music', playlistOf(lv.n) + '  ');
   const link = h(doc, 'a', 'adm-link', 'edit in the Music tab');
   link.href = '#';

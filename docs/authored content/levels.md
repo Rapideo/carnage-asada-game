@@ -18,13 +18,15 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 - Seasons : Summer is the baseline. Winter lays snow over everything but the ploughed
   roads and on every roof. Kitchen customers come in with snow on their hats
 
-- Weather (owner ruling, 2026-11-07) : a Delivery level rolls its weather each time it is
-  played. Summer is **sunny** or **rainy**, an even chance either way; winter is **snowy**
-  four times in five, and **sunny** the fifth (owner ruling, 2026-11-07: mostly snowy). A Kitchen level always has its season's default weather (sunny summer,
-  snowy winter).
+- Weather (set per level, 0.9.3) : each level carries its own `weather` and a `windy` flag
+  (see its fields below). Summer is **sunny** or **rainy**, winter is **snowy** or **sunny**,
+  and **random** rolls it again each time the level is played (summer an even chance of rain;
+  winter snowy four times in five, sunny the fifth). A random level also rolls its wind, 30%
+  in summer and 25% in winter. A Kitchen level has the weather of its level too, as
+  decoration only: no grip, no wind, and Windy is always No.
   - Sunny summer : dry roads, normal grip.
   - Rainy summer : rain falls, the roads are wet and dark with puddles, and the car grips
-    at 0.84 of normal.
+    at 0.75 of normal.
   - Snowy winter : snow falls, and the car grips at 0.62 of normal, so it slides more and
     the handbrake bites harder.
   - Sunny winter : the old snow stays on the ground and the roofs, nothing falls, and the
@@ -59,6 +61,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Season : Summer
 
+- Weather : Sunny
+
+- Windy : No
+
 ## II. Level 2
 
 - Sequence : 2
@@ -74,6 +80,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 - Difficulty : Easy
 
 - Season : Winter
+
+- Weather : Snowy
+
+- Windy : No
 
 ## III. Level 3
 
@@ -91,6 +101,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Season : Winter
 
+- Weather : Snowy
+
+- Windy : No
+
 ## IV. Level 4
 
 - Sequence : 4
@@ -106,6 +120,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 - Difficulty : Easy
 
 - Season : Summer
+
+- Weather : Sunny
+
+- Windy : No
 
 ## V. Level 5
 
@@ -123,6 +141,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Season : Summer
 
+- Weather : Sunny
+
+- Windy : Yes
+
 ## VI. Level 6
 
 - Sequence : 6
@@ -138,6 +160,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 - Difficulty : Easy
 
 - Season : Winter
+
+- Weather : Snowy
+
+- Windy : No
 
 ## VII. Level 7
 
@@ -155,6 +181,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Season : Summer
 
+- Weather : Rainy
+
+- Windy : No
+
 ## VIII. Level 8
 
 - Sequence : 8
@@ -170,6 +200,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 - Difficulty : Medium
 
 - Season : Winter
+
+- Weather : Snowy
+
+- Windy : No
 
 ## IX. Level 9
 
@@ -187,6 +221,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Season : Winter
 
+- Weather : Snowy
+
+- Windy : Yes
+
 ## X. Level 10
 
 - Sequence : 10
@@ -202,6 +240,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 - Difficulty : Medium
 
 - Season : Summer
+
+- Weather : Rainy
+
+- Windy : No
 
 ## XI. Level 11
 
@@ -219,6 +261,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Season : Summer
 
+- Weather : Random
+
+- Windy : No
+
 ## XII. Level 12
 
 - Sequence : 12
@@ -234,6 +280,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 - Difficulty : Medium
 
 - Season : Winter
+
+- Weather : Snowy
+
+- Windy : No
 
 ## XIII. Level 13
 
@@ -251,6 +301,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Season : Summer
 
+- Weather : Rainy
+
+- Windy : Yes
+
 ## XIV. Level 14
 
 - Sequence : 14
@@ -266,6 +320,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 - Difficulty : Hard
 
 - Season : Winter
+
+- Weather : Snowy
+
+- Windy : No
 
 ## XV. Level 15
 
@@ -283,6 +341,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Season : Winter
 
+- Weather : Snowy
+
+- Windy : Yes
+
 ## XVI. Level 16
 
 - Sequence : 16
@@ -298,6 +360,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 - Difficulty : Hard
 
 - Season : Summer
+
+- Weather : Rainy
+
+- Windy : No
 
 ## XVII. Level 17
 
@@ -315,6 +381,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Season : Summer
 
+- Weather : Random
+
+- Windy : No
+
 ## XVIII. Level 18
 
 - Sequence : 18
@@ -330,6 +400,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 - Difficulty : Hard
 
 - Season : Winter
+
+- Weather : Snowy
+
+- Windy : No
 
 ## XIX. Level 19
 
@@ -347,6 +421,10 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 
 - Season : Summer
 
+- Weather : Rainy
+
+- Windy : Yes
+
 ## XX. Level 20
 
 - Sequence : 20
@@ -362,3 +440,7 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
 - Difficulty : Supreme
 
 - Season : Winter
+
+- Weather : Snowy
+
+- Windy : No

@@ -1,6 +1,6 @@
 {
   "_comment": "The 20-level run, from docs/authored content/levels.md. build.mjs INLINES this as const LEVELS - never fetched at runtime (CSP, file:// CORS). Edit here, then run: node build.mjs",
-  "_schema": "n 1..20 in order; type delivery|kitchen; name is the level card title (font characters only); era 1|2|3 = 1970s|1980s|1990s; season summer|winter; difficulty is a key of content/difficulty.json; map and menu pick content/hays*.json and the era of content/menus.json, and equal the era.",
+  "_schema": "n 1..20 in order; type delivery|kitchen; name is the level card title (font characters only); era 1|2|3 = 1970s|1980s|1990s; season summer|winter; weather sunny|rainy (summer) or snowy|sunny (winter) or random; windy true|false (delivery only); difficulty is a key of content/difficulty.json; map and menu pick content/hays*.json and the era of content/menus.json, and equal the era.",
   "levels": [
     {
       "n": 1,
@@ -11,7 +11,9 @@
       "season": "summer",
       "difficulty": "easy",
       "map": 1,
-      "menu": 1
+      "menu": 1,
+      "weather": "sunny",
+      "windy": false
     },
     {
       "n": 2,
@@ -22,7 +24,9 @@
       "season": "winter",
       "difficulty": "easy",
       "map": 1,
-      "menu": 1
+      "menu": 1,
+      "weather": "snowy",
+      "windy": false
     },
     {
       "n": 3,
@@ -33,7 +37,9 @@
       "season": "winter",
       "difficulty": "easy",
       "map": 1,
-      "menu": 1
+      "menu": 1,
+      "weather": "snowy",
+      "windy": false
     },
     {
       "n": 4,
@@ -44,7 +50,9 @@
       "season": "summer",
       "difficulty": "easy",
       "map": 1,
-      "menu": 1
+      "menu": 1,
+      "weather": "sunny",
+      "windy": false
     },
     {
       "n": 5,
@@ -55,7 +63,9 @@
       "season": "summer",
       "difficulty": "easy",
       "map": 1,
-      "menu": 1
+      "menu": 1,
+      "weather": "sunny",
+      "windy": true
     },
     {
       "n": 6,
@@ -66,7 +76,9 @@
       "season": "winter",
       "difficulty": "easy",
       "map": 1,
-      "menu": 1
+      "menu": 1,
+      "weather": "snowy",
+      "windy": false
     },
     {
       "n": 7,
@@ -77,7 +89,9 @@
       "season": "summer",
       "difficulty": "medium",
       "map": 2,
-      "menu": 2
+      "menu": 2,
+      "weather": "rainy",
+      "windy": false
     },
     {
       "n": 8,
@@ -88,7 +102,9 @@
       "season": "winter",
       "difficulty": "medium",
       "map": 2,
-      "menu": 2
+      "menu": 2,
+      "weather": "snowy",
+      "windy": false
     },
     {
       "n": 9,
@@ -99,7 +115,9 @@
       "season": "winter",
       "difficulty": "medium",
       "map": 2,
-      "menu": 2
+      "menu": 2,
+      "weather": "snowy",
+      "windy": true
     },
     {
       "n": 10,
@@ -110,7 +128,9 @@
       "season": "summer",
       "difficulty": "medium",
       "map": 2,
-      "menu": 2
+      "menu": 2,
+      "weather": "rainy",
+      "windy": false
     },
     {
       "n": 11,
@@ -121,7 +141,9 @@
       "season": "summer",
       "difficulty": "medium",
       "map": 2,
-      "menu": 2
+      "menu": 2,
+      "weather": "random",
+      "windy": false
     },
     {
       "n": 12,
@@ -132,7 +154,9 @@
       "season": "winter",
       "difficulty": "medium",
       "map": 2,
-      "menu": 2
+      "menu": 2,
+      "weather": "snowy",
+      "windy": false
     },
     {
       "n": 13,
@@ -143,7 +167,9 @@
       "season": "summer",
       "difficulty": "hard",
       "map": 3,
-      "menu": 3
+      "menu": 3,
+      "weather": "rainy",
+      "windy": true
     },
     {
       "n": 14,
@@ -154,7 +180,9 @@
       "season": "winter",
       "difficulty": "hard",
       "map": 3,
-      "menu": 3
+      "menu": 3,
+      "weather": "snowy",
+      "windy": false
     },
     {
       "n": 15,
@@ -165,7 +193,9 @@
       "season": "winter",
       "difficulty": "hard",
       "map": 3,
-      "menu": 3
+      "menu": 3,
+      "weather": "snowy",
+      "windy": true
     },
     {
       "n": 16,
@@ -176,7 +206,9 @@
       "season": "summer",
       "difficulty": "hard",
       "map": 3,
-      "menu": 3
+      "menu": 3,
+      "weather": "rainy",
+      "windy": false
     },
     {
       "n": 17,
@@ -187,7 +219,9 @@
       "season": "summer",
       "difficulty": "hard",
       "map": 3,
-      "menu": 3
+      "menu": 3,
+      "weather": "random",
+      "windy": false
     },
     {
       "n": 18,
@@ -198,7 +232,9 @@
       "season": "winter",
       "difficulty": "hard",
       "map": 3,
-      "menu": 3
+      "menu": 3,
+      "weather": "snowy",
+      "windy": false
     },
     {
       "n": 19,
@@ -209,7 +245,9 @@
       "season": "summer",
       "difficulty": "supreme",
       "map": 3,
-      "menu": 3
+      "menu": 3,
+      "weather": "rainy",
+      "windy": true
     },
     {
       "n": 20,
@@ -220,7 +258,9 @@
       "season": "winter",
       "difficulty": "supreme",
       "map": 3,
-      "menu": 3
+      "menu": 3,
+      "weather": "snowy",
+      "windy": false
     }
   ]
 }
