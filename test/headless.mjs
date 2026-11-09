@@ -119,24 +119,6 @@ ok(NAV_Y0 + NAV_H <= VH, `the nav panel fits above the bottom edge (${NAV_Y0 + N
    the TACO BAG it replaced */
 ok(VW - 76 + textW('DELIVERIES', 1) <= VW, `the deliveries label fits the screen (${textW('DELIVERIES', 1)}px from x=${VW - 76})`);
 
-/* The windsock (windy levels only) sits top centre, in the 110px between the
-   order card (right edge x 143) and the clock card (left edge x 253). In Mode C
-   it drops below the PAUSE button that shares that gap, and stays above the
-   demo's PRESS ESC line at y 52 (51 with its outline). Task 8 moves the
-   minimap to a free corner in Mode C; the top centre is not a corner. */
-{
-  const Hud = runScript('Hud'), PAUSE = sandbox.__k.Pad.PAUSE;
-  const ORDER_R = 3 + 140, CLOCK_L = VW - 128 - 3;
-  const r = (c) => (typeof Hud.sockRect === 'function' ? Hud.sockRect(c) : null);
-  const inGap = (q) => !!q && q.x > ORDER_R + 1 && q.x + q.w < CLOCK_L - 1 && q.y >= 2;
-  const a = r(false), c = r(true);
-  ok(inGap(a) && a.y + a.h <= 47, `the windsock fits between the order and clock cards (${JSON.stringify(a)})`);
-  ok(inGap(c) && c.y > PAUSE.y + PAUSE.h + 1 && c.y + c.h < 51,
-     `in Mode C it sits under PAUSE and above the demo line (${JSON.stringify(c)}, PAUSE ends y ${PAUSE.y + PAUSE.h})`);
-  ok(!!a && typeof Hud.sockLen === 'function' && Hud.sockLen(1, 1) + 2 <= Math.min(a.w, a.h) / 2,
-     `the longest sock (full strength, mid-gust) stays inside its panel (${a && Hud.sockLen ? Hud.sockLen(1, 1).toFixed(1) : '?'}px in ${a ? Math.min(a.w, a.h) / 2 : '?'})`);
-}
-
 /* attract timings are authored in content/attract.json; — attract — asserts
    the game reads them live from ATTRACT rather than from a stale constant */
 ok(ATTRACT.title.wordmarkHold >= 0 && ATTRACT.title.wordmarkHold <= ATTRACT.title.seconds - 2,
@@ -2063,9 +2045,23 @@ console.log('\n— cast —');
       const order = [], kPlate = Kx.plate, dDraw = Dialog.draw;
       Kx.plate = function (x, key, col, a) { order.push('plate'); return kPlate.call(this, x, key, col, a); };
       Dialog.draw = function (x) { order.push('strip'); return dDraw.call(this, x); };
-      try { for (let f = 0; f < 8; f++) { G.time = f * 0.1; order.length = 0; Kx.hintT = 1.6; G.renderKitchen(ctx); if (order.length > 2) break; } }
+      try { for (let f = 0; f < 8; f++) { G.time = f * 0.1; order.length = 0; Kx.hintT = 1.6; G.render(ctx); if (order.length > 2) break; } }
       finally { Kx.plate = kPlate; Dialog.draw = dDraw; }
       ok(order.indexOf('strip') >= 0 && order.lastIndexOf('plate') > order.indexOf('strip'), 'the hint plate is drawn after the strip (' + order.join(',') + ')');
+      /* the strip goes on after the vignette and the grade: drawn under them,
+         the portraits came out about 40% darker (owner, 2026-11-09) */
+      {
+        const P = runScript('Post'), pApply = P.apply, dDraw2 = Dialog.draw, seq = [];
+        P.apply = function (...a) { seq.push('post'); return pApply.apply(this, a); };
+        Dialog.draw = function (x) { seq.push('strip'); return dDraw2.call(this, x); };
+        try {
+          Dialog.say('MARGE', 'TEST', { secs: 9 }); Dialog.update(1);
+          G.render(ctx);
+          ok(seq.join(',') === 'post,strip', `the dialogue strip is drawn after the vignette and the grade (${seq})`);
+          seq.length = 0; G.paused = true; G.render(ctx); G.paused = false;
+          ok(seq.join(',') === 'post', `and not at all while paused (${seq})`);
+        } finally { P.apply = pApply; Dialog.draw = dDraw2; G.paused = false; }
+      }
       G.state = 'play'; quiet(); Kx.demo = false;
     }
   } finally { unrnd(); G.state = 'play'; }
@@ -2114,9 +2110,8 @@ console.log('\n— wind —');
 
   G.startRun(1); G.beginShift();
   ok(G.state === 'play' && G.windy === false && !!Wind && Wind.on === false, 'level 1 is not windy: the wind is off');
-  let maxWeeds = 0, gusted = 0, warned = 0, socks = 0, gustSfx = 0;
-  const realSock = Hud.drawSock, realSfx = A5.sfx;
-  if (realSock) Hud.drawSock = function (...a) { socks++; return realSock.apply(this, a); };
+  let maxWeeds = 0, gusted = 0, warned = 0, gustSfx = 0;
+  const realSfx = A5.sfx;
   A5.sfx = function (n, ...a) { if (n === 'gust') gustSfx++; return realSfx.call(this, n, ...a); };
   try {
     for (let i = 0; i < 20 * 60; i++) {
@@ -2127,9 +2122,11 @@ console.log('\n— wind —');
       if (Wind && Wind.gust > 0) gusted++;
       if (Wind && Wind.telegraph > 0) warned++;
     }
-  } finally { Hud.drawSock = realSock; A5.sfx = realSfx; }
-  ok(maxWeeds === 0 && gusted === 0 && warned === 0 && gustSfx === 0 && socks === 0,
-     `20s of a calm level: no tumbleweed, no gust, no telegraph, no GUST sound, no windsock (${maxWeeds}, ${gusted}, ${warned}, ${gustSfx}, ${socks})`);
+  } finally { A5.sfx = realSfx; }
+  ok(maxWeeds === 0 && gusted === 0 && warned === 0 && gustSfx === 0,
+     `20s of a calm level: no tumbleweed, no gust, no telegraph, no GUST sound (${maxWeeds}, ${gusted}, ${warned}, ${gustSfx})`);
+
+  ok(typeof Hud.drawSock === 'undefined', 'no windsock: removed by the owner, 2026-11-09 (the wind shows in the dust and tumbleweeds)');
 
   /* the kitchen is never windy, even right after a windy delivery level */
   reset(); G.startRun(5); G.beginShift();
@@ -2352,15 +2349,12 @@ console.log('\n— touch layout —');
     const Ir = lay(923, 411, 2.625, { top: 0, right: 30, bottom: 0, left: 0 }, 'C', 'drive');
     ok(!!Ir && Ir.buttons.every((b, i) => Math.abs(b.cx - P.buttons[i].cx + 30) < 0.01), 'a 30px right inset moves the buttons in by 30px');
 
-    /* the minimap: a free corner in Mode C, never under the stick, never on the windsock (Ledger Ruling 1) */
+    /* the minimap: a free corner in Mode C, never under the stick (Ledger Ruling 1) */
     ok(typeof Hud.mapRect === 'function', 'Hud.mapRect says where the minimap is');
     if (typeof Hud.mapRect === 'function') {
       const m = Hud.mapRect(), s = pic.w / VW;
       const css = { x: pic.x + (m.x - 2) * s, y: pic.y + (m.y - 2) * s, w: (m.w + 4) * s, h: (m.h + 4) * s };
       ok(!hitsRect(P.stick, css) && P.buttons.every((b) => !hitsRect(b, css)), `the minimap is not under the stick or a button (${JSON.stringify(m)})`);
-      const sk = Hud.sockRect(false);
-      const ov = !(sk.x + sk.w <= m.x - 2 || m.x + m.w + 2 <= sk.x || sk.y + sk.h <= m.y - 2 || m.y + m.h + 2 <= sk.y);
-      ok(!ov, `the windsock and the minimap do not overlap (${JSON.stringify(sk)})`);
       ok(m.x === 4 && m.y === VH - MMv - 4 && m.w === MMv, 'the minimap is in the bottom-left corner (the stick, now mid-height, left it free)');
     }
   }
@@ -2468,7 +2462,7 @@ console.log('\n— touch layout —');
   relay(923, 411, 2.625);
   ok(typeof Pad.onCanvas === 'function' && Pad.onCanvas() === false, 'Mode C landscape: the controls are not on the canvas');
   ok(padLog() === '', 'Mode C landscape draws no controls on the game picture');
-  ok(hudLog() === hudA, 'Mode C landscape: the HUD is the keyboard one (bag, windsock and edge arrow back where Mode A has them)');
+  ok(hudLog() === hudA, 'Mode C landscape: the HUD is the keyboard one (bag and edge arrow back where Mode A has them)');
 
   /* --- hit-testing in CSS px, before the game's clamped mapping --- */
   if (P && typeof Pad.relayout === 'function') {

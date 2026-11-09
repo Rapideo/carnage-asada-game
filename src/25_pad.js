@@ -249,7 +249,7 @@ const Pad = {
 
   /** Mode C with the controls drawn ON the picture, as they always were: a
       portrait phone, or before the page has measured. The HUD makes room for
-      them (bag, windsock, edge arrow) only then. */
+      them (bag, edge arrow) only then. */
   onCanvas() { return this.mode === 'C' && !(this._lay && this._lay.landscape); },
   /** Mode C with the controls in the margins: hit-tested in CSS px. */
   _margins() { return this.mode === 'C' && !!(this._lay && this._lay.landscape); },

@@ -13,7 +13,10 @@
      The flight is a fixed THROW_T, so the drift is the same for any length
      of toss: strength x DRIFT / 8 px, about 9px on Easy and 22px on Supreme.
    - GUSTS: every gustEvery seconds the car is shoved sideways for LEN s,
-     telegraphed WARN s ahead by dust streaks and the GUST sound. The shove
+     telegraphed WARN s ahead by dust streaks and the GUST sound (the
+     windsock that also blinked for it was removed, owner 2026-11-09, so the
+     dust carries the warning: denser and longer in the warning and the gust,
+     each streak with a dark underline so it reads on snow as well as road). The shove
      is only added to the car's lateral velocity, before Player.update's
      axis-separated moves, so carBlocked still refuses every destination and
      unwedge still depenetrates. A gust can push you along a wall; it can
@@ -38,7 +41,7 @@ const Wind = {
   LEAN: 0.8,         // how much of the drift the demo aims off for (G.aimPoint)
 
   /* Per delivery shift. The direction is per play: a cardinal, so it reads
-     clearly on the windsock and blows along the street grid, with a little
+     clearly in the dust and blows along the street grid, with a little
      jitter so it is not a ruler. */
   reset(windy, diff) {
     const w = diff && diff.wind;
@@ -96,25 +99,30 @@ const Wind = {
       s.x += s.vx * dt; s.y += s.vy * dt;
     }
     // a few always, a rush during the telegraph and the gust itself
-    const rate = 4 * this.strength + 110 * this.telegraph + 140 * this.gust;
+    const rush = Math.max(this.telegraph, this.gust);
+    const rate = 4 * this.strength + 200 * this.telegraph + 180 * this.gust;
     let n = rate * dt;
     while (n > 0 && S.length < 160) {
       if (n < 1 && Math.random() > n) break;
       n -= 1;
       const v = (220 + Math.random() * 100) * (0.6 + this.strength), a = this.dir + (Math.random() - 0.5) * 0.12;
       S.push({ x: Math.random() * VW, y: Math.random() * VH, vx: Math.cos(a) * v, vy: Math.sin(a) * v,
-               l: 8 + ((Math.random() * 11) | 0), t: 0, life: 0.25 + Math.random() * 0.3 });
+               l: 8 + ((Math.random() * (11 + 10 * rush)) | 0), t: 0, life: 0.25 + Math.random() * 0.3 });
     }
   },
 
   drawStreaks(x) {
     if (!this.on || !this.streaks.length) return;
-    x.fillStyle = '#ead8ac';
-    for (const s of this.streaks) {
-      const f = s.t / s.life;
-      x.globalAlpha = (f < 0.2 ? f / 0.2 : (1 - f) / 0.8) * 0.8;
-      const c = s.vx / hyp(s.vx, s.vy), d = s.vy / hyp(s.vx, s.vy);
-      for (let k = 0; k < s.l; k++) x.fillRect((s.x - c * k) | 0, (s.y - d * k) | 0, 1, 1);
+    /* two passes: a dark underline one row down, then the dust. Pale dust on
+       snow was invisible without it (owner, 2026-11-09, level 9) */
+    for (const [col, oy, a] of [['#1c1424', 1, 0.45], ['#ead8ac', 0, 0.85]]) {
+      x.fillStyle = col;
+      for (const s of this.streaks) {
+        const f = s.t / s.life;
+        x.globalAlpha = (f < 0.2 ? f / 0.2 : (1 - f) / 0.8) * a;
+        const c = s.vx / hyp(s.vx, s.vy), d = s.vy / hyp(s.vx, s.vy);
+        for (let k = 0; k < s.l; k++) x.fillRect((s.x - c * k) | 0, ((s.y - d * k) | 0) + oy, 1, 1);
+      }
     }
     x.globalAlpha = 1;
   },

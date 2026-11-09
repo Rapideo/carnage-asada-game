@@ -3,7 +3,7 @@
    --------------------------------------------------------------
    frame.mjs -- a real frame of any level, to a PNG.
 
-       node tools/render/frame.mjs <level> [seconds] [--card|--clear|--over|--pause|--title|--mode|--say] [--weather sunny|rainy|snowy] [--out name]
+       node tools/render/frame.mjs <level> [seconds] [--card|--clear|--over|--pause|--title|--mode|--say] [--weather sunny|rainy|snowy] [--face <key>] [--gust] [--out name]
 
    Boots the shipped modules exactly as build.mjs concatenates them, points the
    game at <level> (1-20: era, season, map, menu, difficulty all follow), and
@@ -11,6 +11,12 @@
    delivery level, the kitchen's own cook for a kitchen level -- so the frame
    has traffic, tickets, a build in progress and money on the card. Then it
    renders through the real pipeline, CRT pass and era grade included.
+
+   --gust (a windy level) holds the frame at the end of a gust's 1 s warning,
+   with the dust streaks it raises.
+
+   --face <key> raises the dialogue strip with that face (cop70, staff80, c70beekeeper,
+   any key in content/faces/) -- for judging a portrait against the frame around it.
 
    Writes tools/render/<out>.png and <out>-x3.png (default out: frame-L<level>).
 */
@@ -28,7 +34,7 @@ const code = files.map((f) => `\n//# ${f}\n` + readFileSync(join(SRC, f), 'utf8'
 const argv = process.argv.slice(2);
 const flag = (n) => argv.includes('--' + n);
 const val = (n, d) => { const i = argv.indexOf('--' + n); return i < 0 ? d : argv[i + 1]; };
-const nums = argv.filter((a, i) => !a.startsWith('--') && !(i > 0 && (argv[i - 1] === '--out' || argv[i - 1] === '--weather')));
+const nums = argv.filter((a, i) => !a.startsWith('--') && !(i > 0 && (argv[i - 1] === '--out' || argv[i - 1] === '--weather' || argv[i - 1] === '--face')));
 const LEVEL = Number(nums[0] || 2), SECS = Number(nums[1] || 12);
 const OUT = val('out', 'frame-L' + LEVEL);
 
@@ -44,8 +50,8 @@ const sandbox = {
 };
 sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
-vm.runInContext(code + '\n;globalThis.__x = { G, Kitchen, Input, Dialog, Demo, VW, VH };', sandbox, { filename: 'bundle.js' });
-const { G, Kitchen, Input, Dialog, Demo, VW, VH } = sandbox.__x;
+vm.runInContext(code + '\n;globalThis.__x = { G, Kitchen, Input, Dialog, Demo, Wind, VW, VH };', sandbox, { filename: 'bundle.js' });
+const { G, Kitchen, Input, Dialog, Demo, Wind, VW, VH } = sandbox.__x;
 
 const c = new Canvas(VW, VH), ctx = c.getContext('2d');
 const step = (n) => { for (let i = 0; i < n; i++) { G.update(1 / 60); Input.endFrame(); } };
@@ -69,6 +75,10 @@ else {
       if (drive && G.state === 'demo') G.state = 'play';
       if (G.state !== 'play' && G.state !== 'kitchen') break;
     }
+    if (flag('gust') && Wind.on && G.state === 'play') {
+      Wind.gustT = Wind.WARN + 0.01; Wind.age = -1;
+      for (let i = 0; i < 54; i++) { G.state = 'demo'; G.update(1 / 60); Input.endFrame(); if (G.state === 'demo') G.state = 'play'; }
+    }
     if (G.stage === 'kitchen') Kitchen.demo = false;
     if (flag('clear')) G.levelClear();
     if (flag('over')) G.timeUp();
@@ -76,6 +86,10 @@ else {
     if (flag('say')) {
       if (G.stage === 'kitchen') { Kitchen.barkT = 0; Kitchen.bark(G, 'wait', Kitchen.tickets[0], true, true); }
       else G.react('missed', G.order, true);
+      for (let i = 0; i < 24; i++) Dialog.update(1 / 60);
+    }
+    if (val('face', null)) {
+      Dialog.say('WHO', 'PULL OVER RIGHT THERE. LICENSE AND REGISTRATION.', { face: val('face', null), secs: 9 });
       for (let i = 0; i < 24; i++) Dialog.update(1 / 60);
     }
   }

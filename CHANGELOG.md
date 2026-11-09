@@ -7,6 +7,14 @@ here, run `node build.mjs` and the tests, commit, and tag it (`git tag v<version
 Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch lists.
 **1.0.0** is when the owner calls it released.
 
+## Unreleased (branch `tweaks-0.9.5`), from the owner's playtest of 2026-11-09
+
+- **Brighter faces:** the dialogue strip is drawn over the screen's corner darkening and the
+  decade colour grade instead of under them. Portraits measure 25 to 60% brighter.
+- **No windsock.** The bag still drifts downwind; read the wind from the dust and the tumbleweeds.
+- **Gusts are easier to see coming:** the warning's dust is denser and longer, with a dark
+  underline so it shows on snow (it was nearly invisible on level 9).
+
 ## 0.9.4 (2026-11-09): the Xbox controller
 
 - **Xbox Wireless Controller (Series X|S) over Bluetooth:** Chrome hands this pad over without

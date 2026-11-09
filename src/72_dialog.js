@@ -33,7 +33,7 @@ const DLG_RISE = 0.16;              // seconds to slide in
 
 const Dialog = {
   active: false, t: 0, hold: 0, who: '', lines: [], sub: '', meter: null,
-  face: null, hostile: false, hood: 0, blinkT: 0, blink: 0,
+  face: null, hostile: false, hood: 0, blinkT: 0, blink: 0, rects: [],
 
   /** raise the strip. `secs` is how long it stays up once it has arrived. */
   say(who, line, o) {
@@ -96,6 +96,8 @@ const Dialog = {
     Hud.panel(x, px, py, w, h, '#6b5f84');
 
     const fx = px + 3, fy = py + 2 - (fh - DLG_BOX);      // grows up, never down
+    /* what this draw covers on screen, for the scanlines laid over it after */
+    this.rects = [[px, py + dy, w + 3, h + 4], [fx, fy + dy, fw, fh]];
     R(x, PAL.ink, fx, fy, fw, fh);
     R(x, '#2a2438', fx + 1, fy + 1, fw - 2, fh - 2);
     for (let i = 0; i < fh - 2; i += 3)                   // faint backing, so the

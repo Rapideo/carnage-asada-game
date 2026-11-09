@@ -343,8 +343,8 @@ flag exists on Delivery levels only; a `random` level also rolls wind, at 30% in
   look, but nothing falls and the ploughed roads grip at x0.9.
 - **Kitchen levels** follow their level's weather as decoration only: snow tracked in on
   winter levels, rain on the window. It changes nothing about play.
-- **Windy (Delivery only):** a crosswind pushes the bag on the toss, with a windsock at the
-  top centre of the screen, telegraphed gusts that shove the car, and tumbleweeds. Values are
+- **Windy (Delivery only):** a crosswind pushes the bag on the toss (there is no windsock: the
+  owner removed it on 2026-11-09; the dust and tumbleweeds show the wind), telegraphed gusts that shove the car, and tumbleweeds. Values are
   in `content/difficulty.json` `wind`.
 
 ### L. Music

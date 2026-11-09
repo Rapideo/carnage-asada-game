@@ -231,7 +231,7 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 | `50_entities` | `Player`, `Traffic`, `Train`, `Crossing`, `Ped`, `Cop`, `Bag`, `Fx`; shared car physics + collision |
 | `55_wind` | `Wind` and `Tumbleweed` — windy Delivery levels: the bag's crosswind drift (`Wind.push`), gusts that shove the car through `Player.update`'s normal collision path (`Wind.lateral`), dust streaks, tumbleweeds. Off unless `G.windy`; values in `content/difficulty.json` `wind` |
 | `60_nav` | `Nav` (TACO-NAV unit) and `solve()` — Dijkstra over the intersection graph |
-| `70_hud` | `Hud.draw()` — order card, tip meter, nav panel, minimap, the windsock on windy levels (top centre); `navArrow`, `triArrow` |
+| `70_hud` | `Hud.draw()` — order card, tip meter, nav panel, minimap; `navArrow`, `triArrow` |
 | `72_dialog` | `Dialog` — the dialogue strip: portrait box, speech bubble (two rows, `Dialog.wrap`), slide-in. Shared by both halves |
 | `73_cast` | `Cast` — the nine named characters speak: officers, rivals, coworkers. Decides who and when; `Dialog` draws it |
 | `74_kitchen` | `Kitchen` — the whole Kitchen Shift as one object: tickets, queue, lattice, picking, wrap/send, the board picture, its own clock card, and the attract-mode cook |
@@ -674,6 +674,10 @@ difficulty; `80_game.js` keeps only `BAG_MAX` and a `DIFF_FALLBACK`.
 
 **The era grade** (`Post.grade`, owner ruling) is a per-pixel curve over the finished WORLD — it runs after
 the city or kitchen and HUD and before the cards, menus and pause, which keep the game's own colours.
+**The dialogue strip is drawn last of all**, after `Post.apply`, with only the scanlines laid over it
+(`Post.scanlines(x, Dialog.rects)`): it sits in the bottom-left corner, where the vignette is darkest, and
+drawn with the world the portraits came out about 40% darker than mid-screen (owner, 2026-11-09, "the
+faces all look really dark"). It is hidden while paused.
 
 ### The Kitchen Shift (`Kitchen`)
 
@@ -786,8 +790,9 @@ the card was cut on purpose. The clear, game over and continue cards are unchang
 ### Wind
 
 `55_wind.js` (windy Delivery levels only) has three effects. The bag drifts downwind in flight, and the aim
-reticle does not correct for it: the windsock in the HUD is the telegraph, and the player aims upwind. Telegraphed
-gusts (a 1 s warning) shove the car **laterally only**, through the same collision path as steering, since a push
+reticle does not correct for it: the player reads the wind from the dust and the tumbleweeds and aims upwind. There is
+**no windsock** (owner, 2026-11-09: removed, with the drift kept and no other telegraph for it). Telegraphed
+gusts (a 1 s warning: a rush of dust streaks, each with a dark underline so it reads on snow, and the GUST sound) shove the car **laterally only**, through the same collision path as steering, since a push
 along the heading is barely resisted by drag and launched parked cars tens of pixels. Tumbleweeds roll the streets
 and burst into twigs, wobbling the car, with no fine. `Wind.reset(windy, diff)` takes the rolled `G.windy`, not
 `level.windy`, since a `random` level rolls it. Strength and counts are per difficulty in

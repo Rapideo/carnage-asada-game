@@ -127,9 +127,6 @@ const Hud = {
     x.strokeStyle = '#6b5f84'; x.lineWidth = 1;
     x.strokeRect(mx0 - 1.5, my0 - 1.5, MM + 3, MM + 3);
 
-    /* ---------- windsock (windy levels only) ---------- */
-    if (G.windy && Wind.on) this.drawSock(x, G);
-
     /* ---------- TACO-NAV ---------- */
     if (nav.panel) this.drawNav(x, G);
 
@@ -175,48 +172,14 @@ const Hud = {
     }
   },
 
-  /* The windsock: top centre, in the 110px between the order card (ends x 143)
-     and the clock card (starts x 253). Mode C's PAUSE button shares that gap
-     (x 182-202, y 4-15), so on a phone it drops below it, staying above the
-     demo's PRESS ESC line at y 52. On a landscape phone PAUSE is in the
-     margin, off the picture, so touchC is false there and the sock stays at
-     y 3. No corner is used. `— hud layout —` asserts all of it. */
   /* The minimap: the bottom-left corner, in every mode. Task 8 was to move it
      to a free corner in Mode C so the stick never covers it; the owner's
      ruling put the landscape stick at the MIDDLE of the left margin, which
      leaves this corner free, so it stays where Modes A and B have it. Mode C
      in portrait keeps the on-canvas stick over it, as before (no change to
-     portrait was the ruling). `— touch layout —` asserts the stick, the
-     buttons and the windsock all clear it. */
+     portrait was the ruling). `— touch layout —` asserts the stick and the
+     buttons clear it. */
   mapRect() { return { x: 4, y: VH - MM - 4, w: MM, h: MM }; },
-
-  sockRect(touchC) { return { x: (VW - 32) / 2 | 0, y: touchC ? 17 : 3, w: 32, h: 32 }; },
-  /* the sock's length is the strength (6.7px on Easy, 11.6 on Supreme), and a gust fills it out */
-  sockLen(strength, gust) { return 3.5 + 9 * strength + 1.5 * gust; },
-
-  drawSock(x, G) {
-    const touchC = typeof Pad !== 'undefined' && Pad.onCanvas();
-    const r = this.sockRect(touchC);
-    /* the telegraph: the rim blinks amber in the second before a gust */
-    const warn = Wind.telegraph > 0 && ((G.time * 8) | 0) % 2 === 0;
-    this.panel(x, r.x, r.y, r.w, r.h, warn ? PAL.amber : '#6b5f84');
-    const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
-    /* compass ticks: N E S W */
-    R(x, '#5b5170', cx, r.y + 3, 1, 2); R(x, '#5b5170', cx, r.y + r.h - 5, 1, 2);
-    R(x, '#5b5170', r.x + 3, cy, 2, 1); R(x, '#5b5170', r.x + r.w - 5, cy, 2, 1);
-    /* the sock, from its mast downwind: orange and white bands, mouth to tip,
-       fluttering harder in a gust */
-    const g = Wind.gust;
-    const a = Wind.dir + Math.sin(G.time * (7 + 9 * g)) * (0.05 + 0.12 * g);
-    const L = this.sockLen(Wind.strength, g), c = Math.cos(a), s = Math.sin(a);
-    for (let t = 0; t <= L; t += 0.5) {
-      const hw = 2.6 - 1.8 * t / L;
-      x.fillStyle = ((t / 3) | 0) % 2 ? '#e8e4d8' : '#e07a1f';
-      for (let q = -hw; q <= hw; q += 0.5) x.fillRect((cx + c * t - s * q) | 0, (cy + s * t + c * q) | 0, 1, 1);
-    }
-    R(x, PAL.ink, cx - 1, cy - 1, 3, 3);
-    R(x, PAL.bone, cx, cy, 1, 1);
-  },
 
   drawNav(x, G) {
     /* No unit name in the box. "TACO-NAV 2000" cost 10 of the panel's 34

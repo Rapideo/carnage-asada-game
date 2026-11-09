@@ -2850,7 +2850,7 @@ const Pad = {
 
   /** Mode C with the controls drawn ON the picture, as they always were: a
       portrait phone, or before the page has measured. The HUD makes room for
-      them (bag, windsock, edge arrow) only then. */
+      them (bag, edge arrow) only then. */
   onCanvas() { return this.mode === 'C' && !(this._lay && this._lay.landscape); },
   /** Mode C with the controls in the margins: hit-tested in CSS px. */
   _margins() { return this.mode === 'C' && !!(this._lay && this._lay.landscape); },
@@ -6282,7 +6282,10 @@ function rand(a, b) { return a + Math.random() * (b - a); }
      The flight is a fixed THROW_T, so the drift is the same for any length
      of toss: strength x DRIFT / 8 px, about 9px on Easy and 22px on Supreme.
    - GUSTS: every gustEvery seconds the car is shoved sideways for LEN s,
-     telegraphed WARN s ahead by dust streaks and the GUST sound. The shove
+     telegraphed WARN s ahead by dust streaks and the GUST sound (the
+     windsock that also blinked for it was removed, owner 2026-11-09, so the
+     dust carries the warning: denser and longer in the warning and the gust,
+     each streak with a dark underline so it reads on snow as well as road). The shove
      is only added to the car's lateral velocity, before Player.update's
      axis-separated moves, so carBlocked still refuses every destination and
      unwedge still depenetrates. A gust can push you along a wall; it can
@@ -6307,7 +6310,7 @@ const Wind = {
   LEAN: 0.8,         // how much of the drift the demo aims off for (G.aimPoint)
 
   /* Per delivery shift. The direction is per play: a cardinal, so it reads
-     clearly on the windsock and blows along the street grid, with a little
+     clearly in the dust and blows along the street grid, with a little
      jitter so it is not a ruler. */
   reset(windy, diff) {
     const w = diff && diff.wind;
@@ -6365,25 +6368,30 @@ const Wind = {
       s.x += s.vx * dt; s.y += s.vy * dt;
     }
     // a few always, a rush during the telegraph and the gust itself
-    const rate = 4 * this.strength + 110 * this.telegraph + 140 * this.gust;
+    const rush = Math.max(this.telegraph, this.gust);
+    const rate = 4 * this.strength + 200 * this.telegraph + 180 * this.gust;
     let n = rate * dt;
     while (n > 0 && S.length < 160) {
       if (n < 1 && Math.random() > n) break;
       n -= 1;
       const v = (220 + Math.random() * 100) * (0.6 + this.strength), a = this.dir + (Math.random() - 0.5) * 0.12;
       S.push({ x: Math.random() * VW, y: Math.random() * VH, vx: Math.cos(a) * v, vy: Math.sin(a) * v,
-               l: 8 + ((Math.random() * 11) | 0), t: 0, life: 0.25 + Math.random() * 0.3 });
+               l: 8 + ((Math.random() * (11 + 10 * rush)) | 0), t: 0, life: 0.25 + Math.random() * 0.3 });
     }
   },
 
   drawStreaks(x) {
     if (!this.on || !this.streaks.length) return;
-    x.fillStyle = '#ead8ac';
-    for (const s of this.streaks) {
-      const f = s.t / s.life;
-      x.globalAlpha = (f < 0.2 ? f / 0.2 : (1 - f) / 0.8) * 0.8;
-      const c = s.vx / hyp(s.vx, s.vy), d = s.vy / hyp(s.vx, s.vy);
-      for (let k = 0; k < s.l; k++) x.fillRect((s.x - c * k) | 0, (s.y - d * k) | 0, 1, 1);
+    /* two passes: a dark underline one row down, then the dust. Pale dust on
+       snow was invisible without it (owner, 2026-11-09, level 9) */
+    for (const [col, oy, a] of [['#1c1424', 1, 0.45], ['#ead8ac', 0, 0.85]]) {
+      x.fillStyle = col;
+      for (const s of this.streaks) {
+        const f = s.t / s.life;
+        x.globalAlpha = (f < 0.2 ? f / 0.2 : (1 - f) / 0.8) * a;
+        const c = s.vx / hyp(s.vx, s.vy), d = s.vy / hyp(s.vx, s.vy);
+        for (let k = 0; k < s.l; k++) x.fillRect((s.x - c * k) | 0, ((s.y - d * k) | 0) + oy, 1, 1);
+      }
     }
     x.globalAlpha = 1;
   },
@@ -6865,9 +6873,6 @@ const Hud = {
     x.strokeStyle = '#6b5f84'; x.lineWidth = 1;
     x.strokeRect(mx0 - 1.5, my0 - 1.5, MM + 3, MM + 3);
 
-    /* ---------- windsock (windy levels only) ---------- */
-    if (G.windy && Wind.on) this.drawSock(x, G);
-
     /* ---------- TACO-NAV ---------- */
     if (nav.panel) this.drawNav(x, G);
 
@@ -6913,48 +6918,14 @@ const Hud = {
     }
   },
 
-  /* The windsock: top centre, in the 110px between the order card (ends x 143)
-     and the clock card (starts x 253). Mode C's PAUSE button shares that gap
-     (x 182-202, y 4-15), so on a phone it drops below it, staying above the
-     demo's PRESS ESC line at y 52. On a landscape phone PAUSE is in the
-     margin, off the picture, so touchC is false there and the sock stays at
-     y 3. No corner is used. `— hud layout —` asserts all of it. */
   /* The minimap: the bottom-left corner, in every mode. Task 8 was to move it
      to a free corner in Mode C so the stick never covers it; the owner's
      ruling put the landscape stick at the MIDDLE of the left margin, which
      leaves this corner free, so it stays where Modes A and B have it. Mode C
      in portrait keeps the on-canvas stick over it, as before (no change to
-     portrait was the ruling). `— touch layout —` asserts the stick, the
-     buttons and the windsock all clear it. */
+     portrait was the ruling). `— touch layout —` asserts the stick and the
+     buttons clear it. */
   mapRect() { return { x: 4, y: VH - MM - 4, w: MM, h: MM }; },
-
-  sockRect(touchC) { return { x: (VW - 32) / 2 | 0, y: touchC ? 17 : 3, w: 32, h: 32 }; },
-  /* the sock's length is the strength (6.7px on Easy, 11.6 on Supreme), and a gust fills it out */
-  sockLen(strength, gust) { return 3.5 + 9 * strength + 1.5 * gust; },
-
-  drawSock(x, G) {
-    const touchC = typeof Pad !== 'undefined' && Pad.onCanvas();
-    const r = this.sockRect(touchC);
-    /* the telegraph: the rim blinks amber in the second before a gust */
-    const warn = Wind.telegraph > 0 && ((G.time * 8) | 0) % 2 === 0;
-    this.panel(x, r.x, r.y, r.w, r.h, warn ? PAL.amber : '#6b5f84');
-    const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
-    /* compass ticks: N E S W */
-    R(x, '#5b5170', cx, r.y + 3, 1, 2); R(x, '#5b5170', cx, r.y + r.h - 5, 1, 2);
-    R(x, '#5b5170', r.x + 3, cy, 2, 1); R(x, '#5b5170', r.x + r.w - 5, cy, 2, 1);
-    /* the sock, from its mast downwind: orange and white bands, mouth to tip,
-       fluttering harder in a gust */
-    const g = Wind.gust;
-    const a = Wind.dir + Math.sin(G.time * (7 + 9 * g)) * (0.05 + 0.12 * g);
-    const L = this.sockLen(Wind.strength, g), c = Math.cos(a), s = Math.sin(a);
-    for (let t = 0; t <= L; t += 0.5) {
-      const hw = 2.6 - 1.8 * t / L;
-      x.fillStyle = ((t / 3) | 0) % 2 ? '#e8e4d8' : '#e07a1f';
-      for (let q = -hw; q <= hw; q += 0.5) x.fillRect((cx + c * t - s * q) | 0, (cy + s * t + c * q) | 0, 1, 1);
-    }
-    R(x, PAL.ink, cx - 1, cy - 1, 3, 3);
-    R(x, PAL.bone, cx, cy, 1, 1);
-  },
 
   drawNav(x, G) {
     /* No unit name in the box. "TACO-NAV 2000" cost 10 of the panel's 34
@@ -7095,7 +7066,7 @@ const DLG_RISE = 0.16;              // seconds to slide in
 
 const Dialog = {
   active: false, t: 0, hold: 0, who: '', lines: [], sub: '', meter: null,
-  face: null, hostile: false, hood: 0, blinkT: 0, blink: 0,
+  face: null, hostile: false, hood: 0, blinkT: 0, blink: 0, rects: [],
 
   /** raise the strip. `secs` is how long it stays up once it has arrived. */
   say(who, line, o) {
@@ -7158,6 +7129,8 @@ const Dialog = {
     Hud.panel(x, px, py, w, h, '#6b5f84');
 
     const fx = px + 3, fy = py + 2 - (fh - DLG_BOX);      // grows up, never down
+    /* what this draw covers on screen, for the scanlines laid over it after */
+    this.rects = [[px, py + dy, w + 3, h + 4], [fx, fy + dy, fw, fh]];
     R(x, PAL.ink, fx, fy, fw, fh);
     R(x, '#2a2438', fx + 1, fy + 1, fw - 2, fh - 2);
     for (let i = 0; i < fh - 2; i += 3)                   // faint backing, so the
@@ -10516,6 +10489,20 @@ const G = {
       x.globalAlpha = 1;
     }
     Post.apply(x);
+
+    /* The dialogue strip goes on LAST, over the HUD (it is meant to cover the
+       minimap) and over the grade and the vignette. It used to be drawn with
+       the world, and its corner is where the vignette is darkest: a portrait
+       came out about 40% darker than the middle of the screen, and the
+       decade grade shifted it as well (owner, 2026-11-09, "the faces all look
+       really dark"). It keeps the scanlines, so it still sits in the picture.
+       Hidden while paused: the pause screen covers it anyway. */
+    const talk = S === 'play' || S === 'demo' || S === 'kitchen' || S === 'kdemo';
+    if (talk && !this.paused && Dialog.active) {
+      Dialog.draw(x);
+      if (S === 'kitchen') Kitchen.hintPlate(x, this);   // the strip hides the lower plates
+      Post.scanlines(x, Dialog.rects);
+    }
   },
 
   renderKitchen(x) {
@@ -10525,8 +10512,6 @@ const G = {
       this.drawLevelLine(x);
       this.drawBanner(x);
       if (this.state === 'kdemo') this.overlayDemo(x);
-      Dialog.draw(x);
-      if (Dialog.active && this.state === 'kitchen') Kitchen.hintPlate(x, this);   // the strip hides the lower plates
     }
   },
 
@@ -10586,8 +10571,6 @@ const G = {
       if (this.restock > 0) this.drawRestock(x, cam);
       if (typeof Pad !== 'undefined' && this.state === 'play') Pad.draw(x, 'drive');
       if (this.state === 'demo') this.overlayDemo(x);
-      /* over the HUD -- it is meant to cover the minimap -- but under Post */
-      Dialog.draw(x);
     }
   },
 
@@ -11042,6 +11025,16 @@ const Post = {
     x.drawImage(this.lines, 0, 0);
     x.drawImage(this.vig, 0, 0);
     if (era) this.grade(x, era);
+  },
+  /* the scanlines alone, over just these screen rects ([x, y, w, h]): for
+     something drawn after apply() that should still sit in the CRT picture */
+  scanlines(x, rects) {
+    if (!this.lines) this.build();
+    for (const r of rects || []) {
+      const rx = Math.max(0, r[0] | 0), ry = Math.max(0, r[1] | 0);
+      const rw = Math.min(VW, (r[0] + r[2]) | 0) - rx, rh = Math.min(VH, (r[1] + r[3]) | 0) - ry;
+      if (rw > 0 && rh > 0) x.drawImage(this.lines, rx, ry, rw, rh, rx, ry, rw, rh);
+    }
   },
 
   /* era -> [sat, contrast, lift, [r,g,b] gain, [r,g,b] shadow tint] */

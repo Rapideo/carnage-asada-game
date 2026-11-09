@@ -32,8 +32,8 @@ Twenty levels, Delivery and Kitchen Shifts alternating. The game reads them from
   - Sunny winter : the old snow stays on the ground and the roofs, nothing falls, and the
     ploughed roads grip at 0.9 of normal.
   - The level card does not name the weather; the road and the sky show it.
-  - Windy (Delivery only) : a crosswind drifts the bag on the toss, shown by a windsock at
-    the top centre of the screen, with telegraphed gusts that shove the car and
+  - Windy (Delivery only) : a crosswind drifts the bag on the toss, shown only by the dust
+    and the tumbleweeds (no windsock, owner 2026-11-09), with telegraphed gusts that shove the car and
     tumbleweeds.
 
 - Music : names the music.md section the level plays

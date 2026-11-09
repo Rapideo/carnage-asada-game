@@ -1376,6 +1376,20 @@ const G = {
       x.globalAlpha = 1;
     }
     Post.apply(x);
+
+    /* The dialogue strip goes on LAST, over the HUD (it is meant to cover the
+       minimap) and over the grade and the vignette. It used to be drawn with
+       the world, and its corner is where the vignette is darkest: a portrait
+       came out about 40% darker than the middle of the screen, and the
+       decade grade shifted it as well (owner, 2026-11-09, "the faces all look
+       really dark"). It keeps the scanlines, so it still sits in the picture.
+       Hidden while paused: the pause screen covers it anyway. */
+    const talk = S === 'play' || S === 'demo' || S === 'kitchen' || S === 'kdemo';
+    if (talk && !this.paused && Dialog.active) {
+      Dialog.draw(x);
+      if (S === 'kitchen') Kitchen.hintPlate(x, this);   // the strip hides the lower plates
+      Post.scanlines(x, Dialog.rects);
+    }
   },
 
   renderKitchen(x) {
@@ -1385,8 +1399,6 @@ const G = {
       this.drawLevelLine(x);
       this.drawBanner(x);
       if (this.state === 'kdemo') this.overlayDemo(x);
-      Dialog.draw(x);
-      if (Dialog.active && this.state === 'kitchen') Kitchen.hintPlate(x, this);   // the strip hides the lower plates
     }
   },
 
@@ -1446,8 +1458,6 @@ const G = {
       if (this.restock > 0) this.drawRestock(x, cam);
       if (typeof Pad !== 'undefined' && this.state === 'play') Pad.draw(x, 'drive');
       if (this.state === 'demo') this.overlayDemo(x);
-      /* over the HUD -- it is meant to cover the minimap -- but under Post */
-      Dialog.draw(x);
     }
   },
 
@@ -1902,6 +1912,16 @@ const Post = {
     x.drawImage(this.lines, 0, 0);
     x.drawImage(this.vig, 0, 0);
     if (era) this.grade(x, era);
+  },
+  /* the scanlines alone, over just these screen rects ([x, y, w, h]): for
+     something drawn after apply() that should still sit in the CRT picture */
+  scanlines(x, rects) {
+    if (!this.lines) this.build();
+    for (const r of rects || []) {
+      const rx = Math.max(0, r[0] | 0), ry = Math.max(0, r[1] | 0);
+      const rw = Math.min(VW, (r[0] + r[2]) | 0) - rx, rh = Math.min(VH, (r[1] + r[3]) | 0) - ry;
+      if (rw > 0 && rh > 0) x.drawImage(this.lines, rx, ry, rw, rh, rx, ry, rw, rh);
+    }
   },
 
   /* era -> [sat, contrast, lift, [r,g,b] gain, [r,g,b] shadow tint] */
