@@ -114,7 +114,10 @@ const Kitchen = {
     this.stallT = 0; this.hintItem = null; this.hintStep = -1;
     this.newDishes = this.findNewDishes();
     this.buzzT = 0; this.barkT = 0; this.complained = false;
-    this.cleanRun = 0; this.troubleSaid = false; this.clockinSaid = false; this.shiftT = 0;
+    this.cleanRun = 0; this.troubleSaid = false; this.shiftT = 0;
+    /* the clock-in opens only some shifts (Cast.CLOCKIN_ODDS), and the coworker's budget starts afresh */
+    this.clockinSaid = !(Math.random() < Cast.CLOCKIN_ODDS);
+    Cast.resetCoworker();
     this.stats = { served: 0, walkouts: 0, items: 0, clean: 0, mistakes: 0, best: 0 };
     this.bot = { t: 0.6, slip: null };
     if (!this.wells) this.buildWells();

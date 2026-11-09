@@ -1371,6 +1371,9 @@ ok(rainDraws, 'a rainy street updates and draws without throwing');
 ok(City.houses.length > 80, `the 1990s map has addresses (${City.houses.length})`);
 
 console.log('\n— kitchen —');
+/* the coworker's per-shift budget (Cast.COWORKER_MAX / _GAP / CLOCKIN_ODDS) is
+   lifted for the sections that test WHAT is said; — cast — tests the budget */
+{ const Cs = runScript('Cast'); Cs.COWORKER_MAX = Infinity; Cs.COWORKER_GAP = 0; Cs.CLOCKIN_ODDS = 1; }
 G.toCard(2);
 for (let i = 0; i < 40; i++) { G.update(1 / 60); Input.endFrame(); }
 Input.hit['Enter'] = true; G.update(1 / 60); Input.endFrame();
@@ -2077,6 +2080,34 @@ console.log('\n— cast —');
         } finally { P.apply = pApply; Dialog.draw = dDraw2; G.paused = false; }
       }
       G.state = 'play'; quiet(); Kx.demo = false;
+    }
+    /* ---- the coworker's budget (owner, 2026-11-09: "only say something every
+       4 or 5 times a shift"), with the shipped settings back on ---- */
+    {
+      const Kx = Kt, keep = [Cast.COWORKER_MAX, Cast.COWORKER_GAP, Cast.CLOCKIN_ODDS];
+      Cast.COWORKER_MAX = 5; Cast.COWORKER_GAP = 20; Cast.CLOCKIN_ODDS = 0.5;
+      try {
+        const kl = G.levels().findIndex((l) => l.type === 'kitchen' && l.difficulty === 'easy') + 1;
+        Cast.coN = 4; Cast.coAt = 99; reset0(); G.startRun(kl); G.beginShift();
+        ok(Cast.coN === 0 && Cast.coAt < -1e8, `each kitchen shift starts the coworker budget afresh (${Cast.coN}, ${Cast.coAt})`);
+        let said = [], opened = 0;
+        const realSay = Dialog.say;
+        Dialog.say = function (who, ...a) { if (['MARGE', 'DALE', 'NIKKI'].includes(who)) said.push(Math.round(Kx.shiftT * 10) / 10); return realSay.call(this, who, ...a); };
+        try {
+          for (let run = 0; run < 6; run++) {
+            reset0(); G.startRun(kl); G.beginShift(); quiet(); said = [];
+            /* a player who stalls on every step: the hint fires every few seconds for 3 minutes */
+            for (let i = 0; i < 180 * 60; i++) { Kx.update(1 / 60, G); G.shift = Math.max(G.shift, 60); if (i % 300 === 299) { Kx.fireHint(G, 'stall'); Kx.hintItem = null; } if (Dialog.active && Dialog.t > 2.6) quiet(); }
+            if (said[0] !== undefined && said[0] < 1.5) opened++;
+            ok(said.length <= 5, `run ${run + 1}: the coworker speaks at most 5 times in a 3-minute shift of constant stalls (${said.length}: ${said.join(', ')}s)`);
+            ok(said.every((t, j) => j === 0 || t - said[j - 1] >= 20 - 1e-6), `and never within 20 s of the last line`);
+            ok(Kx.hintT >= 0, 'the bin still blinks for every hint (hintT is set whether or not the coworker speaks)');
+          }
+          /* the clock-in roll, each way, without leaning on chance */
+          const opens = (odds) => { Cast.CLOCKIN_ODDS = odds; reset0(); G.startRun(kl); G.beginShift(); quiet(); said = []; for (let i = 0; i < 90; i++) Kx.update(1 / 60, G); return said.length > 0; };
+          ok(opens(1) === true && opens(0) === false && Cast.CLOCKIN_ODDS === 0, `CLOCKIN_ODDS decides whether the coworker opens the shift (shipped: 0.5; ${opened} of 6 random runs opened)`);
+        } finally { Dialog.say = realSay; quiet(); }
+      } finally { [Cast.COWORKER_MAX, Cast.COWORKER_GAP, Cast.CLOCKIN_ODDS] = keep; G.state = 'play'; }
     }
   } finally { unrnd(); G.state = 'play'; }
   function reset0() { G.test = null; G.autopilot = false; G.testRun = false; Input.down = Object.create(null); Input.hit = Object.create(null); }

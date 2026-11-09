@@ -30,6 +30,20 @@ const CAST_HOSTILE = { chase: true, fined: true, lost: false, missed: true, perf
   hint: false, clockin: false, streak: false, trouble: true };
 
 const Cast = {
+  /* The coworker talks a little, not all shift (owner, 2026-11-09: "only say
+     something every 4 or 5 times a shift"). At most COWORKER_MAX lines a shift,
+     COWORKER_GAP seconds apart, and the clock-in opens only some levels
+     (CLOCKIN_ODDS). The hint's blinking bin is untouched: only its spoken line
+     is held to the budget. Kitchen.reset calls resetCoworker each shift. */
+  COWORKER_MAX: 5, COWORKER_GAP: 20, CLOCKIN_ODDS: 0.5,
+  coN: 0, coAt: -1e9,
+  resetCoworker() { this.coN = 0; this.coAt = -1e9; },
+  /** whether the coworker may speak now, by the per-shift budget */
+  coworkerOk() {
+    const t = typeof Kitchen !== 'undefined' ? Kitchen.shiftT : 0;
+    return this.coN < this.COWORKER_MAX && t - this.coAt >= this.COWORKER_GAP;
+  },
+
   /** the character of this role in this era, or null */
   who(role, era) {
     if (typeof DIALOGUE === 'undefined' || !DIALOGUE.cast) return null;
@@ -68,6 +82,7 @@ const Cast = {
   say(role, moment, opts) {
     opts = opts || {};
     if (!this.free()) return false;
+    if (role === 'coworker' && !this.coworkerOk()) return false;
     const c = this.who(role, G.era);
     if (!c) return false;
     const line = this.line(c, moment, opts.vars);
@@ -81,6 +96,7 @@ const Cast = {
       sub: opts.sub || '',
       secs: opts.secs || (CAST_SECS + (rows - 1) * CAST_ROW_SECS),
     });
+    if (role === 'coworker') { this.coN++; this.coAt = typeof Kitchen !== 'undefined' ? Kitchen.shiftT : 0; }
     return true;
   },
 };

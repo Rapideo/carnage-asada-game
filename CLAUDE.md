@@ -611,7 +611,10 @@ speak through `Cast` (`73_cast.js`): officers PFEIFER/KARLIN/DREILING (faces `co
 (pulled over, a pedestrian) and losing them; rivals DUSTY/ACE/JINX on a missed or perfect toss, in place of
 the customer one time in three; coworkers MARGE/DALE/NIKKI at clock-in, after 3 clean tickets, in trouble
 (under 0:30, once; and the line backing up, 1 in 2) and with the ingredient hint (`{ING}` takes the
-ingredient's name). `Cast` never speaks in the demo or attract mode, and yields to a hostile line with more
+ingredient's name). **The coworker is on a budget** (owner, 2026-11-09, "every 4 or 5 times a
+shift"): `Cast.COWORKER_MAX` 5 lines a shift, `COWORKER_GAP` 20 s apart, and the clock-in on
+`CLOCKIN_ODDS` 0.5 of shifts; the hint's blinking bin is not limited. `— kitchen —` lifts the
+budget for the tests of what is said, and `— cast —` tests the budget itself. `Cast` never speaks in the demo or attract mode, and yields to a hostile line with more
 than 1 s left. The nine portraits are baked by `tools/render/bake-cast.mjs` with reserved accent colours
 (`COLOURS`/`ACCENTS` in `bake-face.mjs`: olive on the rivals' caps, jade and gold on the staff badge). **Eyes
 are set** on the 104 new customer faces and the 9 cast (0.9.3): detection was wrong, so they were cleared and

@@ -7,7 +7,7 @@ const CONTENT = {
   "credit": "CREDIT: 0"
 };
 
-const RELEASE = {"version":"0.9.9","date":"2026-11-09"};
+const RELEASE = {"version":"0.9.10","date":"2026-11-09"};
 
 /* one map per era; LEVELS[i].map picks one. HAYS is Map 1, kept for the
    modules that read it directly. */

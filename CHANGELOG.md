@@ -4,8 +4,16 @@ The version lives in `content/release.json` and shows in the bottom-right corner
 title and pause screens. To cut a version: bump `version` and `date` there, add an entry
 here, run `node build.mjs` and the tests, commit, and tag it (`git tag v<version>`, local).
 
-Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch lists.
+Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch lists. After 0.9.9 it
+counts on: 0.9.10, 0.9.11 and so on (owner, 2026-11-09).
 **1.0.0** is when the owner calls it released.
+
+## 0.9.10 (2026-11-09): a quieter coworker
+
+From the owner's phone playtest (all 23 checks passed):
+- **The coworker talks far less:** at most 5 lines a shift, at least 20 seconds apart, and the
+  clock-in line opens about half the shifts. The ingredient hint still blinks the right bin
+  every time; only the spoken hint now waits its turn.
 
 ## 0.9.9 (2026-11-09): a quick-run switch for playtesting
 

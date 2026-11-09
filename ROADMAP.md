@@ -20,6 +20,20 @@ site) passed 30 of 33. Its three findings shipped the same day:
 All on `master`, tagged, pushed and deployed. **Next:** what is left below, chiefly the
 owner's open judgement calls and operator settings. 1.0.0 is the owner's call.
 
+## OPEN: dialogue and music (owner, 2026-11-09)
+
+- [ ] **Personal lines for the happy moments.** All 120 customers are active and every one has
+      personal lines (670), used 3 times in 4 when a face has a line for the moment. But the
+      lines lean to trouble: an on-time **delivery has no personal lines at all** (always the
+      same 8 shared lines), a **served** ticket has 8 across all faces, **arrive** 16. Those are
+      the moments heard most, so the shared lines dominate. Fix: personal `delivered`,
+      `served` and `arrive` lines per face. The owner chooses: Claude drafts them for approval
+      in the Dialogue tab, or the owner writes them.
+- [ ] **Service Mode's Music tab in three batches** (Not converted / Converted / In game), songs
+      approved by decade and a "from" year like faces, delivery and kitchen pools kept separate,
+      shuffled per play. Mockup approved 2026-11-09; design to be written up in
+      `docs/superpowers/specs/`.
+
 ## LATER: two release builds (owner, 2026-11-09)
 
 The web build is the **master build**: where the engine is tried and tuned. Once that is
