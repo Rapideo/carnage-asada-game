@@ -84,7 +84,7 @@
   },
   "hard": {
     "start": 180,
-    "extend": 60,
+    "extend": 90,
     "maxExt": 5,
     "target": 15,
     "tipStart": 2000,
@@ -125,8 +125,8 @@
   "supreme": {
     "start": 180,
     "extend": 60,
-    "maxExt": 3,
-    "target": 9,
+    "maxExt": 4,
+    "target": 12,
     "tipStart": 2000,
     "tipFloor": 200,
     "tipDecay": 50,

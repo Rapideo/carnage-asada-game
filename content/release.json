@@ -1,5 +1,5 @@
 {
   "_comment": "The build's version, shown on the title and pause screens. build.mjs INLINES this as const RELEASE. version is MAJOR.MINOR.PATCH; date is the build's release date, YYYY-MM-DD. Bump both, add a CHANGELOG.md entry, then: node build.mjs",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "date": "2026-11-09"
 }

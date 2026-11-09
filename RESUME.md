@@ -291,7 +291,7 @@ were copied in from the archive, so they are present here.
 - **The run:**
   - The level card shows the target, the clock rules and the nav level; the kitchen card
     shows the menu.
-  - A level is a checkpoint race: 15 completions, or 9 on Supreme. Every 3rd completion
+  - A level is a checkpoint race: 15 completions, or 12 on Supreme. Every 3rd completion
     earns an extension.
   - After that come LEVEL CLEAR, GAME OVER, initials and CONTINUE? (10s), and a victory
     screen after level 20.

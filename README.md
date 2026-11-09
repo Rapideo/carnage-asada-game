@@ -27,7 +27,7 @@ corner of the title and pause screens; `CHANGELOG.md` has what each build contai
 | Eras | 1970s (levels 1–6), 1980s (7–12), 1990s (13–20) — each with its own colour grade, map, menu, customers and music |
 | Seasons | summer and winter. Each level has its own weather, set by the owner: summer is sunny or rainy (rain is slick), winter is snowy (snow takes the grip out of your tyres) or sunny. Some Delivery levels are also windy, with a crosswind on the toss, gusts and tumbleweeds. A few levels leave it to chance |
 | Difficulty | Easy 1–6, Medium 7–12, Hard 13–18, Supreme 19–20 |
-| A level | a checkpoint race: 15 deliveries or 15 tickets served (9 on Supreme) before 0:00 |
+| A level | a checkpoint race: 15 deliveries or 15 tickets served (12 on Supreme) before 0:00 |
 | The clock | 3:00, plus an extension for every third completion (up to 5; 3 on Supreme) |
 | Score | the money, across the whole run. Stars are a report card and never go on the board |
 | Game over | initials first if you placed, then CONTINUE? for 10 seconds: restart the level as a new run at $0.00 |

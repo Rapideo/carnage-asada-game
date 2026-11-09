@@ -204,7 +204,13 @@ after Service Mode and not before; the rest are decisions that need no work.
 - Q3 (A): police cost unchanged; judge Monday by counting tickets per shift.
 - Q5 (A): downtown targets unchanged; judge Monday.
 - Q6 (A): long (4-5 item) tickets may cover the kitchen calendar and sign; leave it.
-- E4: the Hard delivery levels (13, 15): decide after Monday's play.
+- E4: the Hard delivery levels (13, 15): decided 2026-11-09, **ease Hard and Supreme**: Supreme
+  becomes about what Hard was, and Hard moves toward medium-high (owner: "I'll defer to you").
+- **The level rule stays (owner, 2026-11-09):** reach the target to clear the level, with an
+  extension every third completion. Asked whether an extension should count as passing, the
+  owner looked at the alternatives and kept this one: "I actually like that mechanic."
+- Q3 again (2026-11-09): police costs stay as they are; tune them in Service Mode's Difficulty
+  tab if playtests ask for it. Q5 again: downtown deliveries are fine as they are.
 - E5: **the GDD X.1 palette targets are retired for graded frames;** judge by eye (noted in
   `docs/gdd.md` X.1 and `tools/render/README.md`).
 - E6: leave the flaky demo test; rerun when it trips.
@@ -272,10 +278,9 @@ Every owner ruling and every invention is recorded in `docs/PURE-CARNAGE-DECISIO
 - [x] **Mode B with the owner's Xbox Series X|S pad** (2026-11-09): the throw did not fire on
       it, because Chrome reports it without the standard mapping. Fixed in 0.9.4, with the
       triggers added as gas and brake. Checked on the pad: "X throws and it throws great."
-- [ ] **Operator settings: configurable controller buttons** (owner, 2026-11-09, "we might
-      make this configurable too in our operator settings"), starting with the triggers.
-      No operator settings exist yet; design them before building.
-- [ ] **Mode B on a real arcade stick.** A gamepad press does not unlock audio in the
+- [ ] **Mode B on a real arcade stick.** *Deferred by the owner, 2026-11-09.* (Operator
+      settings for remapping buttons were dropped the same day: the Xbox layout "pretty much
+      everything emulates", and the owner will raise it again if wanted.) A gamepad press does not unlock audio in the
       browser, so a stick-only cabinet needs Chrome launched with
       `--autoplay-policy=no-user-gesture-required`.
 - [x] **Mode C on a real phone.** Verified on the owner's Pixel 10 over ADB, in landscape, 2026-11-08.
@@ -325,7 +330,7 @@ still has to be carried into JSON and validated by `build.mjs` when it is built.
 ### Settled 2026-09-26
 
 **How a level ends** (GDD §II.D.3). A checkpoint race: every level has a target, 3 × its
-extension cap (15 deliveries or tickets served; 9 on Supreme). Every 3 earns an
+extension cap (15 deliveries or tickets served; 12 on Supreme since 2026-11-09). Every 3 earns an
 extension. Reaching the target clears the level; reaching 0:00 first is game over. The
 score is the money across every level played. A **continue** restarts the level you died
 on with the score at $0. At game over a qualifying run **enters its initials first**, then
@@ -585,7 +590,8 @@ and unclaimed; add to it freely. Status was verified against the code at merge t
 
 ### Features
 
-- [ ] **Rework throwing.** Auto-aim, or aim-after-click, or something else — the current scheme is
+- [x] **Rework throwing.** *Closed 2026-11-09 (owner): mouse-aim stays in Mode A, and Modes B
+      and C hold to aim.* Auto-aim, or aim-after-click, or something else — the current scheme is
       mouse position or facing direction. Note the design tension: throw spread scales with speed
       (`speed / MAXSPD * 22` px against a 28px porch), and that trade *is* the game's core skill, so
       auto-aim changes the feel more than any other item on this list.
@@ -691,7 +697,8 @@ These need a decision before they can become work.
 - [ ] **What happens when Hays PD catches you?** Currently the difficulty's speeding ticket
       ($5 to $15; it was a flat $15 until 2026-08-23, then $10), a spin-out, a heat reset and
       a combo reset.
-- [ ] **How should the player car read as *the* car?** Turning it white is the starting idea.
+- [x] **How should the player car read as *the* car?** *Closed 2026-11-09 (owner):* it is red,
+      and red is gone from traffic (0.9.3), so the red car is always you.
 - [x] **Gamepad / Xbox controller support**, and whether an on-screen control overlay comes with it.
       **Built 2026-10-25:**
       - Mode B, the arcade stick, uses the Gamepad API with Button 3 held to aim.

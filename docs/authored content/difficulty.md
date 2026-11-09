@@ -192,9 +192,9 @@ these numbers. Anything not listed here is the same as Medium.
 
 #### 1. Extended Play
 
-- Every 3 Completed : +1:00 Time Bonus (Easy and Medium +1:30)
+- Every 3 Completed : +1:30 Time Bonus (same as Easy and Medium since 2026-11-09; it was +1:00)
 
-- Maximum Extensions Per Shift : 5 (longest shift 8:00; Easy and Medium 10:30)
+- Maximum Extensions Per Shift : 5 (longest shift 10:30, as Easy and Medium)
 
 #### 2. Points Bonus
 
@@ -252,11 +252,11 @@ as Hard.
 
 #### 1. Extended Play
 
-- Every 3 Completed : +1:00 Time Bonus (same as Hard)
+- Every 3 Completed : +1:00 Time Bonus (Hard +1:30)
 
-- Maximum Extensions Per Shift : 3 (longest shift 6:00; Hard 8:00)
+- Maximum Extensions Per Shift : 4 (longest shift 7:00; Hard 10:30)
 
-- Level Target : 9 deliveries / 9 tickets served (Easy to Hard: 15)
+- Level Target : 12 deliveries / 12 tickets served (Easy to Hard: 15)
 
 #### 2. Points Bonus
 

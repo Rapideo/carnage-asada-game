@@ -7,6 +7,17 @@ here, run `node build.mjs` and the tests, commit, and tag it (`git tag v<version
 Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch lists.
 **1.0.0** is when the owner calls it released.
 
+## 0.9.6 (2026-11-09): Hard and Supreme retuned
+
+Measured with the autoplayer, 32 runs a level (`tools/render/sweep.mjs`):
+- **Hard is easier:** each extension adds +1:30, up from +1:00, the same as Medium. Hard's
+  delivery levels now clear 72 to 91% of the time, up from 25 to 88%; the two that stopped
+  most runs (13, rain and wind; 15, snow and wind) went from 25% and 38% to 78% and 72%. Hard
+  stays harder than Medium through its lighter navigation and faster tip decay.
+- **Supreme is the hardest again:** its target rises from 9 to 12, with four +1:00
+  extensions, so it plays about as Hard used to (its delivery level clears about 45% of the
+  time, down from 81%).
+
 ## 0.9.5 (2026-11-09): the owner's playtest
 
 - **Brighter faces:** the dialogue strip is drawn over the screen's corner darkening and the

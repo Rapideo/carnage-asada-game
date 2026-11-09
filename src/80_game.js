@@ -4,7 +4,7 @@
 
    A run is twenty levels that alternate the Delivery Shift and the Kitchen
    Shift (content/levels.json). Every level is a checkpoint race: reach the
-   target (15, or 9 on Supreme) before the clock reaches 0:00. Time comes only
+   target (15, or 12 on Supreme) before the clock reaches 0:00. Time comes only
    from the starting clock and the extensions every third completion earns
    (GDD II.D, difficulty.md, owner ruling 2026-10-25 "every 3 completed").
 

@@ -128,7 +128,7 @@ comes only from the starting clock and the extensions. There is no time per deli
   Kitchen Shift. Every 3 earns an extension.
 - **Reaching the target clears the level**, and play moves on to the next one.
 - **If the clock reaches 0:00 first, the game is over.**
-- The target is **3 × the difficulty's extension cap**: 15 on Easy, Medium and Hard, 9 on
+- The target is **3 × the difficulty's extension cap**: 15 on Easy, Medium and Hard, 12 on
   Supreme. The level clears on the load that would have earned the last extension, so
   every extension the cap allows is used and none past it is ever needed.
 - The score is the money earned across every level played, so a run that ends on level 7
@@ -140,7 +140,7 @@ comes only from the starting clock and the extensions. There is no time per deli
 A full 20-level run is expected to take around two hours, and that is intended
 (2026-09-26). There is no save between sessions.
 
-Rough estimate, at ~25-30s per delivery or ticket: a level runs 6-7 minutes (about 4 on
+Rough estimate, at ~25-30s per delivery or ticket: a level runs 6-7 minutes (about 5 on
 Supreme), and a full 20-level run takes about two hours.
 
 #### 4. The Run, Screen by Screen
