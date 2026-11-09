@@ -107,6 +107,7 @@ const Pad = {
   _spr: null,                    // baked overlay sprites
   _lay: null,                    // the current layout (relayout), null until the page measures
   _view: null,                   // ...and the viewport it was measured from
+  _scene: 'drive',               // ...and the stage it was laid out for
   _ov: null,                     // the #pad overlay canvas, over the whole page
   _ovSig: '',                    // what the overlay last drew, so an idle frame redraws nothing
 
@@ -118,7 +119,7 @@ const Pad = {
     if (m === this.mode) return;
     this.mode = m;
     this._reset(this.context);
-    if (this._view) this.relayout(this._view.vw, this._view.vh, this._view.dpr, this._view.insets);
+    if (this._view) this.relayout(this._view.vw, this._view.vh, this._view.dpr, this._view.insets, this._view.scene);
     if (typeof this.onModeChange === 'function') this.onModeChange();
   },
 
@@ -167,26 +168,54 @@ const Pad = {
     });
     const pr = M.pause * mm / 2;
     const pause = { cx: left + pr, cy: top + pr, r: pr };
-    /* The picture fills the height. Only if that would put a control on its
-       centre LAND_CLEAR does it shrink: picture.x + (1 - CLEAR)/2 * w, which
-       is vw/2 - CLEAR/2 * w, must clear the furthest reach on either side. */
+    const box = (s, x, y) => ({ x, y, w: VW * s, h: VH * s });
+
+    /* The Kitchen Shift has nothing in the margins but PAUSE (owner, round 2),
+       so its picture simply fills the safe area's height, centred on the page
+       where the safe area allows. PAUSE goes in whichever margin has room for
+       it, left first, and only overlaps the picture if neither does. */
+    if (ctx === 'kitchen') {
+      const sx0 = ins.left, sx1 = vw - ins.right, sy0 = ins.top, sy1 = vh - ins.bottom;
+      const s = fit(sx1 - sx0, sy1 - sy0), w = VW * s, h = VH * s;
+      const x = clamp((vw - w) / 2, sx0, Math.max(sx0, sx1 - w)), y = clamp((vh - h) / 2, sy0, Math.max(sy0, sy1 - h));
+      const need = 2 * (e + pr), lf = x - ins.left, rf = vw - ins.right - (x + w);
+      const onLeft = lf >= need || (rf < need && lf >= rf);
+      return {
+        landscape: true, units: 'css', dpr, scale: s, picture: box(s, x, y), mm,
+        stick: null, buttons: [],
+        pause: { cx: onLeft ? left + pr : right - pr, cy: top + pr, r: pr },
+      };
+    }
+
+    /* Delivery (and the menus over it): the picture is fitted as if there
+       were no insets -- only the controls dodge the camera band -- and
+       shrinks only if a control would reach its centre LAND_CLEAR. It sits
+       centred when it can; with the stick pushed in by an inset it slides
+       the other way, as far as keeps that centre clear of both reaches. */
     const reachL = Math.max(stick.cx + stick.r, pause.cx + pause.r);
     const reachR = Math.min(...buttons.map((b) => b.cx - b.r));
-    const maxW = Math.max(0, Math.min(vw / 2 - reachL, reachR - vw / 2) / (this.LAND_CLEAR / 2));
-    const s = fit(Math.min(vw, maxW), vh);
+    const C = this.LAND_CLEAR, lo = (1 - C) / 2, hi = (1 + C) / 2, AIR = 0.5;   // AIR: CSS px, so "clear" is not a tie
+    const maxW = Math.max(0, (reachR - reachL - 2 * AIR) / C);
+    const s = fit(Math.min(vw, maxW), vh), w = VW * s, h = VH * s;
+    let x = clamp((vw - w) / 2, 0, Math.max(0, vw - w));
+    x = clamp(x, reachL + AIR - lo * w, Math.max(reachL + AIR - lo * w, reachR - AIR - hi * w));
     return {
-      landscape: true, units: 'css', dpr, scale: s, picture: pic(s), mm,
+      landscape: true, units: 'css', dpr, scale: s, picture: box(s, x, (vh - h) / 2), mm,
       stick: ctx === 'drive' ? stick : null,
       buttons: ctx === 'drive' ? buttons : [],
       pause: ctx === 'menu' ? null : pause,
     };
   },
 
-  /** 90_main measures the page and calls this on every resize; it keeps the
-      drive layout for hit-testing and sizes the overlay to the page. */
-  relayout(vw, vh, dpr, insets) {
-    this._view = { vw, vh, dpr, insets };
-    const L = this._lay = this.layout(vw, vh, dpr, insets, { mode: this.mode, context: 'drive' });
+  /** 90_main measures the page and calls this on every resize, and again
+      whenever the stage changes between the city and the kitchen (scene
+      'drive' | 'kitchen'), since the kitchen's picture is a different size.
+      It keeps that layout for hit-testing and sizes the overlay to the page. */
+  relayout(vw, vh, dpr, insets, scene) {
+    scene = scene === 'kitchen' ? 'kitchen' : 'drive';
+    this._view = { vw, vh, dpr, insets, scene };
+    this._scene = scene;
+    const L = this._lay = this.layout(vw, vh, dpr, insets, { mode: this.mode, context: scene });
     const ov = this._ov;
     if (ov) {
       try {

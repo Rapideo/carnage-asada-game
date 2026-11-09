@@ -2351,7 +2351,39 @@ console.log('\n— touch layout —');
   /* --- the Kitchen Shift: the player taps the bins; only PAUSE --- */
   const K = lay(923, 411, 2.625, Z, 'C', 'kitchen');
   ok(!!K && K.landscape && !K.stick && K.buttons.length === 0 && !!K.pause, 'the Kitchen Shift has no stick and no buttons, only PAUSE');
-  ok(!!K && !!P && JSON.stringify(K.picture) === JSON.stringify(P.picture), 'and the same picture, so nothing jumps between shifts');
+  /* round 2 (owner, on the phone): with nothing but PAUSE in the margins the
+     kitchen fills the height; and in the city only the controls dodge the
+     camera band, so the picture is not shrunk by the inset */
+  const E_ = 2.5 * MMPX;
+  const clearBand = (L, vw, ins) => [L.stick, ...L.buttons, L.pause].filter(Boolean)
+    .every((c) => c.cx - c.r >= ins.left + E_ - 0.01 && c.cx + c.r <= vw - ins.right - E_ + 0.01);
+  const covers = (c, p) => hitsRect(c, p);
+  const fmtP = (L) => `scale ${L.scale}, ${L.picture.w.toFixed(1)}x${L.picture.h.toFixed(1)} at (${L.picture.x.toFixed(1)}, ${L.picture.y.toFixed(1)})`;
+  const CAM = 66;                                  // the Pixel 10's measured camera band, landscape-primary
+  for (const [nm, ins] of [['no inset', Z], ['left inset 66', { top: 0, right: 0, bottom: 0, left: CAM }], ['right inset 66', { top: 0, right: CAM, bottom: 0, left: 0 }]]) {
+    const k = lay(923, 411, 2.625, ins, 'C', 'kitchen');
+    ok(!!k && k.picture.h >= 0.95 * 411 && k.picture.x >= ins.left - 0.01 && k.picture.x + k.picture.w <= 923 - ins.right + 0.01,
+       `kitchen, ${nm}: the picture fills the height inside the safe area (${k && fmtP(k)})`);
+    ok(!!k && clearBand(k, 923, ins) && !covers(k.pause, k.picture), `kitchen, ${nm}: PAUSE is in a margin with room, off the picture and out of the camera band`);
+    const d = lay(923, 411, 2.625, ins, 'C', 'drive');
+    ok(!!d && clearBand(d, 923, ins), `drive, ${nm}: no control circle intrudes into the inset band`);
+    ok(!!d && circles(d).every((c) => !hitsRect(c, c80(d.picture))) && d.picture.x >= -0.01 && d.picture.x + d.picture.w <= 923.01,
+       `drive, ${nm}: the picture's centre 80% stays clear, and the picture is on screen (${d && fmtP(d)})`);
+    if (ins.left || ins.right) ok(!!d && d.picture.w > 652.8 + 1, `drive, ${nm}: the picture is larger than the 652.8 the whole-inset reservation gave (${d && d.picture.w.toFixed(1)})`);
+    if (typeof Hud.mapRect === 'function' && d) {
+      const m = Hud.mapRect(), s = d.picture.w / VW;
+      const css = { x: d.picture.x + (m.x - 2) * s, y: d.picture.y + (m.y - 2) * s, w: (m.w + 4) * s, h: (m.h + 4) * s };
+      ok(!hitsRect(d.stick, css) && d.buttons.every((b) => !hitsRect(b, css)), `drive, ${nm}: the minimap is not under the stick or a button`);
+    }
+  }
+  for (const [vw, vh, dpr] of [[914, 410, 3.125], [740, 360, 3], [640, 360, 2], [1280, 720, 1]]) {
+    for (const ins of [{ top: 0, right: 0, bottom: 0, left: 60 }, { top: 0, right: 60, bottom: 0, left: 0 }]) {
+      const d = lay(vw, vh, dpr, ins, 'C', 'drive'), k = lay(vw, vh, dpr, ins, 'C', 'kitchen');
+      ok(!!d && !!k && clearBand(d, vw, ins) && clearBand(k, vw, ins) && circles(d).every((c) => !hitsRect(c, c80(d.picture)) && inView(c, vw, vh))
+         && d.picture.x >= -0.01 && d.picture.x + d.picture.w <= vw + 0.01 && (k.picture.h >= vh - VH * 0.05 - 0.01 || k.picture.w >= vw - ins.left - ins.right - VW * 0.05 - 0.01),
+         `${vw}x${vh} @${dpr}, inset ${ins.left ? 'left' : 'right'} 60: controls out of the band, the centre 80% clear, the kitchen fills the height`);
+    }
+  }
 
   /* --- portrait, and Modes A and B: today's layout --- */
   const Po = lay(411, 923, 2.625, Z, 'C', 'drive');
@@ -2427,12 +2459,15 @@ console.log('\n— touch layout —');
     Input.endFrame();
     t = touch(L.pause.cx, L.pause.cy); step('drive');
     ok(Input.hit.KeyP === true, 'PAUSE in the margin pauses'); Pad._push('e', t, L.pause.cx, L.pause.cy); Input.endFrame();
+    Pad.relayout(923, 411, 2.625, Z, 'kitchen');
+    const LK = Pad._lay;
+    ok(LK.picture.h > L.picture.h - 0.01 && !LK.stick, `the kitchen's own layout is the one hit-tested in the kitchen (${LK.picture.w.toFixed(1)}x${LK.picture.h.toFixed(1)})`);
     step('kitchen'); Input.endFrame(); Input.mhit = false;
     t = touch(gas.cx, gas.cy); step('kitchen');
     ok(!Input.mhit && !Input.down.KeyW, 'in the kitchen, a touch in the margin is not a tap on the edge bin');
     Pad._push('e', t, gas.cx, gas.cy); step('kitchen'); Input.endFrame();
-    t = touch(L.pause.cx, L.pause.cy); step('kitchen');
-    ok(Input.hit.KeyP === true, 'PAUSE still pauses the kitchen'); Pad._push('e', t, L.pause.cx, L.pause.cy); step('kitchen'); Input.endFrame();
+    t = touch(LK.pause.cx, LK.pause.cy); step('kitchen');
+    ok(Input.hit.KeyP === true, 'PAUSE still pauses the kitchen'); Pad._push('e', t, LK.pause.cx, LK.pause.cy); step('kitchen'); Input.endFrame();
     t = touch(461, 200); step('kitchen');
     ok(Input.mhit === true, 'and a touch on the picture is still a tap');
     Pad._push('e', t, 461, 200); step('kitchen'); Input.endFrame();
@@ -2482,6 +2517,40 @@ console.log('\n— touch layout —');
       ok(req === 1, `and not taken again there (${req} requests)`);
     } finally {
       delete sandbox.navigator; Pad.setMode(mw); Pad._lay = lay0; G.toTitle();
+      Input.down = Object.create(null); Input.hit = Object.create(null); Input.mhit = false;
+    }
+  }
+
+  /* round 2: the canvas follows the stage. A kitchen card lays out the
+     kitchen's picture and 90_main refits and places the canvas to it before
+     the frame draws; a city card puts it back. And a kitchen tap maps
+     through the canvas's own rect, so it lands on the bin under the finger. */
+  if (TS_ && typeof TS_.step === 'function' && TS_.ctx && TS_.ctx.canvas) {
+    const cv = TS_.ctx.canvas, mw = Pad.mode, kl = runScript('LEVELS').findIndex((l) => l && l.type === 'kitchen');
+    const kLevel = kl >= 0 ? kl + 1 : 2;
+    try {
+      Pad.setMode('C');
+      G.toCard(kLevel); TS_.step(1);
+      const kOk = G.stage === 'kitchen' && Pad._scene === 'kitchen' && !Pad._lay.stick;
+      ok(kOk && cv.style.width === Pad._lay.picture.w + 'px' && cv.style.left === Pad._lay.picture.x + 'px' && cv.style.position === 'fixed',
+         `a kitchen card lays out the kitchen and the canvas follows it (level ${kLevel}, ${G.stage}, ${Pad._scene}, ${cv.style.width} at ${cv.style.left})`);
+      G.toCard(1); TS_.step(1);
+      ok(G.stage === 'delivery' && Pad._scene === 'drive' && !!Pad._lay.stick && cv.style.width === Pad._lay.picture.w + 'px',
+         `a city card puts the drive layout back (${G.stage}, ${Pad._scene})`);
+      /* the tap mapping: point the canvas's rect at a kitchen picture, touch a known virtual point */
+      Pad.relayout(923, 411, 2.625, { top: 0, right: 0, bottom: 0, left: CAM }, 'kitchen');
+      const pk = Pad._lay.picture, s = pk.w / VW, gbr = Pad._canvas.getBoundingClientRect;
+      Pad._canvas.getBoundingClientRect = () => ({ left: pk.x, top: pk.y, width: pk.w, height: pk.h });
+      try {
+        Input.mhit = false;
+        Pad.poll('kitchen', 1 / 60); Input.endFrame();
+        Pad._push('s', 990, pk.x + 250 * s, pk.y + 120 * s); Pad.poll('kitchen', 1 / 60);
+        ok(Input.mhit === true && Math.abs(Input.mx - 250) < 0.01 && Math.abs(Input.my - 120) < 0.01,
+           `a kitchen tap maps to the virtual point under it (${Input.mx.toFixed(2)}, ${Input.my.toFixed(2)} for 250, 120)`);
+        Pad._push('e', 990, pk.x + 250 * s, pk.y + 120 * s); Pad.poll('kitchen', 1 / 60); Input.endFrame();
+      } finally { Pad._canvas.getBoundingClientRect = gbr; }
+    } finally {
+      Pad.setMode(mw); Pad._lay = lay0; G.toTitle(); TS_.step(1); Pad._lay = lay0;
       Input.down = Object.create(null); Input.hit = Object.create(null); Input.mhit = false;
     }
   }

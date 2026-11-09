@@ -31,22 +31,39 @@
     } catch (e) { return z; }
   }
 
-  let scale = 3;
+  let scale = 3, placed = false;
+  /* which picture Pad lays out for: the kitchen's fills the height, the
+     city's makes room for the stick. G.stage, so a card shows the next
+     shift's picture already and nothing jumps when the shift starts. */
+  const padScene = () => (G.stage === 'kitchen' ? 'kitchen' : 'drive');
+  /* the stage changed under the picture (a kitchen card after a city one,
+     or back): lay out and fit again, before this frame draws */
+  function followScene() {
+    if (typeof Pad !== 'undefined' && Pad._view && padScene() !== Pad._scene) resize();
+  }
   function resize() {
     const wrap = document.getElementById('stage');
     const availW = wrap.clientWidth || window.innerWidth;
     const availH = wrap.clientHeight || window.innerHeight;
     /* Mode C on a landscape phone: Pad lays the ghost controls out in the
-       margins and says how big the picture may be (the full height, unless a
-       control would reach its centre 80%). Everything else fits as below. */
+       margins and says where the picture goes and how big (the full height,
+       unless a control would reach its centre 80%). It is not always centred
+       -- with the camera band on one side it slides the other way -- so it is
+       placed by hand. Taps still map: Input and Pad both read the canvas's
+       own rect. Everything else fits and centres as below. */
     const lay = typeof Pad !== 'undefined'
-      ? Pad.relayout(availW, availH, window.devicePixelRatio || 1, readInsets()) : null;
+      ? Pad.relayout(availW, availH, window.devicePixelRatio || 1, readInsets(), padScene()) : null;
     if (lay && lay.landscape) {
       scale = lay.scale;
       canvas.style.width = (VW * scale) + 'px';
       canvas.style.height = (VH * scale) + 'px';
+      canvas.style.position = 'fixed';
+      canvas.style.left = lay.picture.x + 'px';
+      canvas.style.top = lay.picture.y + 'px';
+      placed = true;
       return;
     }
+    if (placed) { canvas.style.position = canvas.style.left = canvas.style.top = ''; placed = false; }
     // Integer scaling keeps pixels perfectly square, but a window only a few
     // px short of the next step throws away a third of the picture, so take
     // the fit instead and accept that some rows land on 2 device px.
@@ -186,6 +203,7 @@
       if ((G.state === 'play' || G.state === 'demo') && !G.paused && G.weather === 'rainy') Audio5.rainOn();
       else if (Audio5.rainV) Audio5.rainOff();
     }
+    followScene();
     G.render(ctx);
     /* the landscape ghost controls, over the margins: a delivery shift
        (paused or not, as on the canvas before) and the kitchen's PAUSE */
@@ -201,6 +219,7 @@
     Music: typeof Music !== 'undefined' ? Music : null,
     step(n = 1) {
       for (let i = 0; i < n; i++) tick();
+      followScene();
       G.render(ctx);
       syncWake();
     },
