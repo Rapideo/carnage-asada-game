@@ -119,6 +119,24 @@ ok(NAV_Y0 + NAV_H <= VH, `the nav panel fits above the bottom edge (${NAV_Y0 + N
    the TACO BAG it replaced */
 ok(VW - 76 + textW('DELIVERIES', 1) <= VW, `the deliveries label fits the screen (${textW('DELIVERIES', 1)}px from x=${VW - 76})`);
 
+/* The windsock (windy levels only) sits top centre, in the 110px between the
+   order card (right edge x 143) and the clock card (left edge x 253). In Mode C
+   it drops below the PAUSE button that shares that gap, and stays above the
+   demo's PRESS ESC line at y 52 (51 with its outline). Task 8 moves the
+   minimap to a free corner in Mode C; the top centre is not a corner. */
+{
+  const Hud = runScript('Hud'), PAUSE = sandbox.__k.Pad.PAUSE;
+  const ORDER_R = 3 + 140, CLOCK_L = VW - 128 - 3;
+  const r = (c) => (typeof Hud.sockRect === 'function' ? Hud.sockRect(c) : null);
+  const inGap = (q) => !!q && q.x > ORDER_R + 1 && q.x + q.w < CLOCK_L - 1 && q.y >= 2;
+  const a = r(false), c = r(true);
+  ok(inGap(a) && a.y + a.h <= 47, `the windsock fits between the order and clock cards (${JSON.stringify(a)})`);
+  ok(inGap(c) && c.y > PAUSE.y + PAUSE.h + 1 && c.y + c.h < 51,
+     `in Mode C it sits under PAUSE and above the demo line (${JSON.stringify(c)}, PAUSE ends y ${PAUSE.y + PAUSE.h})`);
+  ok(!!a && typeof Hud.sockLen === 'function' && Hud.sockLen(1, 1) + 2 <= Math.min(a.w, a.h) / 2,
+     `the longest sock (full strength, mid-gust) stays inside its panel (${a && Hud.sockLen ? Hud.sockLen(1, 1).toFixed(1) : '?'}px in ${a ? Math.min(a.w, a.h) / 2 : '?'})`);
+}
+
 /* attract timings are authored in content/attract.json; — attract — asserts
    the game reads them live from ATTRACT rather than from a stale constant */
 ok(ATTRACT.title.wordmarkHold >= 0 && ATTRACT.title.wordmarkHold <= ATTRACT.title.seconds - 2,
@@ -173,6 +191,88 @@ for (const s of wedgeSites) {
 ok(escaped === wedgeSites.length,
    `every wedged car can drive out (${escaped}/${wedgeSites.length})` +
    (trapped.length ? ` — trapped at tile ${trapped.join(' ')}` : ''));
+
+/* Review Focus 1: a gust while the car is against a wall. The same sweep with
+   a full-strength gust HELD ON for the whole 15s escape -- a real gust lasts
+   1s and the next is 8s or more away -- blowing each of the four ways,
+   including straight back into the wall the car is wedged on. The gust only
+   adds to the car's velocity before the axis moves, so carBlocked still
+   refuses every destination and unwedge still depenetrates.
+
+   A held gust into a wall pins the car there: every frame's shove is a blocked
+   axis move, and a blocked move bleeds the other axis (x0.72), so rocking
+   along the wall goes nowhere. Pinned is not wedged -- the body is clear of
+   the wall, and it ends the moment the gust does -- and driving out of the
+   wind still works, so the sweep tries those inputs too. Both are asserted:
+   escapable by some input, and never left overlapping geometry. */
+{
+  const Wind = runScript('typeof Wind === "undefined" ? null : Wind');
+  const GUST_ESCAPES = [...ESCAPES,
+    ['forward', (p) => { p.throttle = 1; p.steer = 0; }],
+    ['forward, steer right', (p) => { p.throttle = 1; p.steer = 1; }],
+    ['reverse, steer right', (p) => { p.throttle = -1; p.steer = 1; }],
+    ['reverse, steer left', (p) => { p.throttle = -1; p.steer = -1; }]];
+  let gEsc = 0, gTot = 0, gOverlap = 0;
+  const gTrap = [];
+  if (Wind) {
+    for (const s of wedgeSites) for (const dir of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
+      gTot++;
+      let out = false;
+      for (const [, drive] of GUST_ESCAPES) {
+        const p = new Player(s.x, s.y, -Math.PI / 2);
+        let blockedRun = 0, i = 0;
+        for (; i < 900 && !out; i++) {
+          Wind.on = true; Wind.dir = dir; Wind.strength = 1; Wind.gust = 1;
+          drive(p, i); p.hb = false;
+          p.update(1 / 60, stubG);
+          if (Math.hypot(p.x - s.x, p.y - s.y) > 40) out = true;
+          blockedRun = carBlocked(p.x, p.y, p.ang) ? blockedRun + 1 : 0;
+        }
+        if (!out && blockedRun >= 30) gOverlap++;      // still inside geometry at the end: a wedge
+        if (out) break;
+      }
+      if (out) gEsc++; else gTrap.push(`(${(s.x / TS) | 0},${(s.y / TS) | 0}) dir ${dir.toFixed(2)}`);
+    }
+    Wind.on = false; Wind.gust = 0; Wind.strength = 0;
+  }
+  ok(!!Wind && gTot > 40 && gEsc === gTot,
+     `every wedged car drives out under a held full gust from each of four sides (${gEsc}/${gTot})` + (gTrap.length ? ' — trapped ' + gTrap.join(' ') : ''));
+  ok(!!Wind && gOverlap === 0, `and no strategy, escaping or not, is left overlapping geometry (${gOverlap})`);
+
+  /* ...and a gust never pushes a free car INTO geometry: walls, fences, a
+     parking lot's parked cars. Every open spot near something solid, a car
+     sitting still in each of two headings, a full gust from each side for
+     1.5s: no frame may end with the body overlapping anything. */
+  let probes = 0, pierced = 0, movedAny = 0, inLots = 0;
+  if (Wind) {
+    const spots = [];
+    const zoneAt = (tx, ty) => { const z = City.map.zoning, bx = Math.floor((tx - BORDER) / 12), by = Math.floor((ty - BORDER) / 12); return z[by] && z[by][bx]; };
+    const tryAt = (tx, ty) => {
+      const wx = tx * TS + 8, wy = ty * TS + 8;
+      if (carBlocked(wx, wy, 0) || carBlocked(wx, wy, -Math.PI / 2)) return false;
+      // something solid a tile and a half away: near enough for a gust to put the car against it
+      if (!(City.isSolid(wx + 26, wy) || City.isSolid(wx - 26, wy) || City.isSolid(wx, wy + 26) || City.isSolid(wx, wy - 26))) return false;
+      spots.push({ x: wx, y: wy }); return true;
+    };
+    for (let ty = 4; ty < 96 && spots.length < 160; ty += 3) for (let tx = 4; tx < 96 && spots.length < 160; tx += 5) tryAt(tx, ty);
+    /* and every such spot in the parking lots: the auto blocks' rows of parked cars */
+    for (let ty = 4; ty < 96; ty++) for (let tx = 4; tx < 96; tx++) if (zoneAt(tx, ty) === 'auto' && tryAt(tx, ty)) inLots++;
+    for (const s of spots) for (const ang of [0, -Math.PI / 2]) for (const dir of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
+      probes++;
+      const p = new Player(s.x, s.y, ang);
+      for (let i = 0; i < 90; i++) {
+        Wind.on = true; Wind.dir = dir; Wind.strength = 1; Wind.gust = 1;
+        p.throttle = 0; p.steer = 0; p.hb = false;
+        p.update(1 / 60, stubG);
+        if (carBlocked(p.x, p.y, p.ang)) { pierced++; break; }
+      }
+      if (Math.hypot(p.x - s.x, p.y - s.y) > 2) movedAny++;
+    }
+    Wind.on = false; Wind.gust = 0; Wind.strength = 0;
+  }
+  ok(probes > 400 && inLots > 10 && pierced === 0 && movedAny > probes / 4,
+     `a gust never pushes a free car into geometry (${pierced} of ${probes} probes beside walls, fences and, at ${inLots} spots, parked cars; ${movedAny} were shoved)`);
+}
 
 /* A cruiser drives into geometry exactly the way a player does, but Cop.update
    never called unwedge(), so a wedged one was stuck for good: 0 of these 12
@@ -1896,6 +1996,219 @@ console.log('\n— cast —');
     }
   } finally { unrnd(); G.state = 'play'; }
   function reset0() { G.test = null; G.autopilot = false; G.testRun = false; Input.down = Object.create(null); Input.hit = Object.create(null); }
+}
+
+/* Windy (0.9.3, spec section 7): a crosswind on the toss, gusts that shove the
+   car, tumbleweeds. Delivery only, and with the level not windy the game is
+   exactly what it was. State is reset before and after: the sections share
+   one game. */
+console.log('\n— wind —');
+{
+  const Wind = runScript('typeof Wind === "undefined" ? null : Wind');
+  const Tumbleweed = runScript('typeof Tumbleweed === "undefined" ? null : Tumbleweed');
+  const Bag = runScript('Bag'), Hud = runScript('Hud'), A5 = KX.Audio5, KD = KX.DIFFICULTY;
+  const has = !!(Wind && Tumbleweed);
+  ok(has, 'Wind and Tumbleweed exist');
+  const reset = () => {
+    G.test = null; G.autopilot = false; G.testRun = false;
+    Input.down = Object.create(null); Input.hit = Object.create(null); Input.mhit = false; Input.hasMouse = false;
+  };
+  const weeds = () => G.weeds || [];
+  reset();
+
+  /* the authored values, verbatim from the brief */
+  const WV = { easy: [0.35, [12, 16], 3], medium: [0.55, [10, 14], 4], hard: [0.75, [8, 12], 5], supreme: [0.9, [8, 11], 6] };
+  ok(Object.entries(WV).every(([k, [s, g, t]]) => KD[k].wind && KD[k].wind.strength === s && KD[k].wind.gustEvery[0] === g[0]
+     && KD[k].wind.gustEvery[1] === g[1] && KD[k].wind.tumbleweeds === t), 'difficulty.json carries wind { strength, gustEvery, tumbleweeds } per difficulty');
+
+  /* --- not windy: exactly as before --- */
+  /* the bag's flight with no wind is the shipped one, step for step: the same
+     integration as before 0.9.3, written out here so a change to it shows */
+  const oldFlight = (x, y, tx, ty) => {
+    const T = 0.5, g = 260, z0 = 5;
+    let vx = (tx - x) / T, vy = (ty - y) / T, vz = (0 - z0 + 0.5 * g * T * T) / T, z = z0, n = 0;
+    for (;;) { x += vx / 60; y += vy / 60; vz -= g / 60; z += vz / 60; n++; if (z <= 0) return { x, y, n }; }
+  };
+  const fly = (x, y, tx, ty) => {
+    const b = new Bag(x, y, tx, ty, 0); let n = 0;
+    while (!b.dead && n < 200) { b.update(1 / 60); n++; }
+    return { x: b.x, y: b.y, n };
+  };
+  if (Wind) { Wind.on = false; Wind.gust = 0; }
+  const o1 = oldFlight(500, 500, 500, 400), f1 = fly(500, 500, 500, 400);
+  ok(f1.x === o1.x && f1.y === o1.y && f1.n === o1.n, `with no wind a 100px toss lands exactly where it always has (${f1.x.toFixed(2)},${f1.y.toFixed(2)} in ${f1.n} frames)`);
+
+  G.startRun(1); G.beginShift();
+  ok(G.state === 'play' && G.windy === false && !!Wind && Wind.on === false, 'level 1 is not windy: the wind is off');
+  let maxWeeds = 0, gusted = 0, warned = 0, socks = 0, gustSfx = 0;
+  const realSock = Hud.drawSock, realSfx = A5.sfx;
+  if (realSock) Hud.drawSock = function (...a) { socks++; return realSock.apply(this, a); };
+  A5.sfx = function (n, ...a) { if (n === 'gust') gustSfx++; return realSfx.call(this, n, ...a); };
+  try {
+    for (let i = 0; i < 20 * 60; i++) {
+      Input.down = Object.create(null); Input.down.KeyW = (i / 90 | 0) % 2 === 0; Input.down.KeyA = (i / 140 | 0) % 3 === 0;
+      G.shift = Math.max(G.shift, 60);
+      G.update(1 / 60); if (i % 10 === 0) G.render(ctx); Input.endFrame();
+      maxWeeds = Math.max(maxWeeds, weeds().length);
+      if (Wind && Wind.gust > 0) gusted++;
+      if (Wind && Wind.telegraph > 0) warned++;
+    }
+  } finally { Hud.drawSock = realSock; A5.sfx = realSfx; }
+  ok(maxWeeds === 0 && gusted === 0 && warned === 0 && gustSfx === 0 && socks === 0,
+     `20s of a calm level: no tumbleweed, no gust, no telegraph, no GUST sound, no windsock (${maxWeeds}, ${gusted}, ${warned}, ${gustSfx}, ${socks})`);
+
+  /* the kitchen is never windy, even right after a windy delivery level */
+  reset(); G.startRun(5); G.beginShift();
+  const wasOn = !!Wind && Wind.on;
+  G.startRun(6); G.beginShift();
+  ok(wasOn && G.state === 'kitchen' && Wind.on === false && weeds().length === 0, 'a kitchen level after a windy one has no wind and no tumbleweeds');
+
+  /* --- the crosswind on the toss --- */
+  /* A fixed 100px toss due north with the wind due east, per difficulty. The
+     flight is a fixed 0.5s, so the drift is the same for any length of toss:
+     strength x 200px/s/s over half a second. Easy is gentle, Supreme strong. */
+  const drift = {};
+  if (Wind) {
+    for (const k of ['easy', 'medium', 'hard', 'supreme']) {
+      Wind.reset(true, KD[k]); Wind.dir = 0; Wind.gust = 0; Wind.gustT = 99;
+      const f = fly(500, 500, 500, 400);
+      drift[k] = f.x - o1.x;
+    }
+    Wind.reset(false, KD.easy);
+  }
+  const dv = Object.values(drift);
+  console.log('  --    bag drift on a 100px toss, by difficulty: ' + Object.entries(drift).map(([k, v]) => k + ' ' + v.toFixed(1) + 'px').join(', '));
+  ok(dv.length === 4 && dv.every((v, i) => v > 0 && (i === 0 || v > dv[i - 1])), 'a bag lands downwind of its no-wind landing, more so up the ladder');
+  ok(drift.supreme >= 15 && drift.supreme <= 30 && drift.easy >= 5, `noticeable but beatable: Supreme drifts ${(drift.supreme || 0).toFixed(1)}px (15-30), Easy ${(drift.easy || 0).toFixed(1)}px`);
+
+  /* and through the game's own toss, on windy level 5 */
+  reset(); G.startRun(5); G.beginShift();
+  ok(G.windy === true && !!Wind && Wind.on === true && Wind.strength === G.diff.wind.strength,
+     `level 5 is windy, at its difficulty's strength (${Wind && Wind.strength})`);
+  if (Wind) {
+    G.cop = null; G.traffic.length = 0; G.peds.length = 0; G.weeds && (G.weeds.length = 0);
+    Wind.gustT = 99; Wind.gust = 0; Wind.dir = Math.PI / 2;           // due south, no gust
+    const p = G.player; p.x = 600; p.y = 600; p.vx = p.vy = 0; p.ang = 0;
+    G.cam.x = p.x - VW / 2; G.cam.y = p.y - VH / 2;
+    Input.hasMouse = true; Input.mx = VW / 2 + 100; Input.my = VH / 2;   // 100px due east
+    G.throwCd = 0; G.bag = 3; G.needPickup = false;
+    G.tryThrow();
+    const b = G.flying[G.flying.length - 1];
+    let n = 0; while (G.flying.includes(b) && n < 90) { G.update(1 / 60); Input.endFrame(); n++; }
+    ok(b && Math.abs(b.x - (600 + 100)) < 4 && b.y - 600 > 0.6 * 0.35 * 200 / 8,
+       `the toss drifts downwind: aimed 100px east, landed ${b ? (b.y - 600).toFixed(1) : '?'}px south of the line`);
+    Input.hasMouse = false;
+  }
+
+  /* --- gusts --- */
+  /* a coasting car on a north-south street, broadside to an east wind */
+  const RX = SEG0 + 4 * PITCH + 16, RY = SEG0 + 4 * PITCH + 110;
+  const coast = (gust) => {
+    const p = new Player(RX, RY, -Math.PI / 2); p.vy = -40;
+    for (let i = 0; i < 90; i++) {
+      Wind.on = true; Wind.dir = 0; Wind.strength = KD.supreme.wind.strength; Wind.gust = gust && i < 60 ? Math.sin(Math.PI * i / 60) : 0;
+      p.throttle = 0; p.steer = 0; p.hb = false; p.update(1 / 60, stubG);
+    }
+    return p.x;
+  };
+  let shove = 0;
+  if (Wind) { shove = coast(true) - coast(false); Wind.on = false; Wind.gust = 0; }
+  console.log(`  --    a Supreme gust shoves a coasting car ${shove.toFixed(1)}px sideways over 1.5s`);
+  ok(!carBlocked(RX, RY, -Math.PI / 2) && shove > 6 && shove < 40, `a gust displaces a coasting car sideways, downwind (${shove.toFixed(1)}px)`);
+
+  /* the cycle: telegraph (dust and a GUST sound) about 1s ahead, then the
+     gust, every gustEvery seconds */
+  let warnAt = -1, gustAt = -1, sfxAt = -1, cycles = 0, gaps = [], lastGust = -1, dust = 0;
+  if (Wind) {
+    reset(); G.test = { difficulty: 'supreme' }; G.startRun(5); G.beginShift(); G.test = null;
+    const real = A5.sfx;
+    A5.sfx = function (n, ...a) { if (n === 'gust' && sfxAt < 0) sfxAt = G.time; return real.call(this, n, ...a); };
+    let was = 0;
+    try {
+      for (let i = 0; i < 40 * 60; i++) {
+        G.shift = Math.max(G.shift, 60); G.cop = null;
+        G.update(1 / 60); if (i % 15 === 0) G.render(ctx); Input.endFrame();
+        if (warnAt < 0 && Wind.telegraph > 0) warnAt = G.time;
+        if (Wind.telegraph > 0.5 && Wind.streaks) dust = Math.max(dust, Wind.streaks.length);
+        if (gustAt < 0 && Wind.gust > 0) gustAt = G.time;
+        if (Wind.gust > 0 && was === 0) { cycles++; if (lastGust >= 0) gaps.push(G.time - lastGust); lastGust = G.time; }
+        was = Wind.gust;
+      }
+    } finally { A5.sfx = real; }
+  }
+  const lead = gustAt - warnAt;
+  ok(warnAt >= 0 && gustAt > warnAt && lead > 0.8 && lead < 1.2 && Math.abs(sfxAt - warnAt) < 0.05,
+     `a gust is telegraphed about 1s ahead, with the GUST sound (${lead.toFixed(2)}s)`);
+  ok(cycles >= 3 && gaps.every((g) => g >= KD.supreme.wind.gustEvery[0] - 0.1 && g <= KD.supreme.wind.gustEvery[1] + 0.1),
+     `gusts come every gustEvery seconds (${cycles} in 40s, gaps ${gaps.map((g) => g.toFixed(1)).join(' ')})`);
+  ok(dust > 10, `dust streaks blow across the screen during the telegraph (${dust} at once)`);
+
+  /* --- tumbleweeds --- */
+  let onRoad = true, onPorch = 0, samples = 0, axial = 0, along = 0, rlWeeds = 0;
+  const porchHit = (w) => City.houses.some((h) => w.x > h.porch.x - 4 && w.x < h.porch.x + h.porch.w + 4 && w.y > h.porch.y - 4 && w.y < h.porch.y + h.porch.h + 4);
+  if (has) {
+    reset(); G.startRun(5); G.beginShift(); G.autopilot = true;
+    for (let i = 0; i < 25 * 60; i++) {
+      G.shift = Math.max(G.shift, 60);
+      G.update(1 / 60); Input.endFrame();
+      if (i % 20 === 0) {
+        G.render(ctx);
+        rlWeeds = Math.max(rlWeeds, G.rl.filter((it) => it.e instanceof Tumbleweed).length);
+        for (const w of weeds()) {
+          samples++;
+          const c = classify((w.x / TS) | 0, (w.y / TS) | 0);
+          if (G.nearScreen(w.x, w.y) && c !== 1 && c !== 2) onRoad = false;      // T_ROAD 1, T_INTER 2
+          if (porchHit(w)) onPorch++;
+          const wx = Math.cos(Wind.dir), wy = Math.sin(Wind.dir);
+          if (w.vx * wx + w.vy * wy > 0) along++;
+          if (Math.abs(w.vx) < 1e-6 || Math.abs(w.vy) < 1e-6) axial++;       // rolls along one street axis
+        }
+      }
+    }
+    G.autopilot = false;
+  }
+  ok(has && weeds().length === G.diff.wind.tumbleweeds, `level 5 keeps its ${G.diff.wind && G.diff.wind.tumbleweeds} tumbleweeds rolling around the player (${weeds().length})`);
+  ok(samples > 100 && onRoad && onPorch === 0, `they roll on the streets, never over a porch (${samples} samples, ${onPorch} on a porch)`);
+  ok(samples > 0 && along === samples && axial === samples, `with the wind, along one street axis (${along}/${samples} downwind)`);
+  ok(rlWeeds > 0, `they are entities in the y-sorted sprite list (${rlWeeds} on screen at once)`);
+
+  /* driving through one: it bursts into twigs, the car wobbles, no fine, nothing solid */
+  if (has) {
+    reset(); G.startRun(5); G.beginShift();
+    G.cop = null; G.traffic.length = 0; G.peds.length = 0;
+    const p = G.player; p.x = RX; p.y = RY; p.ang = -Math.PI / 2; p.vx = 0; p.vy = -90;
+    G.cam.x = p.x - VW / 2; G.cam.y = p.y - VH / 2;
+    const w = new Tumbleweed(RX, RY - 6, 0, 0);
+    G.weeds.length = 0; G.weeds.push(w);
+    const e0 = G.earned, l0 = G.levelEarned, fx0 = runScript('Fx.ps.length'), h0 = G.heat;
+    Input.down = Object.create(null); Input.down.KeyW = true;
+    let wob = 0;
+    for (let i = 0; i < 6; i++) { G.update(1 / 60); Input.endFrame(); wob = Math.max(wob, p.wobble || 0); }
+    ok(!G.weeds.includes(w) || w.dead, 'driving through a tumbleweed bursts it');
+    ok(runScript('Fx.ps.length') > fx0 + 4, `into twigs (${runScript('Fx.ps.length') - fx0} particles)`);
+    ok(wob > 0.3 && wob <= 0.4, `and the car wobbles for about 0.4s (${wob.toFixed(2)})`);
+    ok(G.earned === e0 && G.levelEarned === l0 && G.heat <= h0, 'with no fine and no heat');
+    ok(p.y < RY - 6, `and nothing solid: the car drove on through (${(RY - p.y).toFixed(1)}px)`);
+    Input.down = Object.create(null);
+  }
+
+  /* --- Review Focus 2: the demo on a windy level still delivers --- */
+  const pin = G.demoPin;
+  let runs = 0, delivered = 0;
+  try {
+    G.demoPin = 5;
+    for (let r = 0; r < 10; r++) {
+      reset(); G.toDemo(); runs++;
+      const d0 = G.stats.delivered;
+      for (let i = 0; i < ATTRACT.demo.seconds * 60 && G.state === 'demo'; i++) { G.update(1 / 60); Input.endFrame(); }
+      if (G.stats.delivered > d0) delivered++;
+    }
+  } finally { G.demoPin = pin; }
+  console.log(`  --    windy demo (level 5): a delivery in ${delivered} of ${runs} ${ATTRACT.demo.seconds}s runs`);
+  ok(G.windy !== undefined && delivered >= 6, `the attract demo on windy level 5 still delivers in most runs (${delivered}/${runs})`);
+
+  reset(); G.toTitle();
+  ok(!!Wind && Wind.on === false && weeds().length === 0, 'the title is calm');
 }
 
 console.log('\n— copy —');

@@ -49,6 +49,7 @@ const DIFF_FALLBACK = {
   nav: { panel: true, line: true, dot: true, edge: true, beacon: true },
   kitchen: { tipPerItem: 500, decay: 100 / 8, maxItems: 3, every: 25,
              cleanBonus: 500, hint: true, hintNewOnly: false, hintStall: 3, railMax: 3, queueMax: 3 },
+  wind: { strength: 0.35, gustEvery: [12, 16], tumbleweeds: 3 },
 };
 const NAV_FULL = { panel: true, line: true, dot: true, edge: true, beacon: true };
 
@@ -81,7 +82,7 @@ const G = {
   state: 'boot', time: 0, shift: 0, earned: 0,
   combo: 1, comboPop: 0, heat: 0, heatMax: HEAT_MAX,
   bag: BAG_MAX, bagMax: BAG_MAX, needPickup: false,
-  player: null, traffic: [], peds: [], flying: [], cop: null, copT: 0,
+  player: null, traffic: [], peds: [], flying: [], weeds: [], cop: null, copT: 0,
   train: null, trainT: 0, crossings: [], railSide: 0, wreckCd: 0,
   cam: { x: 0, y: 0 }, shake: 0, shakeX: 0, shakeY: 0, hitstop: 0,
   order: null, banner: '', bannerT: 0, bannerCol: PAL.bone,
@@ -151,6 +152,7 @@ const G = {
     this.stage = this.level.type === 'kitchen' ? 'kitchen' : 'delivery';
     this.weather = this.rollWeather();
     this.windy = this.rollWindy();
+    Wind.reset(this.windy, this.diff); this.weeds.length = 0;     // 55_wind: off unless windy
     /* grip is a delivery matter: a kitchen's weather is decoration only */
     Player.gripMul = this.stage === 'kitchen' ? 1 : WEATHER_GRIP[this.winter ? 'winter' : 'summer'][this.weather];
     const map = this.level.map || this.era;
@@ -235,6 +237,7 @@ const G = {
     this.player = new Player(City.shop.dock.x, City.shop.dock.y + 70, -PI / 2);
     this.traffic.length = 0; this.peds.length = 0; this.flying.length = 0;
     this.cop = null; Nav.clear(); Fx.clear();
+    Wind.reset(false); this.weeds.length = 0;  // the title is calm, whatever the demo was
     this.resetRail();
     this.cam.x = clamp(City.shop.x - VW / 2, 0, WW - VW);
     this.cam.y = clamp(City.shop.y - VH / 2, 0, WH - VH);
@@ -375,6 +378,8 @@ const G = {
     this.cam.y = clamp(d.y - VH / 2, 0, WH - VH);
     this.traffic.length = 0; this.peds.length = 0;
     this.seedTraffic(30); this.seedPeds(24);
+    /* a new direction, a fresh gust clock and new tumbleweeds every play */
+    Wind.reset(this.windy, this.diff); this.weeds.length = 0;
   },
 
   /* Every completion, in either shift, comes through here: every third earns
@@ -534,7 +539,20 @@ const G = {
     const p = this.player;
     let ax, ay;
     const pad = typeof Pad !== 'undefined' && Pad.aiming;
-    if ((this.state === 'demo' || this.autopilot) && this.demoAim) { ax = this.demoAim.x; ay = this.demoAim.y; }
+    if ((this.state === 'demo' || this.autopilot) && this.demoAim) {
+      ax = this.demoAim.x; ay = this.demoAim.y;
+      /* On a windy level the demo leans its toss upwind, most of the way
+         (Wind.LEAN of the drift a bag will see). Aimed straight at the porch it
+         was starved: measured over 20 demos each, a 45s demo delivered 51 bags
+         when calm, 21 on Easy's wind and 0 of 57 throws on Supreme's. Leaning
+         0.8 of the way: Easy 51 of 53 throws, Supreme 38 of 49, so the wind
+         still costs it the odd bag. The reticle shows the lean, which is the
+         lesson a player needs. */
+      if (Wind.on) {
+        const w = Wind.push(), k = Wind.LEAN * 0.5 * THROW_T * THROW_T;
+        ax -= w.x * k; ay -= w.y * k;
+      }
+    }
     /* throwNow too: on the release that throws, aiming is already false, and
        the bag must still go where the stick was pointing */
     else if (pad || (typeof Pad !== 'undefined' && Pad.throwNow)) { ax = p.x + Pad.aimX; ay = p.y + Pad.aimY; }
@@ -988,6 +1006,10 @@ const G = {
       if (((before / 25) | 0) !== ((this.order.tip / 25) | 0)) this.tipPop = 0.07;
     }
 
+    /* the wind (55_wind): the gust is set before the car moves, so it shoves
+       through Player.update's normal movement and collision path */
+    if (Wind.on && Wind.update(dt) === 'warn') Audio5.sfx('gust');
+
     /* player */
     const p = this.player;
     /* the autopilot drives with the demo's driver, reset for each car it takes
@@ -1003,6 +1025,9 @@ const G = {
       if (click || Input.p('Space') || padThrow) this.tryThrow();
       if (padThrow) Pad.throwNow = false;      // after the throw: aimPoint reads it
     }
+
+    /* tumbleweeds: rolled, recycled round the player, burst under the car */
+    if (Wind.on) Wind.updateWeeds(dt, this, true);
 
     /* engine audio */
     const sf = clamp(p.speed / MAXSPD, 0, 1);
@@ -1176,6 +1201,7 @@ const G = {
   simCrowd(dt) {
     for (const c of this.traffic) c.update(dt, this);
     for (const q of this.peds) q.update(dt, this);
+    if (Wind.on) Wind.updateWeeds(dt, this, false);
     Fx.update(dt);
   },
 
@@ -1392,6 +1418,7 @@ const G = {
     for (const c of this.crossings)
       if (this.nearScreen(c.x, c.y)) rl.push({ sortY: c.y + 44, e: c });
     for (const z of this.flying) rl.push({ sortY: z.y, e: z });
+    for (const w of this.weeds) if (this.nearScreen(w.x, w.y)) rl.push({ sortY: w.y, e: w });
     rl.sort((a, b) => a.sortY - b.sortY);
     for (const it of rl) {
       if (it.e) it.e.draw(x, cam);
@@ -1401,6 +1428,7 @@ const G = {
     Fx.draw(x, cam);
     if (this.weather === 'snowy') this.drawSnowfall(x);
     if (rainy) this.drawRain(x);
+    if (Wind.on && live) Wind.drawStreaks(x);     // the dust, and a gust's telegraph
     if (this.debugDraw) this.debugDraw(x, cam);   // Service Mode's debug views; null in the shipped game
 
     if (live) {

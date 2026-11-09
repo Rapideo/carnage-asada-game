@@ -69,6 +69,7 @@ class Player {
     this.slip = 0; this.spinT = 0; this.impact = 0;
     this.throttle = 0; this.steer = 0; this.hb = false;
     this.skidT = 0;
+    this.wobble = 0;      // seconds of steering jitter left, from a tumbleweed (55_wind)
   }
   get speed() { return hyp(this.vx, this.vy); }
   get fwdSpeed() { return this.vx * Math.cos(this.ang) + this.vy * Math.sin(this.ang); }
@@ -95,6 +96,11 @@ class Player {
     const back = this.fwdSpeed < -2 ? -1 : 1;
     const turn = this.steer * TURNRATE * clamp(spd / 46, 0, 1) * (1 - 0.28 * clamp(spd / MAXSPD, 0, 1)) * back;
     if (this.spinT <= 0) this.ang += turn * dt;
+    /* a tumbleweed under the wheels: a few degrees of jitter, gone in 0.4s */
+    if (this.wobble > 0) {
+      this.wobble = Math.max(0, this.wobble - dt);
+      if (this.spinT <= 0) this.ang += Math.sin(this.wobble * 40) * 2.4 * dt;
+    }
 
     /* longitudinal */
     const fx = Math.cos(this.ang), fy = Math.sin(this.ang);
@@ -115,6 +121,11 @@ class Player {
     const before = vl;
     vl *= Math.exp(-grip * dt);
     this.slip = Math.abs(before - vl);
+    /* A gust (55_wind) shoves the car sideways, and only here: it is added to
+       the lateral velocity BEFORE the axis-separated moves below, so
+       carBlocked still refuses every destination and unwedge still runs. Grip
+       is what resists it, so it shoves harder on snow and grass. */
+    if (Wind.on && Wind.gust > 0) vl += Wind.lateral(this.ang) * dt;
 
     this.vx = fx * vf - fy * vl;
     this.vy = fy * vf + fx * vl;
@@ -577,6 +588,8 @@ class Bag {
     this.f = 0; this.dead = false; this.tx = tx; this.ty = ty;
   }
   update(dt) {
+    /* a crosswind (55_wind) carries the bag downwind while it is in the air */
+    if (Wind.on) { const w = Wind.push(); this.vx += w.x * dt; this.vy += w.y * dt; }
     this.x += this.vx * dt; this.y += this.vy * dt;
     this.vz -= GRAV * dt; this.z += this.vz * dt;
     this.f += dt * 14;
@@ -601,6 +614,8 @@ const Fx = {
   dust(x, y, c)       { this.ps.push({ x, y, z: 2, vx: rand(-18, 18), vy: rand(-18, 18), vz: rand(8, 26), g: 60, life: rand(0.3, 0.6), t: 0, c, s: 2 }); },
   spill(x, y)         { for (let i = 0; i < 12; i++) this.ps.push({ x, y, z: 4, vx: rand(-70, 70), vy: rand(-70, 70), vz: rand(30, 90), g: 320, life: rand(0.35, 0.7), t: 0, c: SPILL[(Math.random() * SPILL.length) | 0], s: 2 }); },
   cash(x, y)          { for (let i = 0; i < 10; i++) this.ps.push({ x, y, z: 6, vx: rand(-45, 45), vy: rand(-45, 45), vz: rand(50, 110), g: 210, life: rand(0.5, 0.9), t: 0, c: Math.random() < 0.5 ? PAL.good : PAL.amber, s: 2 }); },
+  /* a tumbleweed burst: twigs thrown along with the car */
+  twigs(x, y, vx, vy) { for (let i = 0; i < 14; i++) this.ps.push({ x: x + rand(-4, 4), y: y + rand(-3, 3), z: 5, vx: vx * 0.35 + rand(-55, 55), vy: vy * 0.35 + rand(-55, 55), vz: rand(30, 95), g: 240, life: rand(0.4, 0.8), t: 0, c: ['#dcc08a', '#ad8c58', '#7e5f38', '#563f24'][(Math.random() * 4) | 0], s: Math.random() < 0.3 ? 2 : 1 }); },
   star(x, y)          { for (let i = 0; i < 8; i++) this.ps.push({ x, y, z: 8, vx: rand(-40, 40), vy: rand(-40, 40), vz: rand(20, 60), g: 150, life: 0.5, t: 0, c: PAL.bone, s: 1 }); },
 
   pop(x, y, txt, col, big) { this.pops.push({ x, y, txt, col, t: 0, life: big ? 1.5 : 1.05, s: big ? 2 : 1 }); },

@@ -1002,6 +1002,11 @@ const DIFFICULTY = {
       "hintStall": 3,
       "railMax": 3,
       "queueMax": 3
+    },
+    "wind": {
+      "strength": 0.35,
+      "gustEvery": [12, 16],
+      "tumbleweeds": 3
     }
   },
   "medium": {
@@ -1037,6 +1042,11 @@ const DIFFICULTY = {
       "hintStall": 3,
       "railMax": 3,
       "queueMax": 3
+    },
+    "wind": {
+      "strength": 0.55,
+      "gustEvery": [10, 14],
+      "tumbleweeds": 4
     }
   },
   "hard": {
@@ -1072,6 +1082,11 @@ const DIFFICULTY = {
       "hintStall": 3,
       "railMax": 3,
       "queueMax": 3
+    },
+    "wind": {
+      "strength": 0.75,
+      "gustEvery": [8, 12],
+      "tumbleweeds": 5
     }
   },
   "supreme": {
@@ -1107,6 +1122,11 @@ const DIFFICULTY = {
       "hintStall": 3,
       "railMax": 3,
       "queueMax": 3
+    },
+    "wind": {
+      "strength": 0.9,
+      "gustEvery": [8, 11],
+      "tumbleweeds": 6
     }
   }
 };

@@ -229,6 +229,7 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 | `35_faces` | `Faces` — decodes the baked likenesses in `FACES` at boot; draws them with blink/hood variation |
 | `40_city` | `City.gen()` — street grid, addressed houses, baked ground layer, spatial buckets |
 | `50_entities` | `Player`, `Traffic`, `Train`, `Crossing`, `Ped`, `Cop`, `Bag`, `Fx`; shared car physics + collision |
+| `55_wind` | `Wind` and `Tumbleweed` — windy Delivery levels: the bag's crosswind drift (`Wind.push`), gusts that shove the car through `Player.update`'s normal collision path (`Wind.lateral`), dust streaks, tumbleweeds. Off unless `G.windy`; values in `content/difficulty.json` `wind` |
 | `60_nav` | `Nav` (TACO-NAV unit) and `solve()` — Dijkstra over the intersection graph |
 | `70_hud` | `Hud.draw()` — order card, tip meter, nav panel, minimap; `navArrow`, `triArrow` |
 | `72_dialog` | `Dialog` — the dialogue strip: portrait box, speech bubble (two rows, `Dialog.wrap`), slide-in. Shared by both halves |
@@ -848,7 +849,7 @@ There is no per-test filter — it is one sequential script with labelled sectio
 `— build —`,
 `— hud layout —`, `— collision —`, `— guidance —`, `— simulation —`, `— scoring —`, `— attract —`,
 `— hays map —`, `— block kinds —`, `— downtown addresses —`, `— shop apron —`, `— rail —`,
-`— high scores —`, `— heat —`, `— run structure —`, `— kitchen —`, `— kitchen demo —`, `— test hooks —`, `— copy —`). To
+`— high scores —`, `— heat —`, `— run structure —`, `— kitchen —`, `— kitchen demo —`, `— test hooks —`, `— wind —`, `— copy —`). To
 isolate one, edit the script.
 
 **`tools/render/frame.mjs <level> [secs]`** renders a real frame of any level to a PNG with the

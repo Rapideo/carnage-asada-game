@@ -59,6 +59,24 @@ ok(e && e.path.join('.') === 'medium.perfectBonus', 'perfectBonus is integer cen
 const bad6 = structuredClone(files); bad6['difficulty.json'].hard.kitchen.railMax = 0;
 e = null; try { validateContent(memSource(bad6)); } catch (x) { e = x; }
 ok(e && e.path.join('.') === 'hard.kitchen.railMax', 'railMax is at least 1');
+/* wind (0.9.3): strength 0-1, gustEvery [min, max] positive with min <= max, tumbleweeds a whole number 0-12 */
+const windBad = (k, edit) => { const f = structuredClone(files); edit(f['difficulty.json'][k].wind); let x = null; try { validateContent(memSource(f)); } catch (y) { x = y; } return x; };
+e = windBad('hard', (w) => { w.strength = 1.2; });
+ok(e instanceof ContentError && e.file === 'content/difficulty.json' && e.path.join('.') === 'hard.wind.strength' && /0 to 1/.test(e.message),
+   'a wind strength of 1.2 is refused on hard.wind.strength' + (e ? ' (' + e.message + ')' : ''));
+ok([-0.1, '0.5', null].every((v) => { const x = windBad('easy', (w) => { w.strength = v; }); return x && x.path.join('.') === 'easy.wind.strength'; }),
+   'and so are -0.1, "0.5" and null');
+ok(windBad('easy', (w) => { w.strength = 0; }) === null && windBad('supreme', (w) => { w.strength = 1; }) === null, 'strength 0 and 1 are accepted');
+e = windBad('medium', (w) => { w.gustEvery = [14, 10]; });
+ok(e && e.path.join('.') === 'medium.wind.gustEvery.0' && /min/.test(e.message), 'gustEvery [14, 10] is refused: min above max' + (e ? ' (' + e.message + ')' : ''));
+ok([[0, 10], [10], [10, 'x'], 12, null].every((v) => { const x = windBad('medium', (w) => { w.gustEvery = v; }); return x && /^medium\.wind\.gustEvery/.test(x.path.join('.')); }),
+   'and so are [0, 10], [10], [10, "x"], 12 and null');
+ok(windBad('medium', (w) => { w.gustEvery = [9, 9]; }) === null, 'gustEvery [9, 9] is accepted');
+ok([13, -1, 2.5, '3'].every((v) => { const x = windBad('hard', (w) => { w.tumbleweeds = v; }); return x && x.path.join('.') === 'hard.wind.tumbleweeds'; })
+   && windBad('hard', (w) => { w.tumbleweeds = 0; }) === null && windBad('hard', (w) => { w.tumbleweeds = 12; }) === null,
+   'tumbleweeds is a whole number 0-12');
+e = (() => { const f = structuredClone(files); delete f['difficulty.json'].easy.wind; try { validateContent(memSource(f)); } catch (y) { return y; } return null; })();
+ok(e && e.path.join('.') === 'easy.wind', 'a difficulty with no wind is refused');
 /* attract.demo.levels: "random", or a non-empty list of distinct level numbers 1..20 */
 const demoLevels = (v) => { const f = structuredClone(files); f['attract.json'].demo.levels = v; let x = null; try { validateContent(memSource(f)); } catch (y) { x = y; } return x; };
 e = demoLevels([0]);
@@ -1051,6 +1069,15 @@ console.log('\n— docs —');
          && has(at(lm, 'Medium', 'Kitchen Shift'), '- Ticket Limit : 3 on the rail. Up to 3 more customers wait in the OVERHEAD'),
          'Ticket Limit carries railMax and queueMax');
 
+      /* wind: a section of its own per difficulty */
+      ok(has(at(dout, 'Easy', 'Wind'), '- Wind Strength : 0.35') && has(at(dout, 'Easy', 'Wind'), '- Gust Every : 12-16 Seconds')
+         && has(at(dout, 'Easy', 'Wind'), '- Tumbleweeds : 3') && has(at(dout, 'Supreme', 'Wind'), '- Wind Strength : 0.9')
+         && has(at(dout, 'Supreme', 'Wind'), '- Gust Every : 8-11 Seconds') && has(at(dout, 'Hard', 'Wind'), '- Tumbleweeds : 5'),
+         'every difficulty has a Wind section: strength, gusts and tumbleweeds (' + JSON.stringify(at(dout, 'Easy', 'Wind').lines) + ')');
+      const wd = DF.render(dfx((d) => { d.medium.wind.strength = 0.6; d.medium.wind.gustEvery = [9, 13.5]; }), dold);
+      ok(has(at(wd, 'Medium', 'Wind'), '- Wind Strength : 0.6') && has(at(wd, 'Medium', 'Wind'), '- Gust Every : 9-13.5 Seconds')
+         && DF.render(files, wd) === dout, 'the Wind lines follow the JSON and round-trip');
+
       const fresh = DF.render(files, null);
       ok(['## I. Easy', '## II. Medium', '## III. Hard', '## IV. Supreme'].every((s) => fresh.includes('\n' + s + '\n'))
          && fresh.includes('\n| Supreme | | | | | x |') && DF.render(files, fresh) === fresh, 'difficulty.md renders from nothing, idempotently');
@@ -1748,7 +1775,8 @@ console.log('\n— difficulty panel —');
     ok(heads.join() === 'Easy,Medium,Hard,Supreme', 'one column per difficulty, in ladder order (' + heads.join() + ')');
     const ROWS = ['start', 'extend', 'maxExt', 'target', 'tipStart', 'tipFloor', 'tipDecay', 'fines.ticket', 'fines.ped', 'fines.train', 'fines.remake',
       ...NAV_KEYS.map((f) => 'nav.' + f), 'kitchen.tipPerItem', 'kitchen.decay', 'kitchen.maxItems', 'kitchen.every', 'kitchen.railMax',
-      'kitchen.queueMax', 'kitchen.hint', 'kitchen.hintNewOnly', 'kitchen.hintStall', 'kitchen.cleanBonus', 'perfectBonus'];
+      'kitchen.queueMax', 'kitchen.hint', 'kitchen.hintNewOnly', 'kitchen.hintStall', 'kitchen.cleanBonus', 'perfectBonus',
+      'wind.strength', 'wind.gustEvery.0', 'wind.gustEvery.1', 'wind.tumbleweeds'];
     const want = DIFF_KEYS.flatMap((k) => ROWS.map((r) => k + '.' + r)).sort();
     const got = nodes.filter((n) => n.dataset.rel === 'difficulty.json').map((n) => n.dataset.path).sort();
     ok(JSON.stringify(got) === JSON.stringify(want), 'a control for every row in every column, bound to its JSON path (' + got.length + ' of ' + want.length + ')');
@@ -1783,6 +1811,20 @@ console.log('\n— difficulty panel —');
     type(ctl('easy', 'fines.ticket'), '6.50');
     ok(store.get('difficulty.json', 'easy.fines.ticket') === 650, 'a fine is typed in dollars and stored in cents');
     type(ctl('easy', 'fines.ticket'), '5.00');
+
+    /* wind: strength as a 0-1 number, gusts as a min and a max in seconds, tumbleweeds as a count */
+    ok(ctl('supreme', 'wind.strength').value === '0.9' && ctl('easy', 'wind.gustEvery.0').value === '12' && ctl('easy', 'wind.gustEvery.1').value === '16'
+       && ctl('hard', 'wind.tumbleweeds').value === '5' && ctl('easy', 'wind.gustEvery.0').dataset.kind === 'seconds' && ctl('easy', 'wind.tumbleweeds').dataset.kind === 'int',
+       'the wind rows show strength, gusts every min-max seconds and the tumbleweed count');
+    type(ctl('medium', 'wind.strength'), '0.6');
+    ok(store.get('difficulty.json', 'medium.wind.strength') === 0.6 && store.error === null, 'a strength edit stores the number');
+    type(ctl('medium', 'wind.strength'), '1.5');
+    ok(store.error && store.error.path.join('.') === 'medium.wind.strength' && ctl('medium', 'wind.strength').classList.contains('adm-bad'), 'strength 1.5 is refused on its cell');
+    type(ctl('medium', 'wind.strength'), '0.55');
+    type(ctl('hard', 'wind.gustEvery.0'), '13');
+    ok(store.error && store.error.path.join('.') === 'hard.wind.gustEvery.0', 'a gust minimum above its maximum is refused on the minimum');
+    type(ctl('hard', 'wind.gustEvery.0'), '8');
+    ok(store.error === null && store.get('difficulty.json', 'medium.wind.strength') === 0.55, 'and putting them back clears it');
 
     const tick = (c, on) => { c.checked = on; c.fire('change'); FL.paint(); };
     tick(ctl('hard', 'nav.line'), true);

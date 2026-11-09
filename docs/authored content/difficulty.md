@@ -111,6 +111,14 @@ nothing. A 3-item ticket served 30s after it
 arrives pays $11.25, level with an Easy delivery. Paper estimates, set 2026-09-26; tune
 them by playtest.
 
+### F. Wind
+
+- Wind Strength : 0.35
+
+- Gust Every : 12-16 Seconds
+
+- Tumbleweeds : 3
+
 ## II. Medium
 
 Levels 7-12, the 1980s. Map 2 and the Era 2 menu add their own difficulty on top of
@@ -158,6 +166,14 @@ A 1-item ticket lasts 30s (Easy 40s), 3 items 90s, 4 items 120s. A 3-item ticket
 30s after it arrives pays $10.00.
 
 Hard and Supreme allow 5 items per ticket.
+
+### F. Wind
+
+- Wind Strength : 0.55
+
+- Gust Every : 10-14 Seconds
+
+- Tumbleweeds : 4
 
 ## III. Hard
 
@@ -209,6 +225,14 @@ these numbers. Anything not listed here is the same as Medium.
 A 1-item ticket lasts 25s (Medium 30s), 3 items 75s, 5 items 125s. A 3-item ticket served
 30s after it arrives pays $9.00. At an estimated ~15s to build an average ticket, the rail
 keeps up until a run of big tickets backs it up.
+
+### F. Wind
+
+- Wind Strength : 0.75
+
+- Gust Every : 8-12 Seconds
+
+- Tumbleweeds : 5
 
 ## IV. Supreme
 
@@ -266,3 +290,11 @@ Fines are flat from Medium through Hard; the finale is where they rise again.
 
 Tickets arrive about as fast as an average one can be built (~15s, estimated), so the
 rail stays full and the 3-ticket limit is the finale's constant pressure.
+
+### F. Wind
+
+- Wind Strength : 0.9
+
+- Gust Every : 8-11 Seconds
+
+- Tumbleweeds : 6

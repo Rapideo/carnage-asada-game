@@ -94,6 +94,12 @@ const Audio5 = {
       case 'horn':    this.tone(440, 0.2, 'square', 0.10); this.tone(554, 0.2, 'square', 0.09); break;
       case 'bell':    this.tone(1046, 0.10, 'sine', 0.09); this.tone(1318, 0.12, 'sine', 0.08, 0, 0.09); break;
       case 'trainhorn': this.tone(146, 0.55, 'sawtooth', 0.15); this.tone(196, 0.55, 'sawtooth', 0.12, 0, 0.02); this.tone(233, 0.50, 'sawtooth', 0.09, 0, 0.04); break;
+      /* a gust's telegraph (55_wind): a rush of air that swells for the second
+         before the gust and breaks as it hits. The noise buffer is 0.35s, so
+         the swell is overlapping bursts, each a little louder and brighter. */
+      case 'gust':    [0, 1, 2, 3, 4].forEach((i) => this.noise(0.42, [0.05, 0.09, 0.14, 0.2, 0.16][i], 380 + i * 160, 0.6, i * 0.22));
+                      this.tone(70, 1.2, 'sine', 0.06, 110); break;
+      case 'weed':    this.noise(0.12, 0.2, 2400, 1.1); this.noise(0.08, 0.14, 900, 0.9, 0.04); break;
       case 'nav':     this.tone(1568, 0.06, 'square', 0.13); break;
       case 'recalc':  this.tone(392, 0.09, 'square', 0.13); this.tone(330, 0.12, 'square', 0.12, 0, 0.09); break;
       case 'ticket':  [0, 1, 2].forEach((i) => this.tone([392, 330, 262][i], 0.18, 'sawtooth', 0.18, 0, i * 0.1)); break;

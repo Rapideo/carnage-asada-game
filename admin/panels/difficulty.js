@@ -34,9 +34,21 @@ const perDollar = (path) => ({
   },
 });
 
+/* a wind strength, 0 to 1: typed as a plain number, range-checked by the
+   validator so a 1.5 is refused on its cell with the validator's message */
+const fraction = {
+  fromJSON: (v) => (typeof v === 'number' ? String(v) : ''),
+  toJSON: (s) => {
+    const t = s.trim();
+    if (!/^(\d+(\.\d*)?|\.\d+)$/.test(t)) throw new Error('needs a number from 0 to 1, like 0.55');
+    return Number(t);
+  },
+};
+
 const NAV_LABEL = { panel: 'Nav panel', line: 'Map route line', dot: 'Map dot', edge: 'Edge pointer', beacon: 'Beacon' };
 
-/* [group, [[path, label, kind], ...]]; kind 'rate' is a decay ($1.00 / N s) */
+/* [group, [[path, label, kind], ...]]; kind 'rate' is a decay ($1.00 / N s),
+   'fraction' a 0-1 number */
 const GROUPS = [
   ['Clock', [['start', 'Starting clock', 'seconds'], ['extend', 'Extension adds', 'seconds'],
     ['maxExt', 'Max extensions', 'int'], ['target', 'Level target', 'int']]],
@@ -50,6 +62,9 @@ const GROUPS = [
     ['kitchen.hint', 'Next-ingredient hint', 'bool'],
     ['kitchen.hintNewOnly', 'Only for new dishes', 'bool'], ['kitchen.hintStall', 'Hint after a stall of', 'seconds'], ['kitchen.cleanBonus', 'Clean ticket bonus', 'money']]],
   ['Bonus', [['perfectBonus', 'Perfect delivery', 'money']]],
+  /* windy Delivery levels only (levels.json says which): 55_wind.js */
+  ['Wind', [['wind.strength', 'Wind strength (0-1)', 'fraction'], ['wind.gustEvery.0', 'A gust every, at least', 'seconds'],
+    ['wind.gustEvery.1', 'and at most', 'seconds'], ['wind.tumbleweeds', 'Tumbleweeds', 'int']]],
 ];
 
 /* the read-only row: seconds for a delivery tip to fall from start to floor */
@@ -100,6 +115,7 @@ function draw(el) {
         const td = h(doc, 'td');
         const path = [k, ...p.split('.')];
         if (kind === 'rate') Admin.field(td, { rel: REL, path, kind: 'seconds', label: '$1.00 /', ...perDollar(path), title: 'cents per second, as $1.00 every N seconds' });
+        else if (kind === 'fraction') Admin.field(td, { rel: REL, path, kind: 'text', ...fraction, title: '0 is still air, 1 the strongest wind' });
         else Admin.field(td, { rel: REL, path, kind });
         tr.appendChild(td);
       }

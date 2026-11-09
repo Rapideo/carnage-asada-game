@@ -735,6 +735,23 @@ function buildDifficulty(src) {
     if (!isNum(kt.hintStall) || kt.hintStall <= 0) fail(F, [k, 'kitchen', 'hintStall'], `${W}.kitchen.hintStall must be a positive number of seconds, got ${JSON.stringify(kt.hintStall)}`);
     if (!Number.isInteger(kt.railMax) || kt.railMax < 1) fail(F, [k, 'kitchen', 'railMax'], `${W}.kitchen.railMax must be a whole number >= 1, got ${JSON.stringify(kt.railMax)}`);
     if (!Number.isInteger(kt.queueMax) || kt.queueMax < 0) fail(F, [k, 'kitchen', 'queueMax'], `${W}.kitchen.queueMax must be a whole number >= 0, got ${JSON.stringify(kt.queueMax)}`);
+    /* wind (0.9.3): the Delivery Shift on a windy level. strength scales the
+       bag's drift and the gusts' shove; gustEvery is the seconds from one gust
+       to the next, a random pick between min and max; tumbleweeds is how many
+       roll around the player at once. */
+    const wd = d.wind;
+    if (!wd || typeof wd !== 'object') fail(F, [k, 'wind'], `${W} is missing "wind" ({ strength, gustEvery, tumbleweeds })`);
+    if (!isNum(wd.strength) || wd.strength < 0 || wd.strength > 1)
+      fail(F, [k, 'wind', 'strength'], `${W}.wind.strength must be a number from 0 to 1 (0.35 is gentle, 0.9 strong), got ${JSON.stringify(wd.strength)}`);
+    const ge = wd.gustEvery;
+    if (!Array.isArray(ge) || ge.length !== 2)
+      fail(F, [k, 'wind', 'gustEvery'], `${W}.wind.gustEvery must be [min, max] seconds between gusts, like [10, 14], got ${JSON.stringify(ge)}`);
+    ge.forEach((v, i) => {
+      if (!isNum(v) || v <= 0) fail(F, [k, 'wind', 'gustEvery', i], `${W}.wind.gustEvery[${i}] must be a positive number of seconds, got ${JSON.stringify(v)}`);
+    });
+    if (ge[0] > ge[1]) fail(F, [k, 'wind', 'gustEvery', 0], `${W}.wind.gustEvery min (${ge[0]}s) is above its max (${ge[1]}s)`);
+    if (!Number.isInteger(wd.tumbleweeds) || wd.tumbleweeds < 0 || wd.tumbleweeds > 12)
+      fail(F, [k, 'wind', 'tumbleweeds'], `${W}.wind.tumbleweeds must be a whole number from 0 to 12, got ${JSON.stringify(wd.tumbleweeds)}`);
   }
   return out;
 }

@@ -42,6 +42,9 @@
                                                                    kept as the note after the
                                                                    state; off, as "none. When
                                                                    on: <it>")
+     Wind             Wind Strength : 0.35<tail>                    wind.strength    (0-1, as a number)
+     Wind             Gust Every : 12-16 Seconds<tail>              wind.gustEvery   (min-max)
+     Wind             Tumbleweeds : 3<tail>                         wind.tumbleweeds
 
    Same-as items, handled by the engine's same-as rule:
      Medium   Bonus Structure   - Same as Easy                      extend..target, perfectBonus, cleanBonus
@@ -152,12 +155,20 @@ const KITCHEN = [
   HINT,
 ];
 
+/* windy Delivery levels only (0.9.3, 55_wind.js); a section of its own, after the Kitchen Shift */
+const WIND = [
+  F((d) => d.wind.strength, 'Wind Strength', (d) => num(d.wind.strength), /^\d+(?:\.\d+)?/),
+  F((d) => d.wind.gustEvery, 'Gust Every', (d) => num(d.wind.gustEvery[0]) + '-' + num(d.wind.gustEvery[1]) + ' Seconds', /^\d+(?:\.\d+)?-\d+(?:\.\d+)? Seconds/i),
+  F((d) => d.wind.tumbleweeds, 'Tumbleweeds', (d) => String(d.wind.tumbleweeds), /^\d+/),
+];
+
 const SECTIONS = [
   { name: 'Shift', fields: [START, TIP_START, TIP_DECAY, TIP_FLOOR] },
   { name: 'Bonus Structure', subs: [{ name: 'Extended Play', fields: [EXTEND, MAX_EXT, TARGET] }, { name: 'Points Bonus', fields: [PERFECT, CLEAN] }] },
   { name: 'Penalties', fields: FINES },
   { name: 'Navigation', fields: [] },
   { name: 'Kitchen Shift', fields: KITCHEN },
+  { name: 'Wind', fields: WIND },
 ];
 const allFields = (s) => s.fields || s.subs.flatMap((x) => x.fields);
 
