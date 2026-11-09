@@ -81,6 +81,7 @@ const Kitchen = {
   cur: { c: 3, r: 0, z: 0 },
   arriveT: 0, docket: 0,
   flashKey: null, flashT: 0, wrongKey: null, hintT: 0,
+  newDishes: null, stallT: 0, hintItem: null, hintStep: -1,
   buzzT: 0, barkT: 0, complained: false,
   bg: null, wells: null, frames: null, picCache: null,
   lastMx: -1, lastMy: -1,
@@ -108,12 +109,43 @@ const Kitchen = {
     this.arriveT = 1.5;                   // the first ticket arrives almost at once
     this.docket = 0;
     this.flashKey = null; this.flashT = 0; this.wrongKey = null; this.hintT = 0;
+    this.stallT = 0; this.hintItem = null; this.hintStep = -1;
+    this.newDishes = this.findNewDishes();
     this.buzzT = 0; this.barkT = 0; this.complained = false;
     this.stats = { served: 0, walkouts: 0, items: 0, clean: 0, mistakes: 0, best: 0 };
     this.bot = { t: 0.6, slip: null };
     if (!this.wells) this.buildWells();
     this.picCache = Object.create(null);
     this.bg = this.buildBg();
+  },
+
+  /* The dishes new to this era: not on the previous era's menu under the same
+     name and recipe. Every dish is new in era 1. Medium's hint is for these. */
+  findNewDishes() {
+    const out = new Set(), prev = typeof MENUS !== 'undefined' && MENUS[this.era - 1];
+    const old = new Map(prev ? prev.items.map((i) => [i.name, i.recipe.join('|')]) : []);
+    for (const i of this.menu.items) if (old.get(i.name) !== i.recipe.join('|')) out.add(i.name);
+    return out;
+  },
+
+  /* whether this difficulty gives the next-ingredient hint for this item */
+  hintFor(item) {
+    const d = this.diff;
+    if (!d || !d.hint || !item) return false;
+    return !d.hintNewOnly || this.newDishes.has(item.def.name);
+  },
+
+  /* blink the wanted plate; the coworker says it once per item step */
+  fireHint(G, why) {
+    const it = this.item();
+    if (!it || it.step >= it.def.recipe.length) return;
+    const want = it.def.recipe[it.step];
+    this.hintT = 1.6;
+    this.stallT = 0;
+    if (this.hintItem !== it || this.hintStep !== it.step) {
+      this.hintItem = it; this.hintStep = it.step;
+      Cast.say('coworker', 'hint', { vars: { ING: this.plateName(want) } });
+    }
   },
 
   /* bins and bases arrive as {key, name, plate} or a bare key */
@@ -231,6 +263,13 @@ const Kitchen = {
     this.barkT = Math.max(0, this.barkT - dt);
     this.hintT = Math.max(0, this.hintT - dt);
 
+    /* a stall: nothing picked for hintStall seconds while an item is being built */
+    const building = this.item();
+    if (building && building.step < building.def.recipe.length && this.hintFor(building)) {
+      this.stallT += dt;
+      if (this.stallT >= (this.diff.hintStall || 3)) this.fireHint(G, 'stall');
+    } else this.stallT = 0;
+
     /* arrivals: on the clock, and at once whenever the room is empty */
     this.arriveT -= dt;
     const live = this.tickets.length + this.queue.length;
@@ -340,6 +379,7 @@ const Kitchen = {
     const want = it.def.recipe[it.step];
     if (key === want) {
       it.step++;
+      this.stallT = 0;
       this.flashKey = key; this.flashT = 0.32;
       this.wrongKey = null;
       Audio5.sfx('kpick', it.step);
@@ -353,7 +393,8 @@ const Kitchen = {
       this.wrongKey = key;
       this.flashKey = key; this.flashT = 0.32;
       this.stats.mistakes++;
-      if (G.diff.kitchen.hint) this.hintT = 1.6;     // easy: show the right bin
+      this.stallT = 0;
+      if (this.hintFor(it)) this.fireHint(G, 'wrong');     // show the right bin
       Audio5.sfx('kwrong');
       if (Math.random() < 0.3) this.bark(G, 'wrong', this.focus(), true);
     }

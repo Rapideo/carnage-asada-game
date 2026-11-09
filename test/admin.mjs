@@ -48,6 +48,11 @@ const bad4 = structuredClone(files); bad4['difficulty.json'].easy.kitchen.hint =
 e = null; try { validateContent(memSource(bad4)); } catch (x) { e = x; }
 ok(e instanceof ContentError && e.file === 'content/difficulty.json'
    && e.path.join('.') === 'easy.kitchen.hint', 'kitchen.hint must be true or false');
+for (const [what, v, p] of [['0', 0, 'hintStall'], ['"3"', '3', 'hintStall'], ['"yes"', 'yes', 'hintNewOnly']]) {
+  const b = structuredClone(files); b['difficulty.json'].medium.kitchen[p] = v;
+  e = null; try { validateContent(memSource(b)); } catch (x) { e = x; }
+  ok(e instanceof ContentError && e.path.join('.') === 'medium.kitchen.' + p, 'kitchen.' + p + ' = ' + what + ' is refused');
+}
 const bad5 = structuredClone(files); bad5['difficulty.json'].medium.perfectBonus = 5.5;
 e = null; try { validateContent(memSource(bad5)); } catch (x) { e = x; }
 ok(e && e.path.join('.') === 'medium.perfectBonus', 'perfectBonus is integer cents');
@@ -1013,18 +1018,18 @@ console.log('\n— docs —');
       const hintOff = (d) => { d.easy.kitchen.hint = false; d.medium.kitchen.hint = true; d.hard.kitchen.hint = false; };
       const hn = DF.render(dfx(hintOff), dold);
       ok(has(at(hn, 'Medium', 'Kitchen Shift'), '- Hint : on') && has(at(hn, 'Hard', 'Kitchen Shift'), '- Hint : none'), 'Hint reads on / none from the JSON');
-      ok(has(at(dout, 'Easy', 'Kitchen Shift'), "- Hint : after a wrong pick, the right bin's plate blinks amber for 1.6s. The star and"),
+      ok(has(at(dout, 'Easy', 'Kitchen Shift'), "- Hint : the next ingredient's plate blinks amber for 1.6s after a wrong pick or a 3s"),
          "while the hint is on, Easy's description of it is left as written");
       /* Easy's description wraps: turning it off must not leave its second line hanging under a bare "none" */
       const ek = at(hn, 'Easy', 'Kitchen Shift').lines, hi = ek.findIndex((l) => /^- Hint :/.test(l));
-      ok(hi >= 0 && ek[hi] === "- Hint : none. When on: after a wrong pick, the right bin's plate blinks amber for 1.6s. The star and"
-         && ek[hi + 1] === '  the clean bonus are lost all the same. Easy only' && !/^\s+\S/.test(ek[hi + 2] || ''),
+      ok(hi >= 0 && ek[hi] === "- Hint : none. When on: the next ingredient's plate blinks amber for 1.6s after a wrong pick or a 3s"
+         && ek[hi + 1] === '  stall (Easy: every dish; Medium: new dishes only; Hard and Supreme: none)' && !/^\s+\S/.test(ek[hi + 2] || ''),
          "turning Easy's hint off reads none, and keeps its wrapped description as the item's note (" + JSON.stringify(ek.slice(hi, hi + 3)) + ')');
       ok(DF.render(dfx(hintOff), hn) === hn, 'the hint-off render is idempotent');
       /* round trips toggle only the one hint: a value that differs from the level
          before gets a line of its own, and a line, once written, stays */
       const eOff = DF.render(dfx((d) => { d.easy.kitchen.hint = false; }), dold), hon = DF.render(files, eOff);
-      ok(eOff.includes('\n- Hint : none. When on: after a wrong pick') && hon === dout && DF.render(files, hon) === hon,
+      ok(eOff.includes("\n- Hint : none. When on: the next ingredient's plate") && hon === dout && DF.render(files, hon) === hon,
          "Easy's hint off -> on gives back the doc exactly as it was");
       const mOn = DF.render(dfx((d) => { d.medium.kitchen.hint = d.hard.kitchen.hint = d.supreme.kitchen.hint = true; }), dold);
       ok(has(at(mOn, 'Medium', 'Kitchen Shift'), '- Hint : on') && DF.render(files, mOn) === dout, "and Medium's bare none -> on -> none round-trips too");
@@ -1655,13 +1660,14 @@ console.log('\n— difficulty panel —');
     ok(heads.join() === 'Easy,Medium,Hard,Supreme', 'one column per difficulty, in ladder order (' + heads.join() + ')');
     const ROWS = ['start', 'extend', 'maxExt', 'target', 'tipStart', 'tipFloor', 'tipDecay', 'fines.ticket', 'fines.ped', 'fines.train', 'fines.remake',
       ...NAV_KEYS.map((f) => 'nav.' + f), 'kitchen.tipPerItem', 'kitchen.decay', 'kitchen.maxItems', 'kitchen.every', 'kitchen.railMax',
-      'kitchen.queueMax', 'kitchen.hint', 'kitchen.cleanBonus', 'perfectBonus'];
+      'kitchen.queueMax', 'kitchen.hint', 'kitchen.hintNewOnly', 'kitchen.hintStall', 'kitchen.cleanBonus', 'perfectBonus'];
     const want = DIFF_KEYS.flatMap((k) => ROWS.map((r) => k + '.' + r)).sort();
     const got = nodes.filter((n) => n.dataset.rel === 'difficulty.json').map((n) => n.dataset.path).sort();
     ok(JSON.stringify(got) === JSON.stringify(want), 'a control for every row in every column, bound to its JSON path (' + got.length + ' of ' + want.length + ')');
     const MONEY = ['tipStart', 'tipFloor', 'fines.ticket', 'fines.ped', 'fines.train', 'fines.remake', 'kitchen.tipPerItem', 'kitchen.cleanBonus', 'perfectBonus'];
     ok(DIFF_KEYS.every((k) => MONEY.every((p) => ctl(k, p).dataset.kind === 'money')
-       && NAV_KEYS.every((f) => ctl(k, 'nav.' + f).dataset.kind === 'bool') && ctl(k, 'kitchen.hint').dataset.kind === 'bool'),
+       && NAV_KEYS.every((f) => ctl(k, 'nav.' + f).dataset.kind === 'bool') && ctl(k, 'kitchen.hint').dataset.kind === 'bool' && ctl(k, 'kitchen.hintNewOnly').dataset.kind === 'bool'
+       && ctl(k, 'kitchen.hintStall').dataset.kind === 'seconds'),
        'money rows are money fields, nav and hint are on/off');
     ok(ctl('easy', 'fines.ticket').value === '5.00' && ctl('supreme', 'fines.ticket').value === '15.00', 'fines show in dollars');
     ok(ctl('easy', 'tipDecay').value === '3' && ctl('medium', 'tipDecay').value === '2.5' && ctl('easy', 'kitchen.decay').value === '8'

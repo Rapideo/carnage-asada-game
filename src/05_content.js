@@ -264,6 +264,8 @@ const DIFFICULTY = {
       "every": 25,
       "cleanBonus": 500,
       "hint": true,
+      "hintNewOnly": false,
+      "hintStall": 3,
       "railMax": 3,
       "queueMax": 3
     }
@@ -296,7 +298,9 @@ const DIFFICULTY = {
       "maxItems": 4,
       "every": 20,
       "cleanBonus": 500,
-      "hint": false,
+      "hint": true,
+      "hintNewOnly": true,
+      "hintStall": 3,
       "railMax": 3,
       "queueMax": 3
     }
@@ -330,6 +334,8 @@ const DIFFICULTY = {
       "every": 18,
       "cleanBonus": 500,
       "hint": false,
+      "hintNewOnly": false,
+      "hintStall": 3,
       "railMax": 3,
       "queueMax": 3
     }
@@ -363,6 +369,8 @@ const DIFFICULTY = {
       "every": 15,
       "cleanBonus": 500,
       "hint": false,
+      "hintNewOnly": false,
+      "hintStall": 3,
       "railMax": 3,
       "queueMax": 3
     }

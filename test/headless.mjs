@@ -1316,7 +1316,36 @@ Kt.tickets.length = 0; Kt.queue.length = 0;
     return Kt.hintT;
   };
   ok(wrongPickHint('easy') === 1.6, 'easy: a wrong pick shows the hint for 1.6s');
-  ok(wrongPickHint('medium') === 0, 'medium: a wrong pick shows no hint');
+  ok(wrongPickHint('hard') === 0, 'hard: a wrong pick shows no hint');
+  /* the next-ingredient hint: a stall, a wrong pick, new dishes only */
+  const kl = (d, era) => G.levels().find((l) => l.type === 'kitchen' && l.difficulty === d && (!era || l.era >= era));
+  const setup = (l) => { const d = D[l.difficulty]; G.diffKey = l.difficulty; G.diff = d; Kt.enter(l, d, false); Kt.tickets.length = 0; Kt.queue.length = 0; Kt.arrive(G); Kt.arriveT = 999; return Kt.item(); };
+  const idle = (secs) => { for (let i = 0; i < secs * 60; i++) Kt.update(1 / 60, G); };
+  ok(D.easy.kitchen.hintStall === 3 && D.easy.kitchen.hintNewOnly === false && D.medium.kitchen.hintNewOnly === true && D.hard.kitchen.hint === false, 'hint dials: easy 3s all dishes, medium new only, hard off');
+  { const it = setup(kl('easy'));
+    idle(D.easy.kitchen.hintStall - 0.3);
+    ok(Kt.hintT === 0, 'easy: no hint before the stall');
+    idle(0.5);
+    ok(Kt.hintT > 0, 'easy: a stall of hintStall seconds blinks the hint');
+    ok(Kt.stallT < 1, 'firing the hint restarts the stall clock');
+    const said = [];
+    const CastX = sandbox.__c.Cast, keepSay = CastX.say; CastX.say = (r, m, o) => { said.push([r, m, o && o.vars && o.vars.ING]); return true; };
+    Kt.hintItem = null; idle(3.2); idle(3.2);
+    CastX.say = keepSay;
+    ok(said.length === 1 && said[0][0] === 'coworker' && said[0][1] === 'hint' && said[0][2] === Kt.plateName(it.def.recipe[it.step]), 'the coworker hints once per item step, with the plate name (' + JSON.stringify(said) + ')');
+    const k = it.def.recipe[it.step], cc = Kt.cellOf(k); Kt.cur.c = cc.c; Kt.cur.r = cc.r; Kt.cur.z = cc.z;
+    idle(2); Kt.select(G);
+    ok(Kt.stallT === 0 && it.step === 1, 'a pick resets the stall clock');
+    ok(wrongPickHint('easy') === 1.6, 'easy: a wrong pick still hints'); }
+  { const it = setup(kl('hard')); idle(10); ok(Kt.hintT === 0 && !Kt.hintFor(it), 'hard: nothing hints'); }
+  { const l = kl('medium', 2) || kl('medium');
+    const it = setup(l);
+    const old = Kt.menu.items.find((d) => !Kt.newDishes.has(d.name)), nw = Kt.menu.items.find((d) => Kt.newDishes.has(d.name));
+    ok(!old || !Kt.hintFor({ def: old }), 'medium: an old dish never hints');
+    ok(!nw || Kt.hintFor({ def: nw }), 'medium: a new dish hints');
+    if (old) { it.def = old; it.step = 0; Kt.stallT = 0; Kt.hintT = 0; idle(5); ok(Kt.hintT === 0, 'medium: no stall hint on an old dish'); }
+    if (nw) { it.def = nw; it.step = 0; Kt.stallT = 0; Kt.hintT = 0; idle(3.3); ok(Kt.hintT > 0, 'medium: stall hint on a new dish'); }
+    const e1 = new Set(); Kt.era = 1; ok(Kt.findNewDishes().size === Kt.menu.items.length, 'era 1: every dish is new'); }
   const keepR = D.easy.kitchen.railMax, keepQ = D.easy.kitchen.queueMax;
   D.easy.kitchen.railMax = 2; D.easy.kitchen.queueMax = 1;
   G.diffKey = 'easy'; G.diff = D.easy; Kt.enter(lv('easy'), D.easy, true);

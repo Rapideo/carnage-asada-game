@@ -728,6 +728,8 @@ function buildDifficulty(src) {
     if (!isNum(kt.every) || kt.every <= 0) fail(F, [k, 'kitchen', 'every'], `${W}.kitchen.every must be a positive number of seconds, got ${JSON.stringify(kt.every)}`);
     if (!isCents(kt.cleanBonus)) fail(F, [k, 'kitchen', 'cleanBonus'], `${W}.kitchen.cleanBonus must be integer cents, got ${JSON.stringify(kt.cleanBonus)}`);
     if (typeof kt.hint !== 'boolean') fail(F, [k, 'kitchen', 'hint'], `${W}.kitchen.hint must be true or false, got ${JSON.stringify(kt.hint)}`);
+    if (typeof kt.hintNewOnly !== 'boolean') fail(F, [k, 'kitchen', 'hintNewOnly'], `${W}.kitchen.hintNewOnly must be true or false, got ${JSON.stringify(kt.hintNewOnly)}`);
+    if (!isNum(kt.hintStall) || kt.hintStall <= 0) fail(F, [k, 'kitchen', 'hintStall'], `${W}.kitchen.hintStall must be a positive number of seconds, got ${JSON.stringify(kt.hintStall)}`);
     if (!Number.isInteger(kt.railMax) || kt.railMax < 1) fail(F, [k, 'kitchen', 'railMax'], `${W}.kitchen.railMax must be a whole number >= 1, got ${JSON.stringify(kt.railMax)}`);
     if (!Number.isInteger(kt.queueMax) || kt.queueMax < 0) fail(F, [k, 'kitchen', 'queueMax'], `${W}.kitchen.queueMax must be a whole number >= 0, got ${JSON.stringify(kt.queueMax)}`);
   }

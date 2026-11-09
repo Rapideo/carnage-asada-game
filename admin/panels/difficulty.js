@@ -47,7 +47,8 @@ const GROUPS = [
   ['Kitchen', [['kitchen.tipPerItem', 'Tip per item', 'money'], ['kitchen.decay', 'Tip decay', 'rate'],
     ['kitchen.maxItems', 'Max items per ticket', 'int'], ['kitchen.every', 'New ticket every', 'seconds'],
     ['kitchen.railMax', 'Tickets on the rail', 'int'], ['kitchen.queueMax', 'Customers who queue', 'int'],
-    ['kitchen.hint', 'Hint after a wrong pick', 'bool'], ['kitchen.cleanBonus', 'Clean ticket bonus', 'money']]],
+    ['kitchen.hint', 'Next-ingredient hint', 'bool'],
+    ['kitchen.hintNewOnly', 'Only for new dishes', 'bool'], ['kitchen.hintStall', 'Hint after a stall of', 'seconds'], ['kitchen.cleanBonus', 'Clean ticket bonus', 'money']]],
   ['Bonus', [['perfectBonus', 'Perfect delivery', 'money']]],
 ];
 

@@ -46,7 +46,7 @@ const DIFF_FALLBACK = {
   fines: { ticket: 500, ped: 200, train: 500, remake: 150 },
   nav: { panel: true, line: true, dot: true, edge: true, beacon: true },
   kitchen: { tipPerItem: 500, decay: 100 / 8, maxItems: 3, every: 25,
-             cleanBonus: 500, hint: true, railMax: 3, queueMax: 3 },
+             cleanBonus: 500, hint: true, hintNewOnly: false, hintStall: 3, railMax: 3, queueMax: 3 },
 };
 const NAV_FULL = { panel: true, line: true, dot: true, edge: true, beacon: true };
 

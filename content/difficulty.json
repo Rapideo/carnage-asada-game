@@ -31,6 +31,8 @@
       "every": 25,
       "cleanBonus": 500,
       "hint": true,
+      "hintNewOnly": false,
+      "hintStall": 3,
       "railMax": 3,
       "queueMax": 3
     }
@@ -63,7 +65,9 @@
       "maxItems": 4,
       "every": 20,
       "cleanBonus": 500,
-      "hint": false,
+      "hint": true,
+      "hintNewOnly": true,
+      "hintStall": 3,
       "railMax": 3,
       "queueMax": 3
     }
@@ -97,6 +101,8 @@
       "every": 18,
       "cleanBonus": 500,
       "hint": false,
+      "hintNewOnly": false,
+      "hintStall": 3,
       "railMax": 3,
       "queueMax": 3
     }
@@ -130,6 +136,8 @@
       "every": 15,
       "cleanBonus": 500,
       "hint": false,
+      "hintNewOnly": false,
+      "hintStall": 3,
       "railMax": 3,
       "queueMax": 3
     }

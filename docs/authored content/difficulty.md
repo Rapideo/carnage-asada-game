@@ -102,8 +102,8 @@ See GDD §IV.F for how these are used.
   the OVERHEAD. While anyone is waiting, every live ticket's tip drains 50% faster, and
   the line complains
 
-- Hint : after a wrong pick, the right bin's plate blinks amber for 1.6s. The star and
-  the clean bonus are lost all the same. Easy only
+- Hint : the next ingredient's plate blinks amber for 1.6s after a wrong pick or a 3s
+  stall (Easy: every dish; Medium: new dishes only; Hard and Supreme: none)
 
 A ticket's tip is also its patience, so these two set how long a customer waits: 40s for
 a 1-item ticket, 120s for 3 items. At 0 the customer walks out, and the ticket pays
@@ -152,7 +152,7 @@ these numbers. Anything not listed here is the same as Easy.
 
 - New Ticket Every : 20 Seconds. If the rail empties, the next ticket arrives at once
 
-- Hint : none
+- Hint : on
 
 A 1-item ticket lasts 30s (Easy 40s), 3 items 90s, 4 items 120s. A 3-item ticket served
 30s after it arrives pays $10.00.
@@ -203,6 +203,8 @@ these numbers. Anything not listed here is the same as Medium.
 - Maximum Items per Ticket : 5
 
 - New Ticket Every : 18 Seconds. If the rail empties, the next ticket arrives at once
+
+- Hint : none
 
 A 1-item ticket lasts 25s (Medium 30s), 3 items 75s, 5 items 125s. A 3-item ticket served
 30s after it arrives pays $9.00. At an estimated ~15s to build an average ticket, the rail
