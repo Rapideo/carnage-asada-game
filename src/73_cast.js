@@ -11,15 +11,17 @@
    - never in attract mode or either demo: a talking head over the shop window
      reads as a cutscene, and the demo would have the cops chatting at nobody;
    - one line at a time. A hostile line (a walkout, a complaint, a cop) with
-     more than a second left is not talked over, and Cast.say says so by
-     returning false, so the caller can fall back to the customer or say
-     nothing. A friendly line yields to the cast.
+     more than a second left is not replaced by the cast: Cast.say returns
+     false, so the caller can fall back to the customer or say nothing. A
+     friendly line yields to the cast. (The customer's own hostile barks, a
+     walkout and G.react are not gated by this and may cut a cast line short.)
 */
 'use strict';
 
 const RIVAL_ODDS = 1 / 3;            // a rival speaks instead of the customer on a miss or a perfect toss
 const TROUBLE_QUEUE_ODDS = 0.5;      // a coworker replaces the customer's queue line
 const CAST_SECS = 2.4;
+const CAST_ROW_SECS = 1;             // each extra row of a line holds the strip this much longer
 const CAST_YIELD = 1;                // a hostile line this close to done may be replaced
 
 /* which moments are hostile (a red name plate): the law and a taunt are; a
@@ -56,7 +58,7 @@ const Cast = {
   /** whether the strip may be taken now */
   free() {
     if (G.state !== 'play' && G.state !== 'kitchen') return false;
-    if (Kitchen.demo) return false;
+    if (G.state === 'kitchen' && Kitchen.demo) return false;     // Kitchen.demo can be stale outside a kitchen level
     if (Dialog.active && Dialog.hostile && DLG_RISE + Dialog.hold - Dialog.t > CAST_YIELD) return false;
     return true;
   },
@@ -70,13 +72,14 @@ const Cast = {
     if (!c) return false;
     const line = this.line(c, moment, opts.vars);
     if (!line) return false;
+    const rows = Math.max(1, Dialog.wrap(line, c.face).length);
     const hostile = opts.hostile != null ? !!opts.hostile : !!CAST_HOSTILE[moment];
     Dialog.say(c.name, line, {
       face: c.face,
       hostile: hostile,
       hood: hostile ? 3 : 1,
       sub: opts.sub || '',
-      secs: opts.secs || CAST_SECS,
+      secs: opts.secs || (CAST_SECS + (rows - 1) * CAST_ROW_SECS),
     });
     return true;
   },

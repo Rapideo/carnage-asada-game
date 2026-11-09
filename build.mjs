@@ -45,7 +45,7 @@ writeFileSync(join(SRC, '05_content.js'),
   'const DIFFICULTY = ' + pretty(difficulty) + ';\n\n' +
   'const MENUS = ' + pretty(menus).replace(/\{\n\s+"(key|name)"[^{}]*?\}/g, (m) => m.replace(/\n\s*/g, ' ')) + ';\n\n' +
   'const FACES = ' + oneLineEach(faces) + ';\n\n' +
-  '/* the customers per era, from content/casts.json: Kitchen.castFor(era) */\n' +
+  '/* the customers per era, from content/casts.json: Kitchen.castFor(era, year) */\n' +
   'const CASTS = ' + pretty(casts) + ';\n\n' +
   'const LATTICE = ' + oneLineEach(lattice) + ';\n\n' +
   '/* the prep board: one frame per recipe prefix, and the finishes that differ */\n' +

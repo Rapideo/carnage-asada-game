@@ -37,12 +37,11 @@
      Kitchen Shift    New Ticket Every : 25 Seconds<tail>           kitchen.every
      Kitchen Shift    Ticket Limit : 3 on the rail<tail>, with      kitchen.railMax, and
                       "Up to 3 more customers" in the tail          kitchen.queueMax
-     Kitchen Shift    Hint : <description> | on | none              kitchen.hint     (a description, or
-                                                                                      "on", is left as
-                                                                                      written while true;
-                                                                                      off, a description
-                                                                                      is kept as "none.
-                                                                                      When on: <it>")
+     Kitchen Shift    Hint : on, after a 3s stall | new dishes      kitchen.hint, hintNewOnly,
+                      only, after a 3s stall | none                hintStall (a description is
+                                                                   kept as the note after the
+                                                                   state; off, as "none. When
+                                                                   on: <it>")
 
    Same-as items, handled by the engine's same-as rule:
      Medium   Bonus Structure   - Same as Easy                      extend..target, perfectBonus, cleanBonus
@@ -113,26 +112,34 @@ const LIMIT = F((d) => [d.kitchen.railMax, d.kitchen.queueMax], 'Ticket Limit', 
   },
 });
 
-/* Hint: "none" while off. While on, a description of what it does (Easy's) is
-   left as written; only a "none"/"off" is turned into "on".
-   Turning a description off keeps it, as a note: `- Hint : none. When on:
+/* Hint: "none" while off; while on, the mode and the stall that triggers it,
+   "on, after a 3s stall" or "new dishes only, after a 3s stall" (hint,
+   hintNewOnly, hintStall). A description of what it does (Easy's) is kept as
+   the note after the state: `- Hint : on, after a 3s stall. <description>`.
+   Turning it off keeps the description as a note: `- Hint : none. When on:
    <description>`, so its wrapped continuation lines still belong to the item
    (a bare "none" would leave them orphaned under it, saying the hint is on).
-   Turning it back on strips the "none. When on: " again, so off -> on gives
-   back the line exactly as it was. */
+   Turning it back on moves it behind the state again. */
 const NONE = /^(?:none|off|no)\b/i;
 const PARKED = /^(?:none|off|no)\. When on: (.*)$/i;
-const HINT = F((d) => d.kitchen.hint, 'Hint', null, null, {
+const ON_HEAD = /^(?:on|new dishes only)(?:, after a \d+(?:\.\d+)?s stall)?/i;
+const hintState = (d) => (d.kitchen.hint ? (d.kitchen.hintNewOnly ? 'new dishes only' : 'on') + ', after a ' + num(d.kitchen.hintStall) + 's stall' : 'none');
+const HINT = F((d) => [d.kitchen.hint, d.kitchen.hintNewOnly, d.kitchen.hintStall], 'Hint', null, null, {
   write(node, d, at) {
-    if (!at) return setField(node, 'Hint', d.kitchen.hint ? 'on' : 'none');
+    const state = hintState(d);
+    if (!at) return setField(node, 'Hint', state);
     const o = { indent: at.indent };
-    const v = /:\s*(.*)$/.exec(node.lines[findField(node, at.key, o)])[1], parked = PARKED.exec(v);
+    const v = /:\s*(.*)$/.exec(node.lines[findField(node, at.key, o)])[1], parked = PARKED.exec(v), head = ON_HEAD.exec(v);
     if (d.kitchen.hint) {
-      if (parked) setField(node, at.key, parked[1], { ...o, match: /^.*/ });
-      else if (NONE.test(v)) setField(node, at.key, 'on', { ...o, match: NONE });
+      if (parked) setField(node, at.key, state + '. ' + parked[1], { ...o, match: /^.*/ });
+      else if (head) setField(node, at.key, state, { ...o, match: ON_HEAD });
+      else if (NONE.test(v)) setField(node, at.key, state, { ...o, match: NONE });
+      else setField(node, at.key, state + '. ' + v, { ...o, match: /^.*/ });
     } else if (NONE.test(v)) setField(node, at.key, 'none', { ...o, match: NONE });
-    else if (/^on\b/i.test(v)) setField(node, at.key, 'none', { ...o, match: /^on\b/i });
-    else setField(node, at.key, 'none. When on: ' + v, { ...o, match: /^.*/ });
+    else if (head) {
+      const note = v.slice(head[0].length).replace(/^\. /, '');
+      setField(node, at.key, note ? 'none. When on: ' + note : 'none', { ...o, match: /^.*/ });
+    } else setField(node, at.key, 'none. When on: ' + v, { ...o, match: /^.*/ });
   },
 });
 

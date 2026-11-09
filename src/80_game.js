@@ -215,6 +215,7 @@ const G = {
     this.paused = false; this.demoAim = null;
     Audio5.sirenOff();
     Dialog.drop();
+    Kitchen.demo = false;                      // a kitchen attract run must not outlive itself
     this.player = new Player(City.shop.dock.x, City.shop.dock.y + 70, -PI / 2);
     this.traffic.length = 0; this.peds.length = 0; this.flying.length = 0;
     this.cop = null; Nav.clear(); Fx.clear();
@@ -306,6 +307,7 @@ const G = {
     this.cardT = 0;
     this.paused = false;
     Dialog.drop();
+    Kitchen.demo = false;
     if (this.stage === 'kitchen') Kitchen.enter(this.level, this.diff, false);
     else this.prepDelivery();
     this.shift = this.diff.start;

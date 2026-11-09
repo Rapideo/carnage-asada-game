@@ -107,7 +107,7 @@ The dialogue width check is **not** the 384px one every other field uses: the po
 bubble, so the limit is computed from the widest baked face (`dlgLimitPx` in `validate.mjs`). **A line
 wraps to at most two rows**, and the build checks every row of the wrap (`wrapRows`, the same rule as
 `Dialog.wrap`), not the whole line's width. A line that passes the screen-width check can still overflow
-the bubble, and nothing in the test suite can see it. The attribution record for the personal lines is
+the bubble, so the row check is the guard; `— copy —` in the headless suite re-wraps every shared, personal and cast line with `Dialog.wrap` and fails any over two rows. The attribution record for the personal lines is
 `reference/assets/line-attribution/part-1..3.json`; the owner reviewed and kept every attributed line
 (2026-11-08).
 

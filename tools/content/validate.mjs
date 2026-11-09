@@ -553,6 +553,9 @@ function buildDialogue(src, faces) {
     }
     for (const need of mine)
       if (!lines[need]) fail(F, at('lines', need), `${F}: cast.${key} (${c.role}) is missing "${need}" lines`);
+    for (const [k2, o] of Object.entries(cast))
+      if (o.role === c.role && o.era === c.era)
+        fail(F, at(), `${F}: cast.${key} is a second ${c.role} for era ${c.era}; cast.${k2} already is, and only the first would ever speak. Give it another era or role, or remove one.`);
     cast[key] = { name: c.name, face: c.face, era: c.era, role: c.role, lines };
   }
   out.cast = cast;

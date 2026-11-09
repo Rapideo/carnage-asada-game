@@ -145,8 +145,8 @@ const Kitchen = {
     this.hintT = 1.6;
     this.stallT = 0;
     if (this.hintItem !== it || this.hintStep !== it.step) {
-      this.hintItem = it; this.hintStep = it.step;
-      Cast.say('coworker', 'hint', { vars: { ING: this.plateName(want) } });
+      /* recorded only if the coworker actually spoke, so a refused line is tried again */
+      if (Cast.say('coworker', 'hint', { vars: { ING: this.plateName(want) } })) { this.hintItem = it; this.hintStep = it.step; }
     }
   },
 
@@ -399,6 +399,7 @@ const Kitchen = {
     if (key === want) {
       it.step++;
       this.stallT = 0;
+      this.hintT = 0;                    // hintPlate follows the live step: end the blink or it jumps ahead
       this.flashKey = key; this.flashT = 0.32;
       this.wrongKey = null;
       Audio5.sfx('kpick', it.step);
@@ -601,13 +602,15 @@ const Kitchen = {
     const line = G.lineFor(kind, t && t.cust ? t.cust.face : null);
     if (!line) return;
     this.barkT = 5;
+    const face = t && t.cust ? t.cust.face : DLG_FACE;
+    const rows = Math.max(1, Dialog.wrap(line, face).length);
     Dialog.say(DIALOGUE.who || 'CUSTOMER', line, {
       face: t && t.cust ? t.cust.face : DLG_FACE,
       hostile: !!hostile,
       hood: hostile ? 3 : 1,
       sub: t ? 'TICKET ' + t.n + (kind === 'walkout' ? '  -  WALKING OUT' : '') : '',
       meter: t && t.max ? clamp(t.tip / t.max, 0, 1) : null,
-      secs: 1.9,
+      secs: 1.9 + (rows - 1) * 1.0,        // two-row lines (most personal ones) need longer to read
     });
   },
 

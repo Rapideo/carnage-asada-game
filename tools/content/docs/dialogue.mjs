@@ -17,7 +17,9 @@
    `who` is a single string and reads as a one-item list. Cast and personal lines
    carry no era.
 
-   What a render writes: the headings and the numbered lists. What it keeps: the
+   What a render writes: the headings and the numbered lists. A character, face
+   or moment the JSON no longer has is dropped with its lines (values never
+   survive in the mirror). What it keeps: the
    preamble (written once, then it is prose), the one-line note under a heading,
    any other prose, and any indented continuation line under a list item, which
    stays with the item at the same position. A section the doc does not have is
@@ -117,7 +119,9 @@ function momentNodes(parent, order, lines) {
     n.lines = writeList(n.lines, lines[m].map(itemText));
     return n;
   });
-  parent.children = [...nodes, ...parent.children.filter((c) => !nodes.includes(c))];
+  /* a moment the JSON no longer has leaves the mirror; other nodes (not moments) are left alone */
+  const known = new Set(order);
+  parent.children = [...nodes, ...parent.children.filter((c) => !nodes.includes(c) && !known.has(c.heading.toLowerCase()))];
 }
 const items = (n) => n.lines.filter((l) => ITEM.test(l)).map((l) => {
   const m = /^\d+\. ("(?:[^"\\]|\\.)*")(?: \((1980s|1990s) on\))?$/.exec(l);
@@ -157,7 +161,7 @@ export default {
       momentNodes(n, CAST_MOMENTS[ch.role], ch.lines);
       return n;
     });
-    cast.children = [...chars, ...cast.children.filter((c) => !chars.includes(c))];
+    cast.children = chars;                 // a character the JSON no longer names takes its lines with it
 
     /* III. Customers */
     const cust = section(doc, 'Customers', 3, 'A customer face\'s own lines. Said about 3 times in 4 when the face has one for the moment; otherwise the shared pool.');
@@ -166,7 +170,7 @@ export default {
       momentNodes(n, DLG_MOMENTS, lines);
       return n;
     });
-    cust.children = [...faces, ...cust.children.filter((c) => !faces.includes(c))];
+    cust.children = faces;
 
     const secs = [shared, cast, cust];
     doc.children = [...secs, ...doc.children.filter((c) => !secs.includes(c))];

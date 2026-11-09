@@ -1671,6 +1671,27 @@ console.log('\n— cast —');
     }
     G.state = 'play'; G.cop = null; quiet();
 
+    /* a kitchen attract demo must not leave the cast silenced for the next run */
+    reset0();
+    G.toDemo(2); G.toTitle(); reset0(); G.startRun(1); G.beginShift(); quiet(); G.cop = null;
+    ok(G.state === 'play' && G.stage === 'delivery', 'a delivery run starts after the attract demo');
+    G.spawnCop();
+    ok(Dialog.active && Dialog.who === 'SGT. PFEIFER', 'after a kitchen attract demo the officer still speaks (' + Dialog.who + ', Kitchen.demo=' + Kt.demo + ')');
+    G.cop = null; quiet();
+
+    /* a cast line holds longer when it wraps to two rows */
+    {
+      const keepLine = Cast.line;
+      try {
+        Cast.line = () => 'OK.';
+        quiet(); G.state = 'play'; Cast.say('rival', 'missed');
+        ok(Math.abs(Dialog.hold - 2.4) < 1e-9, 'a one-row cast line holds 2.4s (' + Dialog.hold + ')');
+        Cast.line = () => 'THIS LINE IS LONG ENOUGH TO WRAP TWICE.';
+        quiet(); Cast.say('rival', 'missed');
+        ok(Dialog.lines.length === 2 && Math.abs(Dialog.hold - 3.4) < 1e-9, 'a two-row cast line holds 3.4s (' + Dialog.lines.length + ' rows, ' + Dialog.hold + ')');
+      } finally { Cast.line = keepLine; quiet(); }
+    }
+
     /* ---- coworkers ---- */
     {
       const Kx = Kt, L = G.levels();
@@ -1738,6 +1759,37 @@ console.log('\n— cast —');
       const fb = forced(baseKey), fi = forced(binKey);
       ok(fb && fb.text.includes(fb.plate) && !/undefined|\{ING\}/.test(fb.text), 'a hint for a base (' + baseKey + ') names the station plate: "' + (fb && fb.text) + '"');
       ok(fi && fi.text.includes(fi.plate) && !/undefined|\{ING\}/.test(fi.text), 'a hint for a bin (' + binKey + ') names the bin plate: "' + (fi && fi.text) + '"');
+      /* a bark holds 1.9s, plus 1.0s for each extra row */
+      {
+        const keepLF = G.lineFor;
+        try {
+          begin(1); tick(1.1); quiet(); Kx.arrive(G);
+          G.lineFor = () => 'SHORT.'; Kx.barkT = 0; Kx.bark(G, 'served', Kx.focus(), false);
+          ok(Dialog.lines.length === 1 && Math.abs(Dialog.hold - 1.9) < 1e-9, 'a one-row bark holds 1.9s (' + Dialog.hold + ')');
+          G.lineFor = () => 'THIS LINE IS LONG ENOUGH TO WRAP TWICE.';
+          Kx.barkT = 0; Kx.bark(G, 'served', Kx.focus(), false);
+          ok(Dialog.lines.length === 2 && Math.abs(Dialog.hold - 2.9) < 1e-9, 'a two-row bark holds 2.9s (' + Dialog.lines.length + ' rows, ' + Dialog.hold + ')');
+        } finally { G.lineFor = keepLF; quiet(); }
+      }
+      /* a correct pick inside the hint blink ends the blink (no free hint for the next step) */
+      {
+        begin(1); tick(1.1); quiet(); Kx.arrive(G); Kx.hintItem = null;
+        const it = Kx.item(); Kx.fireHint(G, 'stall');
+        ok(Kx.hintT > 0, 'the hint is blinking');
+        const key = it.def.recipe[it.step], c = Kx.cellOf(key);
+        Kx.cur.c = c.c; Kx.cur.r = c.r; Kx.cur.z = c.z; Kx.onBtn = false;
+        const step0 = it.step; Kx.select(G);
+        ok(it.step === step0 + 1 && Kx.hintT === 0, 'a correct pick clears the hint blink (hintT=' + Kx.hintT + ')');
+      }
+      /* a hint the strip refused is not marked as said */
+      {
+        begin(1); tick(1.1); quiet(); Kx.arrive(G); Kx.hintItem = null; Kx.hintStep = -1;
+        Dialog.say('CUSTOMER', 'WALKOUT', { hostile: true, secs: 9 });
+        Kx.fireHint(G, 'stall');
+        ok(Dialog.who === 'CUSTOMER' && Kx.hintItem === null, 'a refused hint line does not record hintItem');
+        quiet(); Kx.fireHint(G, 'stall');
+        ok(Dialog.active && Dialog.who === 'MARGE', 'and the coworker voices it once the strip is free (' + Dialog.who + ')');
+      }
       /* not in the kitchen demo */
       begin(1); Kx.demo = true; G.state = 'kdemo'; quiet(); Kx.arrive(G); Kx.hintItem = null; Kx.fireHint(G, 'stall'); tick(1.5);
       G.shift = 10; tick(0.2);
@@ -1760,10 +1812,17 @@ console.log('\n— cast —');
 
 console.log('\n— copy —');
 const dl = KX.DIALOGUE;
-let longLine = 0;
-for (const k of ['arrive', 'wait', 'queue', 'walkout', 'served', 'wrong', 'late'])
-  for (const s of dl[k] || []) if (textW(s.replace(/^\d\|/, ''), 1) > 34 * 6) longLine++;
-ok(longLine === 0, 'every kitchen bark fits the bubble');
+{
+  const { Dialog: Dg, FACES: FC } = KX;
+  const widest = Object.keys(FC).reduce((m, k) => (FC[k].w > FC[m].w ? k : m), Object.keys(FC)[0]);
+  const rows = (s, face) => Dg.wrap(s.replace(/^\d\|/, ''), face).length;
+  let bad = 0, total = 0;
+  const chk = (s, face) => { total++; if (rows(s, face) > 2) { bad++; console.log('    over two rows: ' + s); } };
+  for (const k of Object.keys(dl)) if (Array.isArray(dl[k])) for (const s of dl[k]) if (typeof s === 'string') chk(s, widest);
+  for (const f of Object.keys(dl.people || {})) for (const m of Object.keys(dl.people[f])) if (Array.isArray(dl.people[f][m])) for (const s of dl.people[f][m]) chk(s, f);
+  for (const c of Object.values(dl.cast || {})) for (const m of Object.keys(c.lines)) for (const s of c.lines[m]) chk(s, c.face);
+  ok(total > 100 && bad === 0, 'every shared, personal and cast line wraps to at most two rows (' + total + ' checked, ' + bad + ' over)');
+}
 for (const b of ['ORDER UP!', 'WALKOUT!', '+1:30 EXTENSION', 'LEVEL 20 CLEAR!'])
   ok(textW(b, 2) + 16 <= VW || textW(b, 3) <= VW, `"${b}" fits`);
 

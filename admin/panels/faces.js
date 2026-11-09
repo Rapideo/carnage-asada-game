@@ -2,7 +2,7 @@
 
    Cast per era   each era of content/casts.json: its faces, each with Remove,
                   and "add from all faces" (every baked face not already in that
-                  era). Kitchen.castFor(era) reads the list; the build refuses a
+                  era). Kitchen.castFor(era, year) reads the list; the build refuses a
                   name that is not a face, a repeat, or an empty era.
    Eyes           a face drawn at 4x. Drag a rectangle over each eye (corners
                   snap to the face's pixel grid); a third replaces the nearer

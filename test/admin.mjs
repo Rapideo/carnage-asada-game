@@ -943,7 +943,7 @@ console.log('\n— docs —');
       ok(DF.render(files, dout) === dout, 'rendering difficulty.md is idempotent');
       const a = dold.split('\n'), b = dout.split('\n');
       const changed = a.map((l, i) => [l, b[i]]).filter(([x, y]) => x !== y);
-      ok(a.length === b.length && changed.every(([x, y]) => /^\s*- /.test(x) && x.replace(/\s*:\s*/, ' : ') === y),
+      ok(a.length === b.length && changed.every(([x, y]) => /^\s*- /.test(x) && (x.replace(/\s*:\s*/, ' : ') === y || (/^- Hint :/.test(x) && /^- Hint : (on|new dishes only), after a 3s stall/.test(y)))),
          'from today\'s JSON every line is byte-identical but for "Key:" spacing on value lines (' + JSON.stringify(changed) + ')');
       ok(has(at(dout, 'Easy', 'Shift'), '- Tip Floor : 2.00. The tip falls to it in 54s and holds there; it never runs out')
          && has(at(dout, 'Easy', 'Shift'), '- Depreciation Rate : 1.00 / 3 Seconds')
@@ -1017,9 +1017,14 @@ console.log('\n— docs —');
       ok(nv.includes('\n| Hard | | | | | x |\n') && nv.includes('\n| Medium | x | | x | | x |\n'), 'the Navigation table rows follow the JSON');
       const hintOff = (d) => { d.easy.kitchen.hint = false; d.medium.kitchen.hint = true; d.hard.kitchen.hint = false; };
       const hn = DF.render(dfx(hintOff), dold);
-      ok(has(at(hn, 'Medium', 'Kitchen Shift'), '- Hint : on') && has(at(hn, 'Hard', 'Kitchen Shift'), '- Hint : none'), 'Hint reads on / none from the JSON');
-      ok(has(at(dout, 'Easy', 'Kitchen Shift'), "- Hint : the next ingredient's plate blinks amber for 1.6s after a wrong pick or a 3s"),
-         "while the hint is on, Easy's description of it is left as written");
+      ok(has(at(hn, 'Medium', 'Kitchen Shift'), '- Hint : new dishes only, after a 3s stall') && has(at(hn, 'Hard', 'Kitchen Shift'), '- Hint : none'), 'Hint reads new dishes only / none from the JSON, with the stall');
+      ok(at(dout, 'Easy', 'Kitchen Shift').lines.includes("- Hint : on, after a 3s stall. the next ingredient's plate blinks amber for 1.6s after a wrong pick or a 3s"),
+         "while the hint is on, Easy's line leads with the state and the stall, and its description follows as the note");
+      /* the three hint values each reach the doc */
+      const hs = DF.render(dfx((d) => { d.easy.kitchen.hintStall = 5; d.medium.kitchen.hintNewOnly = false; d.medium.kitchen.hintStall = 2.5; }), dold);
+      ok(at(hs, 'Easy', 'Kitchen Shift').lines.some((l) => l.startsWith('- Hint : on, after a 5s stall. the next ingredient')) && has(at(hs, 'Medium', 'Kitchen Shift'), '- Hint : on, after a 2.5s stall'),
+         'changing hintStall or hintNewOnly changes the Hint line');
+      ok(DF.render(dfx((d) => { d.easy.kitchen.hintStall = 5; d.medium.kitchen.hintNewOnly = false; d.medium.kitchen.hintStall = 2.5; }), hs) === hs && DF.render(files, hs) === dout, 'and it round-trips back');
       /* Easy's description wraps: turning it off must not leave its second line hanging under a bare "none" */
       const ek = at(hn, 'Easy', 'Kitchen Shift').lines, hi = ek.findIndex((l) => /^- Hint :/.test(l));
       ok(hi >= 0 && ek[hi] === "- Hint : none. When on: the next ingredient's plate blinks amber for 1.6s after a wrong pick or a 3s"
@@ -1032,7 +1037,7 @@ console.log('\n— docs —');
       ok(eOff.includes("\n- Hint : none. When on: the next ingredient's plate") && hon === dout && DF.render(files, hon) === hon,
          "Easy's hint off -> on gives back the doc exactly as it was");
       const mOn = DF.render(dfx((d) => { d.medium.kitchen.hint = d.hard.kitchen.hint = d.supreme.kitchen.hint = true; }), dold);
-      ok(has(at(mOn, 'Medium', 'Kitchen Shift'), '- Hint : on') && DF.render(files, mOn) === dout, "and Medium's bare none -> on -> none round-trips too");
+      ok(has(at(mOn, 'Medium', 'Kitchen Shift'), '- Hint : new dishes only, after a 3s stall') && DF.render(files, mOn) === dout, "and Medium's bare none -> on -> none round-trips too");
 
       /* the blind spot: no render leaves a wrapped line under a bare value, and none loses a note line */
       const variants = { today: [dold, dout], ticket: [dold, t12], bonus: [dold, pb], tails: [tailed, tp], floor: [dold, fl],
@@ -1191,6 +1196,22 @@ console.log('\n— docs —');
         ok(bad.length === 0, 'dialogue.md round-trips: reading a render back gives the JSON\'s lines (' + bad + ')');
       } else ok(false, 'dialogue.mjs exports read(text)');
 
+      /* what the JSON no longer has leaves the mirror: values never survive in it */
+      {
+        const gone = gx((d) => { delete d.people.c70bellbottom.wait; });
+        const r1 = DG.read(DG.render(gone, fresh)), lost = files['dialogue.json'].people.c70bellbottom.wait;
+        ok(!('wait' in r1.people.c70bellbottom) && JSON.stringify(r1.people.c70bellbottom) === JSON.stringify(gone['dialogue.json'].people.c70bellbottom)
+           && !DG.render(gone, fresh).includes(JSON.stringify(lost[0])), 'a removed customer moment takes its lines out of dialogue.md');
+        const noFace = gx((d) => { delete d.people.c70bellbottom; });
+        const t2 = DG.render(noFace, fresh);
+        ok(!t2.includes('\n### c70bellbottom\n') && !('c70bellbottom' in DG.read(t2).people) && t2.includes('\n### c70trucker\n'), 'a removed face leaves dialogue.md');
+        const moved = gx((d) => { d.cast.marge.name = 'MARGO'; });
+        const t3 = DG.render(moved, fresh), r3 = DG.read(t3);
+        ok(!t3.includes('\n### MARGE\n') && r3.cast.MARGO && !('MARGE' in r3.cast) && JSON.stringify(r3.cast.MARGO) === JSON.stringify(moved['dialogue.json'].cast.marge.lines), 'a renamed cast member leaves no copy under the old name');
+        const noMoment = gx((d) => { delete d.cast.dusty.lines.perfect; });
+        ok(!('perfect' in DG.read(DG.render(noMoment, fresh)).cast['DUSTY']), 'a removed cast moment leaves the mirror');
+      }
+
       /* the width check is the validator's: an over-wide line is a ContentError at [key, index] */
       let wide = null;
       try { validateContent(memSource(gx((d) => { d.delivered[2] = 'THIS LINE IS FAR TOO WIDE FOR THE SPEECH BUBBLE BESIDE THE PORTRAIT AND IT KEEPS GOING ON'; }))); } catch (x) { wide = x; }
@@ -1261,6 +1282,16 @@ console.log('\n— docs —');
       for (const [name, entry, path] of cbads) {
         const { e } = ce('marge', entry);
         ok(e instanceof ContentError && e.file === 'content/dialogue.json' && e.path.join() === 'cast,' + path, name + ' is a ContentError on cast,' + path + ' (' + (e && e.path.join() + ': ' + e.message.split('\n')[0]) + ')');
+      }
+      /* two characters of the same role and era: Cast.who would take the first and the second would never speak */
+      {
+        let e = null;
+        try { validateContent(memSource(gx((d) => { d.cast = { marge: ent({}), marge2: ent({ name: 'MARGE II' }) }; }))); } catch (x) { e = x; }
+        ok(e instanceof ContentError && e.file === 'content/dialogue.json' && e.path.join() === 'cast,marge2' && /marge/.test(e.message),
+           'a second coworker in the same era is refused on the second entry (' + (e && e.path.join() + ': ' + e.message.split('\n')[0]) + ')');
+        e = null;
+        try { validateContent(memSource(gx((d) => { d.cast = { marge: ent({}), dale: ent({ name: 'DALE', era: 2 }) }; }))); } catch (x) { e = x; }
+        ok(e === null, 'the same role in another era is fine');
       }
     }
 
@@ -2798,7 +2829,7 @@ console.log('\n— cast portraits —');
   for (const k of keys) { try { F[k] = JSON.parse(readFileSync('content/faces/' + k + '.json', 'utf8')); } catch (x) { F[k] = null; } }
   ok(keys.every((k) => F[k]), 'all nine cast faces are in content/faces/');
   ok(keys.every((k) => F[k] && F[k].w === 60 && F[k].h === 74 && F[k].pal.length <= 16), 'each is 60x74 with at most 16 palette entries');
-  ok(keys.every((k) => F[k] && Array.isArray(F[k].eyes) && F[k].eyes.length === 0), 'eyes are cleared for the owner to set by hand');
+  ok(keys.every((k) => F[k] && Array.isArray(F[k].eyes) && (F[k]._eyesByHand || F[k].eyes.length === 0)), 'eyes are cleared for the owner to set by hand (or already set by hand)');
   ok(['rival70', 'rival80', 'rival90'].every((k) => F[k] && F[k].pal.includes('#94a754')), 'the rivals keep the olive cactus (#94a754)');
   ok(['staff70', 'staff80', 'staff90'].every((k) => F[k] && F[k].pal.includes('#1fa37e') && F[k].pal.includes('#f3bd46')), 'the coworkers keep jade and gold');
 }
