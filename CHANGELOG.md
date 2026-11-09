@@ -7,6 +7,50 @@ here, run `node build.mjs` and the tests, commit, and tag it (`git tag v<version
 Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch lists.
 **1.0.0** is when the owner calls it released.
 
+## 0.9.2 (2026-11-08): the town talks
+
+**Customers**
+- **104 new customers**, picked by the owner from the art sheets and baked to match the
+  originals: 38 in the '70s, 45 in the '80s, 37 in the '90s.
+- **Each decade's crowd grows year by year.** A face first appears in the year the owner set
+  and stays to the decade's end.
+- **Every customer has lines of their own:** 670 in all, 4 to 7 each, cast by look, age and
+  decade, with nothing from after their time. A customer uses one of their own lines about 3
+  times in 4, and otherwise one of the 85 shared lines.
+- **Speech can run to two rows** in the bubble. A two-row line stays up a second longer.
+
+**The speaking cast**
+- **Officers** (SGT. PFEIFER, OFC. KARLIN, OFC. DREILING) speak:
+  - when a chase starts;
+  - when you're pulled over or hit a pedestrian;
+  - when you lose them.
+- **Rival drivers** (DUSTY, ACE, JINX) needle your missed tosses and your perfect ones.
+- **Coworkers** (MARGE, DALE, NIKKI) speak:
+  - at clock-in;
+  - after three clean tickets;
+  - when the clock is low or the line backs up;
+  - with the hint.
+- One face per decade for each role, from the art director's approved portraits.
+
+**Kitchen**
+- **The next-ingredient hint:** the right bin blinks after a 3-second stall or a wrong pick,
+  and the coworker says which.
+  - Easy: always.
+  - Medium: only for dishes new to the decade.
+  - Hard and Supreme: off.
+- **WRAP IT! can be reached without a mouse:** press Down past the bins, then select.
+- **The tortilla rack's cursor** now fits each tray.
+
+**Fixes**
+- The speaker's name tag no longer cuts off the bottom of its letters.
+
+**Service Mode**
+- The Dialogue tab works by speaker: shared lines, each of the cast, and each customer.
+- The Difficulty tab has the hint's three settings.
+- The Faces tab sets each customer's first year.
+
+Not yet: the new faces don't blink until their eyes are set by hand in Service Mode.
+
 ## 0.9.1 (2026-11-07): Service Mode
 
 A tool for the owner, not a change to how the game plays. The public game

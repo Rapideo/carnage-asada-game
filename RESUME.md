@@ -3,15 +3,25 @@
 *Written 2026-10-25, after the build that finished the 20-level game, and updated the same
 day once the admin overlay had been designed and planned. Updated 2026-11-06 with two
 pinned art threads, and 2026-11-07 with the art director's prep-board work (below), the
-kitchen surroundings, and version 0.9.0. Updated 2026-11-07 (evening) for Service Mode, version 0.9.1.*
+kitchen surroundings, and version 0.9.0. Updated 2026-11-07 (evening) for Service Mode, version 0.9.1, and
+2026-11-08 for version 0.9.2 (the new customers, their lines, and the speaking cast).*
 This is the starting point for a fresh session. It is a snapshot: **`ROADMAP.md` is the
 living plan**, and if the two disagree, the roadmap wins.
 
-**Start here (2026-11-07): the game is version 0.9.1, which adds Service Mode to the
-feature-complete 0.9.0.** The version is `content/release.json`, shown in the corner of
-the title and pause screens; `CHANGELOG.md` says what is in it. 0.9.0 is tagged `v0.9.0`
-(and deployed to Netlify). Service Mode was built on the branch `admin-overlay`, which has
-not been merged to `master` or pushed; **merging is the owner's call.**
+**Start here (2026-11-08): the game is version 0.9.2, on `master`, tagged `v0.9.2`, pushed
+and deployed to Netlify.** It adds:
+- 104 new customers, growing through each decade;
+- their 670 lines of their own;
+- the nine-character speaking cast;
+- the next-ingredient hint;
+- two-row speech.
+
+0.9.1 added Service Mode to the feature-complete 0.9.0. The version is `content/release.json`,
+shown in the corner of the title and pause screens; `CHANGELOG.md` says what is in each.
+**Next:**
+- the eyes on the 113 new faces (set by hand in Service Mode);
+- the Pixel 10 touch controls (ROADMAP, concept C, decided);
+- the rest of the 0.9.x list.
 
 **Service Mode** is the owner's name for the admin overlay: run `node admin.mjs` in your
 own terminal, open <http://localhost:8124/>, press **F2**. It edits Levels, Menu, Attract,
@@ -323,8 +333,9 @@ Known soft spots:
 
 ## Deployment
 
-- **<https://carnage-asada.netlify.app>** is public and runs **0.9.0**, deployed
-  2026-11-07 from `d717fee` (tag `v0.9.0`, also pushed to GitHub that day). The owner
+- **<https://carnage-asada.netlify.app>** is public and runs **0.9.2**, deployed
+  2026-11-08 from the commit tagged `v0.9.2` (pushed to GitHub the same day). 0.9.0 was
+  deployed on 2026-11-07 from `d717fee`. The owner
   ruled the same day that music clearance is not a concern for deploying; don't raise it
   again.
   - Netlify project `carnage-asada`, team Rapideo
