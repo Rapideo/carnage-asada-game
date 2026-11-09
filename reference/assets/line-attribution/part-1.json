@@ -1,0 +1,2027 @@
+[
+ {
+  "id": "mig-0",
+  "section": "Baby Boomer Rage / \"I'm calling corporate\" energy",
+  "original": "I WANT TO SPEAK TO YOUR MANAGER'S MANAGER!",
+  "text": "I WANT TO SPEAK TO YOUR MANAGER'S MANAGER!",
+  "face": "c70womanwithbigsungla",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-1",
+  "section": "Baby Boomer Rage / \"I'm calling corporate\" energy",
+  "original": "I'M CALLING THE BETTER BUSINESS BUREAU!",
+  "text": "I'M CALLING THE BETTER BUSINESS BUREAU!",
+  "face": "c70teacher",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-2",
+  "section": "Baby Boomer Rage / \"I'm calling corporate\" energy",
+  "original": "THIS IS GOING ON YELP! AND FACEBOOK! AND THE LOCAL NEWS!",
+  "text": "THIS IS GOING IN THE PAPER! AND ON THE LOCAL NEWS!",
+  "face": "c80newsanchor",
+  "moment": "walkout",
+  "changed": "anachronism: Yelp, Facebook -> the paper"
+ },
+ {
+  "id": "mig-3",
+  "section": "Baby Boomer Rage / \"I'm calling corporate\" energy",
+  "original": "I WILL WRITE A GOOGLE REVIEW SO DEVASTATING YOUR CHILDREN WILL FEEL IT!",
+  "text": "I'LL WRITE A COLUMN SO DEVASTATING YOUR KIDS WILL FEEL IT!",
+  "face": "c70newsman2",
+  "moment": "walkout",
+  "changed": "anachronism: Google review -> newspaper column; trimmed to 2 rows"
+ },
+ {
+  "id": "mig-4",
+  "section": "Baby Boomer Rage / \"I'm calling corporate\" energy",
+  "original": "I HAVE BEEN A LOYAL CUSTOMER SINCE NINETEEN HUNDRED AND SEVENTY-TWO!",
+  "text": "I HAVE BEEN A LOYAL CUSTOMER SINCE NINETEEN HUNDRED AND SEVENTY-TWO!",
+  "face": "c80dad",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-5",
+  "section": "Baby Boomer Rage / \"I'm calling corporate\" energy",
+  "original": "DO YOU KNOW WHO I AM?! I'M A HOMEOWNER!",
+  "text": "DO YOU KNOW WHO I AM?! I'M A HOMEOWNER!",
+  "face": "c70pornstar",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-6",
+  "section": "Baby Boomer Rage / \"I'm calling corporate\" energy",
+  "original": "I SERVED IN KOREA FOR THIS KIND OF TREATMENT?!",
+  "text": "I SERVED IN VIETNAM FOR THIS KIND OF TREATMENT?!",
+  "face": "c70militaryguy",
+  "moment": "wait",
+  "changed": "reworded: Korea -> Vietnam, to fit a 1970s soldier's age"
+ },
+ {
+  "id": "mig-7",
+  "section": "Baby Boomer Rage / \"I'm calling corporate\" energy",
+  "original": "MY NEPHEW IS A LAWYER AND HE'LL BE HEARING ABOUT THIS!",
+  "text": "MY NEPHEW IS A LAWYER AND HE'LL BE HEARING ABOUT THIS!",
+  "face": "c70waitress",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-8",
+  "section": "Baby Boomer Rage / \"I'm calling corporate\" energy",
+  "original": "I WANT YOUR NAME, YOUR SUPERVISOR'S NAME, AND YOUR SUPERVISOR'S SUPERVISOR'S NAME, RIGHT NOW!",
+  "text": "YOUR NAME, YOUR BOSS'S NAME, AND HIS BOSS'S NAME. NOW!",
+  "face": "c80yuppiegirl",
+  "moment": "wrong",
+  "changed": "trimmed to 2 rows"
+ },
+ {
+  "id": "mig-9",
+  "section": "Baby Boomer Rage / \"I'm calling corporate\" energy",
+  "original": "I'M GOING TO CALL CORPORATE SO HARD THEIR FAX MACHINE WILL EXPLODE!",
+  "text": "I'LL CALL CORPORATE SO HARD THEIR FAX MACHINE EXPLODES!",
+  "face": "c80businessman",
+  "moment": "walkout",
+  "changed": "trimmed to 2 rows"
+ },
+ {
+  "id": "mig-10",
+  "section": "Baby Boomer Rage / \"Back in my day\" energy",
+  "original": "IN MY DAY, A TACO TOOK THIRTY SECONDS!",
+  "text": "IN THE ARMY, A TACO TOOK THIRTY SECONDS!",
+  "face": "c70militaryguy",
+  "moment": "late",
+  "changed": "reworded: near-duplicate of a shared line (in my day -> in the army)"
+ },
+ {
+  "id": "mig-11",
+  "section": "Baby Boomer Rage / \"Back in my day\" energy",
+  "original": "WHEN I WAS YOUR AGE, I HAD THREE JOBS AND A MORTGAGE!",
+  "text": "WHEN I WAS YOUR AGE, I HAD THREE JOBS AND A MORTGAGE!",
+  "face": "c70trucker",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-12",
+  "section": "Baby Boomer Rage / \"Back in my day\" energy",
+  "original": "THIS GENERATION CAN'T MAKE A TACO WITHOUT THEIR AVOCADO TOAST!",
+  "text": "THIS GENERATION CAN'T MAKE A TACO WITHOUT THEIR DISCO RECORDS!",
+  "face": "c70taxman",
+  "moment": "wrong",
+  "changed": "anachronism: avocado toast -> disco records"
+ },
+ {
+  "id": "mig-13",
+  "section": "Baby Boomer Rage / \"Back in my day\" energy",
+  "original": "I BOUGHT MY FIRST HOUSE FOR A NICKEL AND WAITED LESS TIME THAN THIS!",
+  "text": "I BOUGHT A HOUSE FOR A NICKEL AND WAITED LESS THAN THIS!",
+  "face": "c80doctor",
+  "moment": "late",
+  "changed": "trimmed to 2 rows"
+ },
+ {
+  "id": "mig-14",
+  "section": "Baby Boomer Rage / \"Back in my day\" energy",
+  "original": "WE DIDN'T HAVE 'FOOD COURTS' - WE HAD DIGNITY!",
+  "text": "WE DIDN'T HAVE 'FOOD COURTS' - WE HAD DIGNITY!",
+  "face": "c80businessguy",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-15",
+  "section": "Baby Boomer Rage / \"Back in my day\" energy",
+  "original": "YOU PEOPLE AND YOUR CELL PHONES!",
+  "text": "YOU PEOPLE AND YOUR CELL PHONES!",
+  "face": "c90generationxguy",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-16",
+  "section": "Baby Boomer Rage / \"Back in my day\" energy",
+  "original": "THIS WOULDN'T HAPPEN AT SIZZLER!",
+  "text": "THIS WOULDN'T HAPPEN AT SIZZLER!",
+  "face": "c70bellbottomguy",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-17",
+  "section": "Baby Boomer Rage / \"Back in my day\" energy",
+  "original": "I REMEMBER WHEN THIS WHOLE PLACE WAS A FIELD!",
+  "text": "I REMEMBER WHEN THIS WHOLE PLACE WAS A FIELD!",
+  "face": "c70boatcaptain",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-18",
+  "section": "Baby Boomer Rage / \"Back in my day\" energy",
+  "original": "YOUR FATHER WOULD BE ASHAMED!",
+  "text": "YOUR FATHER WOULD BE ASHAMED!",
+  "face": "c70teacher",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-19",
+  "section": "Baby Boomer Rage / Sputtering disbelief",
+  "original": "OF ALL THE - I JUST - UNBELIEVABLE!",
+  "text": "OF ALL THE - I JUST - UNBELIEVABLE!",
+  "face": "c80preppyguy",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-20",
+  "section": "Baby Boomer Rage / Sputtering disbelief",
+  "original": "WHAT IN THE NAME OF SAM HILL IS GOING ON BACK THERE?!",
+  "text": "WHAT IN THE NAME OF SAM HILL IS GOING ON BACK THERE?!",
+  "face": "c70beekeeper",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-21",
+  "section": "Baby Boomer Rage / Sputtering disbelief",
+  "original": "HEAVENS TO BETSY!",
+  "text": "HEAVENS TO BETSY!",
+  "face": "c70waitress",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-22",
+  "section": "Baby Boomer Rage / Sputtering disbelief",
+  "original": "JIMINY CHRISTMAS!",
+  "text": "JIMINY CHRISTMAS!",
+  "face": "c70bowlcutkid",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-23",
+  "section": "Baby Boomer Rage / Sputtering disbelief",
+  "original": "FOR THE LOVE OF PETE!",
+  "text": "FOR THE LOVE OF PETE!",
+  "face": "c70newsman",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-24",
+  "section": "Baby Boomer Rage / Sputtering disbelief",
+  "original": "LAND SAKES ALIVE!",
+  "text": "LAND SAKES ALIVE!",
+  "face": "c70beekeeper",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-25",
+  "section": "Baby Boomer Rage / Sputtering disbelief",
+  "original": "MOTHER OF MERCY!",
+  "text": "MOTHER OF MERCY!",
+  "face": "c70discoking",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-26",
+  "section": "Baby Boomer Rage / Sputtering disbelief",
+  "original": "SWEET MOTHER MARY AND JOSEPH!",
+  "text": "SWEET MOTHER MARY AND JOSEPH!",
+  "face": "c70greaser",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-27",
+  "section": "Baby Boomer Rage / Sputtering disbelief",
+  "original": "BY THE BEARD OF ZEUS!",
+  "text": "BY THE BEARD OF ZEUS!",
+  "face": "c70magician",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-28",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Pure invented insult chaos",
+  "original": "STUFF IT, METALLICA BREATH!",
+  "text": "STUFF IT, METALLICA BREATH!",
+  "face": "c80newwaveguy",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-29",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Pure invented insult chaos",
+  "original": "EAT MY SHORTS, YOU TAPE-DECK REJECT!",
+  "text": "EAT MY SHORTS, YOU TAPE-DECK REJECT!",
+  "face": "c80breakfastclubkid",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-30",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Pure invented insult chaos",
+  "original": "BITE THE BIG ONE, TACO FUMBLER!",
+  "text": "BITE THE BIG ONE, TACO FUMBLER!",
+  "face": "c80metalhead",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-31",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Pure invented insult chaos",
+  "original": "TAKE A LONG WALK OFF A SHORT PIER, YOU ABSOLUTE MELVIN!",
+  "text": "TAKE A LONG WALK OFF A SHORT PIER, YOU ABSOLUTE MELVIN!",
+  "face": "c80jock2",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-32",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Pure invented insult chaos",
+  "original": "SUCK AN EGG, YOU FLANNEL-WEARING FAILURE!",
+  "text": "SUCK AN EGG, YOU FLANNEL-WEARING FAILURE!",
+  "face": "c90miamiclubkid",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-33",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Pure invented insult chaos",
+  "original": "GO CHEW ON A HACKY SACK!",
+  "text": "GO CHEW ON A HACKY SACK!",
+  "face": "c90skaterkid",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-34",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Pure invented insult chaos",
+  "original": "CHOKE ON A JOLT COLA, YOU LOSER!",
+  "text": "CHOKE ON A JOLT COLA, YOU LOSER!",
+  "face": "c80skateboarder",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-35",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Pure invented insult chaos",
+  "original": "EAT IT, GRAVY DRAWERS!",
+  "text": "EAT IT, GRAVY DRAWERS!",
+  "face": "c80arcadekid2",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-36",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Pure invented insult chaos",
+  "original": "UP YOURS, BUTT MUNCH!",
+  "text": "UP YOURS, BUTT MUNCH!",
+  "face": "c80punkrocker",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-37",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Pure invented insult chaos",
+  "original": "CRAM IT WITH WALNUTS, UGLY!",
+  "text": "CRAM IT WITH WALNUTS, UGLY!",
+  "face": "c90nintendokid",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-38",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Pure invented insult chaos",
+  "original": "YOU'RE A REAL PIECE OF WORK, YOU KNOW THAT, BARNEY?",
+  "text": "YOU'RE A REAL PIECE OF WORK, YOU KNOW THAT, BARNEY?",
+  "face": "c80biker",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-39",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Pure invented insult chaos",
+  "original": "WHAT A TURKEY!",
+  "text": "WHAT A TURKEY!",
+  "face": "c70rollerskater",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-40",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Pure invented insult chaos",
+  "original": "WHAT A MAROON!",
+  "text": "WHAT A MAROON!",
+  "face": "c70stagehand",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-41",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Pure invented insult chaos",
+  "original": "DON'T BE SUCH A SPAZ!",
+  "text": "DON'T BE SUCH A SPAZ!",
+  "face": "c80gijoefan",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-42",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Pure invented insult chaos",
+  "original": "YOU'RE DOUGIE HOWSER ON A BAD DAY!",
+  "text": "YOU'RE DOOGIE HOWSER ON A BAD DAY!",
+  "face": "c90boybandmember",
+  "moment": "wrong",
+  "changed": "reworded: name spelled as the show has it (Doogie)"
+ },
+ {
+  "id": "mig-43",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Pure invented insult chaos",
+  "original": "BITE ME, YOU SLACKER!",
+  "text": "BITE ME, YOU SLACKER!",
+  "face": "c90soap",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-44",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Slacker disappointment",
+  "original": "WHATEVER, MOM.",
+  "text": "WHATEVER, MOM.",
+  "face": "c90daria",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-45",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Slacker disappointment",
+  "original": "THIS IS SO LAME.",
+  "text": "THIS IS SO LAME.",
+  "face": "c90alternativegirl",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-46",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Slacker disappointment",
+  "original": "I'M SO SURE.",
+  "text": "I'M SO SURE.",
+  "face": "c80valley",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-47",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Slacker disappointment",
+  "original": "GAG ME WITH A SPOON.",
+  "text": "GAG ME WITH A SPOON.",
+  "face": "c80girlwithlegwarmers",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-48",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Slacker disappointment",
+  "original": "AS IF!",
+  "text": "AS IF!",
+  "face": "c90cluelessblonde",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-49",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Slacker disappointment",
+  "original": "COULD YOU BE ANY SLOWER?",
+  "text": "COULD YOU BE ANY SLOWER?",
+  "face": "c90grungeguy",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-50",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Slacker disappointment",
+  "original": "EARTH TO TACO BOY, COME IN TACO BOY!",
+  "text": "CABIN TO TACO BOY, COME IN TACO BOY!",
+  "face": "c70flightattendant",
+  "moment": "wait",
+  "changed": "reworded: near-duplicate of a shared line (earth -> cabin)"
+ },
+ {
+  "id": "mig-51",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Slacker disappointment",
+  "original": "WHAT PLANET ARE YOU LIVING ON, MR. ROBOTO?",
+  "text": "WHAT PLANET ARE YOU LIVING ON, MR. ROBOTO?",
+  "face": "c80newwaveguy2",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-52",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / Slacker disappointment",
+  "original": "GET WITH THE PROGRAM, JETHRO!",
+  "text": "GET WITH THE PROGRAM, JETHRO!",
+  "face": "c80aerobics",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-53",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / MTV-era pop culture deep cuts",
+  "original": "I'M GONNA POLTERGEIST THIS PLACE!",
+  "text": "I'M GONNA POLTERGEIST THIS PLACE!",
+  "face": "c80rockerchick",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-54",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / MTV-era pop culture deep cuts",
+  "original": "YOU'RE THE WEAKEST LINK, GOODBYE!",
+  "text": "YOU'VE BEEN GONGED! GOODBYE!",
+  "face": "c80yuppie",
+  "moment": "walkout",
+  "changed": "anachronism: The Weakest Link (2001) -> The Gong Show"
+ },
+ {
+  "id": "mig-55",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / MTV-era pop culture deep cuts",
+  "original": "DID I STUTTER, SKIPPY?!",
+  "text": "DID I STUTTER, SKIPPY?!",
+  "face": "c80jock",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-56",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / MTV-era pop culture deep cuts",
+  "original": "THIS IS BOGUS TO THE MAX!",
+  "text": "THIS IS BOGUS TO THE MAX!",
+  "face": "c80valleyguy",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-57",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / MTV-era pop culture deep cuts",
+  "original": "YOU MAKE ENCINO MAN LOOK QUICK!",
+  "text": "YOU MAKE ENCINO MAN LOOK QUICK!",
+  "face": "c90videoclerk",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-58",
+  "section": "Gen-X \"Stuff It Metallica Breath\" Energy / MTV-era pop culture deep cuts",
+  "original": "I'VE SEEN DUKE NUKEM WITH BETTER CUSTOMER SERVICE!",
+  "text": "I'VE SEEN DUKE NUKEM WITH BETTER CUSTOMER SERVICE!",
+  "face": "c90technerd",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-59",
+  "section": "Old Lady Specifically",
+  "original": "OH YOU LITTLE STINKER!",
+  "text": "OH YOU LITTLE STINKER!",
+  "face": "c70flightattendant",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-60",
+  "section": "Old Lady Specifically",
+  "original": "WHY I OUGHTA - OH! OH I OUGHTA!",
+  "text": "WHY I OUGHTA - OH! OH I OUGHTA!",
+  "face": "c70leisure",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-61",
+  "section": "Old Lady Specifically",
+  "original": "YOU LITTLE WHIPPERSNAPPER!",
+  "text": "YOU LITTLE WHIPPERSNAPPER!",
+  "face": "c70taxman",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-62",
+  "section": "Old Lady Specifically",
+  "original": "I'LL SMACK YOU WITH MY PURSE, SEE IF I DON'T!",
+  "text": "I'LL SMACK YOU WITH MY PURSE, SEE IF I DON'T!",
+  "face": "c70womanwithbigsungla",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-63",
+  "section": "Old Lady Specifically",
+  "original": "MY HUSBAND WOULD HAVE A WORD WITH YOU, IF HE WERE STILL ALIVE!",
+  "text": "MY HUSBAND WOULD HAVE A WORD WITH YOU, IF HE WERE STILL ALIVE!",
+  "face": "c70waitress",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-64",
+  "section": "Old Lady Specifically",
+  "original": "THIS IS WORSE THAN THE TIME I HAD TO WAIT AT THE DMV IN '83!",
+  "text": "THIS IS WORSE THAN THE TIME I HAD TO WAIT AT THE DMV IN '83!",
+  "face": "c80businessguy",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-65",
+  "section": "Old Lady Specifically",
+  "original": "I'LL BE DEAD BY THE TIME THIS TACO ARRIVES!",
+  "text": "MEDICALLY, I'LL BE DEAD BEFORE THIS TACO ARRIVES!",
+  "face": "c80doctor",
+  "moment": "wait",
+  "changed": "reworded: near-duplicate of a shared line (made the doctor's)"
+ },
+ {
+  "id": "mig-66",
+  "section": "Old Lady Specifically",
+  "original": "I HAVE A CASSEROLE IN THE OVEN AT HOME, YOUNG MAN!",
+  "text": "I HAVE A CASSEROLE IN THE OVEN AT HOME, YOUNG MAN!",
+  "face": "c70bellbottom",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-67",
+  "section": "Old Lady Specifically",
+  "original": "HONESTLY, I HAVE HALF A MIND TO - WELL I WON'T SAY IT, BUT YOU KNOW WHAT I MEAN!",
+  "text": "I HAVE HALF A MIND TO - WELL, I WON'T SAY IT!",
+  "face": "c80preppy",
+  "moment": "walkout",
+  "changed": "trimmed to 2 rows"
+ },
+ {
+  "id": "mig-68",
+  "section": "Suburban Dad Meltdown",
+  "original": "I HAVE THIRTY MINUTES! I HAD THIRTY MINUTES!",
+  "text": "I HAVE THIRTY MINUTES! I HAD THIRTY MINUTES!",
+  "face": "c80businessman",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-69",
+  "section": "Suburban Dad Meltdown",
+  "original": "DO YOU SEE THIS BLUETOOTH HEADSET?! I AM ON A CALL!",
+  "text": "DO YOU SEE THIS CELLULAR PHONE?! I AM ON A CALL!",
+  "face": "c80miamiviceguy",
+  "moment": "wait",
+  "changed": "anachronism: Bluetooth headset -> cellular phone"
+ },
+ {
+  "id": "mig-70",
+  "section": "Suburban Dad Meltdown",
+  "original": "I'M GONNA MISS THE FIRST QUARTER, JEROME!",
+  "text": "I'M GONNA MISS THE FIRST QUARTER, JEROME!",
+  "face": "c70sportsannouncer",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-71",
+  "section": "Suburban Dad Meltdown",
+  "original": "I LEFT MY MINIVAN RUNNING FOR THIS?!",
+  "text": "I LEFT THE MINIVAN RUNNING. WITH THE DOG IN IT!",
+  "face": "c80dad",
+  "moment": "wait",
+  "changed": "reworded: near-duplicate of a shared line (station wagon running)"
+ },
+ {
+  "id": "mig-72",
+  "section": "Suburban Dad Meltdown",
+  "original": "SUSAN! SUSAN, GET IN THE CAR, WE'RE GOING TO ARBY'S!",
+  "text": "BRENDA! GET IN THE CAR, WE'RE GOING TO PIZZA HUT!",
+  "face": "c70bellbottomguy",
+  "moment": "walkout",
+  "changed": "reworded: near-duplicate of a shared line (Susan/Arby's -> Brenda/Pizza Hut)"
+ },
+ {
+  "id": "mig-73",
+  "section": "Suburban Dad Meltdown",
+  "original": "I'M CANCELLING THE FAMILY VACATION OVER THIS!",
+  "text": "I'M CANCELLING THE FAMILY VACATION OVER THIS!",
+  "face": "c80dad",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-74",
+  "section": "Suburban Dad Meltdown",
+  "original": "I TOLD MY WIFE I'D BE HOME BY SIX!",
+  "text": "I TOLD MY WIFE I'D BE HOME BY SIX!",
+  "face": "c70photographer",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-75",
+  "section": "Suburban Dad Meltdown",
+  "original": "I HAVE A TEE TIME!",
+  "text": "I HAVE A TEE TIME!",
+  "face": "c80preppyguy",
+  "moment": "arrive",
+  "changed": ""
+ },
+ {
+  "id": "mig-76",
+  "section": "Suburban Dad Meltdown",
+  "original": "I'M POSTING THIS ON NEXTDOOR!",
+  "text": "I'M PUTTING THIS IN THE CHURCH BULLETIN!",
+  "face": "c80aerobics",
+  "moment": "walkout",
+  "changed": "anachronism: Nextdoor -> church bulletin"
+ },
+ {
+  "id": "mig-77",
+  "section": "Suburban Dad Meltdown",
+  "original": "I AM LITERALLY GOING TO LOSE MY MIND, JANET!",
+  "text": "I AM LITERALLY GOING TO LOSE MY MIND, JANET!",
+  "face": "c90itguy",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-78",
+  "section": "Spanglish Fury",
+  "original": "¡QUÉ DEMONIOS, HOMBRE?!",
+  "text": "WHAT THE DEVIL, MAN?!",
+  "face": "c70easyrider",
+  "moment": "wait",
+  "changed": "accent dropped"
+ },
+ {
+  "id": "mig-79",
+  "section": "Spanglish Fury",
+  "original": "¡AY, DIOS MÍO, MY ABUELA MAKES TACOS FASTER AND SHE'S NINETY!",
+  "text": "MY GRANDMA MAKES TACOS FASTER AND SHE'S NINETY!",
+  "face": "c90hiphopkid",
+  "moment": "late",
+  "changed": "accent dropped; trimmed to 2 rows"
+ },
+ {
+  "id": "mig-80",
+  "section": "Spanglish Fury",
+  "original": "¡NO MAMES, GÜEY!",
+  "text": "YOU'VE GOT TO BE KIDDING ME, DUDE!",
+  "face": "c90dopeybuddy",
+  "moment": "wrong",
+  "changed": "accent dropped"
+ },
+ {
+  "id": "mig-81",
+  "section": "Spanglish Fury",
+  "original": "¡ESTOY ESPERANDO SINCE THE TIME OF MOCTEZUMA!",
+  "text": "I'VE BEEN WAITING SINCE THE TIME OF MOCTEZUMA!",
+  "face": "c70artist",
+  "moment": "queue",
+  "changed": "accent dropped"
+ },
+ {
+  "id": "mig-82",
+  "section": "Spanglish Fury",
+  "original": "¡ÁNDALE! ¡ÁNDALE! ¡ARRRRIBA!",
+  "text": "COME ON! COME ON! PUT THE HAMMER DOWN!",
+  "face": "c70racecardriver",
+  "moment": "wait",
+  "changed": "accent dropped; reworded: Speedy Gonzales call -> a driver's"
+ },
+ {
+  "id": "mig-83",
+  "section": "Spanglish Fury",
+  "original": "¡MADRE DE DIOS Y TODOS LOS SANTOS!",
+  "text": "MOTHER OF GOD AND ALL THE SAINTS!",
+  "face": "c70foxylady",
+  "moment": "missed",
+  "changed": "accent dropped"
+ },
+ {
+  "id": "mig-84",
+  "section": "Spanglish Fury",
+  "original": "YOU ARE MUY MUY SLOW, MI AMIGO!",
+  "text": "YOU ARE VERY, VERY SLOW, MY FRIEND!",
+  "face": "c70jazzmusician",
+  "moment": "late",
+  "changed": "accent dropped"
+ },
+ {
+  "id": "mig-85",
+  "section": "Spanglish Fury",
+  "original": "¡QUÉ BARBARIDAD!",
+  "text": "WHAT AN OUTRAGE!",
+  "face": "c70discoqueen",
+  "moment": "wrong",
+  "changed": "accent dropped"
+ },
+ {
+  "id": "mig-86",
+  "section": "Spanglish Fury",
+  "original": "ESTO ES UNA VERGÜENZA PARA LOS TACOS!",
+  "text": "THIS IS A DISGRACE TO TACOS!",
+  "face": "c70soultrainguy",
+  "moment": "wrong",
+  "changed": "accent dropped"
+ },
+ {
+  "id": "mig-87",
+  "section": "Spanglish Fury",
+  "original": "¡HÍJOLE! ¡HÍJOLE I SAY!",
+  "text": "GOOD GRIEF! GOOD GRIEF, I SAY!",
+  "face": "c70bowlcutkid",
+  "moment": "missed",
+  "changed": "accent dropped"
+ },
+ {
+  "id": "mig-88",
+  "section": "Spanglish Fury",
+  "original": "¡AY, CARAMBA! AND I MEAN IT THIS TIME!",
+  "text": "AY, CARAMBA! AND I MEAN IT THIS TIME!",
+  "face": "c90skaterkid",
+  "moment": "missed",
+  "changed": "inverted mark removed; kept as Bart Simpson's catchphrase for a '90s kid"
+ },
+ {
+  "id": "mig-89",
+  "section": "Spanglish Fury",
+  "original": "EVEN THE DIABLO WOULD HAVE MY TACO BY NOW!",
+  "text": "EVEN THE DEVIL WOULD HAVE MY TACO BY NOW!",
+  "face": "c80heavymetaldude",
+  "moment": "late",
+  "changed": "accent dropped"
+ },
+ {
+  "id": "mig-90",
+  "section": "Invented Gibberish Curse Words",
+  "original": "YOU ABSOLUTE SCHMENDRICK!",
+  "text": "YOU ABSOLUTE SCHMENDRICK!",
+  "face": "c80computernerd",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-91",
+  "section": "Invented Gibberish Curse Words",
+  "original": "YOU COMPLETE AND TOTAL FLARGUS!",
+  "text": "YOU COMPLETE AND TOTAL FLARGUS!",
+  "face": "c80gamer",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-92",
+  "section": "Invented Gibberish Curse Words",
+  "original": "YOU SHMORF!",
+  "text": "YOU SHMORF!",
+  "face": "c90nintendokid",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-93",
+  "section": "Invented Gibberish Curse Words",
+  "original": "YOU MISERABLE LITTLE SNORF-BUCKET!",
+  "text": "YOU MISERABLE LITTLE SNORF-BUCKET!",
+  "face": "c80girlrocker",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-94",
+  "section": "Invented Gibberish Curse Words",
+  "original": "YOU WAFFLE-DRAGGING MUNCHBLISTER!",
+  "text": "YOU WAFFLE-DRAGGING MUNCHBLISTER!",
+  "face": "c90backpacker",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-95",
+  "section": "Invented Gibberish Curse Words",
+  "original": "YOU FRABBING SNARGLEPUSS!",
+  "text": "YOU FRABBING SNARGLEPUSS!",
+  "face": "c90cyberpunkhacker",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-96",
+  "section": "Invented Gibberish Curse Words",
+  "original": "YOU ABSOLUTE SHMORGASBORD OF DISAPPOINTMENT!",
+  "text": "YOU ABSOLUTE SHMORGASBORD OF DISAPPOINTMENT!",
+  "face": "c80valleyguy2",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-97",
+  "section": "Invented Gibberish Curse Words",
+  "original": "YOU SNORK-FACED FLIBBERGIBBET!",
+  "text": "YOU SNORK-FACED FLIBBERGIBBET!",
+  "face": "c80arcadekid",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-98",
+  "section": "Invented Gibberish Curse Words",
+  "original": "YOU SHMUCK ON TOAST!",
+  "text": "YOU SHMUCK ON TOAST!",
+  "face": "c70leisure",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-99",
+  "section": "Invented Gibberish Curse Words",
+  "original": "YOU GORGON-FACED BLAGGART!",
+  "text": "YOU GORGON-FACED BLAGGART!",
+  "face": "c90raider",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-100",
+  "section": "Invented Gibberish Curse Words",
+  "original": "YOU FOPDOODLE!",
+  "text": "YOU FOPDOODLE!",
+  "face": "c80newromantic",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-101",
+  "section": "Invented Gibberish Curse Words",
+  "original": "YOU BLITHERING MUMPSIMUS!",
+  "text": "YOU BLITHERING MUMPSIMUS!",
+  "face": "c90technerd",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-102",
+  "section": "Invented Gibberish Curse Words",
+  "original": "YOU SNOLLYGOSTER!",
+  "text": "YOU SNOLLYGOSTER!",
+  "face": "c70taxman",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-103",
+  "section": "Invented Gibberish Curse Words",
+  "original": "YOU FUSTILUGS!",
+  "text": "YOU FUSTILUGS!",
+  "face": "c70boatcaptain",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-104",
+  "section": "Invented Gibberish Curse Words",
+  "original": "YOU GADZOOKLING TWIT!",
+  "text": "YOU GADZOOKLING TWIT!",
+  "face": "c70discodude",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-105",
+  "section": "Invented Gibberish Curse Words",
+  "original": "YOU OVERBAKED FRABJOUS DINGUS!",
+  "text": "YOU OVERBAKED FRABJOUS DINGUS!",
+  "face": "c70stonerdude",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-106",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOU SALSA-FINGERED FENCEPOST!",
+  "text": "YOU SALSA-FINGERED FENCEPOST!",
+  "face": "c70trucker",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-107",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOU ABSOLUTE TORTILLA GOBLIN!",
+  "text": "YOU ABSOLUTE TORTILLA GOBLIN!",
+  "face": "c90rocker",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-108",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOU GUACAMOLE-BRAINED NINCOMPOOP!",
+  "text": "YOU GUACAMOLE-BRAINED NINCOMPOOP!",
+  "face": "c80preppygirl",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-109",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOU UNWASHED CILANTRO STEM!",
+  "text": "YOU UNWASHED CILANTRO STEM!",
+  "face": "c90riotgrrrl",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-110",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOU SOUR CREAM SCOUNDREL!",
+  "text": "YOU SOUR CREAM SCOUNDREL!",
+  "face": "c70racecardriver",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-111",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOU QUESO-BRAINED QUITTER!",
+  "text": "YOU QUESO-BRAINED QUITTER!",
+  "face": "c90sk8terchick",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-112",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOU HALF-COOKED BURRITO OF A MAN!",
+  "text": "YOU HALF-COOKED BURRITO OF A MAN!",
+  "face": "c80miamigirl",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-113",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOU PINTO BEAN PEABRAIN!",
+  "text": "YOU PINTO BEAN PEABRAIN!",
+  "face": "c80gijoefan",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-114",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOU CHIMICHANGA-CHEEKED CHUMP!",
+  "text": "YOU CHIMICHANGA-CHEEKED CHUMP!",
+  "face": "c80breaker",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-115",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOU ENCHILADA-EARED ENABLER!",
+  "text": "YOU ENCHILADA-EARED ENABLER!",
+  "face": "c90alternativegirl",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-116",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOU CARNITAS-CRANIUMED CLOWN!",
+  "text": "YOU CARNITAS-CRANIUMED CLOWN!",
+  "face": "c90rapper",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-117",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOU FAJITA-FOOTED FRAUD!",
+  "text": "YOU FAJITA-FOOTED FRAUD!",
+  "face": "c80dj",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-118",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOUR TORTILLAS ARE STORE-BOUGHT AND YOUR SOUL IS EMPTY!",
+  "text": "YOUR TORTILLAS ARE STORE-BOUGHT AND YOUR SOUL IS EMPTY!",
+  "face": "c90grungechick",
+  "moment": "served",
+  "changed": ""
+ },
+ {
+  "id": "mig-119",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOU WET HABANERO OF A HUMAN BEING!",
+  "text": "YOU WET HABANERO OF A HUMAN BEING!",
+  "face": "c90rbsinger",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-120",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "MAY YOUR CILANTRO TASTE LIKE SOAP FOREVER!",
+  "text": "MAY YOUR CILANTRO TASTE LIKE SOAP FOREVER!",
+  "face": "c70flowerchild",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-121",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOU COULDN'T FOLD A BURRITO WITH A MAP AND A TUTORIAL!",
+  "text": "YOU COULDN'T FOLD A BURRITO WITH A MAP AND A TUTORIAL!",
+  "face": "c80videostoreclerk",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-122",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOU'RE THE CRUNCH AT THE BOTTOM OF THE TACO BAG!",
+  "text": "YOU'RE THE CRUNCH AT THE BOTTOM OF THE TACO BAG!",
+  "face": "c90generationxguy",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-123",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOUR SALSA HAS NO CHUNKS AND NO SOUL!",
+  "text": "YOUR SALSA HAS NO CHUNKS AND NO SOUL!",
+  "face": "c70soultrainguy",
+  "moment": "served",
+  "changed": ""
+ },
+ {
+  "id": "mig-124",
+  "section": "Taco/Mexican-Food-Themed Insults",
+  "original": "YOU'RE SOFT SHELL PRETENDING TO BE HARD!",
+  "text": "YOU'RE SOFT SHELL PRETENDING TO BE HARD!",
+  "face": "c90gangstarapper",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-125",
+  "section": "Time-Exaggeration Hyperbole",
+  "original": "I HAVE BEEN STANDING HERE SINCE THE LAST PRESIDENT!",
+  "text": "I HAVE BEEN STANDING HERE SINCE THE LAST PRESIDENT!",
+  "face": "c80newsanchor",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-126",
+  "section": "Time-Exaggeration Hyperbole",
+  "original": "MY GRANDCHILDREN WILL EAT THIS TACO!",
+  "text": "MY GRANDCHILDREN WILL EAT THIS TACO!",
+  "face": "c70sportsannouncer",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-127",
+  "section": "Time-Exaggeration Hyperbole",
+  "original": "I COULD'VE WALKED TO MEXICO AND BACK BY NOW!",
+  "text": "I COULD'VE WALKED TO MEXICO AND BACK BY NOW!",
+  "face": "c70hippiedude",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-128",
+  "section": "Time-Exaggeration Hyperbole",
+  "original": "I STARTED THIS ORDER WITH A FULL HEAD OF HAIR!",
+  "text": "I STARTED THIS ORDER WITH A FULL HEAD OF HAIR!",
+  "face": "c80metalhead2",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-129",
+  "section": "Time-Exaggeration Hyperbole",
+  "original": "THE CONTINENTS HAVE SHIFTED SINCE I ORDERED!",
+  "text": "THE CONTINENTS HAVE SHIFTED SINCE I ORDERED!",
+  "face": "c80computernerd",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-130",
+  "section": "Time-Exaggeration Hyperbole",
+  "original": "I HAVE AGED BIBLICALLY WAITING FOR THIS!",
+  "text": "I HAVE AGED BIBLICALLY WAITING FOR THIS!",
+  "face": "c70longhair",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-131",
+  "section": "Time-Exaggeration Hyperbole",
+  "original": "I CAME IN HERE A YOUNG MAN!",
+  "text": "I CAME IN HERE A YOUNG MAN!",
+  "face": "c70newsman",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-132",
+  "section": "Time-Exaggeration Hyperbole",
+  "original": "I'VE SEEN GLACIERS WITH MORE HUSTLE!",
+  "text": "I'VE SEEN GLACIERS SHRED FASTER THAN THIS!",
+  "face": "c80skibum",
+  "moment": "wait",
+  "changed": "reworded: near-duplicate of a shared line (made the ski bum's)"
+ },
+ {
+  "id": "mig-133",
+  "section": "Time-Exaggeration Hyperbole",
+  "original": "STARS HAVE BEEN BORN AND DIED!",
+  "text": "STARS HAVE BEEN BORN AND DIED!",
+  "face": "c90raver",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-134",
+  "section": "Time-Exaggeration Hyperbole",
+  "original": "I STARTED GROWING A BEARD JUST TO PASS THE TIME!",
+  "text": "I HAD NO BEARD WHEN I GOT IN THIS LINE, MAN!",
+  "face": "c70hippiedude",
+  "moment": "queue",
+  "changed": "reworded: near-duplicate of a shared line (made the hippie's)"
+ },
+ {
+  "id": "mig-135",
+  "section": "Time-Exaggeration Hyperbole",
+  "original": "MY MILK HAS EXPIRED IN MY CART!",
+  "text": "MY MILK HAS EXPIRED IN MY CART!",
+  "face": "c90teenmom",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-136",
+  "section": "Time-Exaggeration Hyperbole",
+  "original": "THE DINOSAURS WAITED LESS FOR THE METEOR!",
+  "text": "THE DINOSAURS WAITED LESS FOR THE METEOR!",
+  "face": "c80videostoreclerk2",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-137",
+  "section": "Time-Exaggeration Hyperbole",
+  "original": "I COULD'VE RAISED A CHILD TO TACO-MAKING AGE BY NOW!",
+  "text": "I COULD'VE RAISED A CHILD TO TACO-MAKING AGE BY NOW!",
+  "face": "c90teenmom",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-138",
+  "section": "Time-Exaggeration Hyperbole",
+  "original": "POMPEII HAPPENED FASTER THAN THIS!",
+  "text": "POMPEII HAPPENED FASTER THAN THIS!",
+  "face": "c90backpacker",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-139",
+  "section": "Time-Exaggeration Hyperbole",
+  "original": "MY PHONE BATTERY DIED, MY PORTABLE CHARGER DIED, AND MY WILL TO LIVE IS ON 3%!",
+  "text": "MY PAGER DIED, MY DISCMAN DIED, AND MY WILL TO LIVE IS NEXT!",
+  "face": "c90ravergirl",
+  "moment": "queue",
+  "changed": "anachronism: phone battery, portable charger -> pager, Discman; trimmed"
+ },
+ {
+  "id": "mig-140",
+  "section": "Existential Breakdowns",
+  "original": "WHAT IS TIME? WHAT IS A TACO? WHAT AM I?!",
+  "text": "WHAT IS TIME? WHAT IS A TACO? WHAT AM I?!",
+  "face": "c70longhair2",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-141",
+  "section": "Existential Breakdowns",
+  "original": "I NO LONGER REMEMBER WHAT HUNGER FEELS LIKE.",
+  "text": "I NO LONGER REMEMBER WHAT HUNGER FEELS LIKE.",
+  "face": "c90daria",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-142",
+  "section": "Existential Breakdowns",
+  "original": "I HAVE FORGOTTEN THE FACES OF MY CHILDREN!",
+  "text": "I HAVE FORGOTTEN THE FACES OF MY CHILDREN!",
+  "face": "c90itguy",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-143",
+  "section": "Existential Breakdowns",
+  "original": "IS THIS REAL? AM I REAL? ARE TACOS REAL?!",
+  "text": "IS THIS REAL? AM I REAL? ARE TACOS REAL?!",
+  "face": "c90cyberpunkhacker",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-144",
+  "section": "Existential Breakdowns",
+  "original": "I THINK I DIED AND THIS IS PURGATORY!",
+  "text": "I THINK I DIED AND THIS IS PURGATORY!",
+  "face": "c70greaser",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-145",
+  "section": "Existential Breakdowns",
+  "original": "THE VOID STARES BACK, AND IT'S HOLDING A SPATULA!",
+  "text": "THE VOID STARES BACK, AND IT'S HOLDING A SPATULA!",
+  "face": "c90grungeguy",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-146",
+  "section": "Existential Breakdowns",
+  "original": "I HAVE TRANSCENDED HUNGER. I AM ONE WITH THE LINE.",
+  "text": "I HAVE TRANSCENDED HUNGER. I AM ONE WITH THE LINE.",
+  "face": "c70flowerchild",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-147",
+  "section": "Existential Breakdowns",
+  "original": "I CAME FOR TACOS. I LEAVE WITH TRAUMA.",
+  "text": "I CAME FOR TACOS. I LEAVE WITH TRAUMA.",
+  "face": "c90club",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-148",
+  "section": "Existential Breakdowns",
+  "original": "TELL MY WIFE I LOVED HER!",
+  "text": "TELL MY WIFE I LOVED HER!",
+  "face": "c70militaryguy",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-149",
+  "section": "Existential Breakdowns",
+  "original": "IF I DIE HERE, BURY ME IN THE SALSA BAR!",
+  "text": "IF I DIE HERE, BURY ME IN THE SALSA BAR!",
+  "face": "c70stagehand",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-150",
+  "section": "Existential Breakdowns",
+  "original": "I NO LONGER BELIEVE IN A BENEVOLENT GOD!",
+  "text": "I NO LONGER BELIEVE IN A BENEVOLENT GOD!",
+  "face": "c80newromantic",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-151",
+  "section": "Theatrical / Shakespearean Outrage",
+  "original": "WHAT FRESH HELL IS THIS?!",
+  "text": "WHAT FRESH HELL IS THIS?!",
+  "face": "c80yuppiegirl",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-152",
+  "section": "Theatrical / Shakespearean Outrage",
+  "original": "ET TU, TACO SHOP?!",
+  "text": "ET TU, TACO SHOP?!",
+  "face": "c90preppycollegekid",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-153",
+  "section": "Theatrical / Shakespearean Outrage",
+  "original": "FIE! FIE I SAY!",
+  "text": "FIE! FIE I SAY!",
+  "face": "c90soap",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-154",
+  "section": "Theatrical / Shakespearean Outrage",
+  "original": "HARK! DOTH THE KITCHEN SLUMBER?!",
+  "text": "HARK! DOTH THE KITCHEN SLUMBER?!",
+  "face": "c90boybandmember",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-155",
+  "section": "Theatrical / Shakespearean Outrage",
+  "original": "I SHALL DARKEN THIS DOORWAY NEVERMORE!",
+  "text": "QUOTH THE CUSTOMER: NEVERMORE!",
+  "face": "c90grungechick",
+  "moment": "walkout",
+  "changed": "reworded: near-duplicate of a shared line (darken this door nevermore)"
+ },
+ {
+  "id": "mig-156",
+  "section": "Theatrical / Shakespearean Outrage",
+  "original": "CURSED BE YE AND ALL YOUR DESCENDANTS, EVEN UNTO THE SEVENTH GENERATION!",
+  "text": "CURSED BE YE AND YOUR DESCENDANTS UNTO THE SEVENTH GENERATION!",
+  "face": "c70magician",
+  "moment": "walkout",
+  "changed": "trimmed to 2 rows"
+ },
+ {
+  "id": "mig-157",
+  "section": "Theatrical / Shakespearean Outrage",
+  "original": "TONIGHT, I DINE IN HELL... BECAUSE I'M CLEARLY NOT EATING HERE!",
+  "text": "TONIGHT, I DINE IN HELL... BECAUSE I'M CLEARLY NOT EATING HERE!",
+  "face": "c80actionhero",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-158",
+  "section": "Theatrical / Shakespearean Outrage",
+  "original": "I HAVE KNOWN WAR. I HAVE KNOWN FAMINE. THIS IS WORSE.",
+  "text": "I HAVE KNOWN WAR. I HAVE KNOWN FAMINE. THIS IS WORSE.",
+  "face": "c70easyrider",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-159",
+  "section": "Theatrical / Shakespearean Outrage",
+  "original": "OH, THE HUMANITY!",
+  "text": "OH, THE HUMANITY!",
+  "face": "c70newsman2",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-160",
+  "section": "Cartoon-Villain Threats",
+  "original": "I'LL BE BACK. AND I'LL BE HUNGRY. AND I'LL BE ANGRY.",
+  "text": "I'LL BE BACK. AND I'LL BE HUNGRY. AND I'LL BE ANGRY.",
+  "face": "c80actionhero",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-161",
+  "section": "Cartoon-Villain Threats",
+  "original": "YOU HAVEN'T SEEN THE LAST OF ME!",
+  "text": "YOU HAVEN'T SEEN THE LAST OF ME!",
+  "face": "c80biker",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-162",
+  "section": "Cartoon-Villain Threats",
+  "original": "I'LL GET YOU, AND YOUR LITTLE TONGS TOO!",
+  "text": "I'LL GET YOU, AND YOUR LITTLE TONGS TOO!",
+  "face": "c90riotgrrrl",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-163",
+  "section": "Cartoon-Villain Threats",
+  "original": "MARK MY WORDS, THIS SHOP WILL RUE THE DAY!",
+  "text": "MARK MY WORDS, THIS SHOP WILL RUE THE DAY!",
+  "face": "c70womanwithbigsungla",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-164",
+  "section": "Cartoon-Villain Threats",
+  "original": "I'M PUTTING THIS PLACE ON MY LIST!",
+  "text": "I'M PUTTING THIS PLACE ON MY LIST!",
+  "face": "c80punk",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-165",
+  "section": "Cartoon-Villain Threats",
+  "original": "I HAVE A VERY PARTICULAR SET OF SKILLS... AND ONE OF THEM IS COMPLAINING!",
+  "text": "I HAVE VERY SPECIAL SKILLS... AND ONE OF THEM IS COMPLAINING!",
+  "face": "c80yuppie",
+  "moment": "walkout",
+  "changed": "anachronism: Taken (2008) quote -> plain boast"
+ },
+ {
+  "id": "mig-166",
+  "section": "Cartoon-Villain Threats",
+  "original": "YOU WILL HEAR FROM MY ATTORNEY! ...AS SOON AS I GET ONE!",
+  "text": "YOU WILL HEAR FROM MY ATTORNEY! ...AS SOON AS I GET ONE!",
+  "face": "c70longhair",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-167",
+  "section": "Cartoon-Villain Threats",
+  "original": "I'LL SEE YOU IN COURT, YOU SOUR CREAM SCOUNDREL!",
+  "text": "I'LL SEE YOU IN COURT, YOU SOUR CREAM SCOUNDREL!",
+  "face": "c80miamiviceguy",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-168",
+  "section": "Cartoon-Villain Threats",
+  "original": "YOUR SECRET RECIPE WILL BE MINE!",
+  "text": "YOUR SECRET RECIPE WILL BE MINE!",
+  "face": "c70discoking",
+  "moment": "served",
+  "changed": ""
+ },
+ {
+  "id": "mig-169",
+  "section": "Cartoon-Villain Threats",
+  "original": "JUST YOU WAIT, TACO BOY. JUST. YOU. WAIT.",
+  "text": "JUST YOU WAIT, TACO BOY. JUST. YOU. WAIT.",
+  "face": "c80gamer",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-170",
+  "section": "Internet/Gen-Z Brain Rot (for the millennial customer)",
+  "original": "THIS IS MID. THIS IS SO MID.",
+  "text": "THIS IS WACK. THIS IS SO WACK.",
+  "face": "c90hiphophead",
+  "moment": "served",
+  "changed": "anachronism: mid -> wack"
+ },
+ {
+  "id": "mig-171",
+  "section": "Internet/Gen-Z Brain Rot (for the millennial customer)",
+  "original": "L TACO SHOP. L EMPLOYEE. L VIBES.",
+  "text": "LOSER SHOP. LOSER COOK. LOSER VIBES.",
+  "face": "c90sk8terchick",
+  "moment": "wrong",
+  "changed": "anachronism: L -> loser"
+ },
+ {
+  "id": "mig-172",
+  "section": "Internet/Gen-Z Brain Rot (for the millennial customer)",
+  "original": "TOUCH GRASS, TACO FUMBLER!",
+  "text": "GET A LIFE, TACO FUMBLER!",
+  "face": "c80valleyguy",
+  "moment": "missed",
+  "changed": "anachronism: touch grass -> get a life"
+ },
+ {
+  "id": "mig-173",
+  "section": "Internet/Gen-Z Brain Rot (for the millennial customer)",
+  "original": "THIS PLACE IS OVER. I'M CANCELLING IT.",
+  "text": "THIS PLACE IS OVER. I'M CANCELLING MY ORDER.",
+  "face": "c90boybandheartthrob",
+  "moment": "walkout",
+  "changed": "anachronism: cancelling a place -> cancelling the order"
+ },
+ {
+  "id": "mig-174",
+  "section": "Internet/Gen-Z Brain Rot (for the millennial customer)",
+  "original": "I'M TELLING MY ENTIRE GROUP CHAT.",
+  "text": "I'M TELLING MY ENTIRE HOMEROOM.",
+  "face": "c90girlpowerfan",
+  "moment": "walkout",
+  "changed": "anachronism: group chat -> homeroom"
+ },
+ {
+  "id": "mig-175",
+  "section": "Internet/Gen-Z Brain Rot (for the millennial customer)",
+  "original": "THIS IS GOING ON MY CLOSE FRIENDS STORY.",
+  "text": "THIS IS GOING IN MY SLAM BOOK.",
+  "face": "c90spicegirlfan",
+  "moment": "walkout",
+  "changed": "anachronism: close friends story -> slam book"
+ },
+ {
+  "id": "mig-176",
+  "section": "Internet/Gen-Z Brain Rot (for the millennial customer)",
+  "original": "RATIO. PLUS YOU FELL OFF. PLUS YOU'RE SLOW.",
+  "text": "YOU'RE A REAL PRO... NOT! PLUS YOU'RE SLOW.",
+  "face": "c90skater",
+  "moment": "late",
+  "changed": "anachronism: ratio, fell off -> ...NOT!"
+ },
+ {
+  "id": "mig-177",
+  "section": "Internet/Gen-Z Brain Rot (for the millennial customer)",
+  "original": "BRO IS NOT COOKING. BRO IS LITERALLY NOT COOKING.",
+  "text": "DUDE IS NOT COOKING. DUDE IS LITERALLY NOT COOKING.",
+  "face": "c90dopeybuddy",
+  "moment": "wait",
+  "changed": "anachronism: bro-is-not-cooking -> dude"
+ },
+ {
+  "id": "mig-178",
+  "section": "Internet/Gen-Z Brain Rot (for the millennial customer)",
+  "original": "IT'S GIVING... INCOMPETENCE.",
+  "text": "THIS IS, LIKE, TOTALLY... INCOMPETENT.",
+  "face": "c90cluelessblonde",
+  "moment": "wrong",
+  "changed": "anachronism: it's giving -> like, totally"
+ },
+ {
+  "id": "mig-179",
+  "section": "Internet/Gen-Z Brain Rot (for the millennial customer)",
+  "original": "THE DISRESPECT IS UNMATCHED!",
+  "text": "THIS IS STRAIGHT-UP DISRESPECT!",
+  "face": "c90rbsinger2",
+  "moment": "wait",
+  "changed": "anachronism: modern phrasing -> straight-up"
+ },
+ {
+  "id": "mig-180",
+  "section": "Goofy Threats",
+  "original": "I'LL FIGHT YOUR DAD! I'LL FIGHT YOUR DAD! I'LL FIGHT ANY DAD!",
+  "text": "I'LL FIGHT YOUR DAD! I'LL FIGHT YOUR DAD! I'LL FIGHT ANY DAD!",
+  "face": "c80jock2",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-181",
+  "section": "Goofy Threats",
+  "original": "I'M GONNA EAT AT TACO BELL AND I'M GONNA ENJOY IT!",
+  "text": "I'M GONNA EAT AT TACO BELL AND I'M GONNA ENJOY IT!",
+  "face": "c70bellbottom",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-182",
+  "section": "Goofy Threats",
+  "original": "I'M TAKING MY BUSINESS TO THE CHIPOTLE DOWN THE STREET!",
+  "text": "I'M TAKING MY BUSINESS TO THE TACO JOHN'S DOWN THE STREET!",
+  "face": "c70truckdriver",
+  "moment": "walkout",
+  "changed": "anachronism: Chipotle -> Taco John's"
+ },
+ {
+  "id": "mig-183",
+  "section": "Goofy Threats",
+  "original": "I'LL MAKE MY OWN TACOS! WITH BLACKJACK! AND POKER!",
+  "text": "I'LL MAKE MY OWN TACOS! WITH BLACKJACK! AND POKER!",
+  "face": "c90raider",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-184",
+  "section": "Goofy Threats",
+  "original": "I HOPE A SEAGULL STEALS YOUR KEYS!",
+  "text": "I HOPE A SEAGULL STEALS YOUR KEYS!",
+  "face": "c70surferdude",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-185",
+  "section": "Goofy Threats",
+  "original": "I HOPE YOUR SHOELACES ARE PERMANENTLY UNTIED!",
+  "text": "I HOPE YOUR SHOELACES ARE PERMANENTLY UNTIED!",
+  "face": "c80girlwithlegwarmers",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-186",
+  "section": "Goofy Threats",
+  "original": "I HOPE YOU STEP ON A LEGO EVERY DAY FOR A YEAR!",
+  "text": "I HOPE YOU STEP ON A LEGO EVERY DAY FOR A YEAR!",
+  "face": "c80arcadekid2",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-187",
+  "section": "Goofy Threats",
+  "original": "I HEX YOU! I HEX THIS ESTABLISHMENT!",
+  "text": "I HEX YOU! I HEX THIS ESTABLISHMENT!",
+  "face": "c80rockerchick",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-188",
+  "section": "Goofy Threats",
+  "original": "I'M GONNA TELL EVERYONE AT PILATES ABOUT THIS!",
+  "text": "I'M GONNA TELL EVERYONE AT JAZZERCISE ABOUT THIS!",
+  "face": "c80aerobicsgirl",
+  "moment": "walkout",
+  "changed": "anachronism: Pilates -> Jazzercise"
+ },
+ {
+  "id": "mig-189",
+  "section": "Goofy Threats",
+  "original": "I'M REPORTING YOU TO THE TACO COUNCIL!",
+  "text": "I'M REPORTING YOU TO THE TACO COUNCIL!",
+  "face": "c80videostoreclerk2",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-190",
+  "section": "Surfer / Stoner",
+  "original": "DUUUDE, THIS TACO'S GONNA BE COLD BY THE TIME IT HITS THE BEACH, BRAH!",
+  "text": "DUUUDE, THIS TACO'S GONNA BE COLD BY THE BEACH, BRAH!",
+  "face": "c70surferdude",
+  "moment": "wait",
+  "changed": "trimmed to 2 rows"
+ },
+ {
+  "id": "mig-191",
+  "section": "Surfer / Stoner",
+  "original": "BOGUS, BRAH. TOTALLY BOGUS.",
+  "text": "BOGUS, BRAH. TOTALLY BOGUS.",
+  "face": "c80valleysurfer",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-192",
+  "section": "Surfer / Stoner",
+  "original": "NOT COOL, MAN. NOT COOL AT ALL.",
+  "text": "NOT COOL, MAN. NOT COOL AT ALL.",
+  "face": "c70bellbottomguy",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-193",
+  "section": "Surfer / Stoner",
+  "original": "WHOA, DID I JUST WITNESS A CRIME AGAINST TACOS?",
+  "text": "WHOA, DID I JUST WITNESS A CRIME AGAINST TACOS?",
+  "face": "c70stonerdude",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-194",
+  "section": "Surfer / Stoner",
+  "original": "AW, MAN, YOU'RE HARSHING MY MUNCHIES!",
+  "text": "AW, MAN, YOU'RE HARSHING MY MUNCHIES!",
+  "face": "c70stonerdude",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-195",
+  "section": "Surfer / Stoner",
+  "original": "THIS IS HEAVIER THAN A TWO-FOOT WAVE ON A TUESDAY, DUDE.",
+  "text": "THIS IS HEAVIER THAN A TWO-FOOT WAVE ON A TUESDAY, DUDE.",
+  "face": "c70surferdude",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-196",
+  "section": "Surfer / Stoner",
+  "original": "COSMICALLY UNCOOL, MY DUDE. COSMICALLY.",
+  "text": "COSMICALLY UNCOOL, MY DUDE. COSMICALLY.",
+  "face": "c90raver",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-197",
+  "section": "Surfer / Stoner",
+  "original": "I DROVE MY VAN HERE, MAN. I DROVE MY VAN.",
+  "text": "I DROVE MY VAN HERE, MAN. I DROVE MY VAN.",
+  "face": "c70hippiedude",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-198",
+  "section": "Surfer / Stoner",
+  "original": "JUST FLOW WITH IT, DUDE - BUT FLOW FASTER!",
+  "text": "JUST FLOW WITH IT, DUDE - BUT FLOW FASTER!",
+  "face": "c80skibum",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-199",
+  "section": "Surfer / Stoner",
+  "original": "THIS VIBE IS RANCID, BRAH.",
+  "text": "THIS VIBE IS RANCID, BRAH.",
+  "face": "c80valleysurfer",
+  "moment": "served",
+  "changed": ""
+ },
+ {
+  "id": "mig-200",
+  "section": "Surfer / Stoner",
+  "original": "I CAME FOR THE GNAR. I'M LEAVING WITH NADA.",
+  "text": "I CAME FOR THE GNAR. I'M LEAVING WITH NADA.",
+  "face": "c80skateboarder",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-201",
+  "section": "Surfer / Stoner",
+  "original": "BRO... BRO... THAT'S LIKE, THE OPPOSITE OF STOKED, BRO.",
+  "text": "BRO... BRO... THAT'S LIKE, THE OPPOSITE OF STOKED, BRO.",
+  "face": "c80valleyguy2",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-202",
+  "section": "Sports Bro (Game Day)",
+  "original": "I'M MISSING TIPOFF, YOU FUMBLING LINEBACKER!",
+  "text": "I'M MISSING TIPOFF, YOU FUMBLING LINEBACKER!",
+  "face": "c80jock",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-203",
+  "section": "Sports Bro (Game Day)",
+  "original": "OFFENSIVE HOLDING ON THE TACO MAKER, FIFTEEN YARDS!",
+  "text": "OFFENSIVE HOLDING ON THE TACO MAKER, FIFTEEN YARDS!",
+  "face": "c70sportsannouncer",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-204",
+  "section": "Sports Bro (Game Day)",
+  "original": "YOU'RE COSTING ME MY FANTASY POINTS, BRO!",
+  "text": "YOU'RE COSTING ME MY FANTASY POINTS, BRO!",
+  "face": "c90jock",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-205",
+  "section": "Sports Bro (Game Day)",
+  "original": "REVIEW THE TAPE! REVIEW THE TAPE!",
+  "text": "REVIEW THE TAPE! REVIEW THE TAPE!",
+  "face": "c80videostoreclerk",
+  "moment": "wrong",
+  "changed": ""
+ },
+ {
+  "id": "mig-206",
+  "section": "Sports Bro (Game Day)",
+  "original": "YOU COULDN'T MOVE THE CHAINS IF YOUR LIFE DEPENDED ON IT!",
+  "text": "YOU COULDN'T MOVE THE CHAINS IF YOUR LIFE DEPENDED ON IT!",
+  "face": "c90jock",
+  "moment": "late",
+  "changed": ""
+ },
+ {
+  "id": "mig-207",
+  "section": "Sports Bro (Game Day)",
+  "original": "WE'RE GOING TO OVERTIME WITH THIS TACO, AREN'T WE?",
+  "text": "WE'RE GOING TO OVERTIME WITH THIS TACO, AREN'T WE?",
+  "face": "c70truckdriver",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-208",
+  "section": "Sports Bro (Game Day)",
+  "original": "ICE THE KICKER! ICE THE DANG TACO MAKER!",
+  "text": "ICE THE KICKER! ICE THE DANG TACO MAKER!",
+  "face": "c80jock2",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-209",
+  "section": "Sports Bro (Game Day)",
+  "original": "I HAD MONEY ON THIS TACO, DUDE!",
+  "text": "I HAD MONEY ON THIS TACO, DUDE!",
+  "face": "c70greaser",
+  "moment": "missed",
+  "changed": ""
+ },
+ {
+  "id": "mig-210",
+  "section": "Sports Bro (Game Day)",
+  "original": "PLAY-ACTION TACO FAKE! HE NEVER EVEN STARTED IT!",
+  "text": "PLAY-ACTION TACO FAKE! HE NEVER EVEN STARTED IT!",
+  "face": "c80dj",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-211",
+  "section": "Tech Bro / Startup Founder",
+  "original": "I'M GONNA DISRUPT THIS TACO SHOP!",
+  "text": "I'M GONNA DOWNSIZE THIS TACO SHOP!",
+  "face": "c80businessguy",
+  "moment": "wait",
+  "changed": "anachronism: disrupt -> downsize"
+ },
+ {
+  "id": "mig-212",
+  "section": "Tech Bro / Startup Founder",
+  "original": "THIS IS NOT SCALABLE!",
+  "text": "THIS IS NOT SCALABLE!",
+  "face": "c90technerd",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-213",
+  "section": "Tech Bro / Startup Founder",
+  "original": "HAVE YOU HEARD OF LEAN PRINCIPLES?",
+  "text": "HAVE YOU HEARD OF LEAN PRINCIPLES?",
+  "face": "c90preppycollegekid",
+  "moment": "queue",
+  "changed": ""
+ },
+ {
+  "id": "mig-214",
+  "section": "Tech Bro / Startup Founder",
+  "original": "I COULD BUILD AN AI THAT MAKES TACOS FASTER THAN YOU!",
+  "text": "I COULD BUILD A ROBOT THAT MAKES TACOS FASTER THAN YOU!",
+  "face": "c80computernerd",
+  "moment": "wait",
+  "changed": "anachronism: AI -> robot"
+ },
+ {
+  "id": "mig-215",
+  "section": "Tech Bro / Startup Founder",
+  "original": "WHAT'S YOUR TACOS-PER-MINUTE KPI?!",
+  "text": "WHAT'S YOUR TACOS-PER-MINUTE QUOTA?!",
+  "face": "c80businessman",
+  "moment": "queue",
+  "changed": "anachronism: KPI -> quota"
+ },
+ {
+  "id": "mig-216",
+  "section": "Tech Bro / Startup Founder",
+  "original": "I'M TAKING THIS TO THE BOARD!",
+  "text": "I'M TAKING THIS TO THE BOARD!",
+  "face": "c80yuppiegirl",
+  "moment": "walkout",
+  "changed": ""
+ },
+ {
+  "id": "mig-217",
+  "section": "Tech Bro / Startup Founder",
+  "original": "YOUR CUSTOMER EXPERIENCE FUNNEL IS BROKEN, MY GUY!",
+  "text": "YOUR CUSTOMER SATISFACTION IS IN THE TOILET, PAL!",
+  "face": "c80yuppie",
+  "moment": "late",
+  "changed": "anachronism: experience funnel, my guy -> customer satisfaction, pal"
+ },
+ {
+  "id": "mig-218",
+  "section": "Tech Bro / Startup Founder",
+  "original": "I'M POSTING THIS ON LINKEDIN WITH A 7-PARAGRAPH HOT TAKE!",
+  "text": "I'M FAXING THIS TO HEAD OFFICE WITH A 7-PAGE MEMO!",
+  "face": "c90itguy",
+  "moment": "walkout",
+  "changed": "anachronism: LinkedIn hot take -> faxed memo"
+ },
+ {
+  "id": "mig-219",
+  "section": "Tech Bro / Startup Founder",
+  "original": "FAILURE TO DELIVER! FAILURE TO ITERATE! FAILURE TO PIVOT!",
+  "text": "FAILURE TO DELIVER! FAILURE TO COMMUNICATE! FAILURE TO COOK!",
+  "face": "c70photographer",
+  "moment": "late",
+  "changed": "anachronism: iterate, pivot -> communicate (Cool Hand Luke), cook"
+ },
+ {
+  "id": "mig-220",
+  "section": "Tech Bro / Startup Founder",
+  "original": "I'LL HAVE MY GUY AT Y COMBINATOR HEAR ABOUT THIS!",
+  "text": "I'LL HAVE MY GUY AT THE CHAMBER OF COMMERCE HEAR ABOUT THIS!",
+  "face": "c70discodude",
+  "moment": "walkout",
+  "changed": "anachronism: Y Combinator -> Chamber of Commerce"
+ },
+ {
+  "id": "mig-221",
+  "section": "Tech Bro / Startup Founder",
+  "original": "THIS KITCHEN NEEDS A CTO. IMMEDIATELY.",
+  "text": "THIS KITCHEN NEEDS A MANAGEMENT CONSULTANT. IMMEDIATELY.",
+  "face": "c80preppygirl",
+  "moment": "wrong",
+  "changed": "anachronism: CTO -> management consultant"
+ },
+ {
+  "id": "mig-222",
+  "section": "Tech Bro / Startup Founder",
+  "original": "I'M DEPLATFORMING THIS RESTAURANT!",
+  "text": "I'M BOYCOTTING THIS RESTAURANT!",
+  "face": "c70flowerchild",
+  "moment": "walkout",
+  "changed": "anachronism: deplatforming -> boycotting"
+ },
+ {
+  "id": "mig-223",
+  "section": "British Grandma / Mum",
+  "original": "OH, DO GET ON WITH IT, DEAR!",
+  "text": "OH, DO GET ON WITH IT, DEAR!",
+  "face": "c70flightattendant",
+  "moment": "wait",
+  "changed": ""
+ },
+ {
+  "id": "mig-224",
+  "section": "British Grandma / Mum",
+  "original": "WELL, THIS IS QUITE THE PRODUCTION, ISN'T IT?",
+  "text": "WELL, THIS IS QUITE THE PRODUCTION, ISN'T IT?",
+  "face": "c70stagehand",
+  "moment": "queue",
+  "changed": ""
+ }
+]
