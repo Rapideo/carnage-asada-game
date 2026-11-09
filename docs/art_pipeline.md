@@ -185,8 +185,8 @@ node build.mjs
 ```
 
 Customers are drawn from their era's cast in `content/casts.json` (`{ "1": [...],
-"2": [...], "3": [...] }`, edited in the Faces tab), which `Kitchen.castFor(era)`
-reads. A face no cast names still ships (everything in `content/faces/` does) but
+"2": [...], "3": [...] }`, edited in the Faces tab), which `Kitchen.castFor(era, year)`
+reads (the year keeps only faces whose first year has arrived). A face no cast names still ships (everything in `content/faces/` does) but
 nobody wears it. `DLG_FACE` in `src/72_dialog.js` (`smokerbust`) is the fallback
 when an era has no cast or a talking face is gone.
 

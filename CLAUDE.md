@@ -700,11 +700,11 @@ that the calendar is right and fits, and that the calendar and sign clear a 3-it
 ### Service Mode (the admin overlay)
 
 A dev-only content editor and test panel that runs inside the dev build of the game. Press **F2**.
-Tabs: Levels, Menu, Attract, Music, Difficulty, Dialogue, Faces, Test. The Dialogue tab has a speaker
-picker (shared pools, each of the nine cast, each customer face) and edits `people` and `cast` as well as
-the pools; the Difficulty tab has the kitchen hint rows (`hint`, `hintNewOnly`, `hintStall`). Code keeps the names `Admin`,
+Tabs: Levels, Menu, Attract, Music, Difficulty, Dialogue, Faces, Test. Code keeps the names `Admin`,
 `admin.mjs` and `/admin/api`; everything the owner sees says SERVICE MODE. Design:
-`docs/superpowers/specs/2026-10-25-admin-overlay-design.md` (owner rulings at its head).
+`docs/superpowers/specs/2026-10-25-admin-overlay-design.md` (owner rulings at its head). The Dialogue tab has
+a speaker picker (shared pools, each of the nine cast, each customer face) and edits `people` and `cast` as
+well as the pools; the Difficulty tab has the kitchen hint rows (`hint`, `hintNewOnly`, `hintStall`).
 
 - **`node admin.mjs`** starts `tools/content/server.mjs` on `127.0.0.1:8124`. It serves the repo and
   injects `admin/overlay.css` and `admin/overlay.js` into `index.html` **in memory, at request time**,
