@@ -335,7 +335,7 @@ and sunny the fifth. The values are in
 `levels.md`, and the code is `G.rollWeather` and the `WEATHER_*` constants in
 `80_game.js`.
 - **Rain:** a baked wet-road layer (darker tarmac, pale sky streaks, the odd puddle), an
-  overcast tint, falling rain with splashes, and grip x0.84.
+  overcast tint, falling rain with splashes, and grip x0.75.
 - **Sunny winter:** the snow on the ground and roofs stays, because that is the winter
   look, but nothing falls and the ploughed roads grip at x0.9.
 - **Kitchen levels** keep the season's default, because there is no sky to see from the

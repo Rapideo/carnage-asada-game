@@ -26,7 +26,7 @@ const HEAT_MAX = 100;
    is mostly snowy (owner ruling, 2026-11-07): snow is the winter the game was
    tuned in, and an even chance made half of all winters nearly as easy as summer. */
 const WEATHER_CHANCE = { summer: 0.5, winter: 0.2 };
-const WEATHER_GRIP = { summer: { sunny: 1, rainy: 0.84 }, winter: { snowy: 0.62, sunny: 0.9 } };
+const WEATHER_GRIP = { summer: { sunny: 1, rainy: 0.75 }, winter: { snowy: 0.62, sunny: 0.9 } };
 const WEATHER_ROADS = {
   summer: { sunny: 'DRY', rainy: 'WET - A LITTLE SLICK' },
   winter: { snowy: 'SNOW - THE BACK END STEPS OUT', sunny: 'PLOUGHED - THE ODD ICY PATCH' },

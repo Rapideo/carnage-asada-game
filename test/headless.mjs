@@ -5,7 +5,7 @@ import { sandbox, deferred, makeCtx, makeCanvas, opCount, runScript } from './sa
 
 
 const { G, City, Nav, Art, Input, Demo, textW, money, MAXTHROW, VW, VH, WW, WH,
-        Player, Cop, Train, Crossing, carBlocked, ATTRACT, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER } = sandbox.__x;
+        Player, Cop, Train, Crossing, carBlocked, ATTRACT, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER, WEATHER_GRIP, CAR_COLORS } = sandbox.__x;
 sandbox.solve = sandbox.__x.solve;
 
 /* ---------- assertions ---------- */
@@ -43,7 +43,10 @@ ok(City.statics.length > 500, `static props: ${City.statics.length}`);
 ok(City.shop && City.shop.dock, 'taqueria has a pickup dock');
 ok(City.buckets.length === City.BC * City.BC, `spatial buckets: ${City.buckets.length}`);
 ok(Art.house.length === 8 && Art.house[0].length === 4, 'house sprites: 8 variants x 4 facings');
-ok(Art.car.length === 8 && Art.car[0].length === 32, 'car rotation frames baked');
+ok(Art.car.length === CAR_COLORS.length && Art.car[0].length === 32, 'car rotation frames baked, one per CAR_COLORS pair');
+ok(WEATHER_GRIP.summer.rainy === 0.75, `rain grip is 0.75 (${WEATHER_GRIP.summer.rainy})`);
+ok(!CAR_COLORS.some(([body]) => body.toLowerCase() === '#d94f4f'), 'no red traffic car in CAR_COLORS');
+ok(CAR_COLORS.length >= 5, `at least 5 traffic colours remain (${CAR_COLORS.length})`);
 
 /* every house must have a sane address, porch and nav node */
 let badAddr = 0, badPorch = 0, badNode = 0, dupes = new Map();

@@ -70,7 +70,7 @@ vm.createContext(sandbox);
 // top-level const/let live in the script's lexical scope, not on the global
 // object, so hand them out explicitly from inside the same scope
 vm.runInContext(code + '\n;globalThis.__x = { G, City, Nav, Art, Input, Fx, Demo, solve, textW, money, MAXTHROW,' +
-  ' VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER };',
+  ' VW, VH, WW, WH, Player, Cop, Train, Crossing, carBlocked, ATTRACT, TURN_NAMES, Scores, SCORE_MAX, INI_LEN, INI_ALPHA, ENTRY_TIMEOUT, TS, GW, HSTREETS, VSTREETS, S_ROAD, S_WALK, S_GRASS, S_EDGE, SURF_MUL, classify, SEG0, PITCH, GH, BORDER, WEATHER_GRIP, CAR_COLORS };',
   sandbox, { filename: 'bundle.js' });
 vm.runInContext(';globalThis.__c = { Cast, RIVAL_ODDS, TROUBLE_QUEUE_ODDS };', sandbox);
 vm.runInContext(';globalThis.__k = { Kitchen, DIFFICULTY, LEVELS, DIALOGUE, MENUS, BOARD, RELEASE, CASTS, Audio5, Pad, Dialog, PAL, FACES, DLG_BOX };', sandbox);
