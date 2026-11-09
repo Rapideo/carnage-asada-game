@@ -898,7 +898,7 @@ The 1990s.
 
 - Size : 60x73
 
-- Eyes : none, set by hand
+- Eyes : set by hand (2)
 
 - From : 1996
 
