@@ -1213,7 +1213,9 @@ console.log('\n— docs —');
       const good = pe({ c70trucker: { wait: ['ONLY MINE.', 'ME TOO.'] } });
       ok(good.e === null && JSON.stringify(good.r.dialogue.people) === JSON.stringify({ c70trucker: { wait: ['ONLY MINE.', 'ME TOO.'] } }),
          'a known face with a known moment validates and is built (' + (good.e && good.e.message.split('\n')[0]) + ')');
-      ok(JSON.stringify(validateContent(memSource(files)).dialogue.people) === '{}', 'with no people key the built people is {}');
+      { const pp = validateContent(memSource(files)).dialogue.people; const n = Object.values(pp).reduce((a, m) => a + Object.values(m).reduce((b, l) => b + l.length, 0), 0);
+        ok(n === 670 && Object.keys(pp).length === 120, 'the shipped people holds the 670 attributed lines across 120 faces (' + n + ', ' + Object.keys(pp).length + ')'); }
+      ok(JSON.stringify(validateContent(memSource(gx((d) => { delete d.people; }))).dialogue.people) === '{}', 'with no people key the built people is {}');
       const bads = [
         ['an unknown face', { nobody: { wait: ['HI.'] } }, 'nobody'],
         ['an unknown moment', { c70trucker: { shout: ['HI.'] } }, 'c70trucker,shout'],
