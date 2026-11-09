@@ -118,6 +118,24 @@ after Service Mode and not before; the rest are decisions that need no work.
       picture does not use all the screen it could. Move the Mode C controls out into the left
       and right margins, and make them larger. Fold E3 into it, since freeing the picture may
       settle where the minimap goes.
+      - **Decided 2026-11-08: concept C, transparent ghost controls**
+        (`reference/touch-concepts/`, page https://claude.ai/artifact/1esoAeXXrpk3JgVCKbNwUJ).
+        - **Picture:** full height on the owner's Pixel 10 (2424x1080), at an exact 5x scale.
+        - **Left:** the Delivery Shift's stick sits **vertically centred** on the left margin,
+          not lower-left.
+        - **Right:** the Delivery buttons are **vertically centred** on the right margin to
+          match.
+        - **Kitchen Shift: no on-screen controls** (owner, 2026-11-08). The player taps the
+          bins, stations and WRAP IT directly, as Mode C already does; only pause remains.
+          This supersedes the kitchen d-pad and buttons in the concept mockups.
+        - **Style:** outlines with a faint fill that brighten under the thumb.
+        - **Sizes:** stick 18 mm, gas 15 mm.
+        - **Edges:** 2-3 mm in from the screen edge, away from Android's back-swipe.
+        - **Near-native:** with it, fullscreen and a landscape lock on the first tap, the
+          camera cutout respected, no pull-to-refresh or zoom, a wake lock, and an install
+          manifest beside the game on Netlify (display fullscreen, landscape, icons).
+        - **Check first on the phone:** the browser's screen scale and where the camera sits
+          (ADB is set up on the owner's PC).
 - [ ] **Fix: the kitchen wall calendar** shows JAN on every winter level, but by the season
       rule all seven winter kitchen levels are December. (Final wave of this work.)
 
