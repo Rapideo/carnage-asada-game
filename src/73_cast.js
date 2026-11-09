@@ -24,7 +24,8 @@ const CAST_YIELD = 1;                // a hostile line this close to done may be
 
 /* which moments are hostile (a red name plate): the law and a taunt are; a
    lost pursuit and a rival's grudging praise are not */
-const CAST_HOSTILE = { chase: true, fined: true, lost: false, missed: true, perfect: false };
+const CAST_HOSTILE = { chase: true, fined: true, lost: false, missed: true, perfect: false,
+  hint: false, clockin: false, streak: false, trouble: true };
 
 const Cast = {
   /** the character of this role in this era, or null */
@@ -43,6 +44,13 @@ const Cast = {
     if (!list || !list.length) return null;
     const s = list[(Math.random() * list.length) | 0];
     return vars && vars.ING != null ? s.split('{ING}').join(vars.ING) : s;
+  },
+
+  /** whether a cast member's line is on the strip right now */
+  showing() {
+    if (!Dialog.active || typeof DIALOGUE === 'undefined' || !DIALOGUE.cast) return false;
+    for (const k of Object.keys(DIALOGUE.cast)) if (DIALOGUE.cast[k].name === Dialog.who) return true;
+    return false;
   },
 
   /** whether the strip may be taken now */

@@ -1320,6 +1320,7 @@ const G = {
       this.drawBanner(x);
       if (this.state === 'kdemo') this.overlayDemo(x);
       Dialog.draw(x);
+      if (Dialog.active && this.state === 'kitchen') Kitchen.hintPlate(x, this);   // the strip hides the lower plates
     }
   },
 

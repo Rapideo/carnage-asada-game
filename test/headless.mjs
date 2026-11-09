@@ -1604,7 +1604,8 @@ console.log('\n— cast —');
     const Cast = Cx.Cast;
     ok(Cast.who('officer', 1).name === 'SGT. PFEIFER' && Cast.who('officer', 2).name === 'OFC. KARLIN' && Cast.who('officer', 3).name === 'OFC. DREILING', 'Cast.who finds the officer of each era');
     ok(Cast.who('rival', 1).name === 'DUSTY' && Cast.who('rival', 2).name === 'ACE' && Cast.who('rival', 3).name === 'JINX', 'and the rival of each era');
-    ok(Cast.who('coworker', 1) === null, 'a role with nobody in the cast (the coworkers are not written yet) is null');
+    ok(Cast.who('coworker', 1).name === 'MARGE' && Cast.who('coworker', 2).name === 'DALE' && Cast.who('coworker', 3).name === 'NIKKI', 'and the coworker of each era');
+    ok(Cast.who('nobody', 1) === null, 'a role with nobody in the cast is null');
     ok(Cast.line(Cast.who('officer', 1), 'chase') !== null && Cast.line(Cast.who('officer', 1), 'nonsense') === null, 'Cast.line picks a line for a moment, or null');
     ok(Cast.line({ lines: { hint: ['TRY {ING} NEXT.'] } }, 'hint', { ING: 'BEEF' }) === 'TRY BEEF NEXT.', '{ING} is replaced from vars');
 
@@ -1669,6 +1670,90 @@ console.log('\n— cast —');
       ok(Cast.say('rival', 'missed') === false && Cast.say('officer', 'lost') === false && !Dialog.active, 'Cast.say returns false in ' + st);
     }
     G.state = 'play'; G.cop = null; quiet();
+
+    /* ---- coworkers ---- */
+    {
+      const Kx = Kt, L = G.levels();
+      const kIdx = (era) => L.findIndex((l) => l.type === 'kitchen' && l.era === era && l.difficulty === 'easy') + 1 || L.findIndex((l) => l.type === 'kitchen' && l.era === era) + 1;
+      const begin = (era) => { reset0(); G.startRun(kIdx(era)); G.beginShift(); quiet(); Kx.tickets.length = 0; Kx.queue.length = 0; Kx.arriveT = 999; };
+      const tick = (secs) => { for (let i = 0; i < secs * 60; i++) Kx.update(1 / 60, G); };
+      const names = ['MARGE', 'DALE', 'NIKKI'], keys = ['marge', 'dale', 'nikki'];
+      ok(D.cast.marge.face === 'staff70' && D.cast.dale.face === 'staff80' && D.cast.nikki.face === 'staff90', 'the coworkers wear staff70/80/90');
+      for (let era = 1; era <= 3; era++) {
+        begin(era);
+        ok(G.state === 'kitchen' && G.era === era, 'a kitchen level of era ' + era + ' is running');
+        ok(!Dialog.active, 'the strip is quiet at the moment of the clock-in');
+        tick(1);
+        ok(Dialog.active && Dialog.who === names[era - 1] && !Dialog.hostile && D.cast[keys[era - 1]].lines.clockin.includes(Dialog.lines.join(' ')), 'era ' + era + ': the clock-in line from ' + names[era - 1] + ' within the first second (' + Dialog.who + ')');
+        quiet(); tick(3);
+        ok(!(Dialog.active && D.cast[keys[era - 1]].lines.clockin.includes(Dialog.lines.join(' '))), 'and the clock-in is said once per shift');
+      }
+      /* streak */
+      begin(1);
+      const clean = (c) => { Kx.arrive(G); const t = Kx.tickets[0] || Kx.queue[0]; t.items.forEach((it) => { it.wrapped = true; }); t.clean = c; Kx.serve(G); };
+      tick(1.1); quiet();
+      Kx.cleanRun = 0; clean(true); clean(true);
+      ok(Kx.cleanRun === 2 && !(Dialog.active && Dialog.who === 'MARGE'), 'two clean tickets in a row: counted, nothing said');
+      clean(true);
+      ok(Dialog.active && Dialog.who === 'MARGE' && D.cast.marge.lines.streak.includes(Dialog.lines.join(' ')) && Kx.cleanRun === 0, 'the third clean ticket raises a streak line and resets cleanRun');
+      quiet(); clean(true); clean(false); clean(true);
+      ok(Kx.cleanRun === 1, 'a dirty ticket resets the run');
+      /* trouble: once per shift when the clock drops under 30 */
+      begin(2); tick(1.1); quiet();
+      G.shift = 29.9; tick(0.1);
+      ok(Dialog.active && Dialog.who === 'DALE' && Dialog.hostile && D.cast.dale.lines.trouble.includes(Dialog.lines.join(' ')), 'the clock under 30 raises a trouble line, hostile (' + Dialog.who + ')');
+      quiet(); G.shift = 25; tick(0.5);
+      ok(!Dialog.active && Kx.troubleSaid === true, 'and not again');
+      /* a backed-up line: the coworker replaces the customer's queue line half the time */
+      const backUp = (r) => {
+        begin(3); tick(1.1); quiet();
+        for (let i = 0; i < 3; i++) Kx.arrive(G);
+        Kx.complained = false; quiet(); Kx.barkT = 0;
+        rnd(r); Kx.arrive(G); unrnd();
+      };
+      backUp(0.1);
+      ok(Kx.queue.length >= 1 && Dialog.active && Dialog.who === 'NIKKI' && Dialog.hostile, 'a backed-up line: the coworker speaks under TROUBLE_QUEUE_ODDS (' + Dialog.who + ')');
+      backUp(0.9);
+      ok(Kx.queue.length >= 1 && Dialog.active && Dialog.who !== 'NIKKI', 'over the odds the customer barks as before (' + Dialog.who + ')');
+      /* one speaker: a customer bark does not overwrite a coworker line */
+      begin(1); tick(1.1); quiet();
+      Kx.arrive(G); Kx.hintItem = null; Kx.barkT = 0;
+      Kx.fireHint(G, 'stall');
+      const who0 = Dialog.who, lines0 = Dialog.lines.join(' ');
+      Kx.bark(G, 'wrong', Kx.focus(), true); Kx.barkT = 0; Kx.bark(G, 'served', Kx.focus(), false);
+      ok(who0 === 'MARGE' && Dialog.who === who0 && Dialog.lines.join(' ') === lines0, 'a customer bark does not overwrite a coworker line');
+      Kx.bark(G, 'walkout', Kx.focus(), true, true);
+      ok(Dialog.who !== 'MARGE', 'a walkout still speaks (it earns it)');
+      /* {ING}: bases use the station plate, bins the bin plate */
+      const forced = (key) => {
+        begin(1); tick(1.1); quiet();
+        const def = Kx.menu.items.find((d) => d.recipe.includes(key)); if (!def) return null;
+        Kx.tickets.length = 0; Kx.arrive(G); const it = Kx.item(); it.def = def; it.step = def.recipe.indexOf(key);
+        Kx.hintItem = null; Kx.hintStep = -1; quiet(); Kx.barkT = 0; Kx.fireHint(G, 'stall');
+        return { text: Dialog.lines.join(' '), plate: Kx.plateName(key) };
+      };
+      begin(1);
+      const baseKey = Kx.menu.items.map((d) => d.recipe[0]).find((k) => Kx.left.some((b) => b.key === k) && k !== 'SMALL') || 'SHELL';
+      const binKey = Kx.bins.find((b) => b && Kx.menu.items.some((d) => d.recipe.includes(b.key))).key;
+      const fb = forced(baseKey), fi = forced(binKey);
+      ok(fb && fb.text.includes(fb.plate) && !/undefined|\{ING\}/.test(fb.text), 'a hint for a base (' + baseKey + ') names the station plate: "' + (fb && fb.text) + '"');
+      ok(fi && fi.text.includes(fi.plate) && !/undefined|\{ING\}/.test(fi.text), 'a hint for a bin (' + binKey + ') names the bin plate: "' + (fi && fi.text) + '"');
+      /* not in the kitchen demo */
+      begin(1); Kx.demo = true; G.state = 'kdemo'; quiet(); Kx.arrive(G); Kx.hintItem = null; Kx.fireHint(G, 'stall'); tick(1.5);
+      G.shift = 10; tick(0.2);
+      ok(!Dialog.active, 'no coworker line fires in kdemo (hint, clockin, trouble)');
+      Kx.demo = false; G.state = 'kitchen';
+      /* the hint plate is drawn again after the strip */
+      begin(1); tick(1.1); quiet(); Kx.arrive(G); Kx.hintItem = null; Kx.fireHint(G, 'stall');
+      ok(Dialog.active && Kx.hintT > 0, 'a hint is blinking under a speaking coworker');
+      const order = [], kPlate = Kx.plate, dDraw = Dialog.draw;
+      Kx.plate = function (x, key, col, a) { order.push('plate'); return kPlate.call(this, x, key, col, a); };
+      Dialog.draw = function (x) { order.push('strip'); return dDraw.call(this, x); };
+      try { for (let f = 0; f < 8; f++) { G.time = f * 0.1; order.length = 0; Kx.hintT = 1.6; G.renderKitchen(ctx); if (order.length > 2) break; } }
+      finally { Kx.plate = kPlate; Dialog.draw = dDraw; }
+      ok(order.indexOf('strip') >= 0 && order.lastIndexOf('plate') > order.indexOf('strip'), 'the hint plate is drawn after the strip (' + order.join(',') + ')');
+      G.state = 'play'; quiet(); Kx.demo = false;
+    }
   } finally { unrnd(); G.state = 'play'; }
   function reset0() { G.test = null; G.autopilot = false; G.testRun = false; Input.down = Object.create(null); Input.hit = Object.create(null); }
 }

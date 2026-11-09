@@ -83,6 +83,7 @@ const Kitchen = {
   flashKey: null, flashT: 0, wrongKey: null, hintT: 0,
   newDishes: null, stallT: 0, hintItem: null, hintStep: -1,
   buzzT: 0, barkT: 0, complained: false,
+  cleanRun: 0, troubleSaid: false, clockinSaid: false, shiftT: 0,   // the coworker's moments
   bg: null, wells: null, frames: null, picCache: null,
   lastMx: -1, lastMy: -1,
   bot: null,
@@ -112,6 +113,7 @@ const Kitchen = {
     this.stallT = 0; this.hintItem = null; this.hintStep = -1;
     this.newDishes = this.findNewDishes();
     this.buzzT = 0; this.barkT = 0; this.complained = false;
+    this.cleanRun = 0; this.troubleSaid = false; this.clockinSaid = false; this.shiftT = 0;
     this.stats = { served: 0, walkouts: 0, items: 0, clean: 0, mistakes: 0, best: 0 };
     this.bot = { t: 0.6, slip: null };
     if (!this.wells) this.buildWells();
@@ -192,6 +194,18 @@ const Kitchen = {
     return 1;
   },
 
+  /* The coworker's two clock moments. Cast.say only speaks in the kitchen state,
+     and the state goes card -> kitchen after enter(), so the clock-in waits for
+     the first update inside the shift. Never in the attract demo. */
+  coworker(G, dt) {
+    if (this.demo) return;
+    this.shiftT += dt;
+    if (!this.clockinSaid) {
+      if (Cast.say('coworker', 'clockin') || this.shiftT >= 1) this.clockinSaid = true;
+    }
+    if (!this.troubleSaid && G.shift < 30 && Cast.say('coworker', 'trouble')) this.troubleSaid = true;
+  },
+
   arrive(G) {
     const n = this.rollItems(), items = [];
     for (let i = 0; i < n; i++) {
@@ -206,7 +220,11 @@ const Kitchen = {
     if (this.tickets.length < this.RAIL_MAX) this.toRail(t);
     else {
       this.queue.push(t);
-      if (!this.complained) { this.complained = true; this.bark(G, 'queue', t, true); }
+      if (!this.complained) {
+        this.complained = true;
+        /* the coworker replaces the customer's complaint half the time */
+        if (this.demo || !(Math.random() < TROUBLE_QUEUE_ODDS && Cast.say('coworker', 'trouble'))) this.bark(G, 'queue', t, true);
+      }
     }
     Audio5.sfx('kbell');
     if (Math.random() < 0.18) this.bark(G, 'arrive', t, false);
@@ -262,6 +280,7 @@ const Kitchen = {
     this.buzzT = Math.max(0, this.buzzT - dt);
     this.barkT = Math.max(0, this.barkT - dt);
     this.hintT = Math.max(0, this.hintT - dt);
+    this.coworker(G, dt);
 
     /* a stall: nothing picked for hintStall seconds while an item is being built */
     const building = this.item();
@@ -424,6 +443,9 @@ const Kitchen = {
     this.leave(t.cust, true);
     this.pop('+' + money(paid), 312, 56, PAL.good);
     if (t.clean) this.pop('CLEAN TICKET +' + money(G.cleanBonus()), 300, 66, PAL.amber);
+    if (t.clean) {
+      if (++this.cleanRun >= 3) { this.cleanRun = 0; if (!this.demo) Cast.say('coworker', 'streak'); }
+    } else this.cleanRun = 0;
     Audio5.sfx('kserve'); Audio5.sfx('cash');
     if (Math.random() < 0.35) this.bark(G, 'served', t, false);
     G.flash = 0.08;
@@ -575,6 +597,7 @@ const Kitchen = {
   bark(G, kind, t, hostile, force) {
     if (this.demo || typeof DIALOGUE === 'undefined') return;
     if (this.barkT > 0 && !force) return;
+    if (!force && Cast.showing()) return;      // a coworker is talking: one speaker at a time
     const line = G.lineFor(kind, t && t.cust ? t.cust.face : null);
     if (!line) return;
     this.barkT = 5;
@@ -1019,10 +1042,18 @@ const Kitchen = {
        reference's finding: TOMATO, SAUCE and CHILI are red already. */
     if (this.wrongKey) this.plate(x, this.wrongKey, PAL.bad, (G.time * 6 | 0) % 2 ? 1 : 0.7);
     if (this.flashT > 0 && this.flashKey && this.flashKey !== this.wrongKey) this.plate(x, this.flashKey, PAL.good, 1);
-    if (this.hintT > 0 && want && (G.time * 5 | 0) % 2) this.plate(x, want, PAL.amber, 1);
+    this.hintPlate(x, G);
 
     const r = this.onBtn ? this.BTN : this.cellRect(this.cur.c, this.cur.r, this.cur.z);
     this.cursor(x, r[0], r[1], r[2], r[3]);
+  },
+
+  /* the amber blink on the wanted plate. Drawn again after the strip, because
+     the strip covers the lower bins and the station under the portrait */
+  hintPlate(x, G) {
+    const it = this.item();
+    const want = it && it.step < it.def.recipe.length ? it.def.recipe[it.step] : null;
+    if (this.hintT > 0 && want && (G.time * 5 | 0) % 2) this.plate(x, want, PAL.amber, 1);
   },
 
   /* where the baked tortilla rack sits on screen, or null when there is no

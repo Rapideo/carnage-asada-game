@@ -78,6 +78,60 @@
         "missed": ["AS IF! THAT WAS SO NOT IT.", "WHOOPS. I SAW NOTHING. WINK.", "THAT'S GOING IN MY ZINE.", "TALK TO THE HAND. AND THE HEDGE.", "NOT EVEN CLOSE. NOT EVEN!"],
         "perfect": ["OKAY, THAT WAS ALL THAT.", "WHATEVER. I'LL DO IT BETTER.", "DID YOU JUST... PSH. LUCKY.", "SCHWING. I MEAN, FINE. GOOD.", "DON'T LET IT GO TO YOUR HEAD."]
       }
+    },
+    "marge": {
+      "name": "MARGE",
+      "face": "staff70",
+      "era": 1,
+      "role": "coworker",
+      "lines": {
+        "hint": [
+          "{ING} NEXT, HON.",
+          "DON'T FORGET THE {ING}, SUGAR.",
+          "{ING}. TRUST ME, HON.",
+          "YOU WANT THE {ING} NOW.",
+          "{ING} GOES ON NEXT, DEAR."
+        ],
+        "clockin": ["APRON ON, HON. HERE THEY COME.", "COFFEE'S ON. LET'S ROLL, SUGAR.", "LUNCH RUSH. KEEP UP, HON.", "I'VE DONE THIS SINCE '62. WATCH.", "TICKETS ON THE RAIL. GET MOVING."],
+        "streak": ["NOW YOU'RE COOKING, HON!", "LOOK AT YOU GO, SUGAR!", "WELL, AREN'T YOU SOMETHING.", "KEEP THAT UP AND I'LL RETIRE.", "THAT'S HOW WE DO IT AT THE SHOP."],
+        "trouble": ["HON, THE LINE'S OUT THE DOOR!", "CLOCK'S RUNNING, SUGAR. HUSTLE!", "THEY'RE GETTING CRANKY OUT THERE.", "PICK UP THE PACE, HON. NOW.", "I'VE SEEN SNAILS WITH MORE PEP."]
+      }
+    },
+    "dale": {
+      "name": "DALE",
+      "face": "staff80",
+      "era": 2,
+      "role": "coworker",
+      "lines": {
+        "hint": [
+          "PSST. {ING} NEXT, BUDDY.",
+          "I THINK IT'S {ING}. YEAH.",
+          "GO {ING}, DUDE. TRUST ME.",
+          "IT'S {ING} TIME, PAL.",
+          "{ING} GOES NEXT. TOTALLY."
+        ],
+        "clockin": ["OKAY! RUSH HOUR! LET'S DO THIS!", "I MADE A MIXTAPE FOR THE SHIFT.", "HAIRNETS ON, PEOPLE. GO TIME.", "BIG CROWD TODAY. WE GOT THIS.", "SHIFT'S ON! HIGH FIVE! ...NO?"],
+        "streak": ["TOTALLY TUBULAR, BUDDY!", "YOU'RE ON FIRE! NOT LITERALLY.", "THAT'S A COMBO! LIKE IN ARCADES!", "WHOA. YOU'RE A NATURAL, DUDE.", "RADICAL! KEEP 'EM COMING!"],
+        "trouble": ["UH, DUDE? THE LINE'S HUGE.", "CLOCK! CLOCK! WATCH THE CLOCK!", "THEY'RE STARTING TO CHANT, MAN.", "I DON'T WANNA PANIC, BUT... PANIC.", "WE ARE SO GETTING GROUNDED."]
+      }
+    },
+    "nikki": {
+      "name": "NIKKI",
+      "face": "staff90",
+      "era": 3,
+      "role": "coworker",
+      "lines": {
+        "hint": [
+          "{ING}. DUH.",
+          "HELLO? {ING} GOES NEXT.",
+          "{ING}. NOT ROCKET SCIENCE.",
+          "THE {ING}, GENIUS.",
+          "TRY {ING}. JUST SAYING."
+        ],
+        "clockin": ["OKAY, CREW. NO DRAMA TODAY.", "SPATULA UP. LET'S DO THIS.", "THEY'RE LINING UP. GAME FACE.", "LUNCH RUSH. I'M SO READY. NOT.", "CLOCK'S ON. MAKE IT SNAPPY."],
+        "streak": ["OKAY, YOU'RE KIND OF AWESOME.", "BOO-YAH! CLEAN TICKET!", "ALL THAT AND A BAG OF CHIPS!", "WHO ARE YOU AND WHAT DID YOU DO?", "YOU'RE BUGGIN'. IN A GOOD WAY."],
+        "trouble": ["UM, THE LINE? IT'S A WHOLE THING.", "CLOCK'S DYING. MOVE IT, MOVE IT.", "THEY'RE GONNA RIOT. JUST SAYING.", "THIS IS SO NOT GOOD. LIKE, AT ALL.", "HURRY. I CAN'T HANDLE THE WHINING."]
+      }
     }
   }
 }
