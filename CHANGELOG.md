@@ -8,6 +8,15 @@ Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch li
 counts on: 0.9.10, 0.9.11 and so on (owner, 2026-11-09).
 **1.0.0** is when the owner calls it released.
 
+## Unreleased (0.9.14, on branch `midi-autofill`)
+
+- **New songs** from the owner's library, approved in Service Mode (in progress; list them when
+  cut). Red Red Wine now plays from 1987.
+- **Service Mode, Convert:** the form asks only title, artist and year, and fills them in: from
+  tags in the MIDI, then from a catalog of the whole library (tools/music/midi-catalog.json), then
+  from the file. The song's internal name comes from its title, and a release month is no longer
+  needed. A guessed entry says to check it.
+
 ## 0.9.13 (2026-11-09): everybody talks, and the roads clear
 
 - **Every customer says only their own lines**, at 13 moments: an on-time delivery, a

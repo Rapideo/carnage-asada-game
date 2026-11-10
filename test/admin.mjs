@@ -1,6 +1,6 @@
 /* Tests for Service Mode (the admin overlay) and the shared content validator.
    Zero dependencies, same ok(cond, msg) style and exit code as headless.mjs. */
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync, rmSync as rmFreeze, writeFileSync as writeFreeze } from 'node:fs';
 import { join } from 'node:path';
 
 let fails = 0;
@@ -44,6 +44,19 @@ ok(disk.levels.length === 20, 'validates the shipped content from disk');
 
 const files = loadAllContentJSON('content');
 globalThis.__allFiles = files;
+/* a temp copy of the repo, put back to the frozen 0.9.11 library: the owner's songs
+   removed, the three songs.json names that had no song file (anarchy-in-the-uk,
+   dont-fear-the-reaper, bizarre-love-triangle) without one again */
+function freezeTmp(tmp) {
+  const rd = readdirSync, rm = rmFreeze, wf = writeFreeze, rf = readFileSync;
+  const ORPHANS = ['anarchy-in-the-uk', 'dont-fear-the-reaper', 'bizarre-love-triangle'];
+  const md = join(tmp, 'content/music');
+  for (const n of rd(md)) if (n.endsWith('.json') && n !== 'approved.json' && !BASE_SONGS.includes(n.slice(0, -5))) rm(join(md, n));
+  wf(join(md, 'approved.json'), JSON.stringify(baseFiles({ 'music/approved.json': JSON.parse(rf(join(md, 'approved.json'), 'utf8')) })['music/approved.json'], null, 2));
+  const SJ = join(tmp, 'tools/music/songs.json'), sj = JSON.parse(rf(SJ, 'utf8'));
+  sj.songs = sj.songs.filter((s) => BASE_SONGS.includes(s.id) || ORPHANS.includes(s.id));
+  wf(SJ, JSON.stringify(sj, null, 2));
+}
 ok(JSON.stringify(validateContent(memSource(files))) === JSON.stringify(disk), 'memory and disk agree');
 
 const bad = structuredClone(files); bad['difficulty.json'].easy.fines.ticket = -1;
@@ -230,12 +243,13 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
   r = run((a) => { a.from['one-step-beyond'] = 1981; });
   ok(r.x === null && r.out && !('one-step-beyond' in r.out.approved.from), 'a "from" for a song in no decade is dropped, not refused, as casts do');
   ok(disk.approved && !('_comment' in disk.approved), 'validateContent returns approved, notes stripped');
-  const LV = disk.levels, AP = disk.approved || { title: [], from: {} };
+  /* the frozen 0.9.11 library: the level lists below are counted */
+  const LV = disk.levels, AP = validateContent(memSource(baseFiles(files))).approved || { title: [], from: {} };
   const ls = (i) => (typeof V.levelSongs === 'function' ? V.levelSongs(AP, LV, i) : []);
   const same = (a, b) => a.length === b.length && [...a].sort().join() === [...b].sort().join();
   ok(same(ls(5), ['walk-on-the-wild-side', 'do-it-again', 'dyer-maker', 'kashmir', 'lovely-day', 'peg']), 'Level 6 shuffles all six \'70s kitchen songs (' + ls(5).join() + ')');
   ok(ls(0).join() === 'immigrant-song,black-dog', 'Level 1 plays Immigrant Song and Black Dog (' + ls(0).join() + ')');
-  ok(LV.every((l, i) => JSON.stringify(disk.playlist[String(l.n)]) === JSON.stringify(ls(i))) && JSON.stringify(disk.playlist.title) === JSON.stringify(AP.title),
+  ok(LV.every((l, i) => JSON.stringify(disk.playlist[String(l.n)]) === JSON.stringify(V.levelSongs(disk.approved, LV, i))) && JSON.stringify(disk.playlist.title) === JSON.stringify(disk.approved.title),
      'the built playlist is levelSongs per level, and the title list as written');
   ok(typeof V.eraYears === 'function' && V.eraYears(LV, 1).join() === '1972,1975,1978' && V.eraYears(LV, '3').join() === '1990,1993,1996,1999', 'eraYears: the decade\'s level years');
   ok(typeof V.songStart === 'function' && V.songStart(AP, LV, 'kashmir') === 1975 && V.songStart(AP, LV, 'immigrant-song') === 1972 && V.songStart(AP, LV, 'one-step-beyond') === null,
@@ -387,6 +401,7 @@ console.log('\n— server —');
   const MIDIS = ['70s/Kashmir.mid', '80s/HazyShadeOfWinter.mid', '90s/99Problems.mid', 'OnTheOutside.mid'];
   for (const f of ['build.mjs', 'shell.html', 'src', 'content', 'tools/content', 'tools/render/recolor-lattice.mjs', 'tools/music/midi2song.mjs', 'tools/music/songs.json', 'tools/music/midi-catalog.json',
     ...MIDIS.map((m) => 'reference/assets/midi/' + m)]) cpSync(f, join(tmp, f), { recursive: true });
+  freezeTmp(tmp);
   (await import('node:child_process')).execFileSync('node', ['build.mjs'], { cwd: tmp, stdio: 'pipe' });
   const { startAdmin } = await import('../tools/content/server.mjs');
   const srv = await startAdmin({ root: tmp, port: 0 });
@@ -532,7 +547,7 @@ console.log('\n— server —');
          && readFileSync(SJ, 'utf8') === formatSongs(sj), 'songs.json gains the entry, written one song per line (' + JSON.stringify(last) + ')');
       let vb = null; try { vb = validateContent(fsSource(join(tmp, 'content'))); } catch (x) { vb = x; }
       ok(vb && vb.music && vb.music[hazy.id] && vb.music[hazy.id].month === 11, 'the temp content validates with the ported song in it' + (vb instanceof Error ? ': ' + vb.message : ''));
-      ok(!existsSync('content/music/hazy-shade-of-winter.json') && !readFileSync('tools/music/songs.json', 'utf8').includes('hazy-shade'), 'and nothing in the real repo');
+      ok(!existsSync('content/music/hazy-shade-of-winter.json') && !JSON.parse(readFileSync('tools/music/songs.json', 'utf8')).songs.some((s) => s.id === 'hazy-shade-of-winter'), 'and nothing in the real repo');
       const madeText = existsSync(made) ? readFileSync(made, 'utf8') : null, sj2 = readFileSync(SJ, 'utf8');
       r = await port({ ...hazy, title: 'AGAIN' });
       ok(r.status === 409 && (await r.json()).error === 'exists' && madeText !== null && readFileSync(made, 'utf8') === madeText && readFileSync(SJ, 'utf8') === sj2, 'a second port under the same id is refused, not overwritten');

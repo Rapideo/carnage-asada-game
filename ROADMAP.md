@@ -22,6 +22,11 @@ owner's open judgement calls and operator settings. 1.0.0 is the owner's call.
 
 ## OPEN: dialogue and music (owner, 2026-11-09)
 
+- [ ] **The owner's songs, then 0.9.14.** On branch `midi-autofill`: the owner converts and approves
+      songs in Service Mode (6 approved so far, 10-15 expected, more MIDIs coming). The Convert form
+      fills itself from tags, the library catalog (`tools/music/midi-catalog.json`) and the file; add
+      catalog lines for new MIDIs. Cut 0.9.14 when the owner says go.
+
 - [x] **Personal lines for the happy moments.** *Shipped in 0.9.12.* All 120 customers are active and every one has
       personal lines (670), used 3 times in 4 when a face has a line for the moment. But the
       lines lean to trouble: an on-time **delivery has no personal lines at all** (always the
