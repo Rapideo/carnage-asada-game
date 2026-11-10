@@ -416,7 +416,7 @@ for (let f = 0; f < 9000; f++) {
 }
 ok(nanFrames === 0, 'no NaN in player state over 9000 frames');
 ok(maxSpeed > 60, `car reaches speed (peak ${maxSpeed.toFixed(0)} px/s)`);
-ok(G.traffic.length > 10, `traffic sustained: ${G.traffic.length} cars`);
+ok(G.traffic.length >= Math.max(1, G.diff.traffic - 1) && G.traffic.length <= G.diff.traffic, `traffic sustained at the difficulty's count: ${G.traffic.length} of ${G.diff.traffic} cars`);
 ok(G.peds.length > 10, `pedestrians sustained: ${G.peds.length}`);
 ok(thrown > 100, `${thrown} taco bags thrown without a crash`);
 
@@ -2743,6 +2743,27 @@ const dl = KX.DIALOGUE;
   for (const c of Object.values(dl.cast || {})) for (const m of Object.keys(c.lines)) for (const s of c.lines[m]) chk(s, c.face);
   ok(total > 100 && bad === 0, 'every shared, personal and cast line wraps to at most two rows (' + total + ' checked, ' + bad + ' over)');
 }
+/* Traffic per difficulty (owner, 2026-11-09: "I want to see a tenth of that amount of traffic on a
+   level 1"): DIFFICULTY[k].traffic cars, rising up the ladder; a shift seeds and keeps that many. */
+console.log('\n— traffic —');
+{
+  const DF = KX.DIFFICULTY, ks = ['easy', 'medium', 'hard', 'supreme'];
+  const tr = ks.map((k) => DF[k] && DF[k].traffic);
+  ok(tr.every((n) => Number.isInteger(n) && n >= 0) && tr.every((n, i) => i === 0 || n >= tr[i - 1]) && tr[0] === 3,
+     'each difficulty sets its traffic, easy 3 and never fewer up the ladder (' + tr.join(' ') + ')');
+  const keepState = G.state;
+  try {
+    let worst = 0;
+    for (const lv of [1, 20]) {
+      G.startRun(lv); G.startShift();
+      Input.down = Object.create(null); Input.hit = Object.create(null);
+      for (let i = 0; i < 300; i++) { G.update(1 / 60); Input.endFrame(); worst = Math.max(worst, G.traffic.length); }
+      ok(G.traffic.length <= G.diff.traffic && worst <= G.diff.traffic, 'level ' + lv + ' (' + G.diffKey + ') keeps at most ' + G.diff.traffic + ' cars on the road (now ' + G.traffic.length + ', at most ' + worst + ')');
+      worst = 0;
+    }
+  } finally { G.state = keepState; }
+}
+
 for (const b of ['ORDER UP!', 'WALKOUT!', '+1:30 EXTENSION', 'LEVEL 20 CLEAR!'])
   ok(textW(b, 2) + 16 <= VW || textW(b, 3) <= VW, `"${b}" fits`);
 

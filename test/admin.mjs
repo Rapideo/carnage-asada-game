@@ -231,8 +231,9 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
   ok(ids.size === 42, 'day one: all 42 songs are in game (' + ids.size + ')');
 }
 
-const before = JSON.stringify(files);
-validateContent(memSource(files));
+/* traffic per difficulty (0.9.13): whole cars, 0 to 40 */
+{
+  const tErr = (v) 
 ok(JSON.stringify(files) === before, 'validating does not mutate the source');
 
 console.log('\n— format —');
@@ -1871,7 +1872,7 @@ console.log('\n— difficulty panel —');
     ok(heads.join() === 'Easy,Medium,Hard,Supreme', 'one column per difficulty, in ladder order (' + heads.join() + ')');
     const ROWS = ['start', 'extend', 'maxExt', 'target', 'tipStart', 'tipFloor', 'tipDecay', 'fines.ticket', 'fines.ped', 'fines.train', 'fines.remake',
       ...NAV_KEYS.map((f) => 'nav.' + f), 'kitchen.tipPerItem', 'kitchen.decay', 'kitchen.maxItems', 'kitchen.every', 'kitchen.railMax',
-      'kitchen.queueMax', 'kitchen.hint', 'kitchen.hintNewOnly', 'kitchen.hintStall', 'kitchen.cleanBonus', 'perfectBonus',
+      'kitchen.queueMax', 'kitchen.hint', 'kitchen.hintNewOnly', 'kitchen.hintStall', 'kitchen.cleanBonus', 'perfectBonus', 'traffic',
       'wind.strength', 'wind.gustEvery.0', 'wind.gustEvery.1', 'wind.tumbleweeds'];
     const want = DIFF_KEYS.flatMap((k) => ROWS.map((r) => k + '.' + r)).sort();
     const got = nodes.filter((n) => n.dataset.rel === 'difficulty.json').map((n) => n.dataset.path).sort();

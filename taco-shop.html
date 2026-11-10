@@ -2349,6 +2349,7 @@ const DIFFICULTY = {
     "tipFloor": 200,
     "tipDecay": 33.333333333333336,
     "perfectBonus": 500,
+    "traffic": 3,
     "fines": {
       "ticket": 500,
       "ped": 200,
@@ -2389,6 +2390,7 @@ const DIFFICULTY = {
     "tipFloor": 200,
     "tipDecay": 40,
     "perfectBonus": 500,
+    "traffic": 8,
     "fines": {
       "ticket": 1000,
       "ped": 400,
@@ -2429,6 +2431,7 @@ const DIFFICULTY = {
     "tipFloor": 200,
     "tipDecay": 50,
     "perfectBonus": 500,
+    "traffic": 14,
     "fines": {
       "ticket": 1000,
       "ped": 400,
@@ -2469,6 +2472,7 @@ const DIFFICULTY = {
     "tipFloor": 200,
     "tipDecay": 50,
     "perfectBonus": 500,
+    "traffic": 20,
     "fines": {
       "ticket": 1500,
       "ped": 600,
@@ -10323,7 +10327,7 @@ const CONTINUE_SECS = 10;   // GDD II.F
    file can never blank the game. build.mjs validates the real thing. */
 const DIFF_FALLBACK = {
   start: 180, extend: 90, maxExt: 5, target: 15,
-  tipStart: 2000, tipFloor: 200, tipDecay: 100 / 3, perfectBonus: 500,
+  tipStart: 2000, tipFloor: 200, tipDecay: 100 / 3, perfectBonus: 500, traffic: 8,
   fines: { ticket: 500, ped: 200, train: 500, remake: 150 },
   nav: { panel: true, line: true, dot: true, edge: true, beacon: true },
   kitchen: { tipPerItem: 500, decay: 100 / 8, maxItems: 3, every: 25,
@@ -10661,7 +10665,7 @@ const G = {
     this.cam.x = clamp(d.x - VW / 2, 0, WW - VW);
     this.cam.y = clamp(d.y - VH / 2, 0, WH - VH);
     this.traffic.length = 0; this.peds.length = 0; this.shoutT = 0;
-    this.seedTraffic(30); this.seedPeds(24);
+    this.seedTraffic(this.diff.traffic); this.seedPeds(24);
     /* a new direction, a fresh gust clock and new tumbleweeds every play */
     Wind.reset(this.windy, this.diff); this.weeds.length = 0;
   },
@@ -11393,7 +11397,9 @@ const G = {
         if (!carBlocked(p.x, p.y + ny2 * 2, p.ang)) p.y += ny2 * 2;
       }
     }
-    while (this.traffic.length < 30) { const n = this.traffic.length; this.spawnCar(false); if (this.traffic.length === n) break; }
+    /* the difficulty's traffic (content/difficulty.json): a car that drifts out of
+       range is replaced, so the road around the player keeps about that many */
+    while (this.traffic.length < this.diff.traffic) { const n = this.traffic.length; this.spawnCar(false); if (this.traffic.length === n) break; }
 
     /* peds */
     for (let i = this.peds.length - 1; i >= 0; i--) {

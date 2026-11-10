@@ -2090,6 +2090,7 @@ const DIFFICULTY = {
     "tipFloor": 200,
     "tipDecay": 33.333333333333336,
     "perfectBonus": 500,
+    "traffic": 3,
     "fines": {
       "ticket": 500,
       "ped": 200,
@@ -2130,6 +2131,7 @@ const DIFFICULTY = {
     "tipFloor": 200,
     "tipDecay": 40,
     "perfectBonus": 500,
+    "traffic": 8,
     "fines": {
       "ticket": 1000,
       "ped": 400,
@@ -2170,6 +2172,7 @@ const DIFFICULTY = {
     "tipFloor": 200,
     "tipDecay": 50,
     "perfectBonus": 500,
+    "traffic": 14,
     "fines": {
       "ticket": 1000,
       "ped": 400,
@@ -2210,6 +2213,7 @@ const DIFFICULTY = {
     "tipFloor": 200,
     "tipDecay": 50,
     "perfectBonus": 500,
+    "traffic": 20,
     "fines": {
       "ticket": 1500,
       "ped": 600,

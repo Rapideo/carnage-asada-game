@@ -17,6 +17,8 @@ Levels 1-6, the 1970s.
 
 - Tip Floor : 2.00. The tip falls to it in 54s and holds there; it never runs out
 
+- Traffic : 3 Cars
+
 ### B. Bonus Structure
 
 #### 1. Extended Play
@@ -132,6 +134,8 @@ these numbers. Anything not listed here is the same as Easy.
 
 - Depreciation Rate : 1.00 / 2.5 Seconds (reaches the 2.00 floor at 45s; Easy 54s)
 
+- Traffic : 8 Cars
+
 ### B. Bonus Structure
 
 - Same as Easy
@@ -187,6 +191,8 @@ these numbers. Anything not listed here is the same as Medium.
 - Starting Tip : 20.00
 
 - Depreciation Rate : 1.00 / 2 Seconds (reaches the 2.00 floor at 36s; Medium 45s)
+
+- Traffic : 14 Cars
 
 ### B. Bonus Structure
 
@@ -247,6 +253,8 @@ as Hard.
 
 - Depreciation Rate : 1.00 / 2 Seconds (same as Hard; reaches the 2.00 floor at 36s).
   Held on purpose: beacon-only navigation already makes every drive longer
+
+- Traffic : 20 Cars
 
 ### B. Bonus Structure
 

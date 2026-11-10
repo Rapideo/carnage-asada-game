@@ -62,6 +62,8 @@ const GROUPS = [
     ['kitchen.hint', 'Next-ingredient hint', 'bool'],
     ['kitchen.hintNewOnly', 'Only for new dishes', 'bool'], ['kitchen.hintStall', 'Hint after a stall of', 'seconds'], ['kitchen.cleanBonus', 'Clean ticket bonus', 'money']]],
   ['Bonus', [['perfectBonus', 'Perfect delivery', 'money']]],
+  /* Delivery Shift: cars on the road around the player */
+  ['Road', [['traffic', 'Cars on the road', 'int']]],
   /* windy Delivery levels only (levels.json says which): 55_wind.js */
   ['Wind', [['wind.strength', 'Wind strength (0-1)', 'fraction'], ['wind.gustEvery.0', 'A gust every, at least', 'seconds'],
     ['wind.gustEvery.1', 'and at most', 'seconds'], ['wind.tumbleweeds', 'Tumbleweeds', 'int']]],

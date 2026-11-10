@@ -16,6 +16,7 @@
      Shift            Starting Tip : 20.00<tail>                    tipStart         (dollars)
      Shift            Depreciation Rate : 1.00 / 3 Seconds<tail>    tipDecay         (1.00 / (100/tipDecay))
      Shift            Tip Floor : 2.00<tail>                        tipFloor
+     Shift            Traffic : 3 Cars<tail>                        traffic          (cars on the road)
      Extended Play    Every 3 Completed : +1:30 Time Bonus<tail>    extend           (+m:ss)
      Extended Play    Maximum Extensions Per Shift : 5<tail>        maxExt
      Extended Play    Level Target : 15 deliveries / 15 tickets     target
@@ -162,8 +163,11 @@ const WIND = [
   F((d) => d.wind.tumbleweeds, 'Tumbleweeds', (d) => String(d.wind.tumbleweeds), /^\d+/),
 ];
 
+/* Delivery Shift: cars on the road around the player (0.9.13) */
+const TRAFFIC = F((d) => d.traffic, 'Traffic', (d) => d.traffic + ' Cars', /^d+ Cars/i);
+
 const SECTIONS = [
-  { name: 'Shift', fields: [START, TIP_START, TIP_DECAY, TIP_FLOOR] },
+  { name: 'Shift', fields: [START, TIP_START, TIP_DECAY, TIP_FLOOR, TRAFFIC] },
   { name: 'Bonus Structure', subs: [{ name: 'Extended Play', fields: [EXTEND, MAX_EXT, TARGET] }, { name: 'Points Bonus', fields: [PERFECT, CLEAN] }] },
   { name: 'Penalties', fields: FINES },
   { name: 'Navigation', fields: [] },

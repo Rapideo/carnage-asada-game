@@ -713,6 +713,8 @@ function buildDifficulty(src) {
     if (!isNum(d.tipDecay) || d.tipDecay <= 0)
       fail(F, [k, 'tipDecay'], `${W}.tipDecay must be a positive number of cents per second ($1.00 / 3s = 33.33), got ${JSON.stringify(d.tipDecay)}`);
     if (!isCents(d.perfectBonus)) fail(F, [k, 'perfectBonus'], `${W}.perfectBonus must be integer cents (500 = $5.00), got ${JSON.stringify(d.perfectBonus)}`);
+    /* cars on the road around the player in a Delivery Shift (owner, 2026-11-09: level 1 had ten times too many) */
+    if (!Number.isInteger(d.traffic) || d.traffic < 0 || d.traffic > 40) fail(F, [k, 'traffic'], `${W}.traffic must be a whole number of cars, 0 to 40, got ${JSON.stringify(d.traffic)}`);
     if (!d.fines || typeof d.fines !== 'object') fail(F, [k, 'fines'], `${W} is missing "fines"`);
     for (const f of ['ticket', 'ped', 'train', 'remake'])
       if (!isCents(d.fines[f])) fail(F, [k, 'fines', f], `${W}.fines.${f} must be integer cents, got ${JSON.stringify(d.fines[f])}`);
