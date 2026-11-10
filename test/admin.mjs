@@ -2286,16 +2286,19 @@ console.log('\n— music panel —');
   const applied = [];
   globalThis.Admin.applyBuilt = (b, g, o) => { applied.push(o || {}); return []; };
   store.files = structuredClone(files); store.dirty.clear(); store.error = null;
-  let loaded = true;
-  try { await import('../admin/panels/music.js'); } catch (x) { loaded = false; console.error('  (' + x.message + ')'); }
+  let loaded = true, MP = null;
+  try { MP = await import('../admin/panels/music.js'); } catch (x) { loaded = false; console.error('  (' + x.message + ')'); }
   const tab = FL.tabs.get('music');
   ok(loaded && tab && tab.title === 'Music', 'the Music panel registers its tab');
   ok(/import '\.\/panels\/music\.js'/.test(readFileSync('admin/overlay.js', 'utf8')), 'the overlay imports the Music panel');
+  const LIB = [{ file: '70s/BohemianRhapsody.mid', ids: ['bohemian-opera', 'bohemian-rock'] }, { file: '70s/Kashmir.mid', ids: ['kashmir'] }, { file: '80s/HazyShadeOfWinter.mid', ids: [] }];
+  const B = MP && typeof MP.batches === 'function' ? MP.batches(files, LIB) : null;
+  ok(B && B.raw.join() === '80s/HazyShadeOfWinter.mid' && B.conv.length === 0 && B.game.eras['1'].kitchen.includes('kashmir') && B.game.title.join() === 'one-step-beyond,reelin-in-the-years',
+     'batches: the unconverted MIDI, no converted songs, and the decades and title in game (' + JSON.stringify(B && { raw: B.raw, conv: B.conv }) + ')');
   if (tab) {
     const tick = (ms = 5) => new Promise((x) => setTimeout(x, ms));
     const calls = [];
     globalThis.Admin.music = { listening: null, listen(id) { calls.push('listen:' + id); this.listening = id; return true; }, stop() { calls.push('stop'); this.listening = null; } };
-    const LIB = [{ file: '70s/BohemianRhapsody.mid', ids: ['bohemian-opera', 'bohemian-rock'] }, { file: '70s/Kashmir.mid', ids: ['kashmir'] }, { file: '80s/HazyShadeOfWinter.mid', ids: [] }];
     let sent = [], reply = null;
     globalThis.fetch = async (url, o) => {
       if (/\/admin\/api\/midis$/.test(url)) return { status: 200, ok: true, json: async () => structuredClone(LIB) };
@@ -2308,107 +2311,142 @@ console.log('\n— music panel —');
       tab.render(el); await tick();
       const nodes = () => el.walk(), find = (f) => nodes().find(f);
       const act = (a, extra = {}) => find((n) => n.dataset.act === a && Object.entries(extra).every(([k, v]) => n.dataset[k] === String(v)));
-      const PL = () => store.files['music/playlist.json'];
+      const AP = () => store.files['music/approved.json'];
+      const view = (v) => find((n) => n.tagName === 'BUTTON' && n.dataset.view === v);
+      const count = (v) => (view(v) ? (/\d+/.exec(view(v).textContent) || [''])[0] : null);
+      const songRows = () => nodes().filter((n) => n.dataset.song !== undefined && n.classList.contains('adm-entry')).map((n) => n.dataset.song);
 
-      /* library */
+      /* the three counters, one view at a time */
+      ok(count('raw') === '1' && count('conv') === '0' && count('game') === '42', 'three counters: 1 not converted, 0 converted, 42 in game (' + [count('raw'), count('conv'), count('game')].join() + ')');
+      ok(view('game').classList.contains('adm-on') && find((n) => n.dataset.strip === '1') && !find((n) => n.dataset.midi !== undefined && n.classList.contains('adm-midi')),
+         'In game shows first, and only it');
+      view('raw').fire('click');
       const rows = nodes().filter((n) => n.dataset.midi !== undefined && n.classList.contains('adm-midi'));
-      ok(rows.map((n) => n.dataset.midi).join() === LIB.map((m) => m.file).join(), 'the library lists every MIDI the server has (' + rows.map((n) => n.dataset.midi).join() + ')');
-      const row = (f) => rows.find((n) => n.dataset.midi === f);
-      ok(row('70s/Kashmir.mid').textContent.includes('KASHMIR - LED ZEPPELIN (1975)') && row('70s/BohemianRhapsody.mid').textContent.split('BOHEMIAN RHAPSODY - QUEEN (1975)').length === 3,
-         'a ported MIDI shows each of its songs: title, artist and year');
-      ok(row('80s/HazyShadeOfWinter.mid').textContent.includes('80s/HazyShadeOfWinter.mid') && act('port-open', { midi: '80s/HazyShadeOfWinter.mid' }) && !act('port-open', { midi: '70s/Kashmir.mid' }),
-         'an unported one shows its filename and a Port button');
+      ok(view('raw').classList.contains('adm-on') && rows.map((n) => n.dataset.midi).join() === '80s/HazyShadeOfWinter.mid' && !find((n) => n.dataset.strip !== undefined),
+         'Not converted lists the MIDIs no song is made from, and only that view (' + rows.map((n) => n.dataset.midi).join() + ')');
+      ok(act('convert-open', { midi: '80s/HazyShadeOfWinter.mid' }), 'each has Convert…');
 
-      /* listen */
-      act('listen', { id: 'kashmir' }).fire('click');
-      ok(calls.join() === 'listen:kashmir' && act('stop') && el.textContent.includes('KASHMIR'), 'Listen plays the song through Admin.music.listen, and Stop is offered');
-      act('stop').fire('click');
-      ok(calls.join() === 'listen:kashmir,stop' && !act('stop'), 'Stop stops it');
-
-      /* port */
-      act('port-open', { midi: '80s/HazyShadeOfWinter.mid' }).fire('click');
+      /* convert: today's Port */
+      act('convert-open', { midi: '80s/HazyShadeOfWinter.mid' }).fire('click');
       const pf = (k) => find((n) => n.dataset.port === k);
-      ok(['title', 'artist', 'year', 'month', 'id'].every((k) => pf(k)) && act('port'), 'Port opens a form: title, artist, year, month and id');
+      ok(['title', 'artist', 'year', 'month', 'id'].every((k) => pf(k)) && act('convert'), 'Convert opens a form: title, artist, year, month and id');
       const fill = (o) => { for (const [k, v] of Object.entries(o)) { pf(k).value = v; pf(k).fire('input'); } };
       fill({ title: 'a hazy shade of winter', artist: 'the bangles', year: '19x7', month: '11', id: '' });
-      act('port').fire('click'); await tick();
+      act('convert').fire('click'); await tick();
       ok(sent.length === 0 && /year/.test(pf('msg').textContent), 'a year that is not one is refused before anything is sent (' + pf('msg').textContent + ')');
-      fill({ year: '1987', month: '13' });
-      act('port').fire('click'); await tick();
-      ok(sent.length === 0 && /month/.test(pf('msg').textContent), 'and so is a month past 12');
+      fill({ year: '1987', month: '' });
+      act('convert').fire('click'); await tick();
+      ok(sent.length === 0 && /month/.test(pf('msg').textContent), 'and so is a missing month');
       fill({ month: '11' });
-      const song = { ...structuredClone(files['music/kashmir.json']), id: 'a-hazy-shade-of-winter', title: 'A HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987, month: 11 };
-      reply = { status: 200, json: { rel: 'music/a-hazy-shade-of-winter.json', json: song, output: 'arranged', stamp: { 'music/a-hazy-shade-of-winter.json': 4444 } } };
+      const HZ = 'a-hazy-shade-of-winter';
+      const song = { ...structuredClone(files['music/kashmir.json']), id: HZ, title: 'A HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987, month: 11 };
+      reply = { status: 200, json: { rel: 'music/' + HZ + '.json', json: song, output: 'arranged', stamp: { ['music/' + HZ + '.json']: 4444 } } };
       applied.length = 0;
-      act('port').fire('click'); await tick();
+      act('convert').fire('click'); await tick();
       ok(sent.length === 1 && /\/admin\/api\/port$/.test(sent[0].url)
-         && JSON.stringify(sent[0].body) === JSON.stringify({ file: '80s/HazyShadeOfWinter.mid', id: 'a-hazy-shade-of-winter', title: 'A HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987, month: 11 }),
-         'Port posts { file, id, title, artist, year, month }, upper-cased as the game draws it, the id from the title (' + JSON.stringify(sent[0] && sent[0].body) + ')');
-      ok(store.files['music/a-hazy-shade-of-winter.json'] === song && !store.dirty.has('music/a-hazy-shade-of-winter.json') && !store.bigUntouched().includes('music'),
-         'the ported song joins the working copy, not dirty, and the music table is applied from then on (' + store.bigUntouched().join() + ')');
-      ok(applied.length >= 1 && !(applied[applied.length - 1].skip || []).includes('music'), 'and it is applied to the game at once, music and all');
-      ok(store.stamp['music/a-hazy-shade-of-winter.json'] === 4444, 'adopted with the stamp the route returned (' + store.stamp['music/a-hazy-shade-of-winter.json'] + ')');
-      ok(act('listen', { id: 'a-hazy-shade-of-winter' }) && !act('port-open', { midi: '80s/HazyShadeOfWinter.mid' }), 'the library row now offers Listen');
+         && JSON.stringify(sent[0].body) === JSON.stringify({ file: '80s/HazyShadeOfWinter.mid', id: HZ, title: 'A HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987, month: 11 }),
+         'Convert posts { file, id, title, artist, year, month } to the port route, upper-cased, the id from the title (' + JSON.stringify(sent[0] && sent[0].body) + ')');
+      ok(store.files['music/' + HZ + '.json'] === song && !store.dirty.has('music/' + HZ + '.json') && store.stamp['music/' + HZ + '.json'] === 4444
+         && applied.length >= 1 && !(applied[applied.length - 1].skip || []).includes('music'),
+         'the converted song joins the working copy, stamped and not dirty, and is applied, music and all');
+      ok(count('raw') === '0' && count('conv') === '1', 'it moves from Not converted to Converted (' + count('raw') + ' ' + count('conv') + ')');
+      LIB[2].ids = [HZ];   // as the server's songs.json now says
       reply = { status: 409, json: { error: 'exists', rel: 'music/kashmir.json' } };
       LIB.push({ file: '90s/Lump.mid', ids: [] });
       act('refresh-lib').fire('click'); await tick();
-      act('port-open', { midi: '90s/Lump.mid' }).fire('click');
-      const nSent = sent.length;
-      fill({ title: 'kashmir', artist: 'x', year: '1995', month: '' });
-      act('port').fire('click'); await tick();
-      ok(sent.length === nSent && /month/.test(pf('msg').textContent), 'an empty month is refused before anything is sent: every song needs one (' + pf('msg').textContent + ')');
-      fill({ month: '7' });
-      act('port').fire('click'); await tick();
-      ok(sent.length === nSent + 1 && sent[sent.length - 1].body.month === 7 && /already/.test(pf('msg').textContent), 'an id that exists is reported (' + pf('msg').textContent + ')');
+      act('convert-open', { midi: '90s/Lump.mid' }).fire('click');
+      fill({ title: 'kashmir', artist: 'x', year: '1995', month: '7' });
+      act('convert').fire('click'); await tick();
+      ok(/already/.test(pf('msg').textContent), 'an id that exists is reported (' + pf('msg').textContent + ')');
       reply = { status: 422, json: { error: 'job', log: 'midi2song: no lead candidate' } };
       fill({ id: 'lump2' });
-      act('port').fire('click'); await tick();
-      ok(/no lead candidate/.test(pf('msg').textContent), 'a failed port shows its log');
+      act('convert').fire('click'); await tick();
+      ok(/no lead candidate/.test(pf('msg').textContent), 'a failed conversion shows its log');
+      LIB.pop(); act('refresh-lib').fire('click'); await tick();
 
-      /* playlists: the title, then 1..20 */
-      const secs = nodes().filter((n) => n.dataset.list !== undefined && n.classList.contains('adm-playlist')).map((n) => n.dataset.list);
-      ok(secs.join() === ['title', ...Array.from({ length: 20 }, (x, i) => String(i + 1))].join(), 'a list for the title, then one per level 1-20 (' + secs.join() + ')');
-      const items = (k) => nodes().filter((n) => n.classList.contains('adm-song') && n.dataset.list === k).map((n) => n.dataset.id);
-      ok(items('1').join() === PL()['1'].join() && items('title').join() === PL().title.join(), 'each list shows its songs, in order');
-      const pick = (k) => find((n) => n.dataset.pick === k);
-      const opt = (k, id) => pick(k).kids.find((o) => o.value === id);
-      ok(opt('1', 'kashmir') && opt('1', 'kashmir').disabled && /too new/.test(opt('1', 'kashmir').textContent), 'a song too new for the level is greyed, and says so (' + (opt('1', 'kashmir') || {}).textContent + ')');
-      ok(opt('5', 'immigrant-song') && opt('5', 'immigrant-song').disabled && /too old/.test(opt('5', 'immigrant-song').textContent), 'one more than 2 years before it is greyed, too old (' + (opt('5', 'immigrant-song') || {}).textContent + ')');
-      const late = opt('4', 'bohemian-opera');
-      ok(late && !late.disabled && /released Oct 1975, after this level's July/.test(late.textContent),
-         'a same-year song released after the level\'s month can be picked, with a warning naming both months (' + (late || {}).textContent + ')');
-      const warnNote = (k) => nodes().filter((n) => n.classList.contains('adm-warn') && n.dataset.list === k).map((n) => n.textContent);
-      ok(warnNote('3').length === 2 && warnNote('3').every((t) => /released Oct 1975, after this level's January/.test(t)) && warnNote('1').length === 0,
-         'a late song in a list shows a warning note on its row; a list with none shows none (' + warnNote('3').join(' | ') + ')');
-      ok(warnNote('16').length === 1 && /Aug 1993, after this level's July/.test(warnNote('16')[0]), 'Cannonball on Level 16 is flagged (' + warnNote('16').join() + ')');
-      ok(opt('1', 'immigrant-song').disabled && /in this list/.test(opt('1', 'immigrant-song').textContent) && !opt('1', 'walk-on-the-wild-side').disabled, 'a song already in the list is greyed; an eligible one is not');
-      ok(!opt('title', 'kashmir').disabled && opt('title', 'a-hazy-shade-of-winter') && !opt('title', 'a-hazy-shade-of-winter').disabled, 'the title takes any song, the newly ported one too');
-      pick('1').value = 'walk-on-the-wild-side'; act('song-add', { list: '1' }).fire('click');
-      ok(PL()['1'].join() === 'immigrant-song,black-dog,walk-on-the-wild-side' && store.dirty.has('music/playlist.json') && store.error === null && items('1').length === 3,
-         'Add puts a third song on the level, and it validates');
-      pick('1').value = 'kashmir'; act('song-add', { list: '1' }).fire('click');
-      ok(PL()['1'].length === 3, 'a greyed song is not added');
-      act('song-up', { list: '1', j: 2 }).fire('click');
-      ok(PL()['1'].join() === 'immigrant-song,walk-on-the-wild-side,black-dog', 'up moves a song');
-      act('song-down', { list: '1', j: 0 }).fire('click');
-      ok(PL()['1'].join() === 'walk-on-the-wild-side,immigrant-song,black-dog', 'down moves a song');
-      const srow = (k, j) => find((n) => n.classList.contains('adm-song') && n.dataset.list === k && n.dataset.j === String(j));
-      ok(srow('1', 0).draggable === true, 'a song row can be dragged');
-      srow('1', 2).fire('dragstart'); srow('1', 0).fire('dragover'); srow('1', 0).fire('drop');
-      ok(PL()['1'].join() === 'black-dog,walk-on-the-wild-side,immigrant-song', 'dragging a row onto another moves it there (' + PL()['1'].join() + ')');
-      act('song-remove', { list: '1', j: 1 }).fire('click');
-      ok(PL()['1'].join() === 'black-dog,immigrant-song' && store.error === null, 'Remove takes a song out');
-      act('song-remove', { list: '1', j: 1 }).fire('click');
-      ok(PL()['1'].join() === 'black-dog' && act('song-remove', { list: '1', j: 0 }).disabled, 'the last song cannot be removed: a list needs one');
-      act('listen', { id: 'black-dog', list: '1' }).fire('click');
-      ok(calls[calls.length - 1] === 'listen:black-dog', 'a song in a list can be listened to');
-      store.set('music/playlist.json', '1', ['immigrant-song', 'black-dog']);
-      ok(JSON.stringify(PL()) === JSON.stringify(files['music/playlist.json']), 'every playlist edit was put back');
+      /* converted: listen, approve */
+      view('conv').fire('click');
+      ok(songRows().join() === HZ && act('listen', { id: HZ }) && act('approve-open', { song: HZ }) && act('delete', { song: HZ }), 'Converted lists the song with Listen, Approve… and Delete');
+      act('listen', { id: HZ }).fire('click');
+      ok(calls.join() === 'listen:' + HZ && act('stop'), 'Listen plays it through Admin.music.listen, and Stop is offered');
+      act('stop').fire('click');
+      ok(calls.join() === 'listen:' + HZ + ',stop' && !act('stop'), 'Stop stops it');
+      act('approve-open', { song: HZ }).fire('click');
+      const ap = (k) => find((n) => n.dataset.approve === k);
+      ok(ap('era') && ap('shift') && ap('from') && act('approve', { song: HZ }), 'Approve… opens decade, shift and from');
+      ok(ap('era').kids.map((o) => o.value).join() === '1,2,3' && ap('era').value === '2' && ap('shift').kids.map((o) => o.value).join() === 'delivery,kitchen,both',
+         'three decades (the song\'s own picked), and Delivery, Kitchen or Both');
+      const fo = ap('from').kids;
+      ok(fo.map((o) => o.value).join() === ',1984,1987' && fo[0].disabled && fo[1].disabled && !fo[2].disabled && ap('from').value === '1987',
+         'from the start (1981) and 1984 are greyed for a 1987 song; 1987 is picked (' + fo.map((o) => o.value + (o.disabled ? '-' : '+')).join() + ')');
+      ap('shift').value = 'both'; ap('shift').fire('change');
+      act('approve', { song: HZ }).fire('click');
+      ok(AP()['2'].delivery.includes(HZ) && AP()['2'].kitchen.includes(HZ) && AP().from[HZ] === 1987 && store.error === null && store.dirty.has('music/approved.json'),
+         'approving as the \'80s, both shifts, from 1987 puts it in both \'80s lists with its year (' + JSON.stringify(store.error && store.error.message) + ')');
+      ok(count('conv') === '0' && count('game') === '43', 'and it is in game (' + count('conv') + ' ' + count('game') + ')');
+
+      /* in game: the strip, shift and from in place, take out */
+      view('game').fire('click');
+      const cell = (e, y) => find((n) => n.dataset.cell === e + ':' + y);
+      ok(cell('1', 1972) && cell('1', 1972).dataset.d === '2' && cell('1', 1972).dataset.k === '2' && cell('1', 1978).dataset.d === '6' && cell('1', 1978).dataset.k === '6'
+         && cell('2', 1987).dataset.d === '7' && cell('2', 1981).dataset.d === '2',
+         'each decade\'s strip counts the songs each shift shuffles per level year (1972: 2/2, 1978: 6/6, \'80s 1987: 7 delivery)');
+      const sel = (k, id) => find((n) => n.tagName === 'SELECT' && n.dataset[k] === id);
+      const kf = sel('from', 'kashmir');
+      ok(kf && kf.value === '1975' && kf.kids.find((o) => o.value === '').disabled && !kf.kids.find((o) => o.value === '1975').disabled && !kf.kids.find((o) => o.value === '1978').disabled,
+         'Kashmir\'s from select greys "from the start" (1972, before its release) (' + (kf ? kf.kids.map((o) => o.value + (o.disabled ? '-' : '+')).join() : 'none') + ')');
+      kf.value = '1978'; kf.fire('change');
+      ok(AP().from.kashmir === 1978 && store.error === null, 'changing from edits it in place');
+      sel('from', 'kashmir').value = ''; sel('from', 'kashmir').fire('change');
+      const kRow = () => find((n) => n.classList.contains('adm-entry') && n.dataset.song === 'kashmir');
+      ok(store.error && store.error.path.join() === 'from,kashmir' && /1975/.test(kRow().textContent), 'forced to the start anyway, the validator refuses it and the row says why (' + (store.error && store.error.message) + ')');
+      sel('from', 'kashmir').value = '1975'; sel('from', 'kashmir').fire('change');
+      ok(AP().from.kashmir === 1975 && store.error === null, 'and putting it back clears the error');
+      const ks = sel('shift', 'kashmir');
+      ok(ks && ks.value === 'kitchen', 'a song shows its shift');
+      ks.value = 'both'; ks.fire('change');
+      ok(AP()['1'].delivery.includes('kashmir') && AP()['1'].kitchen.includes('kashmir') && store.error === null, 'Both puts it on both shifts');
+      sel('shift', 'kashmir').value = 'kitchen'; sel('shift', 'kashmir').fire('change');
+      ok(!AP()['1'].delivery.includes('kashmir') && AP()['1'].kitchen.includes('kashmir'), 'and Kitchen takes it off Delivery');
+      const before2d = AP()['2'].delivery.join(), beforeT = AP().title.join(), k2 = AP()['2'].kitchen.filter((x) => x !== 'africa').join();
+      act('take-out', { song: 'africa' }).fire('click');
+      ok(!AP()['2'].kitchen.includes('africa') && !('africa' in AP().from) && AP()['2'].kitchen.join() === k2 && AP()['2'].delivery.join() === before2d && AP().title.join() === beforeT && store.error === null,
+         'Take out removes Africa from the \'80s kitchen and drops its from, and nothing else');
+      ok(count('conv') === '1' && count('game') === '42', 'and it is back in Converted (' + count('conv') + ')');
+
+      /* delete: refused while the saved file still has it, then done */
+      view('conv').fire('click');
+      act('delete', { song: 'africa' }).fire('click');
+      ok(act('delete-sure', { song: 'africa' }) && sent.length === 3, 'Delete asks once more before anything is sent');
+      reply = { status: 409, json: { error: 'in game', rel: 'music/africa.json' } };
+      act('delete-sure', { song: 'africa' }).fire('click'); await tick();
+      ok(sent.length === 4 && /\/admin\/api\/unport$/.test(sent[3].url) && sent[3].body.id === 'africa' && store.files['music/africa.json'] && (find((n) => n.dataset.delmsg === 'africa') || { textContent: '' }).textContent.match(/save/i),
+         'Delete posts { id } to the unport route; refused (not saved yet), the song stays and the panel says to save first');
+      reply = { status: 200, json: { rel: 'music/africa.json' } };
+      act('delete', { song: 'africa' }).fire('click'); act('delete-sure', { song: 'africa' }).fire('click'); await tick();
+      ok(!('music/africa.json' in store.files) && !store.dirty.has('music/africa.json') && count('conv') === '0' && !songRows().includes('africa'),
+         'deleted, the song leaves the working copy and Converted (' + count('conv') + ')');
+
+      /* the title list: in game, its own order */
+      view('game').fire('click');
+      const items = () => nodes().filter((n) => n.classList.contains('adm-song') && n.dataset.list === 'title').map((n) => n.dataset.id);
+      ok(items().join() === AP().title.join(), 'In game ends with the title list, in order');
+      const pick = find((n) => n.dataset.pick === 'title');
+      ok(pick && pick.kids.find((o) => o.value === 'kashmir') && pick.kids.find((o) => o.value === 'one-step-beyond').disabled, 'its picker offers any song, greying the ones on it');
+      pick.value = 'kashmir'; act('song-add', { list: 'title' }).fire('click');
+      ok(AP().title.join() === 'one-step-beyond,reelin-in-the-years,kashmir' && store.error === null, 'Add puts a song at the end of the title list');
+      act('song-up', { list: 'title', j: 2 }).fire('click');
+      ok(AP().title.join() === 'one-step-beyond,kashmir,reelin-in-the-years', 'up moves it');
+      act('song-remove', { list: 'title', j: 1 }).fire('click');
+      ok(AP().title.join() === 'one-step-beyond,reelin-in-the-years', 'remove takes it off');
+      act('song-remove', { list: 'title', j: 1 }).fire('click');
+      ok(AP().title.join() === 'one-step-beyond' && act('song-remove', { list: 'title', j: 0 }).disabled, 'the last title song cannot be removed');
+      act('listen', { id: 'one-step-beyond', list: 'title' }).fire('click');
+      ok(calls[calls.length - 1] === 'listen:one-step-beyond', 'a title song can be listened to');
 
       /* leaving the tab, or closing the overlay, ends a listen */
       const { leaveTab } = await import('../admin/overlay.js');
-      act('listen', { id: 'kashmir' }).fire('click');
-      ok(globalThis.Admin.music.listening === 'kashmir' && typeof tab.leave === 'function', 'the Music tab has a leave hook');
+      ok(globalThis.Admin.music.listening === 'one-step-beyond' && typeof tab.leave === 'function', 'the Music tab has a leave hook');
       calls.length = 0;
       leaveTab(FL.tabs, 'music');
       ok(calls.join() === 'stop' && globalThis.Admin.music.listening === null, 'leaving the Music tab stops the song (' + calls.join() + ')');

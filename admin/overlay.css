@@ -163,3 +163,16 @@ input.adm-text { width: 13em; background: #120d1a; color: inherit; border: 1px s
 .adm-sel { flex: 1 1 10em; min-width: 0; background: #120d1a; color: inherit; border: 1px solid #4a4062; border-radius: 4px; padding: 3px 6px; font: inherit; }
 .adm-check { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
 .adm-check input { width: 16px; height: 16px; }
+/* Music: the three batches (counters), a decade's year strip, an in-game row */
+.adm-seg { display: flex; gap: 6px; margin: 0 0 10px; }
+.adm-view { flex: 1 1 0; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; background: #2a2338; color: #bdb3cf; border: 1px solid #4a4062; border-radius: 4px; padding: 5px 8px; font: inherit; font-size: 12px; cursor: pointer; text-align: left; }
+.adm-view b { font-size: 18px; color: #e8e2f0; font-variant-numeric: tabular-nums; }
+.adm-view.adm-on { border-color: #f5c453; box-shadow: inset 0 -2px 0 #f5c453; color: #e8e2f0; }
+.adm-decade h3 { color: #f5c453; }
+.adm-strip { display: flex; gap: 3px; margin: 2px 0 6px; }
+.adm-cell { flex: 1 1 0; display: flex; justify-content: space-between; gap: 4px; background: #2a2338; border-radius: 3px; padding: 3px 5px; font-size: 11px; font-variant-numeric: tabular-nums; }
+.adm-cell b { color: #3fb8b0; font-weight: 600; }
+.adm-ingame { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 4px 0; border-bottom: 1px solid #2a2338; font-size: 12px; }
+.adm-ingame > select { flex: 0 0 auto; max-width: 11em; }
+.adm-ingame > .adm-msg, .adm-entry > .adm-warn { flex: 1 0 100%; }
+.adm-entry .adm-warn { color: #ffc861; font-size: 11px; margin: 2px 0 0; }
