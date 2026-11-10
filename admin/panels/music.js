@@ -3,12 +3,15 @@
    Now playing    what Listen is playing, and Stop.
    Three counters switch the view; each shows its count:
    Not converted  every MIDI in reference/assets/midi/ (GET /admin/api/midis)
-                  that no song is made from. Convert… asks for the title,
-                  artist, release year and month (and an id, from the title
-                  when left empty) and runs midi2song.mjs on the server (POST
-                  /admin/api/port). The song is written at once, to
-                  content/music/<id>.json and tools/music/songs.json, never
-                  over an existing id, and lands in Converted.
+                  that no song is made from. Convert… asks only for the
+                  title, artist and release year (owner, 2026-11-09), filled
+                  in from what the MIDI says about itself (the server's meta,
+                  tools/music/midi-meta.mjs) or the file name, and runs
+                  midi2song.mjs on the server (POST /admin/api/port), which
+                  names the song from the title (-2, -3 if taken). The song is
+                  written at once, to content/music/<id>.json and
+                  tools/music/songs.json, never over an existing id, and lands
+                  in Converted.
    Converted      songs in content/music/ that are not in the game. Listen
                   plays one through the game's own player (Admin.music.listen
                   in admin/apply.js, so what is heard is what ships). Approve…
@@ -31,9 +34,9 @@
 import '../fields.js';
 import { store } from '../store.js';
 import { APPROVED, SHIFTS, eraYears, songStart, songDecade, inGame } from '../../tools/content/validate.mjs';
+import { titleFromFile } from '../../tools/music/midi-meta.mjs';
 
 const Admin = (globalThis.Admin = globalThis.Admin || {});
-const ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SHIFT_LABEL = { delivery: 'Delivery', kitchen: 'Kitchen', both: 'Both' };
 
 let panel = null;
@@ -208,8 +211,13 @@ async function loadLib() {
   redraw();
 }
 
+/* the form starts from what the MIDI says about itself (the server's meta, read by
+   tools/music/midi-meta.mjs), or the file name for the title. Only title, artist
+   and year (owner, 2026-11-09): the server names the song from the title. */
 function convertForm(doc, box, file) {
-  const f = forms[file] || (forms[file] = { title: '', artist: '', year: '', month: '', id: '', msg: '' });
+  const m = ((Array.isArray(lib) && lib.find((x) => x.file === file)) || {}).meta || null;
+  const f = forms[file] || (forms[file] = {
+    title: m && m.title ? m.title : titleFromFile(file), artist: m && m.artist ? m.artist : '', year: m && m.year ? String(m.year) : '', msg: '' });
   const form = h(doc, 'div', 'adm-port');
   const field = (k, labelText, ph, title) => {
     const wrap = h(doc, 'div', 'adm-field');
@@ -225,8 +233,6 @@ function convertForm(doc, box, file) {
   field('title', 'Title', 'as the game shows it', 'upper case, the way the game draws it');
   field('artist', 'Artist', 'as the game shows it');
   field('year', 'Year', '1987', 'the original release year: a song never plays before it');
-  field('month', 'Month', '1-12', 'the release month, 1 = January: the first release, single or album, whichever came first');
-  field('id', 'Id', 'from the title', 'the song\'s file, content/music/<id>.json: lower-case letters, digits and dashes');
   form.appendChild(h(doc, 'p', 'adm-note', 'Converts it for the game\'s chip voices. It goes to Converted for you to listen to; nothing plays in the game until it is approved.'));
   const go = btn(doc, 'Convert', 'convert', 'arrange it with midi2song.mjs on the server');
   go.dataset.midi = file;
@@ -245,14 +251,14 @@ function convertForm(doc, box, file) {
 async function convert(file) {
   const f = forms[file];
   const title = f.title.trim().toUpperCase(), artist = f.artist.trim().toUpperCase();
-  const ys = f.year.trim(), ms = f.month.trim(), id = f.id.trim() || slug(title);
+  const ys = f.year.trim();
   if (!title || !artist) f.msg = 'a title and an artist, as the game will show them';
   else if (!/^\d{4}$/.test(ys)) f.msg = 'the year is the original release year, four digits, like 1987';
-  else if (!(/^\d{1,2}$/.test(ms) && +ms >= 1 && +ms <= 12)) f.msg = 'the release month is 1-12 (1 = January), and every song needs one: the first release, single or album, whichever came first';
-  else if (!ID.test(id) || id === 'playlist' || id === 'approved' || id.length > 48) f.msg = 'the id is lower-case letters, digits and dashes, like a-hazy-shade-of-winter';
+  else if (!slug(title)) f.msg = 'the title needs a letter or a digit to name the song by';
   else {
     f.msg = 'arranging…'; redraw();
-    const body = { file, id, title, artist, year: Number(ys), month: Number(ms) };
+    /* the server names the song from the title: a-hazy-shade-of-winter, -2 if taken */
+    const body = { file, title, artist, year: Number(ys) };
     try {
       const r = await fetch((store.base || '') + '/admin/api/port', {
         method: 'POST', headers: { 'content-type': 'application/json', ...store.headers }, body: JSON.stringify(body) });
@@ -260,12 +266,12 @@ async function convert(file) {
       if (r.status === 200) {
         store.adopt(j.rel, j.json, j.stamp);  // already on disk: in the working copy, not dirty, stamped
         applyNow();
-        const m = Array.isArray(lib) && lib.find((x) => x.file === file);
+        const m = Array.isArray(lib) && lib.find((x) => x.file === file), id = j.rel.slice(6, -5);
         if (m && !m.ids.includes(id)) m.ids.push(id);
         delete forms[file];
         open = null;
         libMsg = 'Converted ' + file + ' to content/' + j.rel + '. It is in Converted: listen to it, then approve it.';
-      } else if (r.status === 409 && j.error === 'exists') f.msg = 'a song called ' + id + ' already exists (content/' + (j.rel || 'music/' + id + '.json') + '), and nothing overwrites one: pick another id';
+      } else if (r.status === 409 && j.error === 'exists') f.msg = 'a song by that name already exists (content/' + (j.rel || '') + '), and nothing overwrites one: try again';
       else if (r.status === 409) f.msg = 'the server is busy: try again in a moment';
       else if (r.status === 422) f.msg = 'not converted:\n' + (j.log || j.error || '');
       else f.msg = 'not converted: ' + (j.message || j.error || 'HTTP ' + r.status);

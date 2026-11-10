@@ -380,7 +380,7 @@ As built (owner's ruling, 2026-10-25: arrange the real MIDIs):
 - **The release rule is a build check, not a note.** A song never plays before its release
   year: `build.mjs` refuses a "from" (or a decade start) earlier than it, and refuses a level
   left with no song. The two-year window and the release-month warning (2026-11-07) are gone;
-  every song still records its release month, for the record.
+  a song may record its release month (optional since 2026-11-09), for the record.
 - **The songs are curated in Service Mode's Music tab**, in three batches: Not converted,
   Converted (listen, approve or delete) and In game.
 - **The song list is in `music.md`** (and in `approved.json`).

@@ -796,10 +796,14 @@ a speaker picker (the bubble name, each of the nine cast, each customer face, al
   after Listen and Service Mode's refresher never restart the music; the title plays in order.
   The build refuses a song whose start is before its release year, a song in two decades, a
   `from` that is not a level year of its decade, and a level left with no song. The two-year
-  window and the release-month warning are gone; every song still records its `month`, for
+  window and the release-month warning are gone; a song may record its `month` (optional since 2026-11-09), for
   the record. `levelMonth` stays: the kitchen calendar reads it.
 - **The Music tab** shows three batches, switched by counters: Not converted (MIDIs no song is
-  made from; Convert… is the port route), Converted (not in the game: Listen, Approve…, Delete)
+  made from; Convert… is the port route, asking only title, artist and year (owner, 2026-11-09),
+  filled in from the MIDI's own text by `tools/music/midi-meta.mjs`: labelled `Title:` / `Artist:` /
+  `Year:` text first, then an "Artist - Title" track name or a "made famous by" line that agrees with
+  the file name, then the file name; the server names the song from the title, `-2` if taken, and
+  a song's `month` is optional), Converted (not in the game: Listen, Approve…, Delete)
   and In game (per decade, a strip of songs per level year, shift and from editable in place,
   Take out; then the title list). **Delete** is `POST /admin/api/unport`: it removes the song,
   its `tools/music/songs.json` entry and its preview `.wav`, and refuses (409 in game) a song

@@ -1024,10 +1024,8 @@ function buildMusic(src, levels) {
     if (!s || typeof s !== 'object' || Array.isArray(s)) fail(MF, [], `content/music/${file} must be a song object`);
     if (s.id !== undefined && s.id !== id) fail(MF, ['id'], `content/music/${file}: id is "${s.id}" but the file is ${file}; they must match`);
     for (const f of ['title', 'artist']) if (s[f] !== undefined) drawable(MF, [f], `content/music/${file} ${f}`, s[f]);
-    /* the release month (midi2song --month): required, for the record */
-    if (s.month === undefined)
-      fail(MF, ['month'], `content/music/${file}: no month. Every song needs its release month, an integer 1-12 (1 = January): the first release, single or album, whichever came first.`);
-    if (!(Number.isInteger(s.month) && s.month >= 1 && s.month <= 12))
+    /* the release month (midi2song --month): optional since 2026-11-09, for the record */
+    if (s.month !== undefined && !(Number.isInteger(s.month) && s.month >= 1 && s.month <= 12))
       fail(MF, ['month'], `content/music/${file}: month is ${JSON.stringify(s.month)}; a release month is an integer 1-12 (1 = January)`);
     music[id] = stripNotes(s);
   }

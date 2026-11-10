@@ -158,9 +158,8 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
   ok([0, 13, 2.5, '3', null].every((m) => { const x = monthErr(m); return x instanceof ContentError && x.file === 'content/music/kashmir.json' && x.path.join() === 'month'; }),
      'a song month of 0, 13, 2.5, "3" or null is refused on [month] (' + (monthErr(13) && monthErr(13).message) + ')');
   ok(monthErr(1) === null && monthErr(12) === null, 'months 1 and 12 are accepted');
-  e = monthErr(undefined);
-  ok(e instanceof ContentError && e.file === 'content/music/kashmir.json' && e.path.join() === 'month' && /month/.test(e.message),
-     'a song with no month is refused on [month] (' + (e && e.message) + ')');
+  /* the month is optional since 2026-11-09 (owner: "remove month because that's ambiguous"); one given must be 1-12 */
+  ok(monthErr(undefined) === null, 'a song with no month validates');
   ok(Object.values(disk.music).every((s) => Number.isInteger(s.month) && s.month >= 1 && s.month <= 12) && Object.keys(disk.music).length === 42,
      'every one of the 42 shipped songs has a release month');
   const sj = JSON.parse(readFileSync('tools/music/songs.json', 'utf8')).songs;
@@ -242,6 +241,61 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
 const before = JSON.stringify(files);
 validateContent(memSource(files));
 ok(JSON.stringify(files) === before, 'validating does not mutate the source');
+
+console.log('\n— midi meta —');
+/* the Convert form fills Title, Artist and Year from the MIDI's own text (owner, 2026-11-09) */
+{
+  let MM = null;
+  try { MM = await import('../tools/music/midi-meta.mjs'); } catch (x) { console.error('  (' + x.message + ')'); }
+  ok(MM && typeof MM.readMidiMeta === 'function', 'tools/music/midi-meta.mjs exports readMidiMeta');
+  if (MM) {
+    /* a type-1 MIDI holding only text events: tracks = [[[metaType, text], ...], ...] */
+    const mid = (tracks) => Buffer.concat([Buffer.from('MThd'), Buffer.from([0, 0, 0, 6, 0, 1, 0, tracks.length, 0, 96]),
+      ...tracks.map((evs) => {
+        const bytes = [];
+        for (const [ty, s] of evs) { const b = Buffer.from(s, 'utf8'); bytes.push(0, 0xff, ty, b.length, ...b); }
+        bytes.push(0, 0xff, 0x2f, 0);
+        const n = bytes.length;
+        return Buffer.concat([Buffer.from('MTrk'), Buffer.from([n >>> 24 & 255, n >>> 16 & 255, n >>> 8 & 255, n & 255]), Buffer.from(bytes)]);
+      })]);
+    const R = (tracks, file = '80s/Song.mid') => MM.readMidiMeta(mid(tracks), file);
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    let m = R([[[1, 'Title: Take On Me'], [1, 'Artist: a-ha'], [1, 'Year: 1985']]]);
+    ok(same(m, { title: 'TAKE ON ME', artist: 'A-HA', year: 1985 }), 'labelled text events give title, artist and year, as the game draws them (' + JSON.stringify(m) + ')');
+    m = R([[[3, 'Adam & The Ants - Stand And Deliver'], [3, 'DRUMS']]], '80s/StandAndDeliver.mid');
+    ok(m.title === 'STAND AND DELIVER' && m.artist === 'ADAM & THE ANTS' && m.year === null, 'a first track named "Artist - Title" gives both (' + JSON.stringify(m) + ')');
+    m = R([[[6, '"Cannonball"'], [6, 'as made famous by The Breeders'], [6, 'sequenced by Lawrence Chu']]], '90s/Cannonball.mid');
+    ok(m.title === 'CANNONBALL' && m.artist === 'THE BREEDERS', 'a quoted title and a "made famous by" line give both, and "sequenced by" is not the artist (' + JSON.stringify(m) + ')');
+    m = R([[[3, 'Someone Else - Wrong Song'], [1, 'TITLE= Right Song'], [2, 'Artist: Right Band'], [7, 'Released: March 1986']]]);
+    ok(m.title === 'RIGHT SONG' && m.artist === 'RIGHT BAND' && m.year === 1986, 'labels win over the track name, in any text event, with : or = (' + JSON.stringify(m) + ')');
+    m = R([[[3, 'MIDI'], [3, 'Track 1'], [3, 'Piano']]], '80s/HazyShadeOfWinter.mid');
+    ok(m.title === 'HAZY SHADE OF WINTER' && m.artist === '' && m.year === null, 'generic track names are ignored, and the title falls back to the file name, split into words (' + JSON.stringify(m) + ')');
+    m = R([[[1, 'Title: Don’t Stop Believin’'], [1, 'Artist: Beyoncé']]]);
+    ok(m.title === "DON'T STOP BELIEVIN'" && m.artist === 'BEYONCE', 'curly quotes are straightened and accents dropped, so the font can draw them (' + JSON.stringify(m) + ')');
+    m = R([[[3, 'Black Dog (1971)']]], '70s/BlackDog.mid');
+    ok(m.title === 'BLACK DOG' && m.year === 1971, 'a year in brackets after a title is read and dropped from it (' + JSON.stringify(m) + ')');
+    /* untagged files: unlabelled text is used only when it agrees with the file's name (real cases from the library) */
+    m = R([[[3, 'MIDI by C. Rada - All Over The World']]], '80s/AllOverTheWorld.mid');
+    ok(m.title === 'ALL OVER THE WORLD' && m.artist === '', 'the title is the side that matches the file name, and a "MIDI by" credit is never the artist (' + JSON.stringify(m) + ')');
+    m = R([[[3, 'Yes - Owner of a lonely heart']]], '80s/OwnerOfALonelyHeart.mid');
+    ok(m.title === 'OWNER OF A LONELY HEART' && m.artist === 'YES', 'either way round (' + JSON.stringify(m) + ')');
+    m = R([[[3, 'Take On Me by aha']]], '80s/TakeOnMe.mid');
+    ok(m.title === 'TAKE ON ME' && m.artist === 'AHA', '"Title by Artist" gives both (' + JSON.stringify(m) + ')');
+    m = R([[[3, 'Free Fallin - Tom Petty/1989']]], '80s/FreeFallin.mid');
+    ok(m.title === 'FREE FALLIN' && m.artist === 'TOM PETTY' && m.year === 1989, 'a year stuck on the artist is read off it (' + JSON.stringify(m) + ')');
+    m = R([[[3, 'Pad 1 (New Age)'], [3, 'Winjammer Demo'], [3, 'Sequenced by Hiroyuki Asakawa']]], '80s/JustWhatINeeded.mid');
+    ok(m.title === 'JUST WHAT I NEEDED' && m.artist === '', 'junk that does not match the file name is ignored: the title comes from the file (' + JSON.stringify(m) + ')');
+    m = R([[[2, '(c) 1997 Some Sequencer']]]);
+    ok(m.year === null, 'a copyright year is the sequencer\'s, never taken as the release year');
+    let threw = null; try { m = MM.readMidiMeta(Buffer.from('not a midi at all'), '90s/Lump.mid'); } catch (x) { threw = x; }
+    ok(!threw && m.title === 'LUMP' && m.artist === '' && m.year === null, 'a file that is not a MIDI falls back to its file name and never throws');
+    const real = (f) => MM.readMidiMeta(readFileSync('reference/assets/midi/' + f), f);
+    m = real('80s/AdamAndTheAntsStandAndDeliver.mid');
+    ok(m.title === 'STAND AND DELIVER' && m.artist === 'ADAM & THE ANTS', 'the library\'s Stand and Deliver reads its title and artist (' + JSON.stringify(m) + ')');
+    m = real('90s/Cannonball.mid');
+    ok(m.title === 'CANNONBALL' && m.artist === 'THE BREEDERS', 'and Cannonball reads its own (' + JSON.stringify(m) + ')');
+  }
+}
 
 console.log('\n— format —');
 const { formatJSON, formatSongs } = await import('../tools/content/format.mjs');
@@ -402,6 +456,8 @@ console.log('\n— server —');
          'GET midis lists every .mid under reference/assets/midi, sorted, each with its song ids (' + JSON.stringify(l0) + ')');
       const km = l0 && l0.find((m) => m.file === '70s/Kashmir.mid'), hz = l0 && l0.find((m) => m.file === '80s/HazyShadeOfWinter.mid');
       ok(km && km.ids.join() === 'kashmir' && hz && hz.ids.length === 0, 'a ported MIDI names its song; an unported one names none');
+      ok(hz && hz.meta && typeof hz.meta.title === 'string' && /HAZY SHADE OF WINTER/.test(hz.meta.title) && 'artist' in hz.meta && 'year' in hz.meta && km && !km.meta,
+         'an unconverted MIDI carries what it says about itself, { title, artist, year }, for the Convert form; a converted one does not (' + JSON.stringify(hz && hz.meta) + ')');
       const SJ = join(tmp, 'tools/music/songs.json'), sjText = readFileSync(SJ, 'utf8');
       const kj = join(tmp, 'content/music/kashmir.json'), kText = readFileSync(kj, 'utf8');
       const hazy = { file: '80s/HazyShadeOfWinter.mid', id: 'hazy-shade-of-winter', title: 'A HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987, month: 11 };
@@ -410,11 +466,11 @@ console.log('\n— server —');
          'porting into an existing id is 409 exists, and the song and songs.json are untouched (' + r.status + ')');
       const bad = [{ ...hazy, id: '../x' }, { ...hazy, id: 'Upper' }, { ...hazy, id: 'playlist' }, { ...hazy, file: '../../content/levels.json' },
         { ...hazy, file: '70s/../../../content/x.mid' }, { ...hazy, file: 'C:/x.mid' }, { ...hazy, file: '70s\\Kashmir.mid' }, { ...hazy, file: '70s/Missing.mid' },
-        { ...hazy, title: '' }, { ...hazy, artist: 7 }, { ...hazy, year: 1987.5 }, { ...hazy, month: 13 }, { ...hazy, month: 0 }, { ...hazy, month: undefined }];
+        { ...hazy, title: '' }, { ...hazy, artist: 7 }, { ...hazy, year: 1987.5 }, { ...hazy, month: 13 }, { ...hazy, month: 0 }, { ...hazy, month: '11' }];
       const codes = [];
       for (const b of bad) codes.push((await port(b)).status);
       ok(codes.every((c) => c === 400) && !existsSync(join(tmp, 'content/music/hazy-shade-of-winter.json')) && readFileSync(SJ, 'utf8') === sjText,
-         'a bad id, a file outside the library or missing, an empty title, a bad year, a bad or missing month is 400, and nothing is written (' + codes.join() + ')');
+         'a bad id, a file outside the library or missing, an empty title, a bad year or a bad month is 400, and nothing is written (' + codes.join() + ')');
       r = await port(hazy); j = await r.json();
       const made = join(tmp, 'content/music/hazy-shade-of-winter.json');
       ok(r.status === 200 && j.rel === 'music/hazy-shade-of-winter.json' && j.json && j.json.id === hazy.id && j.json.title === hazy.title && j.json.artist === hazy.artist
@@ -488,6 +544,19 @@ console.log('\n— server —');
       const l2 = await lib();
       ok(l2 && (l2.find((m) => m.file === hazy.file) || { ids: ['?'] }).ids.length === 0, 'and its MIDI is unported again');
       ok(readFileSync(AJ, 'utf8') === ajText && readFileSync(kj, 'utf8') === kText2, 'and no other file changed');
+      /* the form sends only title, artist and year (owner, 2026-11-09): the id comes from the title, the month is left out */
+      r = await port({ file: 'OnTheOutside.mid', title: 'ON THE OUTSIDE', artist: 'X', year: 1990 }); j = await r.json();
+      const oto = JSON.parse(readFileSync(SJ, 'utf8')).songs.find((s) => s.id === 'on-the-outside');
+      ok(r.status === 200 && j.rel === 'music/on-the-outside.json' && j.json && j.json.id === 'on-the-outside' && !('month' in j.json) && oto && !('month' in oto),
+         'with no id and no month, the id is made from the title and no month is written (' + r.status + ' ' + (j.rel || j.error) + ')');
+      r = await port({ file: '90s/99Problems.mid', title: 'on the outside!', artist: 'X', year: 1990 }); j = await r.json();
+      ok(r.status !== 400 && !(j.rel === 'music/on-the-outside.json'), 'a title whose id is taken is not refused for it (' + r.status + ')');
+      r = await port({ file: 'OnTheOutside.mid', title: 'ON THE OUTSIDE', artist: 'X', year: 1990 }); j = await r.json();
+      ok(r.status === 200 && j.rel === 'music/on-the-outside-2.json' && j.json.id === 'on-the-outside-2', 'the same title again gets -2, never an overwrite (' + (j.rel || j.error) + ')');
+      r = await port({ file: 'OnTheOutside.mid', title: '!!!', artist: 'X', year: 1990 });
+      ok(r.status === 400, 'a title with no letters or digits to name it from is 400');
+      r = await port({ file: 'OnTheOutside.mid', title: 'ANOTHER', artist: 'X', year: 1990, month: 13 });
+      ok(r.status === 400, 'a month that is sent must still be 1-12');
     }
 
     /* a face edit (eyes) is written in the layout the face file already has */
@@ -2298,7 +2367,7 @@ console.log('\n— music panel —');
   const tab = FL.tabs.get('music');
   ok(loaded && tab && tab.title === 'Music', 'the Music panel registers its tab');
   ok(/import '\.\/panels\/music\.js'/.test(readFileSync('admin/overlay.js', 'utf8')), 'the overlay imports the Music panel');
-  const LIB = [{ file: '70s/BohemianRhapsody.mid', ids: ['bohemian-opera', 'bohemian-rock'] }, { file: '70s/Kashmir.mid', ids: ['kashmir'] }, { file: '80s/HazyShadeOfWinter.mid', ids: [] }];
+  const LIB = [{ file: '70s/BohemianRhapsody.mid', ids: ['bohemian-opera', 'bohemian-rock'] }, { file: '70s/Kashmir.mid', ids: ['kashmir'] }, { file: '80s/HazyShadeOfWinter.mid', ids: [], meta: { title: 'HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987 } }];
   const B = MP && typeof MP.batches === 'function' ? MP.batches(files, LIB) : null;
   ok(B && B.raw.join() === '80s/HazyShadeOfWinter.mid' && B.conv.length === 0 && B.game.eras['1'].kitchen.includes('kashmir') && B.game.title.join() === 'one-step-beyond,reelin-in-the-years',
      'batches: the unconverted MIDI, no converted songs, and the decades and title in game (' + JSON.stringify(B && { raw: B.raw, conv: B.conv }) + ')');
@@ -2336,37 +2405,37 @@ console.log('\n— music panel —');
       /* convert: today's Port */
       act('convert-open', { midi: '80s/HazyShadeOfWinter.mid' }).fire('click');
       const pf = (k) => find((n) => n.dataset.port === k);
-      ok(['title', 'artist', 'year', 'month', 'id'].every((k) => pf(k)) && act('convert'), 'Convert opens a form: title, artist, year, month and id');
+      /* only title, artist and year (owner, 2026-11-09), filled in from the MIDI's own text */
+      ok(['title', 'artist', 'year'].every((k) => pf(k)) && !pf('month') && !pf('id') && act('convert'), 'Convert opens a form of title, artist and year: no month, no id');
+      ok(pf('title').value === 'HAZY SHADE OF WINTER' && pf('artist').value === 'THE BANGLES' && pf('year').value === '1987',
+         'filled in from what the MIDI says about itself (' + [pf('title').value, pf('artist').value, pf('year').value].join(' / ') + ')');
       const fill = (o) => { for (const [k, v] of Object.entries(o)) { pf(k).value = v; pf(k).fire('input'); } };
-      fill({ title: 'a hazy shade of winter', artist: 'the bangles', year: '19x7', month: '11', id: '' });
+      fill({ title: 'a hazy shade of winter', year: '19x7' });
       act('convert').fire('click'); await tick();
       ok(sent.length === 0 && /year/.test(pf('msg').textContent), 'a year that is not one is refused before anything is sent (' + pf('msg').textContent + ')');
-      fill({ year: '1987', month: '' });
-      act('convert').fire('click'); await tick();
-      ok(sent.length === 0 && /month/.test(pf('msg').textContent), 'and so is a missing month');
-      fill({ month: '11' });
+      fill({ year: '1987' });
       const HZ = 'a-hazy-shade-of-winter';
       const song = { ...structuredClone(files['music/kashmir.json']), id: HZ, title: 'A HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987, month: 11 };
       reply = { status: 200, json: { rel: 'music/' + HZ + '.json', json: song, output: 'arranged', stamp: { ['music/' + HZ + '.json']: 4444 } } };
       applied.length = 0;
       act('convert').fire('click'); await tick();
       ok(sent.length === 1 && /\/admin\/api\/port$/.test(sent[0].url)
-         && JSON.stringify(sent[0].body) === JSON.stringify({ file: '80s/HazyShadeOfWinter.mid', id: HZ, title: 'A HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987, month: 11 }),
-         'Convert posts { file, id, title, artist, year, month } to the port route, upper-cased, the id from the title (' + JSON.stringify(sent[0] && sent[0].body) + ')');
+         && JSON.stringify(sent[0].body) === JSON.stringify({ file: '80s/HazyShadeOfWinter.mid', title: 'A HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987 }),
+         'Convert posts { file, title, artist, year } to the port route, upper-cased; the server names the song (' + JSON.stringify(sent[0] && sent[0].body) + ')');
       ok(store.files['music/' + HZ + '.json'] === song && !store.dirty.has('music/' + HZ + '.json') && store.stamp['music/' + HZ + '.json'] === 4444
          && applied.length >= 1 && !(applied[applied.length - 1].skip || []).includes('music'),
          'the converted song joins the working copy, stamped and not dirty, and is applied, music and all');
       ok(count('raw') === '0' && count('conv') === '1', 'it moves from Not converted to Converted (' + count('raw') + ' ' + count('conv') + ')');
       LIB[2].ids = [HZ];   // as the server's songs.json now says
-      reply = { status: 409, json: { error: 'exists', rel: 'music/kashmir.json' } };
+      reply = { status: 409, json: { error: 'busy' } };
       LIB.push({ file: '90s/Lump.mid', ids: [] });
       act('refresh-lib').fire('click'); await tick();
       act('convert-open', { midi: '90s/Lump.mid' }).fire('click');
-      fill({ title: 'kashmir', artist: 'x', year: '1995', month: '7' });
+      ok(pf('title').value === 'LUMP' && pf('artist').value === '' && pf('year').value === '', 'a MIDI the server sent no metadata for starts from its file name');
+      fill({ artist: 'x', year: '1995' });
       act('convert').fire('click'); await tick();
-      ok(/already/.test(pf('msg').textContent), 'an id that exists is reported (' + pf('msg').textContent + ')');
+      ok(/busy/.test(pf('msg').textContent), 'a busy server is reported (' + pf('msg').textContent + ')');
       reply = { status: 422, json: { error: 'job', log: 'midi2song: no lead candidate' } };
-      fill({ id: 'lump2' });
       act('convert').fire('click'); await tick();
       ok(/no lead candidate/.test(pf('msg').textContent), 'a failed conversion shows its log');
       LIB.pop(); act('refresh-lib').fire('click'); await tick();
