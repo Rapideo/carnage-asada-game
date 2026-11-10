@@ -233,7 +233,14 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
 
 /* traffic per difficulty (0.9.13): whole cars, 0 to 40 */
 {
-  const tErr = (v) 
+  const tErr = (v) => { const f = structuredClone(files); f['difficulty.json'].easy.traffic = v; let x = null; try { validateContent(memSource(f)); } catch (y) { x = y; } return x; };
+  ok([-1, 41, 2.5, '3', undefined].every((v) => { const x = tErr(v); return x instanceof ContentError && x.path.join() === 'easy,traffic'; }) && tErr(0) === null && tErr(40) === null,
+     'traffic must be a whole number of cars, 0 to 40, on [difficulty, traffic]');
+  ok(disk.difficulty.easy.traffic === 3, 'easy runs 3 cars (owner: a tenth of the 30 level 1 had)');
+}
+
+const before = JSON.stringify(files);
+validateContent(memSource(files));
 ok(JSON.stringify(files) === before, 'validating does not mutate the source');
 
 console.log('\n— format —');
