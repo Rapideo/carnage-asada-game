@@ -9612,8 +9612,29 @@ const G = {
   playMusic(key) {
     this.musicKey = key;
     if (typeof Music === 'undefined' || typeof PLAYLIST === 'undefined' || !Audio5.ready) return;
-    const ids = PLAYLIST[key];
+    const ids = this.musicOrder(key);
     if (ids && ids.length && Music.playList) Music.playList(ids);
+  },
+
+  /* The order a list plays in. The title list is hand-ordered and plays as
+     written; a level's list is every song it may play, shuffled fresh each
+     play (owner, 2026-11-09). playMusic is also called on the audio unlock,
+     on Stop after a Service Mode Listen and by its playlist refresher, so the
+     shuffle is kept while the key and the set of songs stay the same:
+     anything else would restart the music on every edit. */
+  musicOrder(key) {
+    const ids = typeof PLAYLIST === 'undefined' ? null : PLAYLIST[key];
+    if (!ids) return ids;
+    if (String(key) === 'title') { this.musicShuffle = { key: 'title' }; return ids; }
+    const sig = [...ids].sort().join('|'), c = this.musicShuffle;
+    if (c && c.key === String(key) && c.sig === sig) return c.ids;
+    const out = ids.slice();
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = (Math.random() * (i + 1)) | 0;
+      const t = out[i]; out[i] = out[j]; out[j] = t;
+    }
+    this.musicShuffle = { key: String(key), sig, ids: out };
+    return out;
   },
 
   /* ---------------- orders ------------------------------- */

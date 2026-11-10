@@ -2123,6 +2123,25 @@ console.log('\n— music —');
   const early = LV.flatMap((l) => PL[String(l.n)].filter((id) => !MU[id] || MU[id].year > l.year).map((id) => l.n + ':' + id));
   ok(early.length === 0, 'no level plays a song released after its year (' + (early.join(' ') || 'none') + ')');
   ok(Array.isArray(PL.title) && PL.title.length > 0 && PL.title.every((id) => MU[id]), 'the title list names real songs');
+  /* the order (Task 2): the title in order, a level shuffled once per key and set */
+  const has = typeof G.musicOrder === 'function';
+  ok(has, 'G.musicOrder exists');
+  if (has) {
+    const sorted = (a) => [...a].sort().join();
+    ok(JSON.stringify(G.musicOrder('title')) === JSON.stringify(PL.title), 'the title list plays in its written order');
+    const o6 = G.musicOrder(6);
+    ok(sorted(o6) === sorted(PL['6']) && o6.length === PL['6'].length, 'Level 6 plays exactly its songs (' + o6.join() + ')');
+    ok(G.musicOrder(6) === o6 && G.musicOrder('6') === o6, 'asked again for the same level and songs, the same order (no restart)');
+    const seen = new Set();
+    for (let i = 0; i < 20; i++) { G.musicOrder('title'); seen.add(G.musicOrder(6).join()); }
+    ok(seen.size >= 2, 'a fresh play of the level reshuffles (' + seen.size + ' orders in 20)');
+    const keep = PL['6'];
+    try {
+      runScript('PLAYLIST["6"] = ["lovely-day", "peg"]');
+      const o = G.musicOrder(6);
+      ok(sorted(o) === 'lovely-day,peg', 'when the level\'s songs change, the next order is of the new set (' + o.join() + ')');
+    } finally { runScript('PLAYLIST["6"] = ' + JSON.stringify(keep)); }
+  }
 }
 
 /* Windy (0.9.3, spec section 7): a crosswind on the toss, gusts that shove the

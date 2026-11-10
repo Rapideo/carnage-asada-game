@@ -650,10 +650,19 @@ const diskBuilt = validateContent(fsSource('content'));
       const f3 = setL1(files2(), ['immigrant-song', 'black-dog', 'walk-on-the-wild-side']);
       A.applyBuilt(validateContent(memSource(f3)), G);
       G.startRun(1); G.beginShift(); frames(10);
-      ok(G.state === 'play' && MU.playing() && MU.queue.join() === 'immigrant-song,black-dog,walk-on-the-wild-side', 'level 1 plays its 3-song list (' + MU.queue.join() + ')');
+      const set = (q) => [...q].sort().join();
+      ok(G.state === 'play' && MU.playing() && set(MU.queue) === 'black-dog,immigrant-song,walk-on-the-wild-side', 'level 1 plays its 3 songs, shuffled (' + MU.queue.join() + ')');
       let guard = 0;
       while (MU.idx !== 2 && guard++ < 50) tick(20);
-      ok(MU.idx === 2 && MU.now().id === 'walk-on-the-wild-side', 'and walks it into the third song (' + MU.idx + ')');
+      const third = MU.queue[2];
+      ok(MU.idx === 2 && MU.now().id === third, 'and walks it into the third song (' + MU.idx + ')');
+      /* Review Focus 4: an edit that leaves level 1's songs as they are keeps the order and the song playing */
+      const fsame = setL1(files2(), ['immigrant-song', 'black-dog', 'walk-on-the-wild-side']); fsame['music/approved.json'].from.kashmir = 1978;   // level 4 changes, so the refresher replays level 1
+      const q3 = MU.queue.join();
+      A.applyBuilt(validateContent(memSource(fsame)), G);
+      for (let i = 0; i < 10; i++) { tick(0.5); frames(1); }
+      ok(MU.queue.join() === q3 && MU.idx === 2 && MU.now().id === third, 'an edit that leaves level 1\'s songs alone keeps the order and the song playing (' + MU.queue.join() + ' ' + MU.idx + ')');
+      A.applyBuilt(validateContent(memSource(f3)), G);
       const f1 = setL1(files2(), ['black-dog']);
       A.applyBuilt(validateContent(memSource(f1)), G);
       for (let i = 0; i < 40; i++) { tick(0.5); frames(1); }
@@ -681,7 +690,7 @@ const diskBuilt = validateContent(fsSource('content'));
       ok(MU.queue.join() === 'kashmir' && G.musicKey === 'title', 'while listening, a playlist edit or the game changing its music does not cut in, but the key is kept (' + MU.queue.join() + ' ' + G.musicKey + ')');
       G.playMusic(1);
       L.stop(G); tick(0.5);
-      ok(L.listening === null && G.playMusic === orig && MU.queue.join() === 'immigrant-song,black-dog', 'Stop restores the level\'s music, its newest list, through G.playMusic (' + MU.queue.join() + ')');
+      ok(L.listening === null && G.playMusic === orig && set(MU.queue) === 'black-dog,immigrant-song', 'Stop restores the level\'s music, its newest songs, through G.playMusic (' + MU.queue.join() + ')');
       for (let i = 0; i < 20; i++) { tick(0.5); frames(1); }
     } catch (x) { threw = x; }
     ok(!threw, 'a playing list shrunk, a listen and a stop, with frames between: no throw' + (threw ? ' — ' + threw.stack : ''));
