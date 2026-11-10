@@ -8,6 +8,14 @@ Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch li
 counts on: 0.9.10, 0.9.11 and so on (owner, 2026-11-09).
 **1.0.0** is when the owner calls it released.
 
+## 0.9.12 (2026-11-09): customers who say thank you
+
+- **Every customer has lines of their own for the happy moments:** two each for an on-time
+  delivery, a served ticket and walking up to the counter, 720 new lines across all 120 faces,
+  each in that face's voice and true to the year it first appears. These are the moments heard
+  most, and until now they were always the same few shared lines. The owner reviewed and kept
+  them.
+
 ## 0.9.11 (2026-11-09): the music library
 
 - **Songs are placed like faces.** Each song in the game has a decade, a shift (Delivery,

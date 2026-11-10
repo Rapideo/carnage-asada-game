@@ -22,7 +22,7 @@ owner's open judgement calls and operator settings. 1.0.0 is the owner's call.
 
 ## OPEN: dialogue and music (owner, 2026-11-09)
 
-- [ ] **Personal lines for the happy moments.** All 120 customers are active and every one has
+- [x] **Personal lines for the happy moments.** *Shipped in 0.9.12.* All 120 customers are active and every one has
       personal lines (670), used 3 times in 4 when a face has a line for the moment. But the
       lines lean to trouble: an on-time **delivery has no personal lines at all** (always the
       same 8 shared lines), a **served** ticket has 8 across all faces, **arrive** 16. Those are
@@ -30,8 +30,8 @@ owner's open judgement calls and operator settings. 1.0.0 is the owner's call.
       `served` and `arrive` lines per face. The owner chooses: Claude drafts them for approval
       in the Dialogue tab, or the owner writes them.
       **Drafted 2026-11-09** (owner: "you can draft the lines"): 720 lines, two per face per
-      moment, on branch `personal-lines` (not merged). Waiting on the owner's review in Service
-      Mode's Dialogue tab before they ship.
+      moment, on branch `personal-lines`. The owner reviewed them and said "I'm happy. Cut it."
+      (2026-11-09).
 - [x] **Service Mode's Music tab in three batches** (Not converted / Converted / In game), songs
       approved by decade, shift and a "from" year like faces, shuffled per play. **Built in 0.9.11**
       (`docs/superpowers/specs/2026-11-09-music-library-design.md`, plan beside it). Not yet
