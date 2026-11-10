@@ -1,7 +1,7 @@
 /* inline every src module into a single self-contained page */
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { validateContent, musicWarnings, DLG_KEYS, SCORE_MAX, centsStr } from './tools/content/validate.mjs';
+import { validateContent, DLG_KEYS, SCORE_MAX, centsStr } from './tools/content/validate.mjs';
 import { fsSource } from './tools/content/fs-source.mjs';
 
 const SRC = 'src';
@@ -86,6 +86,3 @@ console.log(`  dialog:  ${DLG_KEYS.slice(1).map((k) => `${k} ${dialogue[k].lengt
 console.log(`  casts:   ${Object.entries(casts).filter(([e]) => /^\d+$/.test(e)).map(([e, c]) => `era ${e} ${c.length}`).join(', ')}`);
 console.log(`  baked:   ${Object.keys(faces).length} faces, ${Object.keys(lattice).length} lattice, ${Object.keys(board.frames).length} board`);
 console.log(`  music:   ${Object.keys(music).length} songs, ${Object.keys(playlist).length} playlists${musicNote ? ' (' + musicNote + ')' : ''}`);
-/* the season rule is advice, not a guard (owner, 2026-11-07): a same-year song
-   released after its level's month is named here and in the Music panel */
-for (const w of musicWarnings(music, playlist, levels)) console.log(`  warning: level ${w.level} plays "${w.id}", ${w.warn}`);

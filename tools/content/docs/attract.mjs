@@ -33,7 +33,7 @@
    Lines that look like values but are PROSE (no JSON behind them; kept verbatim):
      FBI Director : Kash P.V. Patel           (a note on the attribution)
      Overlay Text : Press ESC to Return ...   (the demo's caption is game code)
-     Music : the title songs ...              (music.md and playlist.json own it)
+     Music : the title songs ...              (music.md and approved.json own it)
      "`IN` appears at 0:00.5" and "over 2 seconds" in the Wordmark item
                                               (TAG_HOLD and TITLE_GROW, game code)
      the numbered screen list under Sequence, and the notes nested under Levels

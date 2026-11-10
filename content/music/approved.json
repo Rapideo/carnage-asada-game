@@ -1,0 +1,46 @@
+{
+  "1": {
+    "delivery": ["immigrant-song", "black-dog", "bohemian-opera", "bohemian-rock", "mr-blue-sky", "just-what-i-needed"],
+    "kitchen": ["walk-on-the-wild-side", "do-it-again", "dyer-maker", "kashmir", "lovely-day", "peg"]
+  },
+  "2": {
+    "delivery": ["dont-bring-me-down", "stand-and-deliver", "rock-the-casbah", "house-of-fun", "take-on-me", "never-gonna-give-you-up"],
+    "kitchen": ["just-cant-get-enough", "dont-you-want-me", "africa", "red-red-wine", "big-time", "if-you-leave"]
+  },
+  "3": {
+    "delivery": ["sweet-child-o-mine", "here-comes-your-man", "everything-about-you", "alec-eiffel", "lump", "common-people", "song-2", "i-think-im-paranoid"],
+    "kitchen": ["straight-up", "where-is-my-mind", "two-princes", "cannonball", "regulate", "peaches", "bitter-sweet-symphony", "steal-my-sunshine"]
+  },
+  "_comment": "Which songs are in the game. \"title\" is the title screen's list, played in order. \"1\" \"2\" \"3\" are the '70s, '80s and '90s: a level plays every song in its decade and shift (delivery or kitchen; a song on both shifts is in both lists) whose year has arrived, shuffled fresh each play. \"from\" is the year a song first plays (none = its decade's first level), and is never before its release. Edited in Service Mode (Music); music.md mirrors it.",
+  "title": ["one-step-beyond", "reelin-in-the-years"],
+  "from": {
+    "bohemian-opera": 1975,
+    "bohemian-rock": 1975,
+    "dyer-maker": 1975,
+    "kashmir": 1975,
+    "mr-blue-sky": 1978,
+    "just-what-i-needed": 1978,
+    "lovely-day": 1978,
+    "peg": 1978,
+    "rock-the-casbah": 1984,
+    "house-of-fun": 1984,
+    "africa": 1984,
+    "red-red-wine": 1984,
+    "take-on-me": 1987,
+    "never-gonna-give-you-up": 1987,
+    "big-time": 1987,
+    "if-you-leave": 1987,
+    "everything-about-you": 1993,
+    "alec-eiffel": 1993,
+    "two-princes": 1993,
+    "cannonball": 1993,
+    "lump": 1996,
+    "common-people": 1996,
+    "regulate": 1996,
+    "peaches": 1996,
+    "song-2": 1999,
+    "i-think-im-paranoid": 1999,
+    "bitter-sweet-symphony": 1999,
+    "steal-my-sunshine": 1999
+  }
+}

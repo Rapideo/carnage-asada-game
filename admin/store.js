@@ -86,7 +86,7 @@ export const store = {
     const skip = [];
     if (!any((r) => r.startsWith('faces/'))) skip.push('faces');
     if (!any((r) => r.startsWith('lattice/'))) skip.push('lattice');
-    if (!any((r) => r.startsWith('music/') && r !== 'music/playlist.json')) skip.push('music');
+    if (!any((r) => r.startsWith('music/') && r !== 'music/approved.json')) skip.push('music');
     return skip;
   },
 

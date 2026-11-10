@@ -2113,6 +2113,18 @@ console.log('\n— cast —');
   function reset0() { G.test = null; G.autopilot = false; G.testRun = false; Input.down = Object.create(null); Input.hit = Object.create(null); }
 }
 
+/* Music (2026-11-09): a level plays every approved song of its decade and
+   shift whose year has arrived (content/music/approved.json); the build puts
+   that list in PLAYLIST. None is silent, none plays before its time. */
+console.log('\n— music —');
+{
+  const PL = runScript('PLAYLIST'), MU = runScript('MUSIC'), LV = runScript('LEVELS');
+  ok(LV.every((l) => Array.isArray(PL[String(l.n)]) && PL[String(l.n)].length > 0), 'every level has at least one song');
+  const early = LV.flatMap((l) => PL[String(l.n)].filter((id) => !MU[id] || MU[id].year > l.year).map((id) => l.n + ':' + id));
+  ok(early.length === 0, 'no level plays a song released after its year (' + (early.join(' ') || 'none') + ')');
+  ok(Array.isArray(PL.title) && PL.title.length > 0 && PL.title.every((id) => MU[id]), 'the title list names real songs');
+}
+
 /* Windy (0.9.3, spec section 7): a crosswind on the toss, gusts that shove the
    car, tumbleweeds. Delivery only, and with the level not windy the game is
    exactly what it was. State is reset before and after: the sections share

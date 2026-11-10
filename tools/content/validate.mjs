@@ -8,7 +8,7 @@
      { readJSON(rel) -> any, list(relDir) -> string[] | null }
 
    `rel` is relative to the content dir ('levels.json', 'faces',
-   'music/playlist.json'). list() returns sorted .json names, or null when
+   'music/approved.json'). list() returns sorted .json names, or null when
    the directory is absent. readJSON() throws ContentError on a missing file
    or bad JSON.
 
@@ -952,95 +952,148 @@ function checkBoardArt(menus, board) {
 
 /* ---- music --------------------------------------------------------------
    content/music/<id>.json is one song (tools/music/midi2song.mjs), and
-   playlist.json names which songs each level, and the title, may play.
-   music.md: a level plays songs from its own year or up to 2 years before,
-   never after -- an anachronism is a guard, not a judgement call. */
-export const MUSIC_LOOKBACK = 2;
+   approved.json says which songs are in the game (owner, 2026-11-09), shaped
+   like casts.json: "title" is the title screen's list, in order; "1" "2" "3"
+   are the decades, each { delivery: [...], kitchen: [...] } (a song on both
+   shifts is in both lists); "from" is the year a song first plays (none = its
+   decade's first level). A level plays every song of its decade and shift
+   whose year has arrived; a song never starts before its release year. */
+export const APPROVED = 'music/approved.json';
+export const SHIFTS = ['delivery', 'kitchen'];
 export const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
 
 /* The month a level's season means (spec §9, owner): whichever keeps time
    moving forward. Summer is July. Winter is January when a summer level of
    the same year comes after it in level order, and December otherwise. It is
-   derived from the order, never authored per level. */
+   derived from the order, never authored per level. The kitchen's calendar
+   reads it; songs no longer do. */
 export function levelMonth(levels, i) {
   const lv = levels[i];
   if (lv.season === 'summer') return 7;
   return levels.some((l, j) => j > i && l.year === lv.year && l.season === 'summer') ? 1 : 12;
 }
 
-/* May level i play this song? The YEAR window is a rule: a song from after
-   the level's year, or more than MUSIC_LOOKBACK years before it, is
-   { ok: false, why }. The MONTH is advice (owner, 2026-11-07): a same-year
-   song released after the level's month is { ok: true, warn }, flagged and
-   never refused. The title list has no year and is not asked. */
-export function songEligible(song, levels, i) {
-  const lv = levels[i];
-  if (!lv || !song || typeof song.year !== 'number') return { ok: true };
-  if (song.year > lv.year) return { ok: false, why: 'too new: ' + song.year + ', after ' + lv.year };
-  if (song.year < lv.year - MUSIC_LOOKBACK) return { ok: false, why: 'too old: ' + song.year + ', more than ' + MUSIC_LOOKBACK + ' years before ' + lv.year };
-  const lm = levelMonth(levels, i);
-  if (song.year === lv.year && Number.isInteger(song.month) && song.month > lm && song.month <= 12)
-    return { ok: true, warn: 'released ' + MONTHS[song.month - 1].slice(0, 3) + ' ' + song.year + ', after this level\'s ' + MONTHS[lm - 1] };
-  return { ok: true };
+/* the level years of an era, sorted: '70s 1972/1975/1978 */
+export function eraYears(levels, era) {
+  return [...new Set(levels.filter((l) => String(l.era) === String(era)).map((l) => l.year))].sort((a, b) => a - b);
 }
 
-/* Every month warning the shipped playlists carry: [{ level, id, warn }]. */
-export function musicWarnings(music, playlist, levels) {
-  const out = [];
-  levels.forEach((lv, i) => {
-    for (const id of playlist[String(lv.n)] || []) {
-      const r = music[id] ? songEligible(music[id], levels, i) : { ok: true };
-      if (r.warn) out.push({ level: lv.n, id, warn: r.warn });
-    }
-  });
-  return out;
+/* the decade a song is approved into ('1'/'2'/'3'), or null */
+export function songDecade(approved, id) {
+  for (const [k, v] of Object.entries(approved || {}))
+    if (/^\d+$/.test(k) && v && SHIFTS.some((s) => Array.isArray(v[s]) && v[s].includes(id))) return k;
+  return null;
+}
+
+/* the year a song first plays: its "from", else its decade's first level year;
+   null when it is in no decade */
+export function songStart(approved, levels, id) {
+  const d = songDecade(approved, id);
+  if (d === null) return null;
+  const f = approved.from && approved.from[id];
+  return Number.isInteger(f) ? f : eraYears(levels, d)[0];
+}
+
+/* level index i's songs, in list order: its decade's list for its shift, the
+   ones whose year has arrived */
+export function levelSongs(approved, levels, i) {
+  const lv = levels[i];
+  const list = ((approved || {})[String(lv.era)] || {})[lv.type === 'kitchen' ? 'kitchen' : 'delivery'] || [];
+  return list.filter((id) => songStart(approved, levels, id) <= lv.year);
+}
+
+/* on the title list or in any decade */
+export function inGame(approved, id) {
+  return !!approved && ((Array.isArray(approved.title) && approved.title.includes(id)) || songDecade(approved, id) !== null);
 }
 
 function buildMusic(src, levels) {
   const files = src.list('music');
-  if (files === null) return { music: {}, playlist: {}, note: 'no content/music/ yet' };
+  const none = { music: {}, playlist: {}, approved: { title: [], from: {} } };
+  if (files === null) return { ...none, note: 'no content/music/ yet' };
   const music = {};
   for (const file of files) {
-    if (file === 'playlist.json') continue;
+    if (file === 'approved.json') continue;
     const id = file.replace(/\.json$/, '');
     const MF = `content/music/${file}`;
     const s = src.readJSON(`music/${file}`);
     if (!s || typeof s !== 'object' || Array.isArray(s)) fail(MF, [], `content/music/${file} must be a song object`);
     if (s.id !== undefined && s.id !== id) fail(MF, ['id'], `content/music/${file}: id is "${s.id}" but the file is ${file}; they must match`);
     for (const f of ['title', 'artist']) if (s[f] !== undefined) drawable(MF, [f], `content/music/${file} ${f}`, s[f]);
-    /* the release month (midi2song --month): required, for the season rule */
+    /* the release month (midi2song --month): required, for the record */
     if (s.month === undefined)
       fail(MF, ['month'], `content/music/${file}: no month. Every song needs its release month, an integer 1-12 (1 = January): the first release, single or album, whichever came first.`);
     if (!(Number.isInteger(s.month) && s.month >= 1 && s.month <= 12))
       fail(MF, ['month'], `content/music/${file}: month is ${JSON.stringify(s.month)}; a release month is an integer 1-12 (1 = January)`);
     music[id] = stripNotes(s);
   }
-  if (!files.includes('playlist.json')) return { music, playlist: {}, note: 'no playlist.json yet' };
+  if (!files.includes('approved.json')) return { ...none, music, note: 'no approved.json yet' };
 
-  const F = 'content/music/playlist.json';
-  const raw = stripNotes(src.readJSON('music/playlist.json'));
-  const pl = raw.levels && typeof raw.levels === 'object' && !Array.isArray(raw.levels) ? { ...raw.levels, title: raw.title } : raw;
-  const playlist = {};
-  const need = ['title', ...levels.map((l) => String(l.n))];
-  for (const k of need) {
-    const list = pl[k];
-    if (!Array.isArray(list) || !list.length)
-      fail(F, [k], `${F}: "${k}" must be a non-empty array of song ids, e.g. "${k}": ["${Object.keys(music)[0] || 'song-id'}"]. ` +
-        `Every level 1-${levels.length} and "title" needs a list.`);
-    const lv = k === 'title' ? null : levels[+k - 1];
-    list.forEach((id, j) => {
-      if (typeof id !== 'string' || !music[id])
-        fail(F, [k, j], `${F}: "${k}" names ${JSON.stringify(id)}, which is not a song in content/music/ (have: ${Object.keys(music).join(' ') || 'none'})`);
-      /* the year window only: a late month is a warning (songEligible), not a failure */
-      const y = music[id].year;
-      if (lv && isNum(y) && !songEligible(music[id], levels, +k - 1).ok)
-        fail(F, [k, j], `${F}: level ${k} (${lv.name}) plays "${id}" from ${y}. A level may only play songs from ${lv.year - MUSIC_LOOKBACK}-${lv.year}: its own year or up to ${MUSIC_LOOKBACK} before, never after.`);
-    });
-    playlist[k] = list;
+  const F = 'content/' + APPROVED;
+  const raw = stripNotes(src.readJSON(APPROVED));
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) fail(F, [], `${F} must be an object: { "title": [...], "1": { "delivery": [...], "kitchen": [...] }, ..., "from": {} }`);
+  const eras = [...new Set(levels.map((l) => String(l.era)))].sort();
+  for (const k of Object.keys(raw))
+    if (k !== 'title' && k !== 'from' && !eras.includes(k)) fail(F, [k], `${F}: unknown key "${k}"; expected "title", "from" and the decades ${eras.join(', ')}`);
+  const known = (id) => typeof id === 'string' && music[id];
+  const have = () => Object.keys(music).join(' ') || 'none';
+
+  if (!Array.isArray(raw.title) || !raw.title.length)
+    fail(F, ['title'], `${F}: "title" must be a non-empty list of song ids, the title screen's music in order, e.g. ["${Object.keys(music)[0] || 'song-id'}"]`);
+  raw.title.forEach((id, j) => {
+    if (!known(id)) fail(F, ['title', j], `${F}: "title" names ${JSON.stringify(id)}, which is not a song in content/music/ (have: ${have()})`);
+  });
+
+  const out = { title: raw.title };
+  const decadeOf = {};
+  for (const era of eras) {
+    const d = raw[era] === undefined ? {} : raw[era];
+    if (!d || typeof d !== 'object' || Array.isArray(d)) fail(F, [era], `${F}: "${era}" must be { "delivery": [...], "kitchen": [...] }, got ${JSON.stringify(d)}`);
+    for (const k of Object.keys(d)) if (!SHIFTS.includes(k)) fail(F, [era, k], `${F}: "${era}" has "${k}"; a decade has only ${SHIFTS.join(' and ')}`);
+    out[era] = {};
+    for (const s of SHIFTS) {
+      const list = d[s] === undefined ? [] : d[s];
+      if (!Array.isArray(list)) fail(F, [era, s], `${F}: "${era}".${s} must be a list of song ids, got ${JSON.stringify(list)}`);
+      list.forEach((id, j) => {
+        if (!known(id)) fail(F, [era, s, j], `${F}: decade ${era} ${s} names ${JSON.stringify(id)}, which is not a song in content/music/ (have: ${have()})`);
+        if (list.indexOf(id) !== j) fail(F, [era, s, j], `${F}: decade ${era} ${s} lists "${id}" twice`);
+        if (decadeOf[id] !== undefined && decadeOf[id] !== era)
+          fail(F, [era, s, j], `${F}: "${id}" is in decade ${decadeOf[id]} and decade ${era}; a song belongs to one decade`);
+        decadeOf[id] = era;
+      });
+      out[era][s] = list;
+    }
   }
-  for (const k of Object.keys(pl))
-    if (!need.includes(k) && pl[k] !== undefined) fail(F, [k], `${F}: unknown key "${k}"; expected "title" and "1".."${levels.length}"`);
-  return { music, playlist, note: null };
+
+  const from = raw.from === undefined ? {} : raw.from;
+  if (!from || typeof from !== 'object' || Array.isArray(from)) fail(F, ['from'], `${F}: "from" must be an object of { song: year }, got ${JSON.stringify(raw.from)}`);
+  const kept = {};
+  for (const [id, y] of Object.entries(from)) {
+    /* a song taken out of every decade leaves its year behind; harmless, and
+       dropped rather than refused, as casts.json does */
+    if (decadeOf[id] === undefined) continue;
+    const ok = eraYears(levels, decadeOf[id]);
+    if (!Number.isInteger(y) || !ok.includes(y))
+      fail(F, ['from', id], `${F}: "${id}" first plays in ${JSON.stringify(y)}, which is not a level year of decade ${decadeOf[id]} (${ok.join(', ')})`);
+    kept[id] = y;
+  }
+  out.from = kept;
+  for (const id of Object.keys(decadeOf)) {
+    const start = songStart(out, levels, id), y = music[id].year;
+    if (isNum(y) && start < y)
+      fail(F, ['from', id], `${F}: "${id}" was released in ${y} but would play from ${start}; set its "from" to a level year of ${y} or later`);
+  }
+
+  const playlist = { title: out.title };
+  levels.forEach((lv, i) => {
+    const list = levelSongs(out, levels, i);
+    const shift = lv.type === 'kitchen' ? 'kitchen' : 'delivery';
+    if (!list.length)
+      fail(F, [String(lv.era), shift], `${F}: level ${lv.n} (${lv.name}) would have no music: decade ${lv.era} has no ${shift} song by ${lv.year}. Approve one, or move a song's "from" earlier.`);
+    playlist[String(lv.n)] = list;
+  });
+  return { music, playlist, approved: out, note: null };
 }
 
 /* Everything content/ holds, validated, notes stripped. Throws ContentError on
@@ -1062,6 +1115,6 @@ export function validateContent(src) {
   checkMenuArt(menus, lattice);
   const board = buildBoard(src);
   checkBoardArt(menus, board);
-  const { music, playlist, note: musicNote } = buildMusic(src, levels);
-  return { content, maps, attract, release, scores, faces, casts, dialogue, difficulty, menus, levels, lattice, board, music, playlist, musicNote };
+  const { music, playlist, approved, note: musicNote } = buildMusic(src, levels);
+  return { content, maps, attract, release, scores, faces, casts, dialogue, difficulty, menus, levels, lattice, board, music, playlist, approved, musicNote };
 }

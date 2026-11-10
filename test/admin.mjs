@@ -160,39 +160,67 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
      'songs.json carries the same month for every song, and a _month note naming its source');
 }
 
-/* the season rule (spec §9, owner 2026-11-07: a late song WARNS, never refuses) */
+/* the season rule's month (spec §9): still derived, for the kitchen's calendar */
 {
-  const { levelMonth, songEligible, MUSIC_LOOKBACK: LB } = await import('../tools/content/validate.mjs');
+  const { levelMonth } = await import('../tools/content/validate.mjs');
   const LV = disk.levels;
   ok(typeof levelMonth === 'function' && [[0, 7], [1, 12], [2, 1], [3, 7], [8, 1], [14, 1], [19, 12]].every(([i, m]) => levelMonth(LV, i) === m),
      'levelMonth: L1 7, L2 12, L3 1, L4 7, L9 1, L15 1, L20 12 (' + (typeof levelMonth === 'function' ? [0, 1, 2, 3, 8, 14, 19].map((i) => levelMonth(LV, i)).join() : 'none') + ')');
   ok(typeof levelMonth === 'function' && LV.every((l, i) => (l.season === 'summer' ? levelMonth(LV, i) === 7 : [1, 12].includes(levelMonth(LV, i)))),
      'every summer is July, every winter January or December');
-  const se = (s, i) => (typeof songEligible === 'function' ? songEligible(s, LV, i) : { ok: null });
-  let r = se({ year: 1975, month: 10 }, 2);
-  ok(r.ok === true && typeof r.warn === 'string' && /oct/i.test(r.warn) && /jan/i.test(r.warn), 'an October 1975 song on Level 3 (January 1975) is allowed, with a warning naming both months (' + r.warn + ')');
-  r = se({ year: 1975, month: 10 }, 3);
-  ok(r.ok === true && typeof r.warn === 'string' && /oct/i.test(r.warn) && /jul/i.test(r.warn), 'and on Level 4 (July 1975) too (' + r.warn + ')');
-  r = se({ year: 1984, month: 5 }, 8);
-  ok(r.ok === true && typeof r.warn === 'string' && /may/i.test(r.warn) && /jan/i.test(r.warn), 'a May 1984 song on Level 9 (January 1984) warns (' + r.warn + ')');
-  r = se({ year: 1975, month: 1 }, 2);
-  ok(r.ok === true && !r.warn, 'a January song on a January level is fine, no warning');
-  r = se({ year: 1975, month: 7 }, 3);
-  ok(r.ok === true && !r.warn, 'a July song on a July level is fine');
-  r = se({ year: 1974, month: 12 }, 2);
-  ok(r.ok === true && !r.warn, 'an earlier year is never warned about, whatever its month');
-  r = se({ year: 1976, month: 1 }, 2);
-  ok(r.ok === false && /too new/.test(r.why || ''), 'a song from after the level\'s year is still refused, too new (' + r.why + ')');
-  r = se({ year: 1975 - LB - 1, month: 12 }, 2);
-  ok(r.ok === false && /too old/.test(r.why || ''), 'and one more than ' + LB + ' years before it, too old (' + r.why + ')');
-  /* the build still refuses only the year window: Bohemian Rhapsody stays on Level 3 */
-  ok(disk.playlist['3'].join() === 'bohemian-opera,bohemian-rock' && disk.playlist['16'].includes('cannonball'), 'the shipped playlists keep Bohemian Rhapsody on Level 3 and Cannonball on Level 16');
   const late = structuredClone(files); late['music/kashmir.json'].month = 12;
   e = null; try { validateContent(memSource(late)); } catch (x) { e = x; }
-  ok(e === null, 'a same-year song released after its level\'s month does not fail the content (Kashmir in December on Level 4)');
-  const early = structuredClone(files); early['music/playlist.json']['1'] = ['kashmir'];
-  e = null; try { validateContent(memSource(early)); } catch (x) { e = x; }
-  ok(e instanceof ContentError && e.path.join() === '1,0', 'a year violation still does');
+  ok(e === null, 'a song\'s release month is recorded, never checked against a level (Kashmir in December)');
+}
+
+/* the music rule (owner, 2026-11-09): content/music/approved.json places each
+   song in a decade, a shift and a "from" year, like faces in casts.json */
+{
+  const V = await import('../tools/content/validate.mjs');
+  const A = 'music/approved.json', AF = 'content/music/approved.json';
+  ok(!!files[A] && !files['music/playlist.json'], 'content/music/approved.json exists and playlist.json is gone');
+  ok(V.APPROVED === A && JSON.stringify(V.SHIFTS) === '["delivery","kitchen"]', 'APPROVED and SHIFTS are exported');
+  ok(!('MUSIC_LOOKBACK' in V) && !('songEligible' in V) && !('musicWarnings' in V), 'the two-year window and the month warning are gone');
+  const run = (edit) => { const f = structuredClone(files); if (f[A]) edit(f[A], f); let x = null, out = null; try { out = validateContent(memSource(f)); } catch (y) { x = y; } return { x, out }; };
+  const at = (r, path) => r.x instanceof ContentError && r.x.file === AF && r.x.path.join() === path;
+  const n1d = files[A] ? files[A]['1'].delivery.length : 0, n2k = files[A] ? files[A]['2'].kitchen.length : 0;
+  let r = run((a) => a['1'].delivery.push('no-such-song'));
+  ok(at(r, '1,delivery,' + n1d), 'an id with no song file is refused at [1,delivery,j] (' + (r.x && r.x.message) + ')');
+  r = run((a) => a['2'].kitchen.push('kashmir'));
+  ok(at(r, '2,kitchen,' + n2k), 'a song in two decades is refused at its second place (' + (r.x && r.x.message) + ')');
+  r = run((a) => { a.from.kashmir = 1976; });
+  ok(at(r, 'from,kashmir'), 'a "from" that is not a level year of its decade is refused (' + (r.x && r.x.message) + ')');
+  r = run((a) => { delete a.from.kashmir; });
+  ok(at(r, 'from,kashmir') && /1975/.test(r.x.message) && /1972/.test(r.x.message), 'a song starting before its release (Kashmir 1975 from 1972) is refused, naming both years (' + (r.x && r.x.message) + ')');
+  r = run((a) => { a['1'].kitchen = []; });
+  ok(at(r, '1,kitchen') && /level 2/i.test(r.x.message) && /WINTER 1972/.test(r.x.message) && /kitchen/i.test(r.x.message),
+     'a level left with no song for its shift is refused, naming the level and the shift (' + (r.x && r.x.message) + ')');
+  r = run((a) => { for (const id of a['1'].delivery) if (!(id in a.from)) a.from[id] = 1975; });
+  ok(at(r, '1,delivery') && /level 1/i.test(r.x.message), 'moving every \'70s delivery song to 1975 leaves Level 1 silent, and is refused (' + (r.x && r.x.message) + ')');
+  r = run((a) => { a['4'] = { delivery: [], kitchen: [] }; });
+  ok(at(r, '4'), 'an unknown key ("4") is refused');
+  r = run((a) => { a.title = []; });
+  ok(at(r, 'title'), 'an empty title list is refused');
+  r = run((a) => { delete a.title; });
+  ok(at(r, 'title'), 'and a missing one');
+  r = run((a) => { a.from['one-step-beyond'] = 1981; });
+  ok(r.x === null && r.out && !('one-step-beyond' in r.out.approved.from), 'a "from" for a song in no decade is dropped, not refused, as casts do');
+  ok(disk.approved && !('_comment' in disk.approved), 'validateContent returns approved, notes stripped');
+  const LV = disk.levels, AP = disk.approved || { title: [], from: {} };
+  const ls = (i) => (typeof V.levelSongs === 'function' ? V.levelSongs(AP, LV, i) : []);
+  const same = (a, b) => a.length === b.length && [...a].sort().join() === [...b].sort().join();
+  ok(same(ls(5), ['walk-on-the-wild-side', 'do-it-again', 'dyer-maker', 'kashmir', 'lovely-day', 'peg']), 'Level 6 shuffles all six \'70s kitchen songs (' + ls(5).join() + ')');
+  ok(ls(0).join() === 'immigrant-song,black-dog', 'Level 1 plays Immigrant Song and Black Dog (' + ls(0).join() + ')');
+  ok(LV.every((l, i) => JSON.stringify(disk.playlist[String(l.n)]) === JSON.stringify(ls(i))) && JSON.stringify(disk.playlist.title) === JSON.stringify(AP.title),
+     'the built playlist is levelSongs per level, and the title list as written');
+  ok(typeof V.eraYears === 'function' && V.eraYears(LV, 1).join() === '1972,1975,1978' && V.eraYears(LV, '3').join() === '1990,1993,1996,1999', 'eraYears: the decade\'s level years');
+  ok(typeof V.songStart === 'function' && V.songStart(AP, LV, 'kashmir') === 1975 && V.songStart(AP, LV, 'immigrant-song') === 1972 && V.songStart(AP, LV, 'one-step-beyond') === null,
+     'songStart: Kashmir 1975, Immigrant Song 1972, a title-only song null');
+  ok(typeof V.songDecade === 'function' && V.songDecade(AP, 'africa') === '2' && V.songDecade(AP, 'one-step-beyond') === null, 'songDecade: Africa is the \'80s');
+  ok(typeof V.songStart === 'function' && V.songStart(AP, LV, 'dont-bring-me-down') === 1981 && V.songDecade(AP, 'dont-bring-me-down') === '2', 'Don\'t Bring Me Down (1979) is \'80s from the start');
+  ok(typeof V.inGame === 'function' && V.inGame(AP, 'one-step-beyond') && V.inGame(AP, 'africa') && !V.inGame(AP, 'no-such-song'), 'inGame: title-only and decade songs are in, others out');
+  const ids = new Set([...(AP.title || []), ...['1', '2', '3'].flatMap((d) => V.SHIFTS ? V.SHIFTS.flatMap((s) => (AP[d] || {})[s] || []) : [])]);
+  ok(ids.size === 42, 'day one: all 42 songs are in game (' + ids.size + ')');
 }
 
 const before = JSON.stringify(files);
@@ -203,7 +231,7 @@ console.log('\n— format —');
 const { formatJSON, formatSongs } = await import('../tools/content/format.mjs');
 const { deepStrictEqual } = await import('node:assert');
 const FORMATTED = ['winners', 'scores', 'attract', 'levels', 'difficulty', 'menus', 'dialogue', 'release']
-  .map((n) => 'content/' + n + '.json').concat(['content/music/playlist.json']);
+  .map((n) => 'content/' + n + '.json').concat(['content/music/approved.json']);
 const roundTrips = (a, b) => { try { deepStrictEqual(a, b); return true; } catch { return false; } };
 for (const f of FORMATTED) {
   const x = JSON.parse(readFileSync(f, 'utf8')), t = formatJSON(x);
@@ -259,7 +287,7 @@ console.log('\n— server —');
     ok((await fetch(srv.url + '/tools/content/server.mjs')).headers.get('content-type').startsWith('text/javascript'), '.mjs is text/javascript');
 
     const api = await (await fetch(srv.url + '/admin/api/content')).json();
-    ok(api.files['levels.json'] && api.files['music/playlist.json'] && Object.keys(api.files).some((k) => k.startsWith('board/'))
+    ok(api.files['levels.json'] && api.files['music/approved.json'] && Object.keys(api.files).some((k) => k.startsWith('board/'))
        && typeof api.stamp['levels.json'] === 'number', 'GET content lists nested files with stamps');
 
     const orig = readFileSync(lv, 'utf8'), parsed = JSON.parse(orig);
@@ -591,12 +619,14 @@ const diskBuilt = validateContent(fsSource('content'));
   ok(K.wells.TESTWELL, 'a new lattice record is decoded into Kitchen.wells');
   A.applyBuilt(validateContent(memSource(files2())), G);
 
-  /* a delivery shift, the playlist for its level changes */
+  /* a delivery shift, the songs for its level change: level 1 plays the '70s
+     delivery songs with no from year, so set those and keep the later ones */
+  const setL1 = (f, ids) => { const a = f['music/approved.json']; a['1'].delivery = [...ids, ...a['1'].delivery.filter((id) => id in a.from)]; return f; };
   G.startRun(1); G.beginShift(); frames(30);
   ok(G.state === 'play', 'a delivery shift is running');
   const other = Object.keys(diskBuilt.music).find((id) => diskBuilt.music[id].year >= 1970 && diskBuilt.music[id].year <= 1972 && !diskBuilt.playlist['1'].includes(id));
   ok(!!other, 'there is a 1970-72 song to swap in');
-  const f2 = files2(); f2['music/playlist.json']['1'] = [other];
+  const f2 = setL1(files2(), [other]);
   threw = null;
   try { A.applyBuilt(validateContent(memSource(f2)), G); frames(60); } catch (x) { threw = x; }
   ok(!threw, "swapping level 1's playlist during play, then 60 frames: no throw" + (threw ? ' — ' + threw.stack : ''));
@@ -617,14 +647,14 @@ const diskBuilt = validateContent(fsSource('content'));
     const tick = (secs) => { actx.currentTime += secs; MU._tick(); };
     threw = null;
     try {
-      const f3 = files2(); f3['music/playlist.json']['1'] = ['immigrant-song', 'black-dog', 'walk-on-the-wild-side'];
+      const f3 = setL1(files2(), ['immigrant-song', 'black-dog', 'walk-on-the-wild-side']);
       A.applyBuilt(validateContent(memSource(f3)), G);
       G.startRun(1); G.beginShift(); frames(10);
       ok(G.state === 'play' && MU.playing() && MU.queue.join() === 'immigrant-song,black-dog,walk-on-the-wild-side', 'level 1 plays its 3-song list (' + MU.queue.join() + ')');
       let guard = 0;
       while (MU.idx !== 2 && guard++ < 50) tick(20);
       ok(MU.idx === 2 && MU.now().id === 'walk-on-the-wild-side', 'and walks it into the third song (' + MU.idx + ')');
-      const f1 = files2(); f1['music/playlist.json']['1'] = ['black-dog'];
+      const f1 = setL1(files2(), ['black-dog']);
       A.applyBuilt(validateContent(memSource(f1)), G);
       for (let i = 0; i < 40; i++) { tick(0.5); frames(1); }
       ok(MU.playing() && MU.queue.join() === 'black-dog' && MU.idx === 0 && MU.now().id === 'black-dog', 'shrinking the playing list to one song: the refresher puts the new list on (' + MU.queue.join() + ' ' + MU.idx + ')');
@@ -645,7 +675,7 @@ const diskBuilt = validateContent(fsSource('content'));
       ok(G.playMusic === orig && MU.queue.join() === q0, 'and Stop with nothing listened to changes nothing');
       L.listen('kashmir', G); tick(0.5);
       ok(MU.queue.join() === 'kashmir' && MU.now().id === 'kashmir' && L.listening === 'kashmir', 'Listen plays one song through Music (' + MU.queue.join() + ')');
-      const f2b = files2(); f2b['music/playlist.json']['1'] = ['immigrant-song', 'black-dog'];
+      const f2b = setL1(files2(), ['immigrant-song', 'black-dog']);
       A.applyBuilt(validateContent(memSource(f2b)), G); tick(0.5);
       G.playMusic('title'); tick(0.5);
       ok(MU.queue.join() === 'kashmir' && G.musicKey === 'title', 'while listening, a playlist edit or the game changing its music does not cut in, but the key is kept (' + MU.queue.join() + ' ' + G.musicKey + ')');
@@ -836,7 +866,7 @@ console.log('\n— job, then save —');
     if (status === 200) {
       store.adopt(j.rel, j.json, j.stamp);
       store.set(j.rel, 'title', 'A HAZY SHADE OF WINTER!');
-      store.set('music/playlist.json', 'title', [...store.files['music/playlist.json'].title, 'job-hazy']);
+      store.set('music/approved.json', 'title', [...store.files['music/approved.json'].title, 'job-hazy']);
       const s = await store.save();
       ok(s.ok, 'a ported song, edited and named by the title list, saves: 200, not 409 changed (' + JSON.stringify(s).slice(0, 120) + ')');
       ok(runScript('!!MUSIC["job-hazy"] && MUSIC["job-hazy"].title === "A HAZY SHADE OF WINTER!" && PLAYLIST.title.includes("job-hazy")'), "and the game's MUSIC and PLAYLIST hold it");
@@ -1649,9 +1679,7 @@ console.log('\n— docs —');
   /* the last 1970s level moves forward into the 1980s: year, era, name (and map/menu, which equal era) together */
   const mv = structuredClone(files), LS = mv['levels.json'].levels, k = LS.findIndex((l) => l.era === 2) - 1, l0 = LS[k];
   Object.assign(l0, { year: LS[k + 1].year, era: 2, name: l0.season.toUpperCase() + ' ' + LS[k + 1].year, map: 2, menu: 2 });
-  /* the music rule (songs no more than 2 years before the level) follows the level: take the neighbour's list */
-  const PL = mv['music/playlist.json'], PLL = PL.levels || PL;
-  PLL[String(l0.n)] = PLL[String(LS[k + 1].n)];
+  /* its music follows: as an '80s kitchen level it plays the '80s kitchen songs (approved.json) */
   let mb = null; le = null; try { mb = validateContent(memSource(mv)); } catch (x) { le = x; }
   ok(mb && mb.levels[k].year === l0.year && mb.levels[k].era === 2, 'year, era and name changed together validate (' + (le ? le.path.join('.') + ': ' + le.message : 'ok') + ')');
   /* weather and windy (0.9.3): per level, season-valid, Delivery-only wind */

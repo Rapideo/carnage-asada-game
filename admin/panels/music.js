@@ -28,7 +28,9 @@
    The playlist refresher lives in admin/apply.js. */
 import '../fields.js';
 import { store } from '../store.js';
-import { MUSIC_LOOKBACK, songEligible, levelMonth, MONTHS } from '../../tools/content/validate.mjs';
+import { levelMonth, MONTHS } from '../../tools/content/validate.mjs';
+/* interim (music-library Task 1): the old window, until Task 5 rewrites this panel */
+const MUSIC_LOOKBACK = 2, songEligible = () => ({ ok: true });
 
 const Admin = (globalThis.Admin = globalThis.Admin || {});
 const PL = 'music/playlist.json';

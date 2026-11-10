@@ -9,14 +9,17 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import vm from 'node:vm';
+import { validateContent } from '../content/validate.mjs';
+import { fsSource } from '../content/fs-source.mjs';
 
 let fails = 0;
 const ok = (c, m) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${m}`); if (!c) fails++; };
 
 const dir = join('content', 'music');
 const MUSIC = {};
-for (const f of readdirSync(dir)) if (f.endsWith('.json') && f !== 'playlist.json') MUSIC[f.slice(0, -5)] = JSON.parse(readFileSync(join(dir, f), 'utf8'));
-const PLAYLIST = Object.fromEntries(Object.entries(JSON.parse(readFileSync(join(dir, 'playlist.json'), 'utf8'))).filter(([k]) => !k.startsWith('_')));
+for (const f of readdirSync(dir)) if (f.endsWith('.json') && f !== 'approved.json') MUSIC[f.slice(0, -5)] = JSON.parse(readFileSync(join(dir, f), 'utf8'));
+/* each level's list as the build computes it from approved.json */
+const PLAYLIST = validateContent(fsSource('content')).playlist;
 
 /* stub WebAudio: every node records what it was asked to do */
 const counts = { osc: 0, noise: 0, starts: [], early: 0 };

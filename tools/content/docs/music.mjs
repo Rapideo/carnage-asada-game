@@ -32,10 +32,10 @@
    read(text, music) reads the lists back as song ids, for the round-trip test. */
 import { parseMd, toMd, roman, letter } from './engine.mjs';
 import { noteOf, sameName } from './menu.mjs';
-import { MUSIC_LOOKBACK } from '../validate.mjs';
+import { APPROVED, levelSongs } from '../validate.mjs';
 
 const PREAMBLE = 'The songs each level plays, and the title\'s. Each list plays in order and then loops. '
-  + 'A level may only play songs from its own year or up to ' + MUSIC_LOOKBACK + ' years before it, never after. '
+  + 'A level plays every approved song of its decade and shift whose year has arrived. '
   + 'The game reads `content/music/playlist.json` and the songs in `content/music/`: those are the master copy and this page mirrors them, '
   + 'so edit the lists in Service Mode (Music) or in the JSON.';
 const TITLE = 'Title Screen';
@@ -61,7 +61,7 @@ function listsOf(raw) {
 }
 function songsOf(files) {
   const o = {};
-  for (const [rel, s] of Object.entries(files)) if (/^music\/[^/]+\.json$/.test(rel) && rel !== 'music/playlist.json') o[rel.slice(6, -5)] = s;
+  for (const [rel, s] of Object.entries(files)) if (/^music\/[^/]+\.json$/.test(rel) && rel !== 'music/' + 'approved.json') o[rel.slice(6, -5)] = s;
   return o;
 }
 
@@ -121,7 +121,9 @@ export default {
   file: 'music.md',
   render(files, prevText) {
     const levels = ((files['levels.json'] || {}).levels || []).slice().sort((a, b) => a.n - b.n);
-    const pl = listsOf(files['music/playlist.json']), music = songsOf(files);
+    const ap = files[APPROVED] || {}, music = songsOf(files);
+    const pl = { title: ap.title || [] };
+    levels.forEach((lv, i) => { pl[String(lv.n)] = levelSongs(ap, levels, i); });
     const years = [...new Set(levels.map((l) => l.year))];
 
     const root = parseMd(prevText || '');

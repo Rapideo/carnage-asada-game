@@ -284,8 +284,8 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
      MIDI from the library with tools/music/midi2song.mjs, write the song to
      content/music/<id>.json and its entry to tools/music/songs.json. Like a
      recolour, the song is written when made: it ships with the next build
-     (everything in content/music/ does) but no level plays it until a saved
-     playlist names it. `file` is relative to reference/assets/midi/ and must
+     (everything in content/music/ does) but no level plays it until it is
+     approved (content/music/approved.json). `file` is relative to reference/assets/midi/ and must
      stay inside it. Nothing is overwritten: an id that is already a song file
      or a songs.json entry is 409 exists. The arranger writes to a temp file;
      the song is checked with the rest of the content before anything in the
@@ -298,7 +298,7 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
     const str = (s) => typeof s === 'string' && s.trim() !== '' && s.length <= 80;
     const fileOk = typeof file === 'string' && MIDI_FILE.test(file) && !file.includes('\\') && !file.startsWith('/') && !/^[a-z]:/i.test(file)
       && file.split('/').every((s) => s !== '' && s !== '.' && s !== '..');
-    if (!fileOk || typeof id !== 'string' || !SONG_ID.test(id) || id.length > 48 || id === 'playlist' || !str(title) || !str(artist)
+    if (!fileOk || typeof id !== 'string' || !SONG_ID.test(id) || id.length > 48 || id === 'playlist' || id === 'approved' || !str(title) || !str(artist)
         || !Number.isInteger(year) || year < 1900 || year > 2100 || !(Number.isInteger(month) && month >= 1 && month <= 12))
       return send(res, 400, { error: 'bad request' });
     const lib = resolve(root, ...MIDI_DIR.split('/')), src = resolve(lib, ...file.split('/'));

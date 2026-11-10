@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { formatJSON, formatSongs } from './format.mjs';
 
 const plain = ['winners', 'scores', 'attract', 'levels', 'difficulty', 'menus', 'dialogue', 'release']
-  .map((n) => 'content/' + n + '.json').concat(['content/music/playlist.json']);
+  .map((n) => 'content/' + n + '.json').concat(['content/music/approved.json']);
 
 const rewrite = (f, fmt) => {
   const next = fmt(JSON.parse(readFileSync(f, 'utf8')));
