@@ -141,3 +141,29 @@ export function readMidiMeta(buf, file) {
   if (artist) { const m = /^(.*?)\s*[/,]\s*(19[0-9]{2}|20[0-9]{2})\s*$/.exec(artist.trim()); if (m) { artist = m[1]; if (year === null) year = +m[2]; } }
   return { title: gameText(tidy(title)) || fileTitle, artist: gameText(tidy(artist)), year };
 }
+
+/* only what the file says in labelled text ("Title: X", "Artist: Y", "Year: 1985"):
+   the owner's own tags, which nothing overrides */
+export function readMidiLabels(buf) {
+  let texts = [];
+  try { texts = midiTexts(buf); } catch { texts = []; }
+  let title = null, artist = null, year = null;
+  for (const { text } of texts) {
+    title = title || TITLE_L(text);
+    artist = artist || ARTIST_L(text);
+    if (year === null) year = YEAR_L(text);
+  }
+  return { title: title ? gameText(tidy(title)) : '', artist: artist ? gameText(tidy(artist)) : '', year };
+}
+
+/* What the Convert form starts from, field by field: the file's labelled tags,
+   then the catalog (tools/music/midi-catalog.json: Claude's title, artist and
+   year for each library MIDI), then what the file's other text and name suggest.
+   `guess` is true when a catalog guess is shown and the tags did not settle it. */
+export function bestMeta(buf, file, catalog) {
+  const L = readMidiLabels(buf), c = (catalog && catalog[file]) || null, r = readMidiMeta(buf, file);
+  const title = L.title || (c && c.title) || r.title;
+  const artist = L.artist || (c && c.artist) || r.artist;
+  const year = L.year !== null ? L.year : c && Number.isInteger(c.year) ? c.year : r.year;
+  return { title, artist, year, guess: !!(c && c.guess && !(L.title && L.artist && L.year !== null)) };
+}

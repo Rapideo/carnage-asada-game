@@ -233,6 +233,11 @@ function convertForm(doc, box, file) {
   field('title', 'Title', 'as the game shows it', 'upper case, the way the game draws it');
   field('artist', 'Artist', 'as the game shows it');
   field('year', 'Year', 'four digits, e.g. 1977', 'the original release year: a song never plays before it');
+  if (m && m.guess) {
+    const g = h(doc, 'p', 'adm-warn', 'Claude\'s best guess for this file: it could be another song or a cover, so check the title, artist and year.');
+    g.dataset.port = 'guess';
+    form.appendChild(g);
+  }
   form.appendChild(h(doc, 'p', 'adm-note', 'Converts it for the game\'s chip voices. It goes to Converted for you to listen to; nothing plays in the game until it is approved.'));
   const go = btn(doc, 'Convert', 'convert', 'arrange it with midi2song.mjs on the server');
   go.dataset.midi = file;

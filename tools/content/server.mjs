@@ -9,7 +9,7 @@ import { extname, join, normalize, resolve, sep } from 'node:path';
 import { validateContent, memSource, ContentError, inGame, APPROVED } from './validate.mjs';
 import { formatJSON, formatLike, formatSongs } from './format.mjs';
 import { renderDocsAt, writeTexts, driftAt } from './docs/index.mjs';
-import { readMidiMeta } from '../music/midi-meta.mjs';
+import { bestMeta } from '../music/midi-meta.mjs';
 
 const TYPES = {
   '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
@@ -19,7 +19,7 @@ const BAKED = ['faces/', 'lattice/', 'board/'];
 /* a face's file name and cast key: lower-case, like c70teacher */
 const FACE_NAME = /^[a-z][a-z0-9]{1,23}$/, FACE_MAX_BYTES = 32 * 1024 * 1024;
 /* the MIDI library, and a ported song's id: its file name in content/music/ */
-const MIDI_DIR = 'reference/assets/midi', SONGS = 'tools/music/songs.json';
+const MIDI_DIR = 'reference/assets/midi', SONGS = 'tools/music/songs.json', CATALOG = 'tools/music/midi-catalog.json';
 const SONG_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/, MIDI_FILE = /\.midi?$/i;
 /* a song id from its title: "A HAZY SHADE OF WINTER" -> "a-hazy-shade-of-winter" (the panel's slug) */
 const songSlug = (t) => String(t).toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 44).replace(/-+$/, '');
@@ -281,13 +281,19 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
     out.sort();
     const { json } = await readSongs();
     const lib = join(root, ...MIDI_DIR.split('/'));
+    /* Claude's catalog of the library (title, artist, year per file); none is fine */
+    let catalog = {};
+    try { catalog = JSON.parse(await readFile(join(root, ...CATALOG.split('/')), 'utf8')).songs || {}; } catch { catalog = {}; }
+    const songFile = async (id) => { try { await stat(join(content, 'music', id + '.json')); return true; } catch { return false; } };
     /* an unconverted MIDI also says what it can about itself, { title, artist, year },
        which the Convert form starts from (tools/music/midi-meta.mjs) */
     return Promise.all(out.map(async (file) => {
       const ids = json.songs.filter((s) => s && s.file === file).map((s) => s.id);
-      if (ids.length) return { file, ids };
+      /* a MIDI with a song made from it needs no form; one songs.json names but whose
+         song file is gone does, so it is judged by the files */
+      for (const id of ids) if (await songFile(id)) return { file, ids };
       let meta;
-      try { meta = readMidiMeta(await readFile(join(lib, ...file.split('/'))), file); } catch { meta = readMidiMeta(null, file); }
+      try { meta = bestMeta(await readFile(join(lib, ...file.split('/'))), file, catalog); } catch { meta = bestMeta(null, file, catalog); }
       return { file, ids, meta };
     }));
   }

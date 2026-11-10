@@ -800,8 +800,10 @@ a speaker picker (the bubble name, each of the nine cast, each customer face, al
   the record. `levelMonth` stays: the kitchen calendar reads it.
 - **The Music tab** shows three batches, switched by counters: Not converted (MIDIs no song is
   made from; Convert… is the port route, asking only title, artist and year (owner, 2026-11-09),
-  filled in from the MIDI's own text by `tools/music/midi-meta.mjs`: labelled `Title:` / `Artist:` /
-  `Year:` text first, then an "Artist - Title" track name or a "made famous by" line that agrees with
+  filled in by `tools/music/midi-meta.mjs` `bestMeta`: labelled `Title:` / `Artist:` / `Year:` text in
+  the file first, then **`tools/music/midi-catalog.json`** (Claude's title, artist and year for every
+  library MIDI, `guess: true` where a name could be another song or a cover, and the form says so;
+  add a line for a new MIDI), then an "Artist - Title" track name or a "made famous by" line that agrees with
   the file name, then the file name; the server names the song from the title, `-2` if taken, and
   a song's `month` is optional), Converted (not in the game: Listen, Approve…, Delete)
   and In game (per decade, a strip of songs per level year, shift and from editable in place,

@@ -25,9 +25,25 @@ function loadAllContentJSON(root) {
 }
 
 const disk = validateContent(fsSource('content'));
+/* The 42 songs of 0.9.11. The owner adds songs in Service Mode, and the tests that
+   count songs or list positions run on this frozen library instead, so the owner's
+   additions never trip them (2026-11-09). Rules are still checked on the real content. */
+const BASE_SONGS = ["africa","alec-eiffel","big-time","bitter-sweet-symphony","black-dog","bohemian-opera","bohemian-rock","cannonball","common-people","do-it-again","dont-bring-me-down","dont-you-want-me","dyer-maker","everything-about-you","here-comes-your-man","house-of-fun","i-think-im-paranoid","if-you-leave","immigrant-song","just-cant-get-enough","just-what-i-needed","kashmir","lovely-day","lump","mr-blue-sky","never-gonna-give-you-up","one-step-beyond","peaches","peg","red-red-wine","reelin-in-the-years","regulate","rock-the-casbah","song-2","stand-and-deliver","steal-my-sunshine","straight-up","sweet-child-o-mine","take-on-me","two-princes","walk-on-the-wild-side","where-is-my-mind"];
+const baseFiles = (src) => {
+  const f = structuredClone(src);
+  for (const r of Object.keys(f)) if (/^music\/[^/]+\.json$/.test(r) && r !== 'music/approved.json' && !BASE_SONGS.includes(r.slice(6, -5))) delete f[r];
+  const a = f['music/approved.json'];
+  if (a) {
+    for (const k of ['1', '2', '3']) if (a[k]) for (const s of ['delivery', 'kitchen']) a[k][s] = (a[k][s] || []).filter((id) => BASE_SONGS.includes(id));
+    a.title = (a.title || []).filter((id) => BASE_SONGS.includes(id));
+    for (const id of Object.keys(a.from || {})) if (!BASE_SONGS.includes(id)) delete a.from[id];
+  }
+  return f;
+};
 ok(disk.levels.length === 20, 'validates the shipped content from disk');
 
 const files = loadAllContentJSON('content');
+globalThis.__allFiles = files;
 ok(JSON.stringify(validateContent(memSource(files))) === JSON.stringify(disk), 'memory and disk agree');
 
 const bad = structuredClone(files); bad['difficulty.json'].easy.fines.ticket = -1;
@@ -160,11 +176,12 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
   ok(monthErr(1) === null && monthErr(12) === null, 'months 1 and 12 are accepted');
   /* the month is optional since 2026-11-09 (owner: "remove month because that's ambiguous"); one given must be 1-12 */
   ok(monthErr(undefined) === null, 'a song with no month validates');
-  ok(Object.values(disk.music).every((s) => Number.isInteger(s.month) && s.month >= 1 && s.month <= 12) && Object.keys(disk.music).length === 42,
-     'every one of the 42 shipped songs has a release month');
+  ok(BASE_SONGS.every((id) => disk.music[id] && Number.isInteger(disk.music[id].month)) && Object.values(disk.music).every((s) => s.month === undefined || (Number.isInteger(s.month) && s.month >= 1 && s.month <= 12)),
+     'the 42 original songs keep their release month, and any song with a month has one of 1-12');
   const sj = JSON.parse(readFileSync('tools/music/songs.json', 'utf8')).songs;
-  ok(sj.length === 42 && sj.every((s) => disk.music[s.id] && s.month === disk.music[s.id].month && typeof s._month === 'string' && s._month.length > 10),
-     'songs.json carries the same month for every song, and a _month note naming its source');
+  ok(BASE_SONGS.every((id) => { const s = sj.find((x) => x.id === id); return s && s.month === disk.music[id].month && typeof s._month === 'string' && s._month.length > 10; })
+     && sj.every((s) => !disk.music[s.id] || s.month === disk.music[s.id].month),
+     'songs.json carries the same month as each song, and a _month note naming its source for the original 42');
 }
 
 /* the season rule's month (spec §9): still derived, for the kitchen's calendar */
@@ -227,7 +244,7 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
   ok(typeof V.songStart === 'function' && V.songStart(AP, LV, 'dont-bring-me-down') === 1981 && V.songDecade(AP, 'dont-bring-me-down') === '2', 'Don\'t Bring Me Down (1979) is \'80s from the start');
   ok(typeof V.inGame === 'function' && V.inGame(AP, 'one-step-beyond') && V.inGame(AP, 'africa') && !V.inGame(AP, 'no-such-song'), 'inGame: title-only and decade songs are in, others out');
   const ids = new Set([...(AP.title || []), ...['1', '2', '3'].flatMap((d) => V.SHIFTS ? V.SHIFTS.flatMap((s) => (AP[d] || {})[s] || []) : [])]);
-  ok(ids.size === 42, 'day one: all 42 songs are in game (' + ids.size + ')');
+  ok(ids.size >= 1 && [...ids].every((id) => disk.music[id]), 'every song in game has its song file (' + ids.size + ' in game)');
 }
 
 /* traffic per difficulty (0.9.13): whole cars, 0 to 40 */
@@ -294,6 +311,37 @@ console.log('\n— midi meta —');
     ok(m.title === 'STAND AND DELIVER' && m.artist === 'ADAM & THE ANTS', 'the library\'s Stand and Deliver reads its title and artist (' + JSON.stringify(m) + ')');
     m = real('90s/Cannonball.mid');
     ok(m.title === 'CANNONBALL' && m.artist === 'THE BREEDERS', 'and Cannonball reads its own (' + JSON.stringify(m) + ')');
+    /* the catalog (2026-11-09): Claude's title, artist and year for each library MIDI */
+    ok(typeof MM.bestMeta === 'function', 'midi-meta.mjs exports bestMeta(buf, file, catalog)');
+    if (typeof MM.bestMeta === 'function') {
+      const cat = { '80s/Song.mid': { title: 'CATALOG TITLE', artist: 'CATALOG BAND', year: 1984, guess: true } };
+      let b = MM.bestMeta(mid([[[3, 'Someone - Song']]]), '80s/Song.mid', cat);
+      ok(b.title === 'CATALOG TITLE' && b.artist === 'CATALOG BAND' && b.year === 1984 && b.guess === true,
+         'the catalog beats what the file\'s unlabelled text suggests, and says when it is a guess (' + JSON.stringify(b) + ')');
+      b = MM.bestMeta(mid([[[1, 'Title: My Tag'], [1, 'Artist: Tagged'], [1, 'Year: 1990']]]), '80s/Song.mid', cat);
+      ok(b.title === 'MY TAG' && b.artist === 'TAGGED' && b.year === 1990 && !b.guess, 'labelled tags in the file beat the catalog (' + JSON.stringify(b) + ')');
+      b = MM.bestMeta(mid([[[1, 'Year: 1990']]]), '80s/Song.mid', cat);
+      ok(b.title === 'CATALOG TITLE' && b.year === 1990, 'field by field: a tagged year with the catalog\'s title (' + JSON.stringify(b) + ')');
+      b = MM.bestMeta(mid([[[3, 'Adam & The Ants - Stand And Deliver']]]), '80s/StandAndDeliver.mid', {});
+      ok(b.title === 'STAND AND DELIVER' && b.artist === 'ADAM & THE ANTS' && !b.guess, 'with no catalog entry, what the file says');
+      const C = JSON.parse(readFileSync('tools/music/midi-catalog.json', 'utf8')).songs;
+      const lib = [];
+      const walkM = (d, r) => { for (const n of readdirSync(d)) { const p = join(d, n), q = r ? r + '/' + n : n; if (statSync(p).isDirectory()) walkM(p, q); else if (/\.midi?$/i.test(n)) lib.push(q); } };
+      walkM('reference/assets/midi', '');
+      const { FONT_CHARS } = await import('../tools/content/validate.mjs');
+      const sj = JSON.parse(readFileSync('tools/music/songs.json', 'utf8')).songs;
+      const { existsSync: ex2 } = await import('node:fs');
+      const hasSong = (f) => sj.some((s) => s.file === f && ex2('content/music/' + s.id + '.json'));
+      const missing = lib.filter((f) => !hasSong(f) && !C[f]);
+      ok(missing.length === 0, 'the catalog covers every library MIDI that has no song yet (' + (missing.join(' ') || 'all') + ')');
+      const strays = Object.keys(C).filter((f) => !lib.includes(f));
+      ok(strays.length === 0, 'and names no file that is not in the library (' + strays.join(' ') + ')');
+      const bad = Object.entries(C).filter(([, e]) => !(typeof e.title === 'string' && e.title && FONT_CHARS.test(e.title) && e.title === e.title.toUpperCase()
+        && typeof e.artist === 'string' && FONT_CHARS.test(e.artist) && e.artist === e.artist.toUpperCase()
+        && (e.year === null || (Number.isInteger(e.year) && e.year >= 1940 && e.year <= 2010))));
+      ok(bad.length === 0, 'every entry is drawable capitals with a whole year or null (' + bad.map(([f]) => f).join(' ') + ')');
+      ok(C['80s/HazyShadeOfWinter.mid'] && C['80s/HazyShadeOfWinter.mid'].artist === 'THE BANGLES' && C['80s/HazyShadeOfWinter.mid'].year === 1987, 'Hazy Shade of Winter is the Bangles, 1987');
+    }
   }
 }
 
@@ -337,7 +385,7 @@ console.log('\n— server —');
   const tmp = mkdtempSync(join(tmpdir(), 'admin-'));
   /* a few MIDIs, not the library: one ported, one that ports, one that fails (99Problems has no notes to arrange), one at the root */
   const MIDIS = ['70s/Kashmir.mid', '80s/HazyShadeOfWinter.mid', '90s/99Problems.mid', 'OnTheOutside.mid'];
-  for (const f of ['build.mjs', 'shell.html', 'src', 'content', 'tools/content', 'tools/render/recolor-lattice.mjs', 'tools/music/midi2song.mjs', 'tools/music/songs.json',
+  for (const f of ['build.mjs', 'shell.html', 'src', 'content', 'tools/content', 'tools/render/recolor-lattice.mjs', 'tools/music/midi2song.mjs', 'tools/music/songs.json', 'tools/music/midi-catalog.json',
     ...MIDIS.map((m) => 'reference/assets/midi/' + m)]) cpSync(f, join(tmp, f), { recursive: true });
   (await import('node:child_process')).execFileSync('node', ['build.mjs'], { cwd: tmp, stdio: 'pipe' });
   const { startAdmin } = await import('../tools/content/server.mjs');
@@ -456,8 +504,8 @@ console.log('\n— server —');
          'GET midis lists every .mid under reference/assets/midi, sorted, each with its song ids (' + JSON.stringify(l0) + ')');
       const km = l0 && l0.find((m) => m.file === '70s/Kashmir.mid'), hz = l0 && l0.find((m) => m.file === '80s/HazyShadeOfWinter.mid');
       ok(km && km.ids.join() === 'kashmir' && hz && hz.ids.length === 0, 'a ported MIDI names its song; an unported one names none');
-      ok(hz && hz.meta && typeof hz.meta.title === 'string' && /HAZY SHADE OF WINTER/.test(hz.meta.title) && 'artist' in hz.meta && 'year' in hz.meta && km && !km.meta,
-         'an unconverted MIDI carries what it says about itself, { title, artist, year }, for the Convert form; a converted one does not (' + JSON.stringify(hz && hz.meta) + ')');
+      ok(hz && hz.meta && hz.meta.title === 'A HAZY SHADE OF WINTER' && hz.meta.artist === 'THE BANGLES' && hz.meta.year === 1987 && hz.meta.guess === false && km && !km.meta,
+         'an unconverted MIDI carries its best { title, artist, year, guess } (the catalog, here) for the Convert form; one with a song does not (' + JSON.stringify(hz && hz.meta) + ')');
       const SJ = join(tmp, 'tools/music/songs.json'), sjText = readFileSync(SJ, 'utf8');
       const kj = join(tmp, 'content/music/kashmir.json'), kText = readFileSync(kj, 'utf8');
       const hazy = { file: '80s/HazyShadeOfWinter.mid', id: 'hazy-shade-of-winter', title: 'A HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987, month: 11 };
@@ -1688,6 +1736,7 @@ console.log('\n— docs —');
     ok(MU && MU.file === 'music.md' && IX.DOCS.includes(MU), 'music.md is a registered doc');
     if (MU) {
       const AP = 'music/approved.json';
+      const files = baseFiles(globalThis.__allFiles);           // the frozen 0.9.11 library: positions are counted
       const ufx = (edit) => { const f = structuredClone(files); edit(f[AP], f); return f; };
       const bareH = (hd) => hd.replace(/^[A-Z0-9]+\. /, '');
       const at = (text, ...names) => {
@@ -2361,13 +2410,14 @@ console.log('\n— music panel —');
   const realApply = globalThis.Admin.applyBuilt, realFetch = globalThis.fetch, realMusic = globalThis.Admin.music;
   const applied = [];
   globalThis.Admin.applyBuilt = (b, g, o) => { applied.push(o || {}); return []; };
+  const files = baseFiles(globalThis.__allFiles);              // the frozen 0.9.11 library: the counters are counted
   store.files = structuredClone(files); store.dirty.clear(); store.error = null;
   let loaded = true, MP = null;
   try { MP = await import('../admin/panels/music.js'); } catch (x) { loaded = false; console.error('  (' + x.message + ')'); }
   const tab = FL.tabs.get('music');
   ok(loaded && tab && tab.title === 'Music', 'the Music panel registers its tab');
   ok(/import '\.\/panels\/music\.js'/.test(readFileSync('admin/overlay.js', 'utf8')), 'the overlay imports the Music panel');
-  const LIB = [{ file: '70s/BohemianRhapsody.mid', ids: ['bohemian-opera', 'bohemian-rock'] }, { file: '70s/Kashmir.mid', ids: ['kashmir'] }, { file: '80s/HazyShadeOfWinter.mid', ids: [], meta: { title: 'HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987 } }];
+  const LIB = [{ file: '70s/BohemianRhapsody.mid', ids: ['bohemian-opera', 'bohemian-rock'] }, { file: '70s/Kashmir.mid', ids: ['kashmir'] }, { file: '80s/HazyShadeOfWinter.mid', ids: [], meta: { title: 'HAZY SHADE OF WINTER', artist: 'THE BANGLES', year: 1987, guess: true } }];
   const B = MP && typeof MP.batches === 'function' ? MP.batches(files, LIB) : null;
   ok(B && B.raw.join() === '80s/HazyShadeOfWinter.mid' && B.conv.length === 0 && B.game.eras['1'].kitchen.includes('kashmir') && B.game.title.join() === 'one-step-beyond,reelin-in-the-years',
      'batches: the unconverted MIDI, no converted songs, and the decades and title in game (' + JSON.stringify(B && { raw: B.raw, conv: B.conv }) + ')');
@@ -2409,6 +2459,7 @@ console.log('\n— music panel —');
       ok(['title', 'artist', 'year'].every((k) => pf(k)) && !pf('month') && !pf('id') && act('convert'), 'Convert opens a form of title, artist and year: no month, no id');
       ok(pf('title').value === 'HAZY SHADE OF WINTER' && pf('artist').value === 'THE BANGLES' && pf('year').value === '1987',
          'filled in from what the MIDI says about itself (' + [pf('title').value, pf('artist').value, pf('year').value].join(' / ') + ')');
+      ok(find((n) => n.dataset.port === 'guess') && /guess/i.test(find((n) => n.dataset.port === 'guess').textContent), 'a catalog guess says so, to be checked');
       const fill = (o) => { for (const [k, v] of Object.entries(o)) { pf(k).value = v; pf(k).fire('input'); } };
       fill({ title: 'a hazy shade of winter', year: '19x7' });
       act('convert').fire('click'); await tick();
@@ -2431,7 +2482,7 @@ console.log('\n— music panel —');
       LIB.push({ file: '90s/Lump.mid', ids: [] });
       act('refresh-lib').fire('click'); await tick();
       act('convert-open', { midi: '90s/Lump.mid' }).fire('click');
-      ok(pf('title').value === 'LUMP' && pf('artist').value === '' && pf('year').value === '', 'a MIDI the server sent no metadata for starts from its file name');
+      ok(pf('title').value === 'LUMP' && pf('artist').value === '' && pf('year').value === '' && !find((n) => n.dataset.port === 'guess'), 'a MIDI the server sent no metadata for starts from its file name, with no guess note');
       fill({ artist: 'x', year: '1995' });
       act('convert').fire('click'); await tick();
       ok(/busy/.test(pf('msg').textContent), 'a busy server is reported (' + pf('msg').textContent + ')');
