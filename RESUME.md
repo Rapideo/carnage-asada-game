@@ -8,7 +8,9 @@ kitchen surroundings, and version 0.9.0. Updated 2026-11-07 (evening) for Servic
 This is the starting point for a fresh session. It is a snapshot: **`ROADMAP.md` is the
 living plan**, and if the two disagree, the roadmap wins.
 
-**Start here (2026-11-09, night): the live game is version 0.9.8, and the owner says it is "playing wonderfully" on the Pixel.** 0.9.6 eased Hard and toughened Supreme; 0.9.7 made the touch stick aim while TOSS is held, and the owner had it reverted in 0.9.8, which instead gives TOSS four arrow pips and lifts it to 3 rows under ORDERS. The right end of the streak line now sits partly behind TOSS: **the owner has accepted that overlap for now**, so do not "fix" it unasked. A phone checklist is open (claude.ai artifact 7rKhSJctnKCc7oZmLtJvUJ, collection `checks`); read it when the owner says it is done. Before that came 0.9.5, on `master`, tagged
+**Start here (2026-11-09, late): version 0.9.11 is cut on `master` (tagged locally, not deployed or pushed until the owner says): the music library.** `content/music/approved.json` replaces `playlist.json`; songs are placed by decade, shift and "from" year like faces, and a level shuffles every song whose year has arrived. Service Mode's Music tab shows Not converted / Converted / In game, with Delete (`/admin/api/unport`). The owner has not tried the new tab yet. 0.9.9 added `?target=N`, 0.9.10 quieted the coworker.
+
+**Before that (2026-11-09, night): the live game was version 0.9.8, and the owner says it is "playing wonderfully" on the Pixel.** 0.9.6 eased Hard and toughened Supreme; 0.9.7 made the touch stick aim while TOSS is held, and the owner had it reverted in 0.9.8, which instead gives TOSS four arrow pips and lifts it to 3 rows under ORDERS. The right end of the streak line now sits partly behind TOSS: **the owner has accepted that overlap for now**, so do not "fix" it unasked. A phone checklist is open (claude.ai artifact 7rKhSJctnKCc7oZmLtJvUJ, collection `checks`); read it when the owner says it is done. Before that came 0.9.5, on `master`, tagged
 `v0.9.5`, pushed and deployed to Netlify (https://carnage-asada.netlify.app).** The owner's full
 playtest of 0.9.3 passed 30 of 33 checks (a checklist page, claude.ai artifact
 LtGvNjXd6zubSeEpFQVRBF, its notes in the page's `checks` collection), and everything it found
@@ -310,6 +312,8 @@ were copied in from the archive, so they are present here.
 - **Seasons:** winter snow on the ground, roofs and in the air, and looser grip.
 - **Music:** 42 MIDI arrangements, two per level plus the title (`src/22_music.js`,
   `tools/music/`). A song is never newer than its level, and at most 2 years older.
+  *(0.9.11: songs are now approved by decade, shift and "from" year, and a level shuffles every
+  song whose year has arrived; see `CLAUDE.md`.)*
 - **Controls:** Modes A, B and C on a mode-select screen (`src/25_pad.js`).
 - **Attract:** title, winners, board, then a random-level demo (delivery or kitchen).
 
@@ -341,7 +345,8 @@ baked, are set by the owner in the Faces tab.
 2. **The music by ear.** The arrangements were chosen by structural heuristics.
    - Run `node tools/music/midi2song.mjs --batch tools/music/songs.json --preview` to
      regenerate the WAV previews in `tools/music/preview/`. They are git-ignored.
-   - Swap songs in `tools/music/songs.json` and `content/music/playlist.json`.
+   - Curate songs in Service Mode's Music tab (convert, listen, approve, place); it writes
+     `tools/music/songs.json` and `content/music/approved.json`.
 3. **Mode B on a real stick, and Mode C on a real phone.** A gamepad press is not a gesture
    for unlocking audio, so a stick-only cabinet needs Chrome launched with
    `--autoplay-policy=no-user-gesture-required`.

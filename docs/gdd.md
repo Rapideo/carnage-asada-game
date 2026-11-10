@@ -362,20 +362,22 @@ As built (owner's ruling, 2026-10-25: arrange the real MIDIs):
   `tools/music/songs.json`.
 - **Playback:** `src/22_music.js` plays the songs through the game's own chip voices
   (square, triangle, pulse, noise). M and N still toggle sound and music.
-- **The playlist:** `content/music/playlist.json` gives each level **two songs**, played in
-  order and looped, and gives the title its own pair.
+- **Songs are approved like faces (owner, 2026-11-09; 0.9.11).** `content/music/approved.json`
+  places each song in game in **a decade**, **a shift** (Delivery, Kitchen or both) and **a
+  "from" year**, one of its decade's level years ("from the start" = the first). "Songs last the
+  entire decade but they're just not released or just don't appear until maybe a later year."
+  - A level plays **every** approved song of its decade and shift whose year has arrived,
+    **shuffled fresh each play**, and loops them. So a decade's music grows level by level.
   - Delivery songs are upbeat.
   - Kitchen songs are mellow or solo-danceable.
-- **The year rule is a build check, not a note.** A level's song may come from the level's
-  year or up to 2 years before it, never after. `build.mjs` checks each song's release
-  year.
-- **The season rule is advice, and is built as such (owner, 2026-11-07).** Every song records
-  its release month. A level's month follows its season: July for a summer level; for a winter
-  level, January if a summer level of the same year comes later, otherwise December. A
-  same-year song released after its level's month is named as a **warning** by the build and
-  in Service Mode's Music tab and is never refused. Level 3 keeps both Bohemian Rhapsody
-  songs and Level 16 keeps Cannonball by owner ruling.
-- **The song list is in `music.md`** (and in `playlist.json`).
+  - The title screen keeps its own hand-ordered list, which has no year.
+- **The release rule is a build check, not a note.** A song never plays before its release
+  year: `build.mjs` refuses a "from" (or a decade start) earlier than it, and refuses a level
+  left with no song. The two-year window and the release-month warning (2026-11-07) are gone;
+  every song still records its release month, for the record.
+- **The songs are curated in Service Mode's Music tab**, in three batches: Not converted,
+  Converted (listen, approve or delete) and In game.
+- **The song list is in `music.md`** (and in `approved.json`).
 - **Because no agent can listen,** the arrangements were chosen by structural heuristics.
   `tools/music/preview/*.wav` holds renders to check by ear.
 
@@ -448,7 +450,8 @@ places it (§II.H).
 To minimize anacronisms, music will be specific to the Year defined in the Level. While songs don't need to come from the exact year of play, they should be current or prior by no more than 1-2 years to add to the time-realism of the game. 
 
 Two songs per level: a delivery pair and a kitchen pair for each year.
-Carried into: `content/music/playlist.json`, `content/music/*.json`
+[Superseded 2026-11-09 (owner): songs are approved by decade, shift and "from" year, and a level shuffles every song whose year has arrived; see the music section above.]
+Carried into: `content/music/approved.json`, `content/music/*.json`
 
 - 1972
 

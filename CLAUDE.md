@@ -158,7 +158,11 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
   **Built and shipped as 0.9.1.** The spec opens with the owner's 2026-11-07 rulings (the name,
   F2, the version), which override its text; the plan's line numbers are stale. It carries two
   rulings that have taken effect: the JSON is the master copy and the `.md` docs are its mirror,
-  and songs carry release months with an advisory season rule. See "Service Mode" under Architecture.
+  and songs carry release months (the advisory season rule it describes was retired in 0.9.11, see
+  below). See "Service Mode" under Architecture.
+- `docs/superpowers/specs/2026-11-09-music-library-design.md` and
+  `docs/superpowers/plans/2026-11-09-music-library.md` describe **the music library** (0.9.11): the
+  Music tab in three batches, and songs approved by decade, shift and "from" year like faces.
 - `docs/kitchen-minigame-prompt.md` and `docs/kitchen-minigame-prompt1.1.md` — the brief for the
   kitchen. **Not a mini-game, despite the filenames:** as of 2026-08-23 it is the *other half of the
   play*, alternating with delivery driving, not a replacement for the 1.0s restock. **1.1 is the
@@ -223,7 +227,7 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 | `05_content` | **generated** — `CONTENT`, `RELEASE`, `ATTRACT`, `SCORES`, `MAPS`/`HAYS`, `LEVELS`, `DIFFICULTY`, `MENUS`, `DIALOGUE`, `FACES`, `LATTICE`, `BOARD`/`BOARD_FINISH`, `MUSIC`, `PLAYLIST`, all inlined from `content/` by `build.mjs` |
 | `10_font` | hand-authored 5×7 glyph table; `text()`, `textOut()`, `money()`, `clockStr()` |
 | `20_audio` | `Audio5`: WebAudio SFX (both shifts), engine voice, siren, and the fallback 4-bar loop |
-| `22_music` | `Music` — plays the arranged songs in `MUSIC` through `Audio5.musBus`; `playList()` per level from `PLAYLIST` |
+| `22_music` | `Music` — plays the arranged songs in `MUSIC` through `Audio5.musBus`; `playList()` per level from `PLAYLIST` (shuffled by `G.musicOrder`) |
 | `25_pad` | `Pad` — control Modes B (Gamepad API) and C (touch overlay; landscape ghost controls in the margins, `Pad.layout`). Injects into `Input` the same codes a keyboard would; `Pad.aiming/aimX/aimY/throwNow` for hold-to-aim |
 | `30_art` | `Art.build()` — bakes every sprite/tile once at boot; `rotFrames`/`drawRot`; `shade()`, `disc()`, `keyline()`; `LOGO` display face + `logoText()`/`mkLogoText()` |
 | `35_faces` | `Faces` — decodes the baked likenesses in `FACES` at boot; draws them with blink/hood variation |
@@ -769,15 +773,28 @@ well as the pools; the Difficulty tab has the kitchen hint rows (`hint`, `hintNe
   (`reference/assets/casting-picks.json`). **Their detected eyes were wrong on most and were
   cleared**, then set by hand in 0.9.3 (all but the 14 behind opaque sunglasses); the Faces tab is still where to
   change one.
-- **Release months are advice.** Every `content/music/*.json` has a `month`. A level plays songs
-  from its own year or up to 2 years before (refused otherwise, the title list excepted); a
-  same-year song released after the level's month is a **warning** in the build and the Music tab,
-  never an error. A summer level's month is July; a winter level's is January when a summer level
-  of the same year follows it, otherwise December. Level 3 (both Bohemian Rhapsody songs) and
-  Level 16 (Cannonball) are kept by owner ruling.
-- **`test/admin.mjs`** is the suite. `test/fixtures/` holds the hand-edited `menu.md` and `music.md`
-  from before the 0.9.1 regeneration, because the migration tests need a doc that still differs
-  from its render.
+- **Songs are placed like faces (owner, 2026-11-09; 0.9.11).** `content/music/approved.json`
+  (shaped like `casts.json`) is what is in the game: `title`, the title screen's hand-ordered
+  list; `"1"` `"2"` `"3"`, each decade's `delivery` and `kitchen` lists (a song on both shifts
+  is in both); and `from`, the year a song first plays (none = its decade's first level). A
+  level plays **every** song of its decade and shift whose year has arrived (`levelSongs` in
+  `validate.mjs`), and `build.mjs` still emits `PLAYLIST` with keys `title`, `1`..`20`.
+  `G.musicOrder` shuffles a level's list once per key and set of songs, so the audio unlock, Stop
+  after Listen and Service Mode's refresher never restart the music; the title plays in order.
+  The build refuses a song whose start is before its release year, a song in two decades, a
+  `from` that is not a level year of its decade, and a level left with no song. The two-year
+  window and the release-month warning are gone; every song still records its `month`, for
+  the record. `levelMonth` stays: the kitchen calendar reads it.
+- **The Music tab** shows three batches, switched by counters: Not converted (MIDIs no song is
+  made from; Convert… is the port route), Converted (not in the game: Listen, Approve…, Delete)
+  and In game (per decade, a strip of songs per level year, shift and from editable in place,
+  Take out; then the title list). **Delete** is `POST /admin/api/unport`: it removes the song,
+  its `tools/music/songs.json` entry and its preview `.wav`, and refuses (409 in game) a song
+  the approved file **on disk** still names, so a take-out has to be saved first.
+  `store.forget(rel)` drops a deleted file from the working copy.
+- **`test/admin.mjs`** is the suite. `test/fixtures/` holds the hand-edited `menu.md` from
+  before the 0.9.1 regeneration, because the migration tests need a doc that still differs from
+  its render (the `music.md` fixture went with `playlist.json` in 0.9.11).
 
 ### The level card
 

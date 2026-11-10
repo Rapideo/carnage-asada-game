@@ -29,10 +29,10 @@ owner's open judgement calls and operator settings. 1.0.0 is the owner's call.
       the moments heard most, so the shared lines dominate. Fix: personal `delivered`,
       `served` and `arrive` lines per face. The owner chooses: Claude drafts them for approval
       in the Dialogue tab, or the owner writes them.
-- [ ] **Service Mode's Music tab in three batches** (Not converted / Converted / In game), songs
-      approved by decade and a "from" year like faces, delivery and kitchen pools kept separate,
-      shuffled per play. Mockup approved 2026-11-09; design to be written up in
-      `docs/superpowers/specs/`.
+- [x] **Service Mode's Music tab in three batches** (Not converted / Converted / In game), songs
+      approved by decade, shift and a "from" year like faces, shuffled per play. **Built in 0.9.11**
+      (`docs/superpowers/specs/2026-11-09-music-library-design.md`, plan beside it). Not yet
+      tried by the owner in Service Mode; the panel is covered by `test/admin.mjs` only.
 
 ## LATER: two release builds (owner, 2026-11-09)
 
@@ -71,7 +71,8 @@ Things this build already knows that will matter then:
   - **Release months:** summer is July; winter is January when it comes before that year's
     summer level and December when it comes after. A same-year song released after its
     level's month is a **warning, never a refusal** (owner, 2026-11-07). Level 3 keeps both
-    Bohemian Rhapsody songs and Level 16 keeps Cannonball.
+    Bohemian Rhapsody songs and Level 16 keeps Cannonball. *Retired in 0.9.11: songs are
+    placed by decade, shift and "from" year, and the month is recorded only.*
 - [x] **Era faces blink again** (E1): eyes hand-set on the 15 decade faces (the 1990s club
       customer wears sunglasses and has none); lid colours fixed on 6.
 - [x] **E8, music clearance: CLOSED** (owner, 2026-11-07). The owner ruled it is not a concern

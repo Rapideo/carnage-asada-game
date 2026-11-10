@@ -8,6 +8,22 @@ Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch li
 counts on: 0.9.10, 0.9.11 and so on (owner, 2026-11-09).
 **1.0.0** is when the owner calls it released.
 
+## 0.9.11 (2026-11-09): the music library
+
+- **Songs are placed like faces.** Each song in the game has a decade, a shift (Delivery,
+  Kitchen or both) and a "from" year, and lasts the rest of its decade once its year arrives.
+  A level now plays **every** song of its decade and shift whose year has come, **shuffled
+  fresh each play**: Level 6 shuffles all six '70s kitchen songs where it played two. The title
+  screen keeps its own list, in order. The same 42 songs are in the game.
+- **A song never plays before its release year**, and the build refuses a level left with no
+  song. The old "no more than two years older" window and the release-month warning are gone.
+- **Service Mode's Music tab, in three batches:** Not converted (every MIDI in the folder no
+  song is made from, with Convert…), Converted (Listen, Approve… and Delete) and In game (per
+  decade, how many songs each level year shuffles, each song's shift and year editable in place,
+  and Take out). Delete refuses a song the saved file still has in the game.
+- `content/music/approved.json` replaces `content/music/playlist.json`, and `music.md` is
+  listed by decade and shift.
+
 ## 0.9.10 (2026-11-09): a quieter coworker
 
 From the owner's phone playtest (all 23 checks passed):
