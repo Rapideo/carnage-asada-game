@@ -348,8 +348,10 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
      its tools/music/songs.json entry and its preview tools/music/preview/<id>.wav,
      so its MIDI is "not converted" again. What is in the game is read from
      content/music/approved.json ON DISK, so a song taken out in the panel but
-     not yet saved is still refused (409 in game). Never touches another file.
-     -> 200 { rel } | 400 | 404 no such song | 409 in game | 409 busy */
+     not yet saved is still refused (409 in game). It fails closed: a missing
+     approved file or saved content that does not validate refuses too. Never
+     touches another file.
+     -> 200 { rel } | 400 | 404 no such song | 409 in game | 409 no approved file | 409 invalid | 409 busy */
   async function unportSong(req, res) {
     let b;
     try { b = JSON.parse(await readBody(req)); } catch { return send(res, 400, { error: 'bad request' }); }
@@ -364,9 +366,17 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
   async function unportLocked(id) {
     const rel = 'music/' + id + '.json', dest = join(content, 'music', id + '.json');
     try { await stat(dest); } catch { return [404, { error: 'no such song', rel }]; }
-    let approved = null;
-    try { approved = JSON.parse(await readFile(join(content, ...APPROVED.split('/')), 'utf8')); } catch (e) { if (e.code !== 'ENOENT') throw e; }
-    if (inGame(approved, id)) return [409, { error: 'in game', rel }];
+    /* fail closed: what is in game is read from the saved content as the build
+       would read it. No approved file, or content that does not validate, and
+       nothing is deleted (a file that does not parse throws: 500, nothing deleted). */
+    const all = [], cand = {};
+    await walkJSON(content, '', all);
+    for (const x of all) cand[x] = JSON.parse(await readFile(join(content, x), 'utf8'));
+    if (!(APPROVED in cand)) return [409, { error: 'no approved file', message: 'content/' + APPROVED + ' is missing, so what is in the game cannot be told', rel }];
+    let built;
+    try { built = validateContent(memSource(cand)); }
+    catch (e) { if (!(e instanceof ContentError)) throw e; return [409, { error: 'invalid', message: 'the saved content does not validate, so what is in the game cannot be told: ' + e.message, rel }]; }
+    if (inGame(built.approved, id)) return [409, { error: 'in game', rel }];
     const songs = await readSongs();
     if (songs.json.songs.some((s) => s && s.id === id))
       await writeTexts(root, { [SONGS]: formatSongs({ ...songs.json, songs: songs.json.songs.filter((s) => !(s && s.id === id)) }) });

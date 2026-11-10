@@ -335,7 +335,7 @@ async function remove(id) {
       lib = null; loadLib();
     } else if (r.status === 409 && j.error === 'in game') delMsg[id] = 'The saved approved.json still has it in the game. Save first, then delete it.';
     else if (r.status === 409) delMsg[id] = 'the server is busy: try again in a moment';
-    else delMsg[id] = 'not deleted: ' + (j.message || j.error || 'HTTP ' + r.status);
+    else delMsg[id] = 'not deleted: ' + (j.message || j.error || 'HTTP ' + r.status);   // 409 invalid / no approved file carry a message
   } catch (x) { delMsg[id] = 'not deleted: ' + String(x && x.message || x); }
   redraw();
 }
@@ -490,6 +490,13 @@ function titleSection(doc, el, all) {
     };
     const move = (from, to) => { const a = list.slice(); const [x] = a.splice(from, 1); a.splice(to, 0, x); setTitle(a); };
     if (s) tools.appendChild(listenBtn(doc, id, { list: 'title' }));
+    /* a title song in no decade can be approved into one as well (it stays on the title list) */
+    if (s && songDecade(approved(), id) === null) {
+      const ab = btn(doc, 'Approve…', 'approve-open', "also play it in a decade's levels");
+      ab.dataset.song = id;
+      ab.addEventListener('click', () => { approving = id; redraw(); });
+      tools.appendChild(ab);
+    }
     if (j > 0) tool('↑', 'song-up', () => move(j, j - 1), 'play it earlier');
     if (j < list.length - 1) tool('↓', 'song-down', () => move(j, j + 1), 'play it later');
     const rm = tool('×', 'song-remove', () => { if (list.length > 1) setTitle(list.filter((x, i) => i !== j)); },
@@ -510,6 +517,7 @@ function titleSection(doc, el, all) {
       row.classList.remove('adm-over');
       if (from && from.j !== j) move(from.j, j);
     });
+    if (approving === id && s && songDecade(approved(), id) === null) approveForm(doc, row, id, s);
     asControl(doc, row, ['title', j]);
     sec.appendChild(row);
   });

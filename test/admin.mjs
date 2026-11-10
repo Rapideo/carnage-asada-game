@@ -449,6 +449,18 @@ console.log('\n— server —');
       r = await unport({ id: hazy.id });
       ok(r.status === 409 && existsSync(made), 'a song the approved file on disk names is refused, whatever the panel holds (' + r.status + ')');
       writeFileSync(AJ, ajText);
+      /* fail closed: no approved file, or one of the wrong shape, deletes nothing */
+      const { unlinkSync } = await import('node:fs');
+      const refusedWith = async (text) => {
+        if (text === null) unlinkSync(AJ); else writeFileSync(AJ, text);
+        const rr = await unport({ id: hazy.id });
+        writeFileSync(AJ, ajText);
+        return rr.status !== 200 && existsSync(made) && JSON.parse(readFileSync(SJ, 'utf8')).songs.some((s) => s.id === hazy.id);
+      };
+      const shapes = [null, '[]', 'null', '{"title":"one-step-beyond"}', JSON.stringify({ ...JSON.parse(ajText), '1': { delivery: 'kashmir', kitchen: [] } })];
+      const held = [];
+      for (const s of shapes) held.push(await refusedWith(s));
+      ok(held.every(Boolean), 'with approved.json missing or the wrong shape, Delete is refused and the song, its entry and file stay (' + held.join() + ')');
       const { mkdirSync } = await import('node:fs');
       const wav = join(tmp, 'tools/music/preview/' + hazy.id + '.wav');
       mkdirSync(join(tmp, 'tools/music/preview'), { recursive: true }); writeFileSync(wav, 'RIFF');
@@ -2444,6 +2456,16 @@ console.log('\n— music panel —');
       act('listen', { id: 'one-step-beyond', list: 'title' }).fire('click');
       ok(calls[calls.length - 1] === 'listen:one-step-beyond', 'a title song can be listened to');
 
+      /* a title-only song can be approved into a decade too (spec: "a title song may also be approved into a decade") */
+      const osb = act('approve-open', { song: 'one-step-beyond' });
+      ok(!!osb, 'a title song in no decade offers Approve…');
+      if (osb) {
+        osb.fire('click');
+        ok(find((n) => n.dataset.approve === 'era') && find((n) => n.dataset.approve === 'era').value === '2', 'its form picks the decade it fits (\'80s for 1979)');
+        act('approve', { song: 'one-step-beyond' }).fire('click');
+        ok(AP()['2'].delivery.includes('one-step-beyond') && AP().title.includes('one-step-beyond') && store.error === null && !act('approve-open', { song: 'one-step-beyond' }),
+           'approved, it plays in the \'80s and stays on the title list (' + (store.error && store.error.message) + ')');
+      }
       /* leaving the tab, or closing the overlay, ends a listen */
       const { leaveTab } = await import('../admin/overlay.js');
       ok(globalThis.Admin.music.listening === 'one-step-beyond' && typeof tab.leave === 'function', 'the Music tab has a leave hook');
