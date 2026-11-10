@@ -2,193 +2,111 @@
 
 Driving Shift songs are intended to be more upbeat; fast-paced and energizing. Kichen Shift songs should be soufully mello, or solo-danceable. 
 
-A level may only play songs from its own year or up to 2 years before it, never after. A song's year is its original release year, and build.mjs checks every level's songs against it and fails the build on one that is too new. Every song also records its release month (the first release, single or album, whichever came first; `tools/music/songs.json` says where each one comes from), and a level's season stands for a month: Summer is July, and Winter is January when that year's Summer level comes after it and December when it comes before, by level order. A same-year song released after its level's month is flagged as a warning, in the build log and the Music panel, but never refused (owner, 2026-11-07): Bohemian Rhapsody (October 1975) stays in Winter 1975, and Cannonball (August 1993) in Summer 1993.
+A level plays every song approved for its decade and its shift, shuffled fresh each time it plays and then looped. Songs are placed the way faces are (owner, 2026-11-09): each approved song belongs to one decade, plays on the Delivery Shift, the Kitchen Shift or both, and has a "from" year, the first level year it plays; from then on it lasts the rest of its decade. "From the start" is the decade's first level. A song never plays before its release year (its original release; build.mjs refuses a "from" earlier than that), and every level must have at least one song. Each song still records its release month (the first release, single or album; `tools/music/songs.json` says where each one comes from), for the record only.
 
-Each list plays in order and then loops. The songs are the real MIDIs from `reference/assets/midi/`, arranged for the game's own chip voices by `tools/music/midi2song.mjs` (the song list is `tools/music/songs.json`). The game reads the lists from `content/music/playlist.json`.
+The songs are the real MIDIs from `reference/assets/midi/`, arranged for the game's own chip voices by `tools/music/midi2song.mjs` (the song list is `tools/music/songs.json`). The game reads `content/music/approved.json` and the songs in `content/music/`, and Service Mode (Music) converts, approves and places them.
 
-## I. 1972
-
-### A. Delivery Shift
-
-Level 1, Summer 1972.
-
-1. IMMIGRANT SONG - LED ZEPPELIN (1970)
-
-2. BLACK DOG - LED ZEPPELIN (1971)
-
-### B. Kitchen Shift
-
-Level 2, Winter 1972.
-
-1. WALK ON THE WILD SIDE - LOU REED (1972)
-
-2. DO IT AGAIN - STEELY DAN (1972)
-
-## II. 1975
+## I. The '70s (levels 1-6)
 
 ### A. Delivery Shift
 
-Level 3, Winter 1975.
+1. IMMIGRANT SONG - LED ZEPPELIN (1970), from the start
 
-1. BOHEMIAN RHAPSODY (the opera section) - QUEEN (1975)
+2. BLACK DOG - LED ZEPPELIN (1971), from the start
 
-2. BOHEMIAN RHAPSODY (the hard-rock section) - QUEEN (1975)
+3. BOHEMIAN RHAPSODY (the opera section) - QUEEN (1975), from 1975
+
+4. BOHEMIAN RHAPSODY (the hard-rock section) - QUEEN (1975), from 1975
+
+5. MR. BLUE SKY - ELO (1977), from 1978
+
+6. JUST WHAT I NEEDED - THE CARS (1978), from 1978
 
 ### B. Kitchen Shift
 
-Level 4, Summer 1975.
+1. WALK ON THE WILD SIDE - LOU REED (1972), from the start
 
-1. D'YER MAK'ER - LED ZEPPELIN (1973)
+2. DO IT AGAIN - STEELY DAN (1972), from the start
 
-2. KASHMIR - LED ZEPPELIN (1975)
+3. D'YER MAK'ER - LED ZEPPELIN (1973), from 1975
 
-## III. 1978
+4. KASHMIR - LED ZEPPELIN (1975), from 1975
+
+5. LOVELY DAY - BILL WITHERS (1977), from 1978
+
+6. PEG - STEELY DAN (1977), from 1978
+
+## II. The '80s (levels 7-12)
 
 ### A. Delivery Shift
 
-Level 5, Summer 1978.
+1. DON'T BRING ME DOWN - ELO (1979), from the start
 
-1. MR. BLUE SKY - ELO (1977)
+2. STAND AND DELIVER - ADAM AND THE ANTS (1981), from the start
 
-2. JUST WHAT I NEEDED - THE CARS (1978)
+3. ROCK THE CASBAH - THE CLASH (1982), from 1984
+
+4. HOUSE OF FUN - MADNESS (1982), from 1984
+
+5. TAKE ON ME - A-HA (1985), from 1987
+
+6. NEVER GONNA GIVE YOU UP - RICK ASTLEY (1987), from 1987
 
 ### B. Kitchen Shift
 
-Level 6, Winter 1978.
+1. JUST CAN'T GET ENOUGH - DEPECHE MODE (1981), from the start
 
-1. LOVELY DAY - BILL WITHERS (1977)
+2. DON'T YOU WANT ME - THE HUMAN LEAGUE (1981), from the start
 
-2. PEG - STEELY DAN (1977)
+3. AFRICA - TOTO (1982), from 1984
 
-## IV. 1981
+4. RED RED WINE - UB40 (1983), from 1984
+
+5. BIG TIME - PETER GABRIEL (1986), from 1987
+
+6. IF YOU LEAVE - OMD (1986), from 1987
+
+## III. The '90s (levels 13-20)
 
 ### A. Delivery Shift
 
-Level 7, Summer 1981.
+1. SWEET CHILD O' MINE - GUNS N' ROSES (1988), from the start
 
-1. DON'T BRING ME DOWN - ELO (1979)
+2. HERE COMES YOUR MAN - PIXIES (1989), from the start
 
-2. STAND AND DELIVER - ADAM AND THE ANTS (1981)
+3. EVERYTHING ABOUT YOU - UGLY KID JOE (1991), from 1993
 
-### B. Kitchen Shift
+4. ALEC EIFFEL - PIXIES (1991), from 1993
 
-Level 8, Winter 1981.
+5. LUMP - THE PRESIDENTS OF THE USA (1995), from 1996
 
-1. JUST CAN'T GET ENOUGH - DEPECHE MODE (1981)
+6. COMMON PEOPLE - PULP (1995), from 1996
 
-2. DON'T YOU WANT ME - THE HUMAN LEAGUE (1981)
+7. SONG 2 - BLUR (1997), from 1999
 
-## V. 1984
-
-### A. Delivery Shift
-
-Level 9, Winter 1984.
-
-1. ROCK THE CASBAH - THE CLASH (1982)
-
-2. HOUSE OF FUN - MADNESS (1982)
+8. I THINK I'M PARANOID - GARBAGE (1998), from 1999
 
 ### B. Kitchen Shift
 
-Level 10, Summer 1984.
+1. STRAIGHT UP - PAULA ABDUL (1988), from the start
 
-1. AFRICA - TOTO (1982)
+2. WHERE IS MY MIND? - PIXIES (1988), from the start
 
-2. RED RED WINE - UB40 (1983)
+3. TWO PRINCES - SPIN DOCTORS (1991), from 1993
 
-## VI. 1987
+4. CANNONBALL - THE BREEDERS (1993), from 1993
 
-### A. Delivery Shift
+5. REGULATE - WARREN G AND NATE DOGG (1994), from 1996
 
-Level 11, Summer 1987.
+6. PEACHES - THE PRESIDENTS OF THE USA (1995), from 1996
 
-1. TAKE ON ME - A-HA (1985)
+7. BITTER SWEET SYMPHONY - THE VERVE (1997), from 1999
 
-2. NEVER GONNA GIVE YOU UP - RICK ASTLEY (1987)
+8. STEAL MY SUNSHINE - LEN (1999), from 1999
 
-### B. Kitchen Shift
+## IV. Title Screen
 
-Level 12, Winter 1987.
-
-1. BIG TIME - PETER GABRIEL (1986)
-
-2. IF YOU LEAVE - OMD (1986)
-
-## VII. 1990
-
-### A. Delivery Shift
-
-Level 13, Summer 1990.
-
-1. SWEET CHILD O' MINE - GUNS N' ROSES (1988)
-
-2. HERE COMES YOUR MAN - PIXIES (1989)
-
-### B. Kitchen Shift
-
-Level 14, Winter 1990.
-
-1. STRAIGHT UP - PAULA ABDUL (1988)
-
-2. WHERE IS MY MIND? - PIXIES (1988)
-
-## VIII. 1993
-
-### A. Delivery Shift
-
-Level 15, Winter 1993.
-
-1. EVERYTHING ABOUT YOU - UGLY KID JOE (1991)
-
-2. ALEC EIFFEL - PIXIES (1991)
-
-### B. Kitchen Shift
-
-Level 16, Summer 1993.
-
-1. TWO PRINCES - SPIN DOCTORS (1991)
-
-2. CANNONBALL - THE BREEDERS (1993)
-
-## IX. 1996
-
-### A. Delivery Shift
-
-Level 17, Summer 1996.
-
-1. LUMP - THE PRESIDENTS OF THE USA (1995)
-
-2. COMMON PEOPLE - PULP (1995)
-
-### B. Kitchen Shift
-
-Level 18, Winter 1996.
-
-1. REGULATE - WARREN G AND NATE DOGG (1994)
-
-2. PEACHES - THE PRESIDENTS OF THE USA (1995)
-
-## X. 1999
-
-### A. Delivery Shift
-
-Level 19, Summer 1999.
-
-1. SONG 2 - BLUR (1997)
-
-2. I THINK I'M PARANOID - GARBAGE (1998)
-
-### B. Kitchen Shift
-
-Level 20, Winter 1999.
-
-1. BITTER SWEET SYMPHONY - THE VERVE (1997)
-
-2. STEAL MY SUNSHINE - LEN (1999)
-
-## XI. Title Screen
-
-The title songs play from the title screen through the winners and high-score screens and mode select. The title has no year, so the year rule does not apply to it. The auto-play demo plays the songs of the level it picks.
+The title songs play in this order from the title screen through the winners and high-score screens and mode select. The title has no year, so the release rule does not apply to it. The auto-play demo plays the songs of the level it picks.
 
 1. ONE STEP BEYOND - MADNESS (1979)
 

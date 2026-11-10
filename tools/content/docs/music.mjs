@@ -1,81 +1,66 @@
-/* music.md, generated from content/music/playlist.json, content/levels.json
+/* music.md, generated from content/music/approved.json, content/levels.json
    and the songs in content/music/.
 
    The doc is `# music.md` (the rule paragraphs: prose, kept) over
 
-     ## <roman>. <year>          one per level year, in level order
-       ### A. Delivery Shift     one per level of that year, lettered in level
-       ### B. Kitchen Shift      order: Delivery for a delivery level, Kitchen
-                                 for a kitchen one. Each holds
-                                   Level <n>, <Season> <year>.
-                                   1. <TITLE> - <ARTIST> (<year>)
-                                   2. ...
-                                 blank-separated, one numbered line per song in
-                                 the level's list, however long it is.
-     ## <roman>. Title Screen    its note (prose), then the title's songs, the
-                                 same numbered lines.
+     ## <roman>. The '70s (levels 1-6)    one per decade, in level order
+       ### A. Delivery Shift              the decade's songs for each shift, in
+       ### B. Kitchen Shift               approved.json's order:
+                                            1. <TITLE> - <ARTIST> (<year>), from <year | the start>
+                                            2. ...
+                                          blank-separated. A song on both shifts
+                                          is in both.
+     ## <roman>. Title Screen             its note (prose), then the title's
+                                          songs in order: 1. <TITLE> - <ARTIST> (<year>)
 
-   From nothing the title section comes first; in a doc that has one it stays
-   where it is (today's music.md keeps it after the years), and every other
-   `##` section is prose and stays in place, renumbered.
+   A decade section is matched by its decade ('70s), so prose under it stays
+   when its level range changes; a shift by its name. Any other `##` section
+   is prose and stays where it is, renumbered. From nothing, the decades come
+   first and then the title.
 
-   What a render writes: the headings, the Level line and the song lines.
-   Display follows the JSON's form (titles and artists as stored, upper case),
-   and a bracketed note the doc wrote after a title is kept after it, the way
-   menu.md keeps one after a bin ("BOHEMIAN RHAPSODY (the opera section)"). A
-   note follows its song by title within the list; two songs with one title
-   (the two halves of Bohemian Rhapsody) take the notes in their order. Any
-   other line in a section is prose and stays: a shift node is matched to its
-   level by the number on its Level line, so prose moves with the level, and a
-   year section whose year changes keeps its prose under the new year.
-
-   read(text, music) reads the lists back as song ids, for the round-trip test. */
+   What a render writes: the headings and the song lines. Display follows the
+   JSON (titles and artists as stored, upper case), and a bracketed note the
+   doc wrote after a title is kept after it, the way menu.md keeps one after a
+   bin ("BOHEMIAN RHAPSODY (the opera section)"). A note follows its song by
+   title within the list; two songs with one title (the two halves of Bohemian
+   Rhapsody) take the notes in their order. Any other line is prose and stays. */
 import { parseMd, toMd, roman, letter } from './engine.mjs';
 import { noteOf, sameName } from './menu.mjs';
-import { APPROVED, levelSongs } from '../validate.mjs';
+import { APPROVED, SHIFTS, songStart, songDecade, eraYears } from '../validate.mjs';
 
-const PREAMBLE = 'The songs each level plays, and the title\'s. Each list plays in order and then loops. '
-  + 'A level plays every approved song of its decade and shift whose year has arrived. '
-  + 'The game reads `content/music/playlist.json` and the songs in `content/music/`: those are the master copy and this page mirrors them, '
-  + 'so edit the lists in Service Mode (Music) or in the JSON.';
+const PREAMBLE = 'Which songs play where. A level plays every song approved for its decade and its shift (Delivery or Kitchen) '
+  + 'whose "from" year has arrived, shuffled fresh each time it plays, and loops them. A song never plays before its release year. '
+  + 'The game reads `content/music/approved.json` and the songs in `content/music/`: those are the master copy and this page mirrors them, '
+  + 'so approve and place songs in Service Mode (Music) or in the JSON.';
 const TITLE = 'Title Screen';
-const TITLE_NOTE = 'The title songs play from the title screen through the winners and high-score screens and mode select. '
-  + 'The title has no year, so the year rule does not apply to it. The auto-play demo plays the songs of the level it picks.';
+const TITLE_NOTE = 'The title songs play in this order from the title screen through the winners and high-score screens and mode select. '
+  + 'The title has no year, so the release rule does not apply to it. The auto-play demo plays the songs of the level it picks.';
+const SHIFT_NAME = { delivery: 'Delivery Shift', kitchen: 'Kitchen Shift' };
 
-const SONG = /^(\d+)\. (.+) - (.+) \((\d+)\)$/;
-const LEVEL = /^Level (\d+), .*\.$/;
+const SONG = /^(\d+)\. (.+) - (.+) \((\d+)\)(?:, from .+)?$/;
+const DECADE = /^The '(\d)0s\b/;
 const bare = (h) => h.replace(/^[A-Z0-9]+\. /, '');
 const blank = (l) => l === undefined || l.trim() === '';
-const cap = (s) => String(s).charAt(0).toUpperCase() + String(s).slice(1);
 const node = (heading, depth, lines = ['']) => ({ heading, depth, lines, children: [] });
-const shiftName = (lv) => (lv.type === 'kitchen' ? 'Kitchen Shift' : 'Delivery Shift');
-const levelLine = (lv) => 'Level ' + lv.n + ', ' + cap(lv.season) + ' ' + lv.year + '.';
-const levelOf = (c) => { for (const l of c.lines) { const m = LEVEL.exec(l); if (m) return Number(m[1]); } return null; };
-const isList = (c) => levelOf(c) !== null || c.lines.some((l) => SONG.test(l));
-const yearOf = (c) => { const m = /^(\d{4})$/.exec(bare(c.heading)); return m ? Number(m[1]) : null; };
+const decadeOf = (c) => { const m = DECADE.exec(bare(c.heading)); return m ? m[1] : null; };
 
-/* the playlist file, in either of the shapes the validator accepts */
-function listsOf(raw) {
-  raw = raw || {};
-  return raw.levels && typeof raw.levels === 'object' && !Array.isArray(raw.levels) ? { ...raw.levels, title: raw.title } : raw;
-}
 function songsOf(files) {
   const o = {};
-  for (const [rel, s] of Object.entries(files)) if (/^music\/[^/]+\.json$/.test(rel) && rel !== 'music/' + 'approved.json') o[rel.slice(6, -5)] = s;
+  for (const [rel, s] of Object.entries(files)) if (/^music\/[^/]+\.json$/.test(rel) && rel !== APPROVED) o[rel.slice(6, -5)] = s;
   return o;
 }
 
-/* The node's Level line (when `lvLine` is given) and song lines become the
-   list's, written where the first of them was. Prose between them is kept,
-   after them. */
-function fillList(n, ids, music, lvLine) {
+/* The node's song lines become the list's, written where the first of them
+   was. Prose between them is kept, after them. `tail(id)` is what follows the
+   year: ', from 1975' in a decade, nothing on the title list. */
+function fillList(n, ids, music, tail) {
   const L = n.lines, kept = [], olds = [];
   let p = -1;
   for (let i = 0; i < L.length; i++) {
-    const s = SONG.exec(L[i]), lv = lvLine !== null && LEVEL.test(L[i]);
-    if (!s && !lv) { kept.push(L[i]); continue; }
+    const s = SONG.exec(L[i]);
+    if (!s) { kept.push(L[i]); continue; }
     if (p < 0) p = kept.length;
-    if (s) olds.push(s[2]);
+    olds.push(s[2]);
     if (blank(L[i + 1])) i++;                    // its blank separator goes with it
   }
   if (p < 0) {                                   // none yet: after the node's last line of prose
@@ -84,13 +69,12 @@ function fillList(n, ids, music, lvLine) {
     p = last >= 0 ? last + 1 : kept.length;
   }
   const claimed = new Set(), block = [];
-  if (lvLine !== null) block.push(lvLine, '');
   (ids || []).forEach((id, i) => {
     const s = music[id] || { title: String(id), artist: '?', year: 0 };
     const k = olds.findIndex((t, x) => !claimed.has(x) && sameName(t, s.title));
     let note = '';
     if (k >= 0) { claimed.add(k); note = noteOf(olds[k], s.title); }
-    block.push((i + 1) + '. ' + s.title + note + ' - ' + s.artist + ' (' + s.year + ')', '');
+    block.push((i + 1) + '. ' + s.title + note + ' - ' + s.artist + ' (' + s.year + ')' + tail(id), '');
   });
   if (p > 0 && !blank(kept[p - 1])) block.unshift('');
   if (p < kept.length && blank(kept[p])) block.pop();
@@ -98,94 +82,61 @@ function fillList(n, ids, music, lvLine) {
   n.lines = kept;
 }
 
-/* a year section's children: one shift node per level of that year, matched
-   by level number, else by position among the old list nodes; prose-only
-   subsections stay after them */
-function syncShifts(yn, lvls, pl, music) {
-  const old = yn.children, claimed = new Set();
-  const at = lvls.map((lv) => { const c = old.find((x) => !claimed.has(x) && levelOf(x) === lv.n); if (c) claimed.add(c); return c || null; });
-  const free = old.filter((c) => !claimed.has(c) && isList(c));
-  lvls.forEach((lv, i) => { if (!at[i] && free.length) { at[i] = free.shift(); claimed.add(at[i]); } });
-  const rest = old.filter((c) => !claimed.has(c) && !isList(c));
-  const shifts = lvls.map((lv, i) => {
-    const n = at[i] || node('', yn.depth + 1);
-    n.heading = shiftName(lv);
-    fillList(n, pl[String(lv.n)], music, levelLine(lv));
-    return n;
-  });
-  yn.children = [...shifts, ...rest];
-  yn.children.forEach((c, i) => { c.heading = letter(i) + '. ' + (shifts.includes(c) ? c.heading : bare(c.heading)); });
-}
-
 export default {
   file: 'music.md',
   render(files, prevText) {
     const levels = ((files['levels.json'] || {}).levels || []).slice().sort((a, b) => a.n - b.n);
     const ap = files[APPROVED] || {}, music = songsOf(files);
-    const pl = { title: ap.title || [] };
-    levels.forEach((lv, i) => { pl[String(lv.n)] = levelSongs(ap, levels, i); });
-    const years = [...new Set(levels.map((l) => l.year))];
+    const eras = [...new Set(levels.map((l) => String(l.era)))];
 
     const root = parseMd(prevText || '');
     if (!prevText) root.lines = [];
     let doc = root.children.find((n) => n.depth === 1);
     if (!doc) { doc = node('music.md', 1, ['', PREAMBLE, '']); root.children.unshift(doc); }
 
-    /* year sections: by year, then (a year that changed) by position */
-    const oldYears = doc.children.filter((c) => yearOf(c) !== null), claimed = new Set();
-    const at = years.map((y) => { const c = oldYears.find((x) => !claimed.has(x) && yearOf(x) === y); if (c) claimed.add(c); return c || null; });
-    const free = oldYears.filter((c) => !claimed.has(c));
-    years.forEach((y, i) => { if (!at[i] && free.length) { at[i] = free.shift(); claimed.add(at[i]); } });
-    const yearNodes = years.map((y, i) => {
+    /* decade sections: by decade, then (a decade that changed) by position */
+    const tens = (e) => String(levels.find((l) => String(l.era) === e).year).charAt(2);
+    const oldDec = doc.children.filter((c) => decadeOf(c) !== null), claimed = new Set();
+    const at = eras.map((e) => { const c = oldDec.find((x) => !claimed.has(x) && decadeOf(x) === tens(e)); if (c) claimed.add(c); return c || null; });
+    const free = oldDec.filter((c) => !claimed.has(c));
+    eras.forEach((e, i) => { if (!at[i] && free.length) { at[i] = free.shift(); claimed.add(at[i]); } });
+    const from = (id) => { const y = songStart(ap, levels, id); return ', from ' + (y === eraYears(levels, songDecade(ap, id))[0] ? 'the start' : y); };
+    const decNodes = eras.map((e, i) => {
       const n = at[i] || node('', doc.depth + 1);
-      n.heading = String(y);
-      syncShifts(n, levels.filter((l) => l.year === y), pl, music);
+      const ns = levels.filter((l) => String(l.era) === e).map((l) => l.n);
+      n.heading = "The '" + tens(e) + '0s (levels ' + Math.min(...ns) + '-' + Math.max(...ns) + ')';
+      const old = n.children, used = new Set();
+      const shifts = SHIFTS.map((s) => {
+        const c = old.find((x) => !used.has(x) && bare(x.heading) === SHIFT_NAME[s]) || node(SHIFT_NAME[s], n.depth + 1);
+        used.add(c);
+        c.heading = SHIFT_NAME[s];
+        fillList(c, ((ap[e] || {})[s]) || [], music, from);
+        return c;
+      });
+      const rest = old.filter((c) => !used.has(c));
+      n.children = [...shifts, ...rest];
+      n.children.forEach((c, j) => { c.heading = letter(j) + '. ' + bare(c.heading); });
       return n;
     });
 
     let title = doc.children.find((c) => bare(c.heading) === TITLE);
-    const hadTitle = !!title;
     if (!title) title = node(TITLE, doc.depth + 1, ['', TITLE_NOTE, '']);
     title.heading = TITLE;
-    fillList(title, pl.title, music, null);
+    fillList(title, ap.title, music, () => '');
 
-    /* the years go where the doc has them; everything else stays in place */
-    const firstAt = doc.children.findIndex((c) => yearOf(c) !== null);
-    const others = (cs) => cs.filter((c) => yearOf(c) === null);
-    let before, after;
-    if (firstAt < 0) { before = []; after = others(doc.children); }
-    else { before = others(doc.children.slice(0, firstAt)); after = others(doc.children.slice(firstAt)); }
-    if (!hadTitle) before.unshift(title);
-    doc.children = [...before, ...yearNodes, ...after];
-    if (firstAt < 0 && hadTitle) doc.children = [title, ...yearNodes, ...after.filter((c) => c !== title)];
+    /* the decades go where the doc's first one was (first of all, from
+       nothing); the title and every other section stay in place, and a new
+       title goes last */
+    const out = [];
+    let placed = false;
+    for (const c of doc.children) {
+      if (decadeOf(c) === null) { out.push(c); continue; }
+      if (!placed) { out.push(...decNodes); placed = true; }
+    }
+    if (!placed) out.unshift(...decNodes);
+    if (!out.includes(title)) out.push(title);
+    doc.children = out;
     doc.children.forEach((c, i) => { c.heading = roman(i + 1) + '. ' + bare(c.heading); });
     return toMd(root);
-  },
-
-  /* { '1': [id, ...], ..., title: [id, ...] }: each list's song lines,
-     resolved to ids by title (note aside), artist and year */
-  read(text, music = {}) {
-    const root = parseMd(text.replace(/\r\n/g, '\n'));
-    const doc = root.children.find((n) => n.depth === 1);
-    const ids = (n) => {
-      const used = new Set();
-      return n.lines.map((l) => SONG.exec(l)).filter(Boolean).map((m) => {
-        const hits = Object.keys(music).filter((k) => {
-          const s = music[k];
-          return s && sameName(m[2], s.title) && String(s.artist).toUpperCase() === m[3].toUpperCase() && String(s.year) === m[4];
-        });
-        const id = hits.find((k) => !used.has(k)) || hits[0] || null;
-        used.add(id);
-        return id;
-      });
-    };
-    const out = {};
-    let title = [];
-    for (const s of doc ? doc.children : []) {
-      if (bare(s.heading) === TITLE) title = ids(s);
-      else if (yearOf(s) !== null) for (const c of s.children) { const n = levelOf(c); if (n !== null) out[String(n)] = ids(c); }
-    }
-    out.title = title;
-    return out;
   },
 };

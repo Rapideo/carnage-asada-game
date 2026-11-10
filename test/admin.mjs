@@ -1413,7 +1413,7 @@ console.log('\n— docs —');
       } else ok(false, 'faces.mjs exports read(text)');
     }
 
-    /* menu.md, rendered from today's JSON and from edits to it. The fixtures in test/fixtures/ are the hand-edited menu.md and music.md as they stood before the first regeneration (0.9.1): the migration tests need a doc that still differs from its render. */
+    /* menu.md, rendered from today's JSON and from edits to it. The fixture in test/fixtures/ is the hand-edited menu.md as it stood before the first regeneration (0.9.1): the migration tests need a doc that still differs from its render (music.md's went with playlist.json, 2026-11-09). */
     let MN = null;
     try { MN = (await import('../tools/content/docs/menu.mjs')).default; } catch (x) { console.error('  (' + x.message + ')'); }
     ok(MN && MN.file === 'menu.md' && IX.DOCS.includes(MN), 'menu.md is a registered doc');
@@ -1518,93 +1518,62 @@ console.log('\n— docs —');
       ok(IX.renderAll(files, (f) => f === 'menu.md' ? mold : null)['menu.md'] === mout, 'renderAll renders menu.md');
     }
 
-    /* music.md: per year, the Delivery and Kitchen Shift lists; the title list; the rules as prose */
+    /* music.md (2026-11-09): per decade, the Delivery and Kitchen Shift songs
+       with their "from" years; then the title list; the rules as prose */
     let MU = null;
     try { MU = (await import('../tools/content/docs/music.mjs')).default; } catch (x) { console.error('  (' + x.message + ')'); }
     ok(MU && MU.file === 'music.md' && IX.DOCS.includes(MU), 'music.md is a registered doc');
     if (MU) {
-      const uold = readFileSync('test/fixtures/music.hand-edited.md', 'utf8').replace(/\r\n/g, '\n');
-      const PLR = 'music/playlist.json';
-      const ufx = (edit) => { const f = structuredClone(files); edit(f[PLR], f); return f; };
-      const songsOf = (f) => Object.fromEntries(Object.entries(f).filter(([r]) => /^music\/[^/]+\.json$/.test(r) && r !== PLR).map(([r, s]) => [r.slice(6, -5), s]));
-      const lists = (f) => Object.fromEntries(Object.entries(f[PLR]).filter(([k]) => !k.startsWith('_')));
+      const AP = 'music/approved.json';
+      const ufx = (edit) => { const f = structuredClone(files); edit(f[AP], f); return f; };
       const bareH = (hd) => hd.replace(/^[A-Z0-9]+\. /, '');
       const at = (text, ...names) => {
         let n = parseMd(text).children.find((c) => c.depth === 1);
         for (const nm of names) n = n && n.children.find((c) => bareH(c.heading) === nm);
         return n || { lines: [], children: [] };
       };
-      const SONG = /^\d+\. .+ - .+ \(\d+\)$/, LVL = /^Level \d+, (Summer|Winter) \d{4}\.$/;
+      const SONG = /^\d+\. .+ - .+ \(\d+\)(, from .+)?$/;
       const songs = (n) => n.lines.filter((l) => SONG.test(l));
-      const proseOf = (src) => src.split('\n').filter((l) => l.trim() && !/^#/.test(l) && !SONG.test(l) && !LVL.test(l));
-      const lost = (src, o) => { const p = proseOf(src); let j = 0; for (const l of o.split('\n')) if (j < p.length && l === p[j]) j++; return j === p.length ? null : p[j]; };
+      const D70 = "The '70s (levels 1-6)", D80 = "The '80s (levels 7-12)", D90 = "The '90s (levels 13-20)";
 
-      const uout = MU.render(files, uold);
-      ok(MU.render(files, uout) === uout, 'rendering music.md is idempotent');
-      const a = uold.split('\n'), b = uout.split('\n');
-      const changed = a.map((l, i) => [l, b[i]]).filter(([x, y]) => x !== y);
-      const headChanges = changed.filter(([x]) => !SONG.test(x));
-      ok(a.length === b.length && changed.length > 0 && changed.every(([x, y]) => (/^### [A-Z]\. Driving Shift$/.test(x) && y === x.replace('Driving Shift', 'Delivery Shift'))
-         || (SONG.test(x) && SONG.test(y) && x.toUpperCase() === y.toUpperCase())),
-         'from today\'s JSON only song lines (in case) and the "Driving Shift" headings (to "Delivery Shift") change, line for line (' + JSON.stringify(headChanges) + ')');
-      const drivingHeads = (t) => t.split('\n').filter((l) => /^#+ .*Driving Shift/.test(l)).length;
-      ok(headChanges.length === drivingHeads(uold) && drivingHeads(uold) > 0 && drivingHeads(uout) === 0
-         && uout.split('\n').filter((l) => /^### [A-Z]\. Delivery Shift$/.test(l)).length === 10 && uout.includes('\nDriving Shift songs are intended to be more upbeat'),
-         'every "Driving Shift" heading becomes "Delivery Shift", the "Delivery Shift" ones are left alone, and the preamble\'s own "Driving Shift songs" is prose, kept (' + headChanges.length + ' changed)');
-      /* the heading names the level's game type, exactly: Delivery Shift or Kitchen Shift */
-      const shiftHeads = parseMd(uout).children[0].children.flatMap((y) => y.children).map((c) => {
-        const n = Number((c.lines.map((l) => /^Level (\d+), /.exec(l)).find(Boolean) || [])[1]);
-        const lv = files['levels.json'].levels.find((l) => l.n === n);
-        return [c.heading.replace(/^[A-Z]\. /, ''), lv ? (lv.type === 'kitchen' ? 'Kitchen Shift' : 'Delivery Shift') : null];
-      });
-      ok(shiftHeads.length === 20 && shiftHeads.every(([got, want]) => got === want),
-         'a delivery level\'s heading is exactly "Delivery Shift" and a kitchen level\'s exactly "Kitchen Shift" (' + JSON.stringify(shiftHeads.filter(([g, w]) => g !== w)) + ')');
-      const pn = proseOf(uold).length;
-      ok(pn >= 4 && lost(uold, uout) === null && uout.startsWith(uold.slice(0, uold.indexOf('## I. 1972'))), 'all ' + pn + ' prose lines survive in order, the preamble byte for byte (' + lost(uold, uout) + ')');
-      const top = parseMd(uout).children[0].children.map((c) => c.heading);
-      const years = [...new Set(files['levels.json'].levels.map((l) => l.year))];
-      ok(top.join('|') === [...years.map((y, i) => roman(i + 1) + '. ' + y), roman(years.length + 1) + '. Title Screen'].join('|'),
-         'one "## <roman>. <year>" per year, then the title section where the doc keeps it (' + top.join('|') + ')');
-      ok(parseMd(uout).children[0].children.slice(0, years.length).every((y) => y.children.map((c) => c.heading).join('|') === 'A. Delivery Shift|B. Kitchen Shift'),
-         'every year has A. Delivery Shift and B. Kitchen Shift');
-      const d1 = at(uout, '1972', 'Delivery Shift');
-      ok(d1.lines.includes('Level 1, Summer 1972.') && songs(d1).join('|') === '1. IMMIGRANT SONG - LED ZEPPELIN (1970)|2. BLACK DOG - LED ZEPPELIN (1971)',
-         'a shift lists its Level line and its songs as TITLE - ARTIST (year), in the JSON\'s form (' + JSON.stringify(songs(d1)) + ')');
-      ok(songs(at(uout, '1975', 'Delivery Shift')).join('|') === '1. BOHEMIAN RHAPSODY (the opera section) - QUEEN (1975)|2. BOHEMIAN RHAPSODY (the hard-rock section) - QUEEN (1975)',
-         'a bracketed note after a title is kept');
-      const tt = at(uout, 'Title Screen');
-      ok(songs(tt).join('|') === "1. ONE STEP BEYOND - MADNESS (1979)|2. REELIN' IN THE YEARS - STEELY DAN (1972)" && tt.lines.some((l) => /^The title songs play/.test(l)),
-         'the title section lists its songs after its note');
-
-      /* the brief: a level with 3 songs renders 3 numbered lines */
-      const three = ufx((p) => { p['1'] = ['immigrant-song', 'black-dog', 'walk-on-the-wild-side']; });
-      const u3 = MU.render(three, uold), t3 = at(u3, '1972', 'Delivery Shift');
-      ok(songs(t3).join('|') === '1. IMMIGRANT SONG - LED ZEPPELIN (1970)|2. BLACK DOG - LED ZEPPELIN (1971)|3. WALK ON THE WILD SIDE - LOU REED (1972)'
-         && u3.includes('\n2. BLACK DOG - LED ZEPPELIN (1971)\n\n3. WALK ON THE WILD SIDE - LOU REED (1972)\n\n### B. Kitchen Shift\n'),
-         'a level with 3 songs renders 3 numbered lines, blank-separated (' + JSON.stringify(songs(t3)) + ')');
-      ok(lost(uold, u3) === null && !/\n\n\n/.test(u3) && MU.render(three, u3) === u3, 'with no prose lost and no doubled blank line, idempotently');
-      const one = ufx((p) => { p['1'] = ['black-dog']; p.title = ['reelin-in-the-years']; });
-      const u1 = MU.render(one, u3);
-      ok(songs(at(u1, '1972', 'Delivery Shift')).join('|') === '1. BLACK DOG - LED ZEPPELIN (1971)' && songs(at(u1, 'Title Screen')).join('|') === "1. REELIN' IN THE YEARS - STEELY DAN (1972)"
-         && lost(uold, u1) === null && !/\n\n\n/.test(u1) && MU.render(one, u1) === u1, 'shrunk to one song each, the lists follow, the prose stays');
-      /* a year that changes keeps the prose under it */
-      const noted = uold.replace('## I. 1972\n\n### A.', '## I. 1972\n\nThe first year.\n\n### A.');
-      const yr = ufx((p, f) => { f['levels.json'].levels[0].year = 1973; f['levels.json'].levels[1].year = 1973; });
-      const uy = MU.render(yr, noted);
-      ok(at(uy, '1973').lines.includes('The first year.') && at(uy, '1973', 'Delivery Shift').lines.includes('Level 1, Summer 1973.') && !uy.includes('## I. 1972'),
-         'a level year that changes renames its section and keeps its prose');
-      /* a note under a song list stays with it */
-      const n2 = uold.replace('2. Black Dog - Led Zeppelin (1971)\n', '2. Black Dog - Led Zeppelin (1971)\n\nBoth from the band\'s first run.\n');
-      const un = MU.render(three, n2);
-      ok(lost(n2, un) === null && at(un, '1972', 'Delivery Shift').lines.includes('Both from the band\'s first run.'), 'prose between songs is kept in its section');
-
-      /* round trip: reading a render back gives the playlists */
-      const rt = (f, prev) => { const t = MU.render(f, prev); return typeof MU.read === 'function' && JSON.stringify(MU.read(t, songsOf(f))) === JSON.stringify(lists(f)); };
       const fresh = MU.render(files, null);
-      ok(rt(files, uold) && rt(three, uold) && rt(one, u3) && rt(files, null), 'music.md round-trips: reading a render back gives every list, in order');
-      ok(parseMd(fresh).children[0].children[0].heading === 'I. Title Screen' && parseMd(fresh).children[0].children[1].heading === 'II. 1972'
-         && MU.render(files, fresh) === fresh, 'from nothing the title section comes first, then the years, idempotently');
-      ok(IX.renderAll(files, (f) => f === 'music.md' ? uold : null)['music.md'] === uout, 'renderAll renders music.md');
+      const top = parseMd(fresh).children[0].children.map((c) => c.heading);
+      ok(top.join('|') === "I. The '70s (levels 1-6)|II. The '80s (levels 7-12)|III. The '90s (levels 13-20)|IV. Title Screen",
+         'one section per decade, then the title (' + top.join('|') + ')');
+      ok([D70, D80, D90].every((d) => at(fresh, d).children.map((c) => c.heading).join('|') === 'A. Delivery Shift|B. Kitchen Shift'),
+         'every decade has A. Delivery Shift and B. Kitchen Shift');
+      ok(MU.render(files, fresh) === fresh, 'rendering music.md is idempotent');
+      const k70 = songs(at(fresh, D70, 'Kitchen Shift'));
+      ok(k70.includes('4. KASHMIR - LED ZEPPELIN (1975), from 1975') && k70[0] === '1. WALK ON THE WILD SIDE - LOU REED (1972), from the start' && k70.length === 6,
+         'a song line is TITLE - ARTIST (year), from its year or the start (' + JSON.stringify(k70) + ')');
+      ok(songs(at(fresh, D80, 'Delivery Shift'))[0] === "1. DON'T BRING ME DOWN - ELO (1979), from the start", "Don't Bring Me Down is the '80s from the start");
+      const tt = at(fresh, 'Title Screen');
+      ok(songs(tt).join('|') === "1. ONE STEP BEYOND - MADNESS (1979)|2. REELIN' IN THE YEARS - STEELY DAN (1972)" && tt.lines.some((l) => /^The title songs play/.test(l)),
+         'the title section lists its songs, in order, after its note');
+      ok(fresh.split('\n')[2] && !/up to \d+ years/.test(fresh) && /shuffle/i.test(fresh), 'the rule prose says the songs shuffle, and no two-year window');
+
+      /* prose is kept: under a decade, between songs, and the bracketed note after a title */
+      const noted = fresh
+        .replace("## I. The '70s (levels 1-6)\n\n", "## I. The '70s (levels 1-6)\n\nThe first decade.\n\n")
+        .replace('2. BLACK DOG - LED ZEPPELIN (1971), from the start\n', '2. BLACK DOG - LED ZEPPELIN (1971), from the start\n\nBoth from the band\'s first run.\n')
+        .replace('3. BOHEMIAN RHAPSODY - QUEEN (1975), from 1975', '3. BOHEMIAN RHAPSODY (the opera section) - QUEEN (1975), from 1975');
+      const un = MU.render(files, noted);
+      ok(at(un, D70).lines.includes('The first decade.') && songs(at(un, D70, 'Delivery Shift'))[2] === '3. BOHEMIAN RHAPSODY (the opera section) - QUEEN (1975), from 1975'
+         && at(un, D70, 'Delivery Shift').lines.includes("Both from the band's first run.") && MU.render(files, un) === un,
+         'prose under a decade and between songs stays in its section (after the list, as before), a bracketed note after a title is kept, then idempotently');
+      /* edits follow: approve a song into a decade, take one out, put one on both shifts */
+      const ed = ufx((a) => { a['1'].delivery.push('reelin-in-the-years'); a.from['reelin-in-the-years'] = 1975; a['1'].delivery.splice(1, 1); a['1'].kitchen.push('mr-blue-sky'); });
+      const ue = MU.render(ed, un), d70 = songs(at(ue, D70, 'Delivery Shift'));
+      ok(d70[1] === '2. BOHEMIAN RHAPSODY (the opera section) - QUEEN (1975), from 1975' && d70[d70.length - 1] === "6. REELIN' IN THE YEARS - STEELY DAN (1972), from 1975"
+         && !ue.includes('BLACK DOG') && songs(at(ue, D70, 'Kitchen Shift')).includes('7. MR. BLUE SKY - ELO (1977), from 1978'),
+         'an approved song is added, a taken-out one goes, the list renumbers, and a song on both shifts is in both (' + JSON.stringify(d70) + ')');
+      ok(at(ue, D70).lines.includes('The first decade.') && !/\n\n\n/.test(ue) && MU.render(ed, ue) === ue, 'with the prose kept, no doubled blank line, idempotently');
+      /* a decade whose level range changes keeps its section and prose */
+      const mv = ufx((a, f) => { const L = f['levels.json'].levels[5]; Object.assign(L, { year: 1981, era: 2, name: 'WINTER 1981', map: 2, menu: 2 }); });
+      const um = MU.render(mv, un);
+      ok(at(um, "The '70s (levels 1-5)").lines.includes('The first decade.') && at(um, "The '80s (levels 6-12)").children.length === 2 && !um.includes('(levels 1-6)'),
+         'a decade whose levels change is renamed and keeps its prose');
+      ok(IX.renderAll(files, (f) => f === 'music.md' ? noted : null)['music.md'] === un, 'renderAll renders music.md');
     }
 
     /* the same-as rule: a Same-as item with a wrapped note */
@@ -1722,7 +1691,7 @@ console.log('\n— docs in step —');
   }
   /* a rule value is said where it is defined, not restated as a literal */
   const mm = readFileSync('tools/content/docs/music.mjs', 'utf8'), at = readFileSync('admin/panels/attract.js', 'utf8');
-  ok(!/up to \d+ years/.test(mm) && /MUSIC_LOOKBACK/.test(mm), 'music.md\'s year window comes from MUSIC_LOOKBACK, not a literal');
+  ok(!/up to \d+ years|MUSIC_LOOKBACK|playlist\.json/.test(mm), 'music.md states no two-year window and reads no playlist.json');
   ok(!/\b(3 to 600|31 characters|62 characters)\b/.test(at) && /MIN_SECS/.test(at) && /MAX_SECS/.test(at),
      'the Attract tooltips take their limits from the validator, not literals');
 }
