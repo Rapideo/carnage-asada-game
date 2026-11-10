@@ -1453,7 +1453,14 @@ const recipe = it0.def.recipe;
 const wrongKey = Kt.bins.find((b) => b && !recipe.includes(b.key)).key;
 pickKey(recipe[0]);
 ok(it0.step === 1, 'the right base fills a pip');
-pickKey(wrongKey);
+/* a wrong pick always has its say when the strip is free (owner, 2026-11-09: "it's funnier when they're pissed off") */
+{
+  const Cs = runScript('Cast'), keepShow = Cs.showing;
+  Cs.showing = () => false; Kt.barkT = 0;
+  runScript('globalThis.__wr = Math.random; Math.random = () => 0.99;');
+  try { pickKey(wrongKey); } finally { runScript('Math.random = globalThis.__wr;'); Cs.showing = keepShow; }
+  ok(Kt.barkT === 5, 'a wrong pick speaks every time the strip is free, not 3 in 10 (barkT ' + Kt.barkT + ')');
+}
 ok(it0.step === 1 && !it0.clean && !tk.clean, 'a wrong pick costs the star and the clean bonus, not the progress');
 ok(Kt.wrongKey === wrongKey, 'and the red plate holds');
 for (let i = 1; i < recipe.length; i++) pickKey(recipe[i]);
@@ -1801,11 +1808,17 @@ console.log('\n— personal lines —');
   const unrnd = () => runScript('if (globalThis.__rnd) Math.random = globalThis.__rnd;');
   const shared = (k) => D[k].map((s) => s.replace(/^\d\|/, ''));
   try {
+    D.people = { c70trucker: { arrive: ['ONLY MINE'] } };
+    rnd(0.1); const a = G.lineFor('arrive', 'c70trucker'); unrnd();
+    rnd(0.9); const b = G.lineFor('arrive', 'c70trucker'); unrnd();
+    ok(a === 'ONLY MINE', 'a happy moment plays the personal line when the roll is under PERSONAL_ODDS (' + a + ')');
+    ok(b !== 'ONLY MINE' && shared('arrive').includes(b), 'and a shared line above it (' + b + ')');
+    /* trouble (owner, 2026-11-09): when they are dissatisfied, a face with its own line always uses it */
+    const T = ['wait', 'queue', 'walkout', 'wrong', 'late', 'missed'];
+    D.people = { c70trucker: Object.fromEntries(T.map((k) => [k, ['MINE ' + k.toUpperCase()]])) };
+    const hits = T.filter((k) => { rnd(0.99); const l = G.lineFor(k, 'c70trucker'); unrnd(); return l === 'MINE ' + k.toUpperCase(); });
+    ok(hits.length === T.length, "every trouble moment uses the face's own line, whatever the roll (" + hits.join() + ')');
     D.people = { c70trucker: { wait: ['ONLY MINE'] } };
-    rnd(0.1); const a = G.lineFor('wait', 'c70trucker'); unrnd();
-    rnd(0.9); const b = G.lineFor('wait', 'c70trucker'); unrnd();
-    ok(a === 'ONLY MINE', 'a personal line plays when the roll is under PERSONAL_ODDS (' + a + ')');
-    ok(b !== 'ONLY MINE' && shared('wait').includes(b), 'and a shared line plays above it (' + b + ')');
     let allShared = true;
     for (const v of [0.1, 0.5, 0.9]) { rnd(v); const l = G.lineFor('served', 'c70trucker'); unrnd(); if (!shared('served').includes(l)) allShared = false; }
     ok(allShared, 'a moment the face has no personal lines for always falls back to shared');

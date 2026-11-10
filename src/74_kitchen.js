@@ -420,7 +420,7 @@ const Kitchen = {
       this.stallT = 0;
       if (this.hintFor(it)) this.fireHint(G, 'wrong');     // show the right bin
       Audio5.sfx('kwrong');
-      if (Math.random() < 0.3) this.bark(G, 'wrong', this.focus(), true);
+      this.bark(G, 'wrong', this.focus(), true);   // every time the strip is free (owner, 2026-11-09); bark keeps the 5 s limit
     }
   },
 

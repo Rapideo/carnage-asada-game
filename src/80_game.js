@@ -42,6 +42,10 @@ const MONTH_NAMES = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JU
 const BAG_MAX = 3;
 /* how often a face with personal lines for a moment uses one instead of the shared pool */
 const PERSONAL_ODDS = 0.75;
+/* when they are dissatisfied, a face with its own line always uses it (owner,
+   2026-11-09: "it's funnier when they're pissed off"); the shared pool is only
+   for a face with nothing of its own for the moment */
+const TROUBLE_KINDS = ['wait', 'queue', 'walkout', 'wrong', 'late', 'missed'];
 const RAIL_EJECT = 52;      // px from the corridor centre a wreck throws you
 const THROW_CD = 0.34;
 const CONTINUE_SECS = 10;   // GDD II.F
@@ -648,12 +652,12 @@ const G = {
   },
 
   /* The line this face says at this moment: its own about 3 times in 4 when it
-     has some for the moment, else the shared pool. A face with personal lines
+     has some for the moment (always, for a TROUBLE_KINDS moment), else the shared pool. A face with personal lines
      for some moments and not others falls back, moment by moment. */
   lineFor(kind, face) {
     if (typeof DIALOGUE === 'undefined') return null;
     const own = face && DIALOGUE.people && DIALOGUE.people[face] && DIALOGUE.people[face][kind];
-    if (own && own.length && Math.random() < PERSONAL_ODDS) return own[(Math.random() * own.length) | 0];
+    if (own && own.length && (TROUBLE_KINDS.includes(kind) || Math.random() < PERSONAL_ODDS)) return own[(Math.random() * own.length) | 0];
     return this.pickLine(kind);
   },
 
