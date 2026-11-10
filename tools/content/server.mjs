@@ -6,7 +6,7 @@ import { spawn } from 'node:child_process';
 import { readFile, readdir, stat, writeFile, mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { extname, join, normalize, resolve, sep } from 'node:path';
-import { validateContent, memSource, ContentError } from './validate.mjs';
+import { validateContent, memSource, ContentError, inGame, APPROVED } from './validate.mjs';
 import { formatJSON, formatLike, formatSongs } from './format.mjs';
 import { renderDocsAt, writeTexts, driftAt } from './docs/index.mjs';
 
@@ -343,7 +343,38 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
       return [200, { rel, json, output: r.stdout.trim(), stamp: await stamps([rel]) }];
     } finally { await rm(tmp, { recursive: true, force: true }); }
   }
-  const builtin = { '/admin/api/recolor': recolor, '/admin/api/face': newFace, '/admin/api/port': portSong };
+  /* POST /admin/api/unport { id }: Delete in the Music panel. A converted song
+     that no level and not the title plays is removed: content/music/<id>.json,
+     its tools/music/songs.json entry and its preview tools/music/preview/<id>.wav,
+     so its MIDI is "not converted" again. What is in the game is read from
+     content/music/approved.json ON DISK, so a song taken out in the panel but
+     not yet saved is still refused (409 in game). Never touches another file.
+     -> 200 { rel } | 400 | 404 no such song | 409 in game | 409 busy */
+  async function unportSong(req, res) {
+    let b;
+    try { b = JSON.parse(await readBody(req)); } catch { return send(res, 400, { error: 'bad request' }); }
+    const id = b && b.id;
+    if (typeof id !== 'string' || !SONG_ID.test(id) || id.length > 48 || id === 'playlist' || id === 'approved') return send(res, 400, { error: 'bad request' });
+    let held;
+    try { held = await withBusy(() => unportLocked(id)); }
+    catch (e) { return send(res, 500, { error: 'server', message: String(e && e.message || e) }); }
+    if (held.busy) return send(res, 409, { error: 'busy' });
+    send(res, held.value[0], held.value[1]);
+  }
+  async function unportLocked(id) {
+    const rel = 'music/' + id + '.json', dest = join(content, 'music', id + '.json');
+    try { await stat(dest); } catch { return [404, { error: 'no such song', rel }]; }
+    let approved = null;
+    try { approved = JSON.parse(await readFile(join(content, ...APPROVED.split('/')), 'utf8')); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+    if (inGame(approved, id)) return [409, { error: 'in game', rel }];
+    const songs = await readSongs();
+    if (songs.json.songs.some((s) => s && s.id === id))
+      await writeTexts(root, { [SONGS]: formatSongs({ ...songs.json, songs: songs.json.songs.filter((s) => !(s && s.id === id)) }) });
+    await rm(dest, { force: true });
+    await rm(join(root, 'tools', 'music', 'preview', id + '.wav'), { force: true });
+    return [200, { rel }];
+  }
+  const builtin = { '/admin/api/recolor': recolor, '/admin/api/face': newFace, '/admin/api/port': portSong, '/admin/api/unport': unportSong };
 
   const server = createServer(async (req, res) => {
     try {

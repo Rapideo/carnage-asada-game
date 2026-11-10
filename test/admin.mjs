@@ -425,6 +425,41 @@ console.log('\n— server —');
       ok(r.status === 422 && /’/.test(j.log || '') && !existsSync(join(tmp, 'content/music/on-the-outside.json')) && readFileSync(SJ, 'utf8') === sj2,
          'a title the font cannot draw is 422 naming the character, and leaves nothing behind (' + r.status + ' ' + String(j.log).slice(0, 80) + ')');
       ok((await port(hazy, 'http://evil.example')).status === 403, 'the port route checks the Origin too');
+
+      /* Delete (2026-11-09): /admin/api/unport removes a converted song nobody plays */
+      const unport = (body, origin) => fetch(srv.url + '/admin/api/unport', {
+        method: 'POST', headers: { 'content-type': 'application/json', origin: origin || srv.url },
+        body: JSON.stringify(body) });
+      const AJ = join(tmp, 'content/music/approved.json'), ajText = readFileSync(AJ, 'utf8');
+      const osb = join(tmp, 'content/music/one-step-beyond.json');
+      const sj3 = readFileSync(SJ, 'utf8'), kText2 = readFileSync(kj, 'utf8'), osbText = existsSync(osb) ? readFileSync(osb, 'utf8') : null;
+      r = await unport({ id: 'kashmir' }); j = await r.json();
+      const r2 = await unport({ id: 'one-step-beyond' }), j2 = await r2.json();
+      ok(r.status === 409 && j.error === 'in game' && r2.status === 409 && j2.error === 'in game' && readFileSync(kj, 'utf8') === kText2
+         && osbText !== null && readFileSync(osb, 'utf8') === osbText && readFileSync(SJ, 'utf8') === sj3,
+         'deleting a song in a decade (Kashmir) or on the title list only (One Step Beyond) is 409 in game, and nothing changes (' + r.status + ' ' + r2.status + ')');
+      r = await unport({ id: 'no-such-song' });
+      ok(r.status === 404 && (await r.json()).error === 'no such song', 'deleting an id with no song is 404 (' + r.status + ')');
+      const ucodes = [];
+      for (const b of [{ id: '../x' }, { id: 'Bad' }, { id: '' }, { id: 7 }, {}, { id: 'approved' }]) ucodes.push((await unport(b)).status);
+      ok(ucodes.every((c) => c === 400), 'a bad id (../x, Bad, empty, a number, none, the approved file) is 400 (' + ucodes.join() + ')');
+      ok((await unport({ id: hazy.id }, 'http://evil.example')).status === 403 && existsSync(made), 'the unport route checks the Origin, and refuses without touching the song');
+      /* taken out in the panel but not saved: the file on disk still names it */
+      const aj = JSON.parse(ajText); aj['2'].kitchen.push(hazy.id); aj.from[hazy.id] = 1987; writeFileSync(AJ, JSON.stringify(aj));
+      r = await unport({ id: hazy.id });
+      ok(r.status === 409 && existsSync(made), 'a song the approved file on disk names is refused, whatever the panel holds (' + r.status + ')');
+      writeFileSync(AJ, ajText);
+      const { mkdirSync } = await import('node:fs');
+      const wav = join(tmp, 'tools/music/preview/' + hazy.id + '.wav');
+      mkdirSync(join(tmp, 'tools/music/preview'), { recursive: true }); writeFileSync(wav, 'RIFF');
+      r = await unport({ id: hazy.id }); j = await r.json();
+      const sj4 = JSON.parse(readFileSync(SJ, 'utf8'));
+      ok(r.status === 200 && j.rel === 'music/' + hazy.id + '.json' && !existsSync(made) && !existsSync(wav)
+         && !sj4.songs.some((s) => s.id === hazy.id) && sj4.songs.length === JSON.parse(sjText).songs.length && readFileSync(SJ, 'utf8') === formatSongs(sj4),
+         'deleting a converted, unapproved song removes its file, its songs.json entry and its preview (' + r.status + ')');
+      const l2 = await lib();
+      ok(l2 && (l2.find((m) => m.file === hazy.file) || { ids: ['?'] }).ids.length === 0, 'and its MIDI is unported again');
+      ok(readFileSync(AJ, 'utf8') === ajText && readFileSync(kj, 'utf8') === kText2, 'and no other file changed');
     }
 
     /* a face edit (eyes) is written in the layout the face file already has */
@@ -798,6 +833,21 @@ console.log('\n— store —');
     store.set('levels.json', 'levels.0.season', 'summer');
     const good = await store.save();
     ok(good.ok && store.dirty.size === 0, 'a valid save succeeds and clears dirty');
+
+    /* forget (2026-11-09): a song the server deleted leaves the working copy */
+    {
+      const ks = structuredClone(store.files['music/kashmir.json']); ks.id = 'forget-me';
+      store.adopt('music/forget-me.json', ks, 1);
+      store.set('music/forget-me.json', 'title', 'FORGET ME');
+      ok(typeof store.forget === 'function', 'store.forget exists');
+      if (typeof store.forget === 'function') {
+        store.forget('music/forget-me.json');
+        const R = 'music/forget-me.json';
+        ok(!(R in store.files) && !store.dirty.has(R) && !store.added.has(R) && !(R in store.stamp), 'forget drops the file, its stamp, and its dirty and added marks');
+        const v = store.validate();
+        ok(v.built && !v.built.music['forget-me'] && store.error === null, 'and the next validate builds without it');
+      }
+    }
     ok(readFileSync(join(tmp, 'content/levels.json'), 'utf8').includes('SUMMER 1972!'), 'the file on disk has the edit');
     store.set('levels.json', 'levels.0.name', 'SUMMER 1972');
     const again = await store.save();

@@ -79,6 +79,16 @@ export const store = {
     else if (stamp && typeof stamp === 'object') Object.assign(this.stamp, stamp);
   },
 
+  /* A file the server deleted (the Music panel's Delete): out of the working
+     copy, its stamp and its dirty and added marks, so no later save or
+     validate brings it back. */
+  forget(rel) {
+    delete this.files[rel];
+    delete this.stamp[rel];
+    this.dirty.delete(rel);
+    this.added.delete(rel);
+  },
+
   /* The big baked tables are most of the build; skip comparing them unless a
      file that feeds them is dirty (or was adopted since the load). */
   bigUntouched() {
