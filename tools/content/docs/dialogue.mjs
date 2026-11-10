@@ -5,17 +5,16 @@
 
    The doc is `# dialogue.md` (a one-paragraph preamble) over three sections:
 
-     ## I. Shared lines   one `### <Key>` per key of DLG_KEYS, in that order
+     ## I. The speaker    `### Who`, the name on every customer's bubble (DLG_KEYS)
      ## II. The cast      one `### <NAME>` per cast character, `#### <Moment>` under it
-     ## III. Customers    one `### <face>` per face with personal lines, `#### <Moment>`
+     ## III. Customers    one `### <face>` per face, `#### <Moment>` for each of the
+                          13 DLG_MOMENTS it has, in that order
 
-   Each list is numbered, in JSON form (quoted, as stored, upper case); a shared
-   line's era floor is written after it instead of before it:
+   Each list is numbered, in JSON form (quoted, as stored, upper case). There
+   are no shared pools (owner, 2026-11-09), so nothing carries an era floor;
+   itemText still writes one after a line, should one appear.
 
-     3. "TIME IS MONEY, TACO BOY!" (1980s on)      <- stored as "2|TIME IS ..."
-
-   `who` is a single string and reads as a one-item list. Cast and personal lines
-   carry no era.
+   `who` is a single string and reads as a one-item list.
 
    What a render writes: the headings and the numbered lists. A character, face
    or moment the JSON no longer has is dropped with its lines (values never
@@ -25,29 +24,34 @@
    stays with the item at the same position. A section the doc does not have is
    added at the end; one the JSON does not know is left alone. A doc from before
    the three sections (`## I. Who` ...) has its key sections moved under Shared
-   lines, notes and all.
+   lines, notes and all (and a doc from before 2026-11-09 has its "Shared lines"
+   section renamed The speaker; the retired pools in it leave with their lines).
 
-   read(text) returns { shared: {key: [line]}, cast: {NAME: {moment: [line]}},
+   read(text) returns { shared: { who: [line] }, cast: {NAME: {moment: [line]}},
    people: {face: {moment: [line]}} }, for the round-trip test. */
 import { parseMd, toMd, roman } from './engine.mjs';
 import { DLG_KEYS, DLG_MOMENTS, CAST_MOMENTS } from '../validate.mjs';
 
-const PREAMBLE = 'The lines over the dialogue strip, in both halves of the game: the shared pools, then the cast, then each customer face\'s own lines. '
-  + 'In the shared pools a line tagged (1980s on) or (1990s on) is only said from that era, so nobody quotes a film that has not come out yet. '
+const PREAMBLE = 'The lines over the dialogue strip, in both halves of the game: the name on the bubble, then the cast, then every customer\'s own lines. '
+  + 'There are no shared lines (owner, 2026-11-09): each customer says only their own, at each of 13 moments, and the build refuses a customer with nothing to say at one. '
   + 'The game reads `content/dialogue.json`: that file is the master copy and this page mirrors it, so edit the lines in Service Mode or in the JSON.';
 
 /* one line of context per key, written once under a new heading and kept after */
 const KEY_NOTE = {
   who: 'The name on the speech bubble.',
   delivered: 'Delivery Shift: the order arrived in good time.',
-  missed: 'Delivery Shift: the bag landed off the porch.',
+  perfect: 'Delivery Shift: the toss landed dead centre on the mat.',
   late: 'Delivery Shift: it arrived, but the tip had run down.',
+  missed: 'Delivery Shift: the bag landed off the porch.',
+  nearmiss: 'Delivery Shift: a passer-by the car nearly ran down.',
+  fender: 'Delivery Shift: the driver of a car the player crunched.',
   arrive: 'Kitchen Shift: a new ticket goes on the rail.',
   wait: 'Kitchen Shift: a customer\'s patience is under 30%.',
   queue: 'Kitchen Shift: the line is past three customers.',
-  walkout: 'Kitchen Shift: a customer\'s patience ran out.',
-  served: 'Kitchen Shift: a ticket was served.',
   wrong: 'Kitchen Shift: a wrong pick.',
+  served: 'Kitchen Shift: a ticket was served.',
+  nailed: 'Kitchen Shift: a clean ticket, served fast.',
+  walkout: 'Kitchen Shift: a customer\'s patience ran out.',
 };
 
 const ERA = { 2: '1980s on', 3: '1990s on' };
@@ -112,10 +116,10 @@ function section(doc, name, n, note) {
   return s;
 }
 /* a node of moments: #### <Moment> with a numbered list each, in `order` */
-function momentNodes(parent, order, lines) {
+function momentNodes(parent, order, lines, notes = MOMENT_NOTE) {
   const kept = order.filter((m) => lines[m]);
   const nodes = kept.map((m) => {
-    const n = ensure(parent, title(m), 4, MOMENT_NOTE[m] || '');
+    const n = ensure(parent, title(m), 4, notes[m] || '');
     n.lines = writeList(n.lines, lines[m].map(itemText));
     return n;
   });
@@ -140,7 +144,9 @@ export default {
 
     /* I. Shared lines. A doc from before the three sections has the keys at
        depth 2 straight under the title: adopt them, notes and all. */
-    const shared = section(doc, 'Shared lines', 1, 'The pools every customer draws from. A line tagged (1980s on) or (1990s on) is only said from that era.');
+    const was = doc.children.find((c) => c.depth === 2 && bare(c.heading) === 'Shared lines');
+    if (was) was.heading = 'The speaker';
+    const shared = section(doc, 'The speaker', 1, 'The name on every customer\'s speech bubble.');
     const old = doc.children.filter((c) => c.depth === 2 && c !== shared && DLG_KEYS.includes(bare(c.heading).toLowerCase()));
     for (const o of old) { o.depth = 3; o.children.forEach((c) => { c.depth = 4; }); }
     shared.children = [...shared.children, ...old];
@@ -152,7 +158,9 @@ export default {
       n.lines = writeList(n.lines, [].concat(dlg[k]).map(itemText));
       return n;
     });
-    shared.children = [...found, ...shared.children.filter((c) => !found.includes(c))];
+    /* the retired shared pools leave the mirror with their lines; anything else stays */
+    const retired = new Set(Object.keys(KEY_NOTE).filter((k) => !DLG_KEYS.includes(k)));
+    shared.children = [...found, ...shared.children.filter((c) => !found.includes(c) && !retired.has(bare(c.heading).toLowerCase()))];
 
     /* II. The cast */
     const cast = section(doc, 'The cast', 2, 'The officers, rivals and coworkers who speak at their own moments. Their lines carry no era.');
@@ -164,10 +172,10 @@ export default {
     cast.children = chars;                 // a character the JSON no longer names takes its lines with it
 
     /* III. Customers */
-    const cust = section(doc, 'Customers', 3, 'A customer face\'s own lines. Said about 3 times in 4 when the face has one for the moment; otherwise the shared pool.');
+    const cust = section(doc, 'Customers', 3, 'Every customer\'s own lines, at each of the 13 moments. A customer says only these.');
     const faces = Object.entries(dlg.people || {}).map(([face, lines]) => {
       const n = ensure(cust, face, 3, '');
-      momentNodes(n, DLG_MOMENTS, lines);
+      momentNodes(n, DLG_MOMENTS, lines, KEY_NOTE);
       return n;
     });
     cust.children = faces;
@@ -184,7 +192,7 @@ export default {
     const doc = root.children.find((n) => n.depth === 1);
     const sec = (name) => doc.children.find((c) => c.depth === 2 && bare(c.heading) === name);
     const out = { shared: {}, cast: {}, people: {} };
-    const sh = sec('Shared lines');
+    const sh = sec('The speaker');
     for (const k of DLG_KEYS) {
       const n = sh && sh.children.find((c) => bare(c.heading).toLowerCase() === k);
       out.shared[k] = n ? items(n) : undefined;

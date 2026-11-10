@@ -40,12 +40,11 @@ const CARD_STRIPE = {
 };
 const MONTH_NAMES = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
 const BAG_MAX = 3;
-/* how often a face with personal lines for a moment uses one instead of the shared pool */
-const PERSONAL_ODDS = 0.75;
-/* when they are dissatisfied, a face with its own line always uses it (owner,
-   2026-11-09: "it's funnier when they're pissed off"); the shared pool is only
-   for a face with nothing of its own for the moment */
-const TROUBLE_KINDS = ['wait', 'queue', 'walkout', 'wrong', 'late', 'missed'];
+/* a passer-by's line (nearmiss, fender) waits at least this long after the last
+   one, and never talks over a line already showing */
+const SHOUT_GAP = 10;
+/* a near miss: a pedestrian this close, at this speed, not hit */
+const NEAR_PX = 24, NEAR_SPEED = 60;
 const RAIL_EJECT = 52;      // px from the corridor centre a wreck throws you
 const THROW_CD = 0.34;
 const CONTINUE_SECS = 10;   // GDD II.F
@@ -92,7 +91,7 @@ const G = {
   state: 'boot', time: 0, shift: 0, earned: 0,
   combo: 1, comboPop: 0, heat: 0, heatMax: HEAT_MAX,
   bag: BAG_MAX, bagMax: BAG_MAX, needPickup: false,
-  player: null, traffic: [], peds: [], flying: [], weeds: [], cop: null, copT: 0,
+  player: null, traffic: [], peds: [], flying: [], weeds: [], cop: null, copT: 0, shoutT: 0,
   train: null, trainT: 0, crossings: [], railSide: 0, wreckCd: 0,
   cam: { x: 0, y: 0 }, shake: 0, shakeX: 0, shakeY: 0, hitstop: 0,
   order: null, banner: '', bannerT: 0, bannerCol: PAL.bone,
@@ -391,7 +390,7 @@ const G = {
     this.player = new Player(d.x, d.y + 40, PI / 2);
     this.cam.x = clamp(d.x - VW / 2, 0, WW - VW);
     this.cam.y = clamp(d.y - VH / 2, 0, WH - VH);
-    this.traffic.length = 0; this.peds.length = 0;
+    this.traffic.length = 0; this.peds.length = 0; this.shoutT = 0;
     this.seedTraffic(30); this.seedPeds(24);
     /* a new direction, a fresh gust clock and new tumbleweeds every play */
     Wind.reset(this.windy, this.diff); this.weeds.length = 0;
@@ -635,31 +634,47 @@ const G = {
     this.miss(z, wrong);
   },
 
-  /* A line for the dialogue strip, from content/dialogue.json. A line may
-     carry an era floor -- "2|HELLOOO? MCFLY?" only plays from the 1980s on
-     -- so nobody quotes a film that has not come out yet. */
-  pickLine(kind) {
-    if (typeof DIALOGUE === 'undefined') return null;
-    const all = DIALOGUE[kind];
-    if (!all || !all.length) return null;
-    const ok = [];
-    for (const s of all) {
-      const m = /^(\d)\|(.*)$/.exec(s);
-      if (!m) ok.push(s);
-      else if (this.era >= +m[1]) ok.push(m[2]);
-    }
-    return ok.length ? ok[(Math.random() * ok.length) | 0] : null;
-  },
-
-  /* The line this face says at this moment: its own about 3 times in 4 when it
-     has some for the moment (always, for a TROUBLE_KINDS moment), else the shared pool. A face with personal lines
-     for some moments and not others falls back, moment by moment. */
+  /* The line this face says at this moment, from its own lines in
+     content/dialogue.json, or null. There are no shared lines (owner,
+     2026-11-09): every character speaks for themselves, and the build refuses
+     a cast face with no line for a moment. */
   lineFor(kind, face) {
     if (typeof DIALOGUE === 'undefined') return null;
     const own = face && DIALOGUE.people && DIALOGUE.people[face] && DIALOGUE.people[face][kind];
-    if (own && own.length && (TROUBLE_KINDS.includes(kind) || Math.random() < PERSONAL_ODDS)) return own[(Math.random() * own.length) | 0];
-    return this.pickLine(kind);
+    return own && own.length ? own[(Math.random() * own.length) | 0] : null;
   },
+
+  /* A completed toss: dead centre is perfect, a run-down tip is late either way. */
+  deliveredKind(perfect, late) { return late ? 'late' : perfect ? 'perfect' : 'delivered'; },
+
+  /* A passer-by (a pedestrian nearly run down, the driver of a crunched car):
+     a face from the era's cast at this level's year, kept per pedestrian or car. */
+  passerFace(who) {
+    if (!who.face) { const cast = Kitchen.castFor(this.era, this.level && this.level.year); who.face = cast[(Math.random() * cast.length) | 0]; }
+    return who.face;
+  },
+
+  /* A passer-by's line: their own, hostile, without an address. It waits its
+     turn (SHOUT_GAP) and never talks over a line already up, so a crash does
+     not cut off a customer. true when it was said. */
+  shout(kind, face) {
+    if (this.state !== 'play' || typeof DIALOGUE === 'undefined' || Dialog.active || this.shoutT > 0) return false;
+    const line = this.lineFor(kind, face);
+    if (!line) return false;
+    this.shoutT = SHOUT_GAP;
+    Dialog.say(DIALOGUE.who, line, { face, hostile: true, hood: 3, sub: '', meter: null, secs: 2.6 });
+    return true;
+  },
+
+  /* a pedestrian passed close and fast without being hit: a near miss, once each */
+  nearPass(p, q, d) {
+    if (q.nearSaid || q.tumble > 0 || d >= NEAR_PX || p.speed <= NEAR_SPEED) return;
+    q.nearSaid = true;
+    this.shout('nearmiss', this.passerFace(q));
+  },
+
+  /* the player CRUNCHed into another car: its driver has words */
+  onCrunch(c) { this.shout('fender', this.passerFace(c)); },
 
   /* One line from the customer, over the dialogue strip. Kept out of the demo:
      attract mode is a shop window and a talking head over it reads as a
@@ -711,7 +726,7 @@ const G = {
     const late = o.tip < (o.floor + (o.max - o.floor) * 0.25);
     /* only a perfect toss is a rival moment; the rival speaks instead of the customer */
     if (!(perfect && Math.random() < RIVAL_ODDS && Cast.say('rival', 'perfect')))
-      this.react(late && DIALOGUE.late ? 'late' : 'delivered', o, late);
+      this.react(this.deliveredKind(perfect, late), o, late);
     Audio5.sfx(perfect ? 'perfect' : 'deliver');
     Audio5.sfx('cash');
     this.flash = 0.14;
@@ -1098,6 +1113,7 @@ const G = {
           Fx.pop(p.x, p.y - 20, 'CRUNCH!', PAL.bad);
           this.bumpHeat(15);
           this.combo = 1;
+          if (!demo) this.onCrunch(c);
         }
         // Separate the two cars, but never shove the player into geometry:
         // an unchecked push is how you end up overlapping a building, and an
@@ -1126,12 +1142,13 @@ const G = {
         this.shake = 5; this.hitstop = 0.05;
         Audio5.sfx('ped');
         Cast.say('officer', 'fined');
-      }
+      } else if (!demo) this.nearPass(p, q, hyp(q.x - p.x, q.y - p.y));
     }
     while (this.peds.length < 24) this.spawnPed();
 
     /* the Union Pacific */
     this.wreckCd -= dt;
+    this.shoutT -= dt;
     this.trainT -= dt;
     if (!this.train && this.trainT <= 0) {
       this.spawnTrain(Math.random() < 0.5 ? 1 : -1);

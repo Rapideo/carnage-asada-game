@@ -435,6 +435,10 @@ const Kitchen = {
     this.pop(it.clean ? 'WRAPPED  *' : 'WRAPPED', this.BX + this.BW / 2, 168, it.clean ? PAL.amber : PAL.bone);
   },
 
+  /* clean and fast (tip still at NAILED_TIP of its max or more) is nailed */
+  NAILED_TIP: 0.6,
+  servedKind(t) { return t.clean && t.tip >= t.max * this.NAILED_TIP ? 'nailed' : 'served'; },
+
   serve(G) {
     const t = this.focus();
     if (!t || t.items.some((it) => !it.wrapped)) { this.buzz(); return; }
@@ -452,7 +456,9 @@ const Kitchen = {
       if (++this.cleanRun >= 3) { this.cleanRun = 0; if (!this.demo) Cast.say('coworker', 'streak'); }
     } else this.cleanRun = 0;
     Audio5.sfx('kserve'); Audio5.sfx('cash');
-    if (Math.random() < 0.35) this.bark(G, 'served', t, false);
+    /* a clean ticket served fast always has its say; an ordinary one 35% of the time */
+    const kind = this.servedKind(t);
+    if (kind === 'nailed' || Math.random() < 0.35) this.bark(G, kind, t, false);
     G.flash = 0.08;
     this.fillRail();
     G.onComplete();

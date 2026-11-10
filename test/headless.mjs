@@ -1802,31 +1802,73 @@ console.log('\n— test hooks —');
 }
 
 console.log('\n— personal lines —');
+/* every character's own lines (owner, 2026-11-09): there are no shared lines.
+   A face says only its own line for the moment, or nothing. */
 {
   const D = KX.DIALOGUE, keep = D.people;
   const rnd = (v) => runScript('globalThis.__rnd = Math.random; Math.random = () => ' + v + ';');
   const unrnd = () => runScript('if (globalThis.__rnd) Math.random = globalThis.__rnd;');
-  const shared = (k) => D[k].map((s) => s.replace(/^\d\|/, ''));
   try {
-    D.people = { c70trucker: { arrive: ['ONLY MINE'] } };
-    rnd(0.1); const a = G.lineFor('arrive', 'c70trucker'); unrnd();
-    rnd(0.9); const b = G.lineFor('arrive', 'c70trucker'); unrnd();
-    ok(a === 'ONLY MINE', 'a happy moment plays the personal line when the roll is under PERSONAL_ODDS (' + a + ')');
-    ok(b !== 'ONLY MINE' && shared('arrive').includes(b), 'and a shared line above it (' + b + ')');
-    /* trouble (owner, 2026-11-09): when they are dissatisfied, a face with its own line always uses it */
-    const T = ['wait', 'queue', 'walkout', 'wrong', 'late', 'missed'];
-    D.people = { c70trucker: Object.fromEntries(T.map((k) => [k, ['MINE ' + k.toUpperCase()]])) };
-    const hits = T.filter((k) => { rnd(0.99); const l = G.lineFor(k, 'c70trucker'); unrnd(); return l === 'MINE ' + k.toUpperCase(); });
-    ok(hits.length === T.length, "every trouble moment uses the face's own line, whatever the roll (" + hits.join() + ')');
-    D.people = { c70trucker: { wait: ['ONLY MINE'] } };
-    let allShared = true;
-    for (const v of [0.1, 0.5, 0.9]) { rnd(v); const l = G.lineFor('served', 'c70trucker'); unrnd(); if (!shared('served').includes(l)) allShared = false; }
-    ok(allShared, 'a moment the face has no personal lines for always falls back to shared');
-    rnd(0.1); const n1 = G.lineFor('wait', null), n2 = G.lineFor('wait', 'nobody'); unrnd();
-    ok(shared('wait').includes(n1) && shared('wait').includes(n2), 'no face, or a face with no entry, is shared');
+    D.people = { c70trucker: { wait: ['ONLY MINE'], arrive: ['MINE TOO'] } };
+    const got = [0.01, 0.5, 0.99].map((v) => { rnd(v); const l = [G.lineFor('wait', 'c70trucker'), G.lineFor('arrive', 'c70trucker')]; unrnd(); return l.join('/'); });
+    ok(got.every((s) => s === 'ONLY MINE/MINE TOO'), 'a face says its own line, whatever the roll (' + got.join(' ') + ')');
+    ok(G.lineFor('served', 'c70trucker') === null, 'a moment the face has no line for is silent: there is no shared pool');
+    ok(G.lineFor('wait', null) === null && G.lineFor('wait', 'nobody') === null, 'no face, or a face with no entry, is silent');
     D.people = undefined;
-    ok(shared('wait').includes(G.lineFor('wait', 'c70trucker')), 'with no people table at all it is shared');
+    ok(G.lineFor('wait', 'c70trucker') === null, 'with no people table at all, silent');
+    ok(typeof G.pickLine === 'undefined', 'the shared-pool picker is gone');
+    const shipped = ['delivered', 'perfect', 'late', 'missed', 'nearmiss', 'fender', 'arrive', 'wait', 'queue', 'wrong', 'served', 'nailed', 'walkout'];
+    ok(!shipped.some((k) => k in D), 'the shipped DIALOGUE has no shared pools (' + shipped.filter((k) => k in D).join() + ')');
   } finally { D.people = keep; unrnd(); }
+}
+
+console.log('\n— the 13 moments —');
+{
+  const Dg = runScript('Dialog');
+  const said = [];
+  const keepLF = G.lineFor, keepSay = Dg.say, keepState = G.state;
+  G.lineFor = (k, f) => 'LINE ' + k + ' ' + f;
+  Dg.say = (who, line, o) => { said.push({ line, o }); };
+  try {
+    /* delivery: which moment a completed toss is */
+    ok(typeof G.deliveredKind === 'function' && G.deliveredKind(false, false) === 'delivered' && G.deliveredKind(true, false) === 'perfect'
+       && G.deliveredKind(true, true) === 'late' && G.deliveredKind(false, true) === 'late',
+       'a toss on time is delivered, dead centre is perfect, and a run-down tip is late either way');
+    /* shout: a passer-by's line waits its turn */
+    G.state = 'play'; Dg.active = false; G.shoutT = 0;
+    ok(typeof G.shout === 'function' && G.shout('nearmiss', 'c70trucker') === true && said.length === 1 && said[0].line === 'LINE nearmiss c70trucker' && said[0].o.face === 'c70trucker' && said[0].o.hostile,
+       'a passer-by shouts their own line, hostile, with their face');
+    ok(G.shout('fender', 'c70trucker') === false && said.length === 1, 'and not again until SHOUT_GAP has passed');
+    G.shoutT = 0; Dg.active = true;
+    ok(G.shout('fender', 'c70trucker') === false && said.length === 1, 'never over a line already showing');
+    Dg.active = false; G.state = 'title';
+    ok(G.shout('fender', 'c70trucker') === false && said.length === 1, 'and never outside play');
+    G.state = 'play';
+    /* the passer-by is a face from the era's cast, kept per pedestrian or car */
+    const q = { x: 0, y: 0, tumble: 0 }, car = { x: 0, y: 0 };
+    const f1 = G.passerFace(q), f2 = G.passerFace(q), cast = KX.Kitchen.castFor(G.era, G.level && G.level.year);
+    ok(f1 && f1 === f2 && cast.includes(f1), 'a pedestrian keeps one face from the era\'s cast (' + f1 + ')');
+    ok(cast.includes(G.passerFace(car)), 'and so does a car');
+    /* near miss: close, fast, not hit, once per pedestrian */
+    said.length = 0; G.shoutT = 0;
+    const fast = { x: 0, y: 0, speed: 90 }, slow = { x: 0, y: 0, speed: 20 };
+    const p1 = { x: 20, y: 0, tumble: 0 }, p2 = { x: 20, y: 0, tumble: 0 }, p3 = { x: 80, y: 0, tumble: 0 };
+    G.nearPass(slow, p2, 20); G.nearPass(fast, p3, 80);
+    ok(said.length === 0, 'a slow pass, or a far one, is no near miss');
+    G.nearPass(fast, p1, 20);
+    ok(said.length === 1 && /^LINE nearmiss /.test(said[0].line), 'a fast pass close by is a near miss, said by the pedestrian (' + (said[0] && said[0].line) + ')');
+    G.shoutT = 0; G.nearPass(fast, p1, 20);
+    ok(said.length === 1, 'and that pedestrian says it only once');
+    /* fender: the CRUNCH */
+    said.length = 0; G.shoutT = 0;
+    G.onCrunch(car);
+    ok(said.length === 1 && /^LINE fender /.test(said[0].line), 'a crunch into another car is a fender line from its driver');
+    /* kitchen: nailed */
+    const Kk = KX.Kitchen;
+    ok(typeof Kk.servedKind === 'function' && Kk.servedKind({ clean: true, tip: 90, max: 100 }) === 'nailed' && Kk.servedKind({ clean: true, tip: 20, max: 100 }) === 'served'
+       && Kk.servedKind({ clean: false, tip: 100, max: 100 }) === 'served',
+       'a clean ticket served fast is nailed; slow or not clean is served');
+  } finally { G.lineFor = keepLF; Dg.say = keepSay; G.state = keepState; Dg.active = false; G.shoutT = 0; }
 }
 
 console.log('\n— one face per address —');

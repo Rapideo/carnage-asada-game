@@ -124,7 +124,15 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
   ok(e instanceof ContentError && e.path.join() === '9', 'an era no level uses is refused');
   e = castErr((c) => { c['1'].push(c['1'][0]); });
   ok(e instanceof ContentError && e.path.join() === '1,' + (want[1].length), 'a face twice in one era is refused on the repeat');
-  ok(castErr((c) => { c['1'].push('smokerbust'); c['3'].unshift('c70teacher'); }) === null, 'any face may be cast, in any era');
+  /* every customer speaks only their own lines (2026-11-09): a cast face needs a line at every moment */
+  const voice = (f, face) => { f['dialogue.json'].people[face] = structuredClone(f['dialogue.json'].people.c70teacher); };
+  ok(castErr((c, f) => { voice(f, 'smokerbust'); c['1'].push('smokerbust'); c['3'].unshift('c70teacher'); }) === null, 'any face with lines of its own may be cast, in any era');
+  e = castErr((c) => { c['1'].push('smokerbust'); });
+  ok(e instanceof ContentError && e.file === 'content/dialogue.json' && e.path.join() === 'people,smokerbust,delivered' && /say nothing/.test(e.message),
+     'casting a face with no lines is refused on its first silent moment (' + (e && e.message) + ')');
+  e = castErr((c, f) => { voice(f, 'smokerbust'); delete f['dialogue.json'].people.smokerbust.nailed; c['2'].push('smokerbust'); });
+  ok(e instanceof ContentError && e.path.join() === 'people,smokerbust,nailed', 'and so is one missing a single moment');
+  ok(castErr((c, f) => { delete f['dialogue.json'].people.c70teacher.nailed; c['1'] = c['1'].filter((x) => x !== 'c70teacher'); }) === null, 'a face in no cast may have any lines, or none');
   e = castErr((c, f) => { delete f['casts.json']; });
   ok(e instanceof ContentError && e.file === 'content/casts.json', 'a missing casts.json is a ContentError naming it');
 
@@ -769,7 +777,7 @@ const diskBuilt = validateContent(fsSource('content'));
   try { C0 = runScript('CASTS'); } catch (x) { C0 = null; }
   ok(C0 && C0['1'], 'the game has CASTS');
   if (C0) {
-    const f4 = files2(); f4['casts.json']['1'] = ['c70teacher', 'smokerbust'];
+    const f4 = files2(); f4['casts.json']['1'] = ['c70teacher', 'smokerbust']; f4['dialogue.json'].people.smokerbust = structuredClone(f4['dialogue.json'].people.c70teacher);
     A.applyBuilt(validateContent(memSource(f4)), G);
     ok(runScript('CASTS') === C0 && SB.__k.Kitchen.castFor(1).join() === 'c70teacher,smokerbust', 'a cast edit reaches Kitchen.castFor, CASTS kept in place');
     A.applyBuilt(diskBuilt, G);
@@ -914,9 +922,11 @@ console.log('\n— job, then save —');
     if (status === 200) {
       store.adopt(j.rel, j.json, j.stamp);
       store.set(j.rel, 'eyes', [[20, 28, 6, 4]]); store.set(j.rel, '_eyesByHand', true);
+      /* a cast face speaks only its own lines (2026-11-09): give it a voice first, then cast it */
+      store.set('dialogue.json', 'people', { ...store.files['dialogue.json'].people, jobface: structuredClone(store.files['dialogue.json'].people.c70teacher) });
       store.set('casts.json', '1', [...store.files['casts.json']['1'], 'jobface']);
       const s = await store.save();
-      ok(s.ok, 'a new face, its eyes set and cast, saves: 200, not 409 changed (' + JSON.stringify(s).slice(0, 120) + ')');
+      ok(s.ok, 'a new face, given its lines, its eyes set and cast, saves: 200, not 409 changed (' + JSON.stringify(s).slice(0, 120) + ')');
       ok(runScript('!!FACES.jobface') && runScript('CASTS["1"].includes("jobface")'), "and the game's FACES and CASTS hold it");
     }
 
@@ -1284,37 +1294,43 @@ console.log('\n— docs —');
     try { DG = (await import('../tools/content/docs/dialogue.mjs')).default; } catch (x) { console.error('  (' + x.message + ')'); }
     ok(DG && DG.file === 'dialogue.md' && IX.DOCS.includes(DG), 'dialogue.md is a registered doc');
     if (DG) {
-      const { DLG_KEYS } = await import('../tools/content/validate.mjs');
+      const { DLG_KEYS, DLG_MOMENTS } = await import('../tools/content/validate.mjs');
+      const { itemText } = await import('../tools/content/docs/dialogue.mjs');
       const gx = (edit) => { const f = structuredClone(files); edit(f['dialogue.json'], f); return f; };
       const dold = existsSync(join(DIR, 'dialogue.md')) ? readFileSync(join(DIR, 'dialogue.md'), 'utf8').replace(/\r\n/g, '\n') : null;
       const fresh = DG.render(files, null);
-      ok(fresh.includes('\n## I. Shared lines\n') && fresh.includes('\n## II. The cast\n') && fresh.includes('\n## III. Customers\n'),
-         'dialogue.md has the three top sections: Shared lines, The cast, Customers');
-      ok(DLG_KEYS.every((k) => fresh.includes('\n### ' + k[0].toUpperCase() + k.slice(1) + '\n')),
-         'dialogue.md renders one "### <Key>" under Shared lines per key of DLG_KEYS');
+      const TR = files['dialogue.json'].people.c70trucker, T0 = '1. ' + JSON.stringify(TR.delivered[0]);
+      ok(fresh.includes('\n## I. The speaker\n') && fresh.includes('\n## II. The cast\n') && fresh.includes('\n## III. Customers\n') && !fresh.includes('Shared lines'),
+         'dialogue.md has the three top sections: The speaker, The cast, Customers');
+      ok(fresh.includes('\n### Who\n') && fresh.includes('1. "CUSTOMER"'), 'The speaker holds Who, the name on the bubble');
       ok(fresh.includes('\n### MARGE\n') && fresh.includes('\n#### Hint\n') && fresh.includes('\n### SGT. PFEIFER\n') && fresh.includes('\n### c70trucker\n'),
          'the cast is one ### per character with #### moments, and customers one ### per face');
-      ok(fresh.includes('1. "ABOUT TIME. SMELLS ALRIGHT THOUGH."') && fresh.includes('1. "CUSTOMER"'), 'lines are a numbered list in JSON form');
-      ok(fresh.includes('9. "TIME IS MONEY, TACO BOY!" (1980s on)') && !fresh.includes('2|'), 'a 2| line shows as (1980s on), the prefix gone');
-      ok(fresh.includes('"MY PAGER\'S GOING OFF. HURRY!" (1990s on)'), 'a 3| line shows as (1990s on)');
+      const custNode = parseMd(fresh).children[0].children.find((c) => c.heading === 'III. Customers').children.find((c) => c.heading === 'c70trucker');
+      ok(custNode && custNode.children.map((c) => c.heading.toLowerCase()).join() === DLG_MOMENTS.join(), 'a customer lists all 13 moments, in order (' + (custNode && custNode.children.map((c) => c.heading).join()) + ')');
+      ok(custNode && custNode.children.find((c) => c.heading === 'Missed').lines.some((l) => /Delivery Shift: the bag landed off the porch/.test(l)), 'a customer\'s Missed carries the customer note, not the rival\'s');
+      ok(fresh.includes(T0), 'lines are a numbered list in JSON form');
+      ok(itemText('2|TIME') === '"TIME" (1980s on)' && itemText('TIME') === '"TIME"', 'an era prefix, should one appear, still reads as (1980s on)');
       ok(DG.render(files, fresh) === fresh, 'rendering dialogue.md is idempotent');
       ok(dold !== null && DG.render(files, dold) === dold, 'the committed dialogue.md is what today\'s JSON renders to');
       ok(IX.renderAll(files, (f) => f === 'dialogue.md' ? fresh : null)['dialogue.md'] === fresh, 'renderAll renders dialogue.md');
+      /* a doc from before 2026-11-09: Shared lines becomes The speaker, and the retired pools leave with their lines */
+      const oldDoc = fresh.replace('\n## I. The speaker\n', '\n## I. Shared lines\n').replace('\n### Who\n', '\n### Delivered\n\nOld note.\n\n1. "AN OLD SHARED LINE."\n\n### Who\n');
+      const mig = DG.render(files, oldDoc);
+      ok(mig === fresh, 'an old doc\'s Shared lines is renamed The speaker and its retired pools go, lines and all');
 
       /* prose: the preamble, a note under a section and a wrapped item line all survive */
       const NOTE = '   (owner: keep this one)';
-      const notes = fresh.replace('\n### Who\n', '\n### Who\n\nMY OWN NOTE ABOUT WHO.\n')
-        .replace('1. "ABOUT TIME. SMELLS ALRIGHT THOUGH."', '1. "ABOUT TIME. SMELLS ALRIGHT THOUGH."\n' + NOTE);
+      const notes = fresh.replace('\n### Who\n', '\n### Who\n\nMY OWN NOTE ABOUT WHO.\n').replace(T0, T0 + '\n' + NOTE);
       ok(notes !== fresh && DG.render(files, notes) === notes, 'prose under a heading and an item\'s wrapped note survive an unchanged render');
-      const grown = DG.render(gx((d) => { d.delivered.push('ONE MORE LINE.'); }), notes);
-      const gl = grown.split('\n'), ni = gl.indexOf('1. "ABOUT TIME. SMELLS ALRIGHT THOUGH."');
+      const grown = DG.render(gx((d) => { d.people.c70trucker.delivered.push('ONE MORE LINE.'); }), notes);
+      const gl = grown.split('\n'), ni = gl.indexOf(T0);
       ok(grown.includes('MY OWN NOTE ABOUT WHO.') && gl[ni + 1] === NOTE, 'a note survives, still under its item, when the list is edited');
-      ok(grown.includes('9. "ONE MORE LINE."'), 'an added line is numbered in');
-      const shrunk = DG.render(gx((d) => { d.delivered.length = 3; }), notes);
-      ok(shrunk.split('\n').indexOf(NOTE) === shrunk.split('\n').indexOf('1. "ABOUT TIME. SMELLS ALRIGHT THOUGH."') + 1 && !shrunk.includes('4. "STILL WARM'),
+      ok(grown.includes((TR.delivered.length + 1) + '. "ONE MORE LINE."'), 'an added line is numbered in');
+      const shrunk = DG.render(gx((d) => { d.people.c70trucker.delivered.length = 1; }), notes);
+      ok(shrunk.split('\n').indexOf(NOTE) === shrunk.split('\n').indexOf(T0) + 1 && !shrunk.includes(JSON.stringify(TR.delivered[1])),
          'a note on a line that is still there stays, and the dropped lines go');
-      const pre = fresh.split('\n## I. Shared lines')[0];
-      ok(pre.length > 80 && /^# dialogue\.md\n\n\S/.test(pre), 'the preamble is a paragraph under the title');
+      const pre = fresh.split('\n## I. The speaker')[0];
+      ok(pre.length > 80 && /^# dialogue\.md\n\n\S/.test(pre) && /no shared lines/.test(pre), 'the preamble is a paragraph under the title, and says there are no shared lines');
       const custom = DG.render(files, fresh.replace(pre, '# dialogue.md\n\nMY PREAMBLE.\n'));
       ok(custom.startsWith('# dialogue.md\n\nMY PREAMBLE.\n') && !custom.includes(pre.split('\n')[2]), 'a rewritten preamble is kept, not regenerated');
 
@@ -1323,7 +1339,7 @@ console.log('\n— docs —');
         const want = (f) => { const d = f['dialogue.json'], s = {}; for (const k of DLG_KEYS) s[k] = [].concat(d[k]);
           const c = {}; for (const ch of Object.values(d.cast)) c[ch.name] = ch.lines;
           return { shared: s, cast: c, people: d.people }; };
-        const cases = { today: files, grown: gx((d) => { d.wait.push('3|HELLO FROM 1990.'); d.queue.shift(); d.cast.marge.lines.hint.push('EXTRA {ING}.'); d.people.c70trucker.wait.push('MORE.'); }), who: gx((d) => { d.who = 'PATRON'; }) };
+        const cases = { today: files, grown: gx((d) => { d.cast.marge.lines.hint.push('EXTRA {ING}.'); d.people.c70trucker.wait.push('MORE.'); d.people.c70trucker.queue.shift(); }), who: gx((d) => { d.who = 'PATRON'; }) };
         const bad = Object.entries(cases).filter(([, f]) => JSON.stringify(DG.read(DG.render(f, dold))) !== JSON.stringify(want(f))).map(([n]) => n);
         ok(bad.length === 0, 'dialogue.md round-trips: reading a render back gives the JSON\'s lines (' + bad + ')');
       } else ok(false, 'dialogue.mjs exports read(text)');
@@ -1344,11 +1360,11 @@ console.log('\n— docs —');
         ok(!('perfect' in DG.read(DG.render(noMoment, fresh)).cast['DUSTY']), 'a removed cast moment leaves the mirror');
       }
 
-      /* the width check is the validator's: an over-wide line is a ContentError at [key, index] */
+      /* the width check is the validator's: an over-wide line is a ContentError at its path */
       let wide = null;
-      try { validateContent(memSource(gx((d) => { d.delivered[2] = 'THIS LINE IS FAR TOO WIDE FOR THE SPEECH BUBBLE BESIDE THE PORTRAIT AND IT KEEPS GOING ON'; }))); } catch (x) { wide = x; }
-      ok(wide instanceof ContentError && wide.file === 'content/dialogue.json' && wide.path.join() === 'delivered,2' && /3 rows/.test(wide.message),
-         'a line needing 3 rows is a ContentError with path [key, index] (' + (wide && wide.path.join() + ': ' + wide.message.split('\n')[0]) + ')');
+      try { validateContent(memSource(gx((d) => { d.people.c70trucker.delivered[0] = 'THIS LINE IS FAR TOO WIDE FOR THE SPEECH BUBBLE BESIDE THE PORTRAIT AND IT KEEPS GOING ON'; }))); } catch (x) { wide = x; }
+      ok(wide instanceof ContentError && wide.file === 'content/dialogue.json' && wide.path.join() === 'people,c70trucker,delivered,0' && /3 rows/.test(wide.message),
+         'a line needing 3 rows is a ContentError with its path (' + (wide && wide.path.join() + ': ' + wide.message.split('\n')[0]) + ')');
 
       /* two-row lines: a 50-character line of short words wraps to 2 rows and validates */
       const { wrapRows, DLG_MAX_ROWS } = await import('../tools/content/validate.mjs');
@@ -1358,32 +1374,38 @@ console.log('\n— docs —');
       ok(Array.isArray(wr) && wr.length === 2 && wr.join(' ') === L50, 'wrapRows breaks 50 characters of short words into 2 rows (' + JSON.stringify(wr) + ')');
       ok(wrapRows('A'.repeat(40), 200) === null, 'wrapRows returns null for a word wider than a row');
       let two = null;
-      try { validateContent(memSource(gx((d) => { d.delivered[2] = L50; }))); } catch (x) { two = x; }
+      try { validateContent(memSource(gx((d) => { d.people.c70trucker.delivered[0] = L50; }))); } catch (x) { two = x; }
       ok(two === null, 'a 50-character line of short words validates (' + (two && two.message.split('\n')[0]) + ')');
       let word = null;
-      try { validateContent(memSource(gx((d) => { d.delivered[2] = 'HELLO ' + 'O'.repeat(40) + ' THERE'; }))); } catch (x) { word = x; }
-      ok(word instanceof ContentError && word.path.join() === 'delivered,2' && /too wide/.test(word.message) && word.message.includes('OOOO'),
+      try { validateContent(memSource(gx((d) => { d.people.c70trucker.delivered[0] = 'HELLO ' + 'O'.repeat(40) + ' THERE'; }))); } catch (x) { word = x; }
+      ok(word instanceof ContentError && word.path.join() === 'people,c70trucker,delivered,0' && /too wide/.test(word.message) && word.message.includes('OOOO'),
          'a 40-letter word is a ContentError naming the line and "too wide" (' + (word && word.message.split('\n')[0]) + ')');
 
-      /* personal lines: DIALOGUE.people[face][moment] = [lines] */
-      const { DLG_MOMENTS } = await import('../tools/content/validate.mjs');
-      ok(Array.isArray(DLG_MOMENTS) && DLG_MOMENTS.join() === DLG_KEYS.filter((k) => k !== 'who').join(), 'DLG_MOMENTS is DLG_KEYS without who');
-      const pe = (people) => { let e = null, r = null; try { r = validateContent(memSource(gx((d) => { d.people = people; }))); } catch (x) { e = x; } return { e, r }; };
-      const good = pe({ c70trucker: { wait: ['ONLY MINE.', 'ME TOO.'] } });
-      ok(good.e === null && JSON.stringify(good.r.dialogue.people) === JSON.stringify({ c70trucker: { wait: ['ONLY MINE.', 'ME TOO.'] } }),
+      /* personal lines: DIALOGUE.people[face][moment] = [lines]; no shared pools (2026-11-09) */
+      ok(DLG_KEYS.join() === 'who' && DLG_MOMENTS.join() === 'delivered,perfect,late,missed,nearmiss,fender,arrive,wait,queue,wrong,served,nailed,walkout',
+         'DLG_KEYS is only who; DLG_MOMENTS are the 13 moments, Delivery Shift then Kitchen Shift');
+      for (const k of ['delivered', 'wait', 'walkout']) {
+        let se = null; try { validateContent(memSource(gx((d) => { d[k] = ['A SHARED LINE.']; }))); } catch (x) { se = x; }
+        ok(se instanceof ContentError && se.path.join() === k && /no.*shared|shared pool/i.test(se.message), 'a shared "' + k + '" pool is refused, pointing at people (' + (se && se.message.split('\n')[0]) + ')');
+      }
+      /* smokerbust is in no cast, so it may hold any lines, or none */
+      const pe = (people) => { let e = null, r = null; try { r = validateContent(memSource(gx((d) => { Object.assign(d.people, people); }))); } catch (x) { e = x; } return { e, r }; };
+      const good = pe({ smokerbust: { wait: ['ONLY MINE.', 'ME TOO.'] } });
+      ok(good.e === null && JSON.stringify(good.r.dialogue.people.smokerbust) === JSON.stringify({ wait: ['ONLY MINE.', 'ME TOO.'] }),
          'a known face with a known moment validates and is built (' + (good.e && good.e.message.split('\n')[0]) + ')');
       { const pp = validateContent(memSource(files)).dialogue.people; const n = Object.values(pp).reduce((a, m) => a + Object.values(m).reduce((b, l) => b + l.length, 0), 0);
-        ok(n === 1390 && Object.keys(pp).length === 120, 'the shipped people holds 1390 lines across 120 faces: the 670 attributed, and 720 for the happy moments (2026-11-09) (' + n + ', ' + Object.keys(pp).length + ')');
-        const thin = Object.entries(pp).filter(([, m]) => ['delivered', 'served', 'arrive'].some((k) => !(m[k] && m[k].length >= 2))).map(([f]) => f);
-        ok(thin.length === 0, 'every face has at least 2 delivered, served and arrive lines of its own (' + (thin.join(' ') || 'all') + ')'); }
-      ok(JSON.stringify(validateContent(memSource(gx((d) => { delete d.people; }))).dialogue.people) === '{}', 'with no people key the built people is {}');
+        ok(n === 4689 && Object.keys(pp).length === 120, 'the shipped people holds 4689 lines across 120 faces (' + n + ', ' + Object.keys(pp).length + ')');
+        const thin = Object.entries(pp).flatMap(([f, m]) => DLG_MOMENTS.filter((k) => !(m[k] && m[k].length >= 3)).map((k) => f + '.' + k));
+        ok(thin.length === 0, 'every face has at least 3 lines of its own at every one of the 13 moments (' + (thin.slice(0, 8).join(' ') || 'all') + ')'); }
+      let silent = null; try { validateContent(memSource(gx((d) => { delete d.people; }))); } catch (x) { silent = x; }
+      ok(silent instanceof ContentError && silent.path[0] === 'people', 'with no people key every cast face would be silent, and the build refuses');
       const bads = [
         ['an unknown face', { nobody: { wait: ['HI.'] } }, 'nobody'],
-        ['an unknown moment', { c70trucker: { shout: ['HI.'] } }, 'c70trucker,shout'],
-        ['a lowercase line', { c70trucker: { wait: ['hello there'] } }, 'c70trucker,wait,0'],
-        ['an era-prefixed personal line', { c70trucker: { wait: ['HI.', '2|HELLO.'] } }, 'c70trucker,wait,1'],
-        ['a 3-row personal line', { c70trucker: { wait: ['THIS LINE IS FAR TOO WIDE FOR THE SPEECH BUBBLE BESIDE THE PORTRAIT AND IT KEEPS GOING ON'] } }, 'c70trucker,wait,0'],
-        ['an empty list', { c70trucker: { wait: [] } }, 'c70trucker,wait'],
+        ['an unknown moment', { smokerbust: { shout: ['HI.'] } }, 'smokerbust,shout'],
+        ['a lowercase line', { smokerbust: { wait: ['hello there'] } }, 'smokerbust,wait,0'],
+        ['an era-prefixed personal line', { smokerbust: { wait: ['HI.', '2|HELLO.'] } }, 'smokerbust,wait,1'],
+        ['a 3-row personal line', { smokerbust: { wait: ['THIS LINE IS FAR TOO WIDE FOR THE SPEECH BUBBLE BESIDE THE PORTRAIT AND IT KEEPS GOING ON'] } }, 'smokerbust,wait,0'],
+        ['an empty list', { smokerbust: { wait: [] } }, 'smokerbust,wait'],
       ];
       for (const [name, people, path] of bads) {
         const { e } = pe(people);
@@ -2061,85 +2083,22 @@ console.log('\n— dialogue panel —');
       const act = (a, key, i) => nodes().find((n) => n.dataset.act === a && n.dataset.key === key && (i === undefined || n.dataset.i === String(i)));
       const type = (c, v) => { c.value = v; c.fire('input'); FL.paint(); };
       const D = () => store.files['dialogue.json'];
-      const secs = nodes().filter((n) => n.dataset.section !== undefined).map((n) => n.dataset.section);
-      ok(secs.join() === DLG_KEYS.join(), 'one section per key of DLG_KEYS, in order (' + secs.join() + ')');
+      const secs2 = () => nodes().filter((n) => n.dataset.section !== undefined).map((n) => n.dataset.section);
+      /* the first view is the bubble name: no shared pools since 2026-11-09 */
+      ok(secs2().join() === DLG_KEYS.join() && DLG_KEYS.join() === 'who', 'the first view is the bubble name alone, one section per key of DLG_KEYS (' + secs2().join() + ')');
       ok(ctl('who') && ctl('who').dataset.kind === 'text' && !ctl('who.0'), 'who is a single text field');
-      ok(DLG_KEYS.filter((k) => k !== 'who').every((k) => D()[k].every((_, i) => ctl(k + '.' + i))), 'every other line has its own field, bound at [key, index]');
-
-      /* era dropdown: All eras / 1980s on / 1990s on, stored as no prefix, 2| or 3| */
-      const era = (k, i) => nodes().find((n) => n.tagName === 'SELECT' && n.dataset.era === k + '.' + i);
-      const labels = era('late', 8).kids.map((o) => o.textContent).join();
-      ok(labels === 'All eras,1980s on,1990s on', 'the era dropdown offers All eras / 1980s on / 1990s on (' + labels + ')');
-      ok(era('late', 8).value === '1' && era('arrive', 10).value === '2' && era('late', 0).value === '0', 'it shows each line\'s floor');
-      ok(ctl('late.8').value === 'TIME IS MONEY, TACO BOY!', 'the text field shows the line without its prefix');
-      era('late', 0).value = '1'; era('late', 0).fire('change');
-      ok(D().late[0] === '2|IN MY DAY A TACO TOOK 30 SECONDS!', 'choosing 1980s on stores "2|" before the line');
-      era('late', 0).value = '0'; era('late', 0).fire('change');
-      ok(D().late[0] === 'IN MY DAY A TACO TOOK 30 SECONDS!', 'All eras removes it');
-      type(ctl('late.8'), 'TIME IS PRECIOUS, TACO BOY!');
-      ok(D().late[8] === '2|TIME IS PRECIOUS, TACO BOY!', 'editing the text keeps the era floor');
-      type(ctl('late.8'), 'TIME IS MONEY, TACO BOY!');
-
-      /* lowercase is accepted and stored as drawn; a curly quote is still named */
-      type(ctl('late.8'), 'time is money, taco boy!');
-      ok(D().late[8] === '2|TIME IS MONEY, TACO BOY!' && store.error === null, 'typed lowercase is stored upper case with the era prefix kept');
+      ok(!nodes().some((n) => n.tagName === 'SELECT' && n.dataset.era), 'there is no era dropdown: nothing is a shared pool');
       type(ctl('who'), 'patron');
-      ok(D().who === 'PATRON' && store.error === null, 'who is upper-cased too');
+      ok(D().who === 'PATRON' && store.error === null, 'who is upper-cased as drawn');
       type(ctl('who'), 'CUSTOMER');
-      type(ctl('late.8'), 'TIME IS MONEY, TACO BOY’S!');
-      ok(store.error && store.error.path.join() === 'late,8' && /’/.test(store.error.message) && ctl('late.8').classList.contains('adm-bad'), 'a curly quote is still flagged by name on its field (' + (store.error && store.error.message.slice(0, 80)) + ')');
-      type(ctl('late.8'), 'TIME IS MONEY, TACO BOY!');
-      /* the width check is the validator's */
-      type(ctl('missed.1'), 'THIS LINE IS FAR TOO WIDE FOR THE SPEECH BUBBLE BESIDE THE PORTRAIT AND IT KEEPS GOING ON');
-      ok(store.error && store.error.path.join() === 'missed,1' && ctl('missed.1').classList.contains('adm-bad') && /3 rows/.test(ctl('missed.1')._msg.textContent),
-         'a too-long line is flagged on its field with the validator\'s row count');
-      const ctr = nodes().find((n) => n.dataset.count === 'missed.1');
-      ok(ctr && ctr.textContent === 'too long', 'a 3-row line\'s counter says too long (' + (ctr && ctr.textContent) + ')');
-      type(ctl('missed.1'), 'IN THE BUSHES. VERY CLASSY.');
-      ok(ctr.textContent === '1 row', 'the counter counts rows, not characters (' + ctr.textContent + ')');
-      type(ctl('missed.1'), 'WE ARE SO SORRY ABOUT THE WAIT HERE IS YOUR TACOS');
-      ok(ctr.textContent === '2 rows', 'a line that wraps to two rows reads 2 rows (' + ctr.textContent + ')');
-      type(ctl('missed.1'), 'IN THE BUSHES. VERY CLASSY.');
-      ok(store.error === null && !ctl('missed.1').classList.contains('adm-bad'), 'shortened, the flag clears');
-
-      /* add and remove */
-      const n0 = D().queue.length;
-      act('add', 'queue').fire('click');
-      ok(D().queue.length === n0 + 1 && D().queue[n0] === '' && ctl('queue.' + n0), 'Add line appends an empty line and its field');
-      ok(store.error && store.error.path.join() === 'queue,' + n0, 'an empty line is the validator\'s to refuse, on that field');
-      type(ctl('queue.' + n0), 'STACKED UP LIKE HAY BALES!');
-      ok(store.error === null && D().queue[n0] === 'STACKED UP LIKE HAY BALES!', 'typed into, it validates');
-      act('remove', 'queue', n0).fire('click');
-      ok(D().queue.length === n0 && !ctl('queue.' + n0), 'Remove drops the line');
-      ok(JSON.stringify(D().queue) === JSON.stringify(files['dialogue.json'].queue), 'the pool is back as it was');
-
-      /* Say it: pins a line, goes through G.react, and puts everything back */
-      const said = [], pool = { late: ['KEEP'] };
-      globalThis.G = { state: 'title', era: 1, react(kind) { said.push([kind, this.state, this.era, JSON.stringify(globalThis.DIALOGUE[kind])]); } };
-      globalThis.DIALOGUE = pool;
-      /* the real Admin.test.say may be loaded by now: this checks the fallback, so hide it */
-      const realSayFn = globalThis.Admin.test && globalThis.Admin.test.say; if (realSayFn) delete globalThis.Admin.test.say;
-      act('say', 'late', 8).fire('click');
-      ok(said.length === 1 && said[0][0] === 'late' && said[0][1] === 'play' && said[0][2] === 2 && said[0][3] === '["2|TIME IS MONEY, TACO BOY!"]',
-         'Say it on a 1980s line runs G.react with that line pinned, in play, in era 2 (' + JSON.stringify(said[0]) + ')');
-      ok(G.state === 'title' && G.era === 1 && pool.late.join() === 'KEEP', 'and the state, era and pool are restored afterwards');
-      globalThis.G.react = () => { throw new Error('boom'); };
-      try { act('say', 'late', 8).fire('click'); } catch (e) { /* the panel may let it out */ }
-      ok(G.state === 'title' && G.era === 1 && pool.late.join() === 'KEEP', 'even if react throws, nothing is left changed');
-      delete globalThis.G; delete globalThis.DIALOGUE;
-      let threw = null;
-      try { act('say', 'late', 0).fire('click'); } catch (x) { threw = x; }
-      ok(!threw && !act('say', 'who'), 'with no game, Say it is harmless; who has no Say it');
-      if (realSayFn) globalThis.Admin.test.say = realSayFn;
 
       /* the speaker picker */
       const picker = nodes().find((n) => n.dataset.pick === 'speaker');
       const opts = picker ? picker.kids.map((o) => o.textContent) : [];
-      ok(picker && opts[0] === 'Shared' && opts.slice(1, 10).join() === 'SGT. PFEIFER,OFC. KARLIN,OFC. DREILING,DUSTY,ACE,JINX,MARGE,DALE,NIKKI'
-         && opts.includes('c70trucker'), 'the picker offers Shared, the nine cast names, then customers with personal lines (' + opts.slice(0, 12).join() + ')');
+      ok(picker && opts[0] === 'Bubble name' && opts.slice(1, 10).join() === 'SGT. PFEIFER,OFC. KARLIN,OFC. DREILING,DUSTY,ACE,JINX,MARGE,DALE,NIKKI'
+         && opts.includes('c70trucker'), 'the picker offers the bubble name, the nine cast names, then the customers (' + opts.slice(0, 12).join() + ')');
       const pickBy = (label) => { const pk = nodes().find((n) => n.dataset.pick === 'speaker'); pk.value = pk.kids.find((o) => o.textContent === label).value; pk.fire('change'); };
       pickBy('MARGE');
-      const secs2 = () => nodes().filter((n) => n.dataset.section !== undefined).map((n) => n.dataset.section);
       ok(secs2().join() === 'hint,clockin,streak,trouble', 'MARGE shows her four moments (' + secs2().join() + ')');
       const cp = (m, i) => 'cast.marge.lines.' + m + '.' + i;
       ok(ctl(cp('hint', 0)) && !nodes().some((n) => n.tagName === 'SELECT' && n.dataset.era), 'her lines are bound at [cast, key, lines, moment, i], with no era dropdown');
@@ -2152,32 +2111,58 @@ console.log('\n— dialogue panel —');
       nodes().find((n) => n.dataset.act === 'say' && n.dataset.key === 'hint' && n.dataset.i === '0').fire('click');
       ok(sayLog.length === 1 && sayLog[0][0] === 'GRAB THE LETTUCE, HON.' && sayLog[0][2] === 'MARGE' && sayLog[0][1] === D().cast.marge.face,
          'Say it uses her face and name, {ING} replaced by a plate name (' + JSON.stringify(sayLog[0]) + ')');
-      pickBy('Shared');
-      ok(secs2().join() === DLG_KEYS.join(), 'back on Shared, the shared sections return');
+      pickBy('Bubble name');
+      ok(secs2().join() === 'who', 'back on the bubble name, only who');
+
+      /* a customer: all 13 moments */
       pickBy('c70trucker');
-      ok(secs2().join() === 'delivered,missed,late,arrive,wait,queue,walkout,served,wrong', 'a customer shows the nine customer moments (' + secs2().join() + ')');
-      ok(!nodes().some((n) => n.tagName === 'SELECT' && n.dataset.era), 'a customer\'s personal lines have no era dropdown');
-      const w0 = D().people.c70trucker.wait.length;
-      ok(ctl('people.c70trucker.wait.0').value === D().people.c70trucker.wait[0], 'personal lines are bound at [people, face, moment, i]');
-      type(ctl('people.c70trucker.wait.0'), 'MY OWN LINE.');
-      ok(D().people.c70trucker.wait[0] === 'MY OWN LINE.', 'editing a personal line writes people.face.moment.i');
-      nodes().find((n) => n.dataset.act === 'say' && n.dataset.key === 'wait' && n.dataset.i === '0').fire('click');
-      ok(sayLog[1] && sayLog[1][0] === 'MY OWN LINE.' && sayLog[1][1] === 'c70trucker' && sayLog[1][2] === 'CUSTOMER', 'Say it for a customer uses the face and CUSTOMER');
+      ok(secs2().join() === 'delivered,perfect,late,missed,nearmiss,fender,arrive,wait,queue,wrong,served,nailed,walkout', 'a customer shows all 13 moments, in order (' + secs2().join() + ')');
+      ok(!nodes().some((n) => n.tagName === 'SELECT' && n.dataset.era), 'a customer\'s lines have no era dropdown');
+      const P = (m, i) => 'people.c70trucker.' + m + '.' + i, T = () => D().people.c70trucker;
+      ok(ctl(P('wait', 0)).value === T().wait[0], 'lines are bound at [people, face, moment, i]');
+      const keepLine = T().late[0];
+      type(ctl(P('late', 0)), 'my own line, lowercase.');
+      ok(T().late[0] === 'MY OWN LINE, LOWERCASE.' && store.error === null, 'a typed line is stored upper case, as drawn');
+      type(ctl(P('late', 0)), 'A CURLY QUOTE’S HERE!');
+      ok(store.error && store.error.path.join() === 'people,c70trucker,late,0' && /’/.test(store.error.message) && ctl(P('late', 0)).classList.contains('adm-bad'),
+         'a curly quote is flagged by name on its field (' + (store.error && store.error.message.slice(0, 80)) + ')');
+      type(ctl(P('late', 0)), 'THIS LINE IS FAR TOO WIDE FOR THE SPEECH BUBBLE BESIDE THE PORTRAIT AND IT KEEPS GOING ON');
+      ok(store.error && store.error.path.join() === 'people,c70trucker,late,0' && /3 rows/.test(ctl(P('late', 0))._msg.textContent), 'a too-long line is flagged on its field with the validator\'s row count');
+      const ctr = nodes().find((n) => n.dataset.count === P('late', 0));
+      ok(ctr && ctr.textContent === 'too long', 'its counter says too long (' + (ctr && ctr.textContent) + ')');
+      type(ctl(P('late', 0)), 'WE ARE SO SORRY ABOUT THE WAIT HERE IS YOUR TACOS');
+      ok(ctr.textContent === '2 rows', 'a line that wraps to two rows reads 2 rows (' + ctr.textContent + ')');
+      type(ctl(P('late', 0)), 'IN THE BUSHES. VERY CLASSY.');
+      ok(ctr.textContent === '1 row' && store.error === null && !ctl(P('late', 0)).classList.contains('adm-bad'), 'shortened, the counter reads 1 row and the flag clears');
+      type(ctl(P('late', 0)), keepLine);
+      nodes().find((n) => n.dataset.act === 'say' && n.dataset.key === 'late' && n.dataset.i === '0').fire('click');
+      ok(sayLog[1] && sayLog[1][0] === keepLine && sayLog[1][1] === 'c70trucker' && sayLog[1][2] === 'CUSTOMER', 'Say it for a customer uses the face and CUSTOMER');
+      const w0 = T().wait.length;
       nodes().find((n) => n.dataset.act === 'add' && n.dataset.key === 'wait').fire('click');
-      ok(D().people.c70trucker.wait.length === w0 + 1 && D().people.c70trucker.wait[w0] === '', 'Add line appends an empty personal line');
+      ok(T().wait.length === w0 + 1 && T().wait[w0] === '' && store.error && store.error.path.join() === 'people,c70trucker,wait,' + w0, 'Add line appends an empty line, the validator\'s to refuse on that field');
+      type(ctl(P('wait', w0)), 'STACKED UP LIKE HAY BALES!');
+      ok(store.error === null && T().wait[w0] === 'STACKED UP LIKE HAY BALES!', 'typed into, it validates');
       nodes().find((n) => n.dataset.act === 'remove' && n.dataset.key === 'wait' && n.dataset.i === String(w0)).fire('click');
-      ok(D().people.c70trucker.wait.length === w0, 'Remove drops it');
-      /* every shipped customer face has lines; drop one so the list has something to offer */
-      { const pp = structuredClone(D().people); delete pp.c90soap; store.set('dialogue.json', 'people', pp); }
-      pickBy('Shared');
+      ok(T().wait.length === w0 && JSON.stringify(T().wait) === JSON.stringify(files['dialogue.json'].people.c70trucker.wait), 'Remove drops it, and the moment is back as it was');
+      /* a cast face cannot be left silent at a moment */
+      const fen = T().fender.slice();
+      for (let i = fen.length - 1; i >= 0; i--) nodes().find((n) => n.dataset.act === 'remove' && n.dataset.key === 'fender' && n.dataset.i === String(i)).fire('click');
+      ok(!T().fender && store.error && store.error.path.join() === 'people,c70trucker,fender' && /say nothing/.test(store.error.message),
+         'removing a cast face\'s last line at a moment is refused by the validator, naming the moment (' + (store.error && store.error.message.slice(0, 90)) + ')');
+      { const pp = structuredClone(D().people); pp.c70trucker.fender = fen; store.set('dialogue.json', 'people', pp); }
+      ok(store.error === null, 'and putting the lines back clears it');
+      /* without Admin.test, Say it is harmless */
+      globalThis.Admin.test = {}; delete globalThis.G;
+      let threw = null;
+      try { nodes().find((n) => n.dataset.act === 'say' && n.dataset.key === 'late' && n.dataset.i === '0').fire('click'); } catch (x) { threw = x; }
+      ok(!threw, 'with no test hooks and no game, Say it is harmless');
+      globalThis.Admin.test = { say: (l, f, w) => { sayLog.push([l, f, w]); } };
+      /* every shipped customer face has lines; a face in no cast can be given some */
+      pickBy('Bubble name');
       const addSel = nodes().find((n) => n.dataset.pick === 'addface');
       const offered2 = addSel ? addSel.kids.map((o) => o.value).filter(Boolean) : [];
-      ok(offered2.length > 0 && offered2.every((v) => !D().people[v]) && !offered2.includes('c70trucker') && !offered2.includes('from'),
-         'an "Add lines for" list offers customer faces without lines yet (' + offered2.length + ')');
-      const fresh1 = offered2[0];
-      addSel.value = fresh1; addSel.fire('change');
-      ok(secs2().length === 9 && nodes().find((n) => n.dataset.pick === 'speaker').kids.some((o) => o.textContent === fresh1),
-         'choosing one opens its nine moments and adds it to the picker (' + fresh1 + ')');
+      ok(addSel && offered2.every((v) => !D().people[v]) && !offered2.includes('c70trucker') && !offered2.includes('from'),
+         'the "Add lines for" list offers only customer faces without lines (' + offered2.length + ')');
       globalThis.Admin.test = realTest;
     } finally { delete globalThis.G; delete globalThis.DIALOGUE; }
   }

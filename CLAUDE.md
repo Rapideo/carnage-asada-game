@@ -100,10 +100,17 @@ person to edit the file immediately exceeded it — **a note is not a guard.**
 
 **`content/dialogue.json`** holds every spoken line, and **`content/faces/*.json`** the baked character
 likenesses (see the Faces section below). Both are inlined the same way, becoming `DIALOGUE` and `FACES`.
-It has three parts: the shared pools by moment, **`people`** (1390 personal lines on 120 customer faces,
-keyed by face: the 670 attributed ones, plus 720 Claude drafted on 2026-11-09 for the happy
-moments, two per face for `delivered`, `served` and `arrive`, kept by the owner in 0.9.12) and **`cast`** (the 9 named characters: name, face, and lines by moment). The docs mirror
-covers all three: `dialogue.md` is grouped Shared / The cast / Customers.
+It has three parts: **`who`** (the name on the bubble), **`people`** and **`cast`** (the 9 named
+characters: name, face, and lines by moment). **There are no shared lines (owner, 2026-11-09):
+every customer says only their own**, at each of 13 moments (`DLG_MOMENTS`: delivered, perfect, late,
+missed, nearmiss, fender in the Delivery Shift; arrive, wait, queue, wrong, served, nailed, walkout in
+the Kitchen Shift), and the build refuses a cast face with nothing to say at one (`checkPeople`), or
+a shared pool key. `people` is 4689 lines on 120 faces, at least 3 per face per moment: the 670
+attributed ones, 720 drafted for the happy moments (0.9.12) and 3299 drafted for the rest
+(0.9.13), grittier on the owner's word ("a little filthier, a little more adult"), with a handful
+of faces weirdly filthy for their type on purpose and the children kept clean. Casting a new face
+means giving it all 13 moments first. The docs mirror covers all three: `dialogue.md` is
+grouped The speaker / The cast / Customers.
 The dialogue width check is **not** the 384px one every other field uses: the portrait sits beside the
 bubble, so the limit is computed from the widest baked face (`dlgLimitPx` in `validate.mjs`). **A line
 wraps to at most two rows**, and the build checks every row of the wrap (`wrapRows`, the same rule as
@@ -610,8 +617,13 @@ Four things the demo driver must keep doing, all learned by watching it fail:
 
 ### Faces and the dialogue strip
 
-**Who speaks.** The strip carries two rows of text. A customer's line comes from `G.lineFor`, which uses a
-personal line from `people` for that face three times in four and the shared pool otherwise. The cast
+**Who speaks.** The strip carries two rows of text. A customer's line comes from `G.lineFor`: one of
+that face's own lines for the moment, or nothing. A passer-by (`nearmiss`: a pedestrian passed
+close and fast, once each; `fender`: the driver of a car the player CRUNCHed) speaks through
+`G.shout` with a face from the era's cast kept per pedestrian or car (`G.passerFace`), at most
+every `SHOUT_GAP` (10 s) and never over a line already up. A dead-centre toss is `perfect`
+(`G.deliveredKind`); a clean ticket with its tip at 60% or more is `nailed` and always speaks
+(`Kitchen.servedKind`); a wrong pick speaks whenever the strip is free. The cast
 speak through `Cast` (`73_cast.js`): officers PFEIFER/KARLIN/DREILING (faces `cop70`..) on a chase, a fine
 (pulled over, a pedestrian) and losing them; rivals DUSTY/ACE/JINX on a missed or perfect toss, in place of
 the customer one time in three; coworkers MARGE/DALE/NIKKI at clock-in, after 3 clean tickets, in trouble
@@ -724,8 +736,8 @@ A dev-only content editor and test panel that runs inside the dev build of the g
 Tabs: Levels, Menu, Attract, Music, Difficulty, Dialogue, Faces, Test. Code keeps the names `Admin`,
 `admin.mjs` and `/admin/api`; everything the owner sees says SERVICE MODE. Design:
 `docs/superpowers/specs/2026-10-25-admin-overlay-design.md` (owner rulings at its head). The Dialogue tab has
-a speaker picker (shared pools, each of the nine cast, each customer face) and edits `people` and `cast` as
-well as the pools; the Difficulty tab has the kitchen hint rows (`hint`, `hintNewOnly`, `hintStall`).
+a speaker picker (the bubble name, each of the nine cast, each customer face, all 13 moments) and edits
+`who`, `people` and `cast`; the Difficulty tab has the kitchen hint rows (`hint`, `hintNewOnly`, `hintStall`).
 
 - **`node admin.mjs`** starts `tools/content/server.mjs` on `127.0.0.1:8124`. It serves the repo and
   injects `admin/overlay.css` and `admin/overlay.js` into `index.html` **in memory, at request time**,

@@ -377,9 +377,15 @@ function buildScores(src) {
 const DLG_BUBBLE_PAD = 10;
 export const DLG_MAX_CHARS = 34;
 export const DLG_MAX_ROWS = 2;
-export const DLG_KEYS = ['who', 'delivered', 'missed', 'late', 'arrive', 'wait', 'queue', 'walkout', 'served', 'wrong'];
-/* the moments a customer speaks at (DLG_KEYS minus the speaker's name); personal lines are keyed by these */
-export const DLG_MOMENTS = DLG_KEYS.filter((k) => k !== 'who');
+/* the top-level lines: only the speaker's label. There are no shared pools
+   (owner, 2026-11-09): every customer speaks only their own lines. */
+export const DLG_KEYS = ['who'];
+/* the 13 moments a customer speaks at, Delivery Shift then Kitchen Shift;
+   people[face] is keyed by these, and a cast face needs a line for each */
+export const DLG_MOMENTS = ['delivered', 'perfect', 'late', 'missed', 'nearmiss', 'fender',
+  'arrive', 'wait', 'queue', 'wrong', 'served', 'nailed', 'walkout'];
+/* the moments that were shared pools until 2026-11-09, named in the refusal */
+const DLG_RETIRED = ['delivered', 'missed', 'late', 'arrive', 'wait', 'queue', 'walkout', 'served', 'wrong'];
 const ERA_PREFIX = /^([0-9])\|/;
 
 /* the cast: officers chase and fine the player, rivals taunt a miss or a perfect
@@ -467,18 +473,12 @@ function buildDialogue(src, faces) {
   for (const [k, v] of Object.entries(raw)) {
     if (k.startsWith('_')) continue;
     if (k === 'people' || k === 'cast') continue;                     // built below, once the shared pools are in
+    if (DLG_RETIRED.includes(k))
+      fail(F, [k], `${F}: "${k}" is a shared pool, and there are none any more: every customer says only their own lines. Give the lines to characters (people.<face>.${k}).`);
     if (!DLG_KEYS.includes(k))
       fail(F, [k], `${F}: unknown key "${k}". The game reads: ${DLG_KEYS.join(' ')} people cast. (Prefix a note with _ to keep it out of the build.)`);
-    if (k === 'who' ? typeof v !== 'string' : !Array.isArray(v) || !v.length)
-      fail(F, [k], `${F}: "${k}" must be ${k === 'who' ? 'a string' : 'a non-empty array of lines'}`);
-    const list = Array.isArray(v) ? v : [v];
-    let anyEra = false;
-    list.forEach((s, li) => {
-      const P = Array.isArray(v) ? [k, li] : [k];
-      if (checkLine(P, `"${k}"`, s, k === 'who' ? 'none' : true)) anyEra = true;
-    });
-    /* every pool needs a line 1972 can say, or the strip draws nothing in Era 1 */
-    if (!anyEra) fail(F, [k], `${F}: every line in "${k}" carries an era prefix, so Era 1 has nothing to say there. Add a line with no prefix.`);
+    if (typeof v !== 'string') fail(F, [k], `${F}: "${k}" must be a string`);
+    checkLine([k], `"${k}"`, v, 'none');
     out[k] = v;
   }
   for (const need of DLG_KEYS) {
@@ -486,7 +486,8 @@ function buildDialogue(src, faces) {
   }
 
   /* personal lines: people[faceKey][moment] = [lines]. A face with none for a
-     moment falls back to the shared pool at play time, so a short list is fine. */
+     moment would say nothing; checkPeople (once the casts are built) refuses
+     that for any face that is cast. */
   const people = {};
   const rawPeople = raw.people === undefined ? {} : raw.people;
   if (!rawPeople || typeof rawPeople !== 'object' || Array.isArray(rawPeople))
@@ -1096,6 +1097,18 @@ function buildMusic(src, levels) {
   return { music, playlist, approved: out, note: null };
 }
 
+/* Every face cast in an era says something at every moment: there is no shared
+   pool to fall back on (owner, 2026-11-09), so a missing moment is silence. */
+function checkPeople(dialogue, casts) {
+  const F = 'content/dialogue.json';
+  const cast = [...new Set(Object.entries(casts).filter(([k]) => /^\d+$/.test(k)).flatMap(([, v]) => v))];
+  for (const face of cast) for (const m of DLG_MOMENTS) {
+    const l = dialogue.people[face] && dialogue.people[face][m];
+    if (!l || !l.length)
+      fail(F, ['people', face, m], `${F}: people.${face} has no "${m}" line. Every customer speaks only their own lines, so ${face} would say nothing there. Write one (or uncast the face).`);
+  }
+}
+
 /* Everything content/ holds, validated, notes stripped. Throws ContentError on
    the first problem. `musicNote` is the build log's remark when music is
    only partly there; it never ships. */
@@ -1111,6 +1124,7 @@ export function validateContent(src) {
   const menus = buildMenus(src);
   const levels = buildLevels(src, difficulty, maps, menus);
   const casts = buildCasts(src, faces, levels);
+  checkPeople(dialogue, casts);
   const lattice = buildLattice(src);
   checkMenuArt(menus, lattice);
   const board = buildBoard(src);

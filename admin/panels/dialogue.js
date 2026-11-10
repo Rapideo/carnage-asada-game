@@ -1,14 +1,14 @@
 /* Service Mode: the Dialogue panel.
    A SPEAKER picker over the lines being edited:
-     Shared        one section per key of DLG_KEYS (the validator's list, so a key
-                   added there gets a section here with no change to this file).
-                   `who` is a single text field; every other key is a list of
-                   lines with an era dropdown (All eras / 1980s on / 1990s on,
-                   stored as no prefix, "2|" or "3|" before the line)
+     Bubble name   one section per key of DLG_KEYS: since 2026-11-09 only `who`,
+                   the name on every customer's bubble, a single text field. There
+                   are no shared pools; a top-level list would get the era dropdown
+                   (All eras / 1980s on / 1990s on, "2|" / "3|") it always had.
      a cast name   the character's role moments (CAST_MOMENTS[role]), bound at
                    ['cast', key, 'lines', moment, i]; no era
-     a customer    a face with personal lines: the nine customer moments, bound at
-                   ['people', face, moment, i]; no era. "Add lines for..." lists
+     a customer    a face: all 13 customer moments (DLG_MOMENTS), bound at
+                   ['people', face, moment, i]; no era. A cast face must keep a line
+                   at every moment: removing the last one is refused by the validator. "Add lines for..." lists
                    the customer faces (content/casts.json) that have none yet.
    Every line has
      a text field      bound to dialogue.json, where the validator reports a
@@ -29,7 +29,7 @@ import { DLG_KEYS, DLG_MOMENTS, CAST_MOMENTS, DLG_MAX_ROWS, wrapRows, dlgLimitPx
 const Admin = (globalThis.Admin = globalThis.Admin || {});
 const REL = 'dialogue.json';
 const ERAS = [['All eras', ''], ['1980s on', '2|'], ['1990s on', '3|']];
-const HOSTILE = ['missed', 'late', 'walkout', 'wrong'];   // the hood the game gives them
+const HOSTILE = ['late', 'missed', 'nearmiss', 'fender', 'wait', 'queue', 'wrong', 'walkout'];   // the hood the game gives them
 const PREFIX = /^([0-9])\|/;
 const SAMPLE_ING = 'LETTUCE';                              // stands in for {ING} in a preview
 
@@ -86,7 +86,7 @@ function customerFaces() {
 }
 /* { id, label } for the picker, in order: Shared, the cast, customers with lines */
 function speakers() {
-  const out = [{ id: 'shared', label: 'Shared' }];
+  const out = [{ id: 'shared', label: 'Bubble name' }];
   for (const [k, ch] of castEntries()) out.push({ id: 'cast:' + k, label: ch.name });
   const faces = new Set([...Object.keys(people()), ...extras]);
   if (speaker.startsWith('face:')) faces.add(speaker.slice(5));

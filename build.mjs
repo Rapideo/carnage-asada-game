@@ -1,7 +1,7 @@
 /* inline every src module into a single self-contained page */
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { validateContent, DLG_KEYS, SCORE_MAX, centsStr } from './tools/content/validate.mjs';
+import { validateContent, SCORE_MAX, centsStr } from './tools/content/validate.mjs';
 import { fsSource } from './tools/content/fs-source.mjs';
 
 const SRC = 'src';
@@ -82,7 +82,7 @@ console.log(`  scores:  ${scores.board.length} places, top ${centsStr(scores.boa
 console.log(`  levels:  ${levels.length} (${count(levels, (l) => l.type === 'delivery')} delivery, ${count(levels, (l) => l.type === 'kitchen')} kitchen), ${levels[0].name} to ${levels[levels.length - 1].name}`);
 console.log(`  diff:    ${Object.entries(difficulty).map(([k, d]) => `${k} ${d.target}/${d.maxExt}x${d.extend}s`).join(', ')}`);
 console.log(`  menus:   ${Object.entries(menus).map(([e, m]) => `era ${e} ${m.items.length} items/${m.bins.filter(Boolean).length} bins`).join(', ')}`);
-console.log(`  dialog:  ${DLG_KEYS.slice(1).map((k) => `${k} ${dialogue[k].length}`).join(', ')}`);
+console.log(`  dialog:  ${Object.keys(dialogue.people).length} faces, ${Object.values(dialogue.people).reduce((a, m) => a + Object.values(m).reduce((b, l) => b + l.length, 0), 0)} lines of their own, "${dialogue.who}" on the bubble`);
 console.log(`  casts:   ${Object.entries(casts).filter(([e]) => /^\d+$/.test(e)).map(([e, c]) => `era ${e} ${c.length}`).join(', ')}`);
 console.log(`  baked:   ${Object.keys(faces).length} faces, ${Object.keys(lattice).length} lattice, ${Object.keys(board.frames).length} board`);
 console.log(`  music:   ${Object.keys(music).length} songs, ${Object.keys(playlist).length} playlists${musicNote ? ' (' + musicNote + ')' : ''}`);

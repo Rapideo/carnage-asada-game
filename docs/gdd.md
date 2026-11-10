@@ -237,14 +237,20 @@ One dialogue mechanism serves both halves: the bottom **DIALOGUE STRIP**
 (`src/72_dialog.js`). It has a portrait box, a speech bubble and a slide-in, and it is
 drawn the same way over a live delivery frame and over the kitchen.
 
-- **The lines** are in `content/dialogue.json`, grouped by moment:
-  - Delivery: `delivered`, `late`, `missed`.
-  - Kitchen: `arrive`, `wait`, `queue`, `walkout`, `served`, `wrong`.
-  - **A line wraps to at most two rows** in the bubble; the build checks every row.
-  - `people`: personal lines for 120 customer faces, used three times in four.
+- **Every customer says only their own lines (owner, 2026-11-09).** There are no shared
+  lines. `content/dialogue.json` `people` gives each of the 120 customer faces lines at 13 moments:
+  - Delivery: `delivered`, `perfect` (dead centre on the mat), `late`, `missed`, `nearmiss` (a
+    passer-by nearly run down), `fender` (the driver of a car you crunched).
+  - Kitchen: `arrive`, `wait`, `queue`, `wrong`, `served`, `nailed` (a clean ticket served fast),
+    `walkout`.
+  - **A line wraps to at most two rows** in the bubble; the build checks every row, and refuses a
+    cast face with no line at a moment.
+  - **The tone** is grittier and more adult (owner: "a little filthier, a little more adult"):
+    mild swearing and innuendo, a few faces weirdly filthy for their type, children kept clean,
+    never the strongest swear words, slurs, jokes at anyone's identity or anything explicit.
   - `cast`: the nine named characters' lines (see 2 and 3 below).
-- **A line can carry an era floor.** For example, `2|HELLOOO? MCFLY?` only plays from the
-  1980s on, so nobody quotes a film that has not come out yet.
+- **Nothing carries an era floor any more.** A face belongs to its decade, so its lines do too.
+  (The shared pools used `2|`/`3|` so a 1972 customer would not quote a later film.)
 - **The strip is rate-limited in the kitchen**, because it covers the lower bins. A
   walkout always speaks.
 - **It stays silent in attract mode.** A talking head over the demo reads as a cutscene
@@ -295,7 +301,7 @@ As built, an era changes:
 - **the map:** the same streets and the same shop cell, but different zoning (§III.C.1);
 - **the menu** (§IV.E);
 - **the customer cast** (§II.H.1);
-- **the dialogue:** lines with a later era floor join the pool;
+- **the dialogue:** the decade's customers, each with their own lines;
 - **the music:** songs from the level's years (§II.L);
 - **the colour grade:** a per-pixel tone curve over the world (§II.A).
 
@@ -436,8 +442,8 @@ prefix (§II.H.1).
 
 #### F. Dialog (dialog.md)
 
-There is no `dialog.md`. The lines are in `content/dialogue.json`, and a line's era floor
-places it (§II.H).
+There is no `dialog.md`. The lines are in `content/dialogue.json`, each customer's own, and
+a face's decade places them (§II.H).
 
 - Era 1 : lines with no floor
 
