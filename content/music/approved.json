@@ -1,10 +1,10 @@
 {
   "1": {
-    "delivery": ["immigrant-song", "black-dog", "bohemian-opera", "bohemian-rock", "mr-blue-sky", "just-what-i-needed"],
+    "delivery": ["immigrant-song", "black-dog", "bohemian-opera", "bohemian-rock", "mr-blue-sky", "just-what-i-needed", "anarchy-in-the-uk", "dont-fear-the-reaper", "ramble-on"],
     "kitchen": ["walk-on-the-wild-side", "do-it-again", "dyer-maker", "kashmir", "lovely-day", "peg"]
   },
   "2": {
-    "delivery": ["dont-bring-me-down", "stand-and-deliver", "rock-the-casbah", "house-of-fun", "take-on-me", "never-gonna-give-you-up"],
+    "delivery": ["dont-bring-me-down", "stand-and-deliver", "rock-the-casbah", "house-of-fun", "take-on-me", "never-gonna-give-you-up", "bizarre-love-triangle", "dream-police", "all-i-need-is-a-miracle"],
     "kitchen": ["just-cant-get-enough", "dont-you-want-me", "africa", "red-red-wine", "big-time", "if-you-leave"]
   },
   "3": {
@@ -41,6 +41,10 @@
     "song-2": 1999,
     "i-think-im-paranoid": 1999,
     "bitter-sweet-symphony": 1999,
-    "steal-my-sunshine": 1999
+    "steal-my-sunshine": 1999,
+    "anarchy-in-the-uk": 1978,
+    "bizarre-love-triangle": 1987,
+    "dont-fear-the-reaper": 1978,
+    "all-i-need-is-a-miracle": 1987
   }
 }

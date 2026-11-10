@@ -22,6 +22,12 @@ The songs are the real MIDIs from `reference/assets/midi/`, arranged for the gam
 
 6. JUST WHAT I NEEDED - THE CARS (1978), from 1978
 
+7. ANARCHY IN THE UK - THE SEX PISTOLS (1977), from 1978
+
+8. DONT FEAR THE REAPER - BLUE OYSTER CULT (1977), from 1978
+
+9. RAMBLE ON - LED ZEPPELIN (1970), from the start
+
 ### B. Kitchen Shift
 
 1. WALK ON THE WILD SIDE - LOU REED (1972), from the start
@@ -51,6 +57,12 @@ The songs are the real MIDIs from `reference/assets/midi/`, arranged for the gam
 5. TAKE ON ME - A-HA (1985), from 1987
 
 6. NEVER GONNA GIVE YOU UP - RICK ASTLEY (1987), from 1987
+
+7. BIZARRE LOVE TRIANGLE - NEW ORDER (1987), from 1987
+
+8. DREAM POLICE - CHEAP TRICK (1979), from the start
+
+9. ALL I NEED IS A MIRACLE - MIKE AND THE MECHANICS (1986), from 1987
 
 ### B. Kitchen Shift
 

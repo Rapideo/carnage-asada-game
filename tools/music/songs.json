@@ -43,6 +43,21 @@
     { "id": "song-2", "file": "90s/Song2.mid", "title": "SONG 2", "artist": "BLUR", "year": 1997, "month": 2, "_month": "On the album Blur, 10 Feb 1997; the single followed 7 Apr 1997 (Wikipedia: Song 2)." },
     { "id": "i-think-im-paranoid", "file": "90s/IThinkImParanoid.mid", "title": "I THINK I'M PARANOID", "artist": "GARBAGE", "year": 1998, "month": 5, "_month": "On Version 2.0, 11 May 1998 (Wikipedia: Version 2.0; Japan a week earlier); the single followed 6 Jul 1998." },
     { "id": "bitter-sweet-symphony", "file": "90s/BittersweetSymphony.mid", "title": "BITTER SWEET SYMPHONY", "artist": "THE VERVE", "year": 1997, "month": 6, "_month": "Single released 16 Jun 1997, ahead of the album Urban Hymns, 29 Sep 1997 (Wikipedia: Bitter Sweet Symphony)." },
-    { "id": "steal-my-sunshine", "file": "90s/StealMySunshine.mid", "title": "STEAL MY SUNSHINE", "artist": "LEN", "year": 1999, "month": 3, "lead": "t1c3+t2c2", "harm": "t5c0", "_why": "the tune is split between the guy's and the girl's vocal tracks", "_month": "On the Go soundtrack, 30 Mar 1999 (Wikipedia: Steal My Sunshine); the single followed in Jun-Jul 1999." }
+    { "id": "steal-my-sunshine", "file": "90s/StealMySunshine.mid", "title": "STEAL MY SUNSHINE", "artist": "LEN", "year": 1999, "month": 3, "lead": "t1c3+t2c2", "harm": "t5c0", "_why": "the tune is split between the guy's and the girl's vocal tracks", "_month": "On the Go soundtrack, 30 Mar 1999 (Wikipedia: Steal My Sunshine); the single followed in Jun-Jul 1999." },
+    { "id": "anarchy-in-the-uk", "file": "70s/AnarchyInTheUk.mid", "title": "ANARCHY IN THE UK", "artist": "THE SEX PISTOLS", "year": 1977 },
+    { "id": "dont-fear-the-reaper", "file": "70s/DontFearTheReaper.mid", "title": "DONT FEAR THE REAPER", "artist": "BLUE OYSTER CULT", "year": 1977 },
+    { "id": "bizarre-love-triangle", "file": "80s/BizarreLoveTriangle.mid", "title": "BIZARRE LOVE TRIANGLE", "artist": "NEW ORDER", "year": 1987 },
+    { "id": "dream-police", "file": "70s/DreamPolice.mid", "title": "DREAM POLICE", "artist": "CHEAP TRICK", "year": 1979 },
+    { "id": "ramble-on", "file": "70s/RambleOn.mid", "title": "RAMBLE ON", "artist": "LED ZEPPELIN", "year": 1970 },
+    { "id": "all-i-need-is-a-miracle", "file": "80s/AllINeedIsAMiracle.mid", "title": "ALL I NEED IS A MIRACLE", "artist": "MIKE AND THE MECHANICS", "year": 1986 },
+    { "id": "always-the-sun", "file": "80s/AlwaysTheSun.mid", "title": "ALWAYS THE SUN", "artist": "THE STRANGLERS", "year": 1986 },
+    { "id": "easy-lover", "file": "80s/EasyLover.mid", "title": "EASY LOVER", "artist": "PHILIP BAILEY & PHIL COLLINS", "year": 1984 },
+    { "id": "together-in-electric-dreams", "file": "80s/ElectricDreams.mid", "title": "TOGETHER IN ELECTRIC DREAMS", "artist": "GIORGIO MORODER & PHIL OAKEY", "year": 1984 },
+    { "id": "freedom", "file": "80s/Freedom.mid", "title": "FREEDOM", "artist": "WHAM!", "year": 1984 },
+    { "id": "a-hazy-shade-of-winter", "file": "80s/HazyShadeOfWinter.mid", "title": "A HAZY SHADE OF WINTER", "artist": "THE BANGLES", "year": 1987 },
+    { "id": "the-final-countdown", "file": "80s/FinalCountdown.mid", "title": "THE FINAL COUNTDOWN", "artist": "EUROPE", "year": 1986 },
+    { "id": "forever-young", "file": "80s/ForeverYoung.mid", "title": "FOREVER YOUNG", "artist": "ALPHAVILLE", "year": 1984 },
+    { "id": "gemini-dream", "file": "80s/GeminiDream.mid", "title": "GEMINI DREAM", "artist": "THE MOODY BLUES", "year": 1981 },
+    { "id": "blasphemous-rumours", "file": "80s/BlasphemousRumours.mid", "title": "BLASPHEMOUS RUMOURS", "artist": "DEPECHE MODE", "year": 1984 }
   ]
 }
