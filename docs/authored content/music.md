@@ -60,7 +60,7 @@ The songs are the real MIDIs from `reference/assets/midi/`, arranged for the gam
 
 3. AFRICA - TOTO (1982), from 1984
 
-4. RED RED WINE - UB40 (1983), from 1984
+4. RED RED WINE - UB40 (1983), from 1987
 
 5. BIG TIME - PETER GABRIEL (1986), from 1987
 

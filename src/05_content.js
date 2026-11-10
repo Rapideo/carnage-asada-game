@@ -2792,7 +2792,7 @@ const PLAYLIST = {
   "7": ["dont-bring-me-down", "stand-and-deliver"],
   "8": ["just-cant-get-enough", "dont-you-want-me"],
   "9": ["dont-bring-me-down", "stand-and-deliver", "rock-the-casbah", "house-of-fun"],
-  "10": ["just-cant-get-enough", "dont-you-want-me", "africa", "red-red-wine"],
+  "10": ["just-cant-get-enough", "dont-you-want-me", "africa"],
   "11": ["dont-bring-me-down", "stand-and-deliver", "rock-the-casbah", "house-of-fun", "take-on-me", "never-gonna-give-you-up"],
   "12": ["just-cant-get-enough", "dont-you-want-me", "africa", "red-red-wine", "big-time", "if-you-leave"],
   "13": ["sweet-child-o-mine", "here-comes-your-man"],
