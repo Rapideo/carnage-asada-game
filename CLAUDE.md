@@ -107,7 +107,7 @@ missed, nearmiss, fender in the Delivery Shift; arrive, wait, queue, wrong, serv
 the Kitchen Shift), and the build refuses a cast face with nothing to say at one (`checkPeople`), or
 a shared pool key. `people` is 4689 lines on 120 faces, at least 3 per face per moment: the 670
 attributed ones, 720 drafted for the happy moments (0.9.12) and 3299 drafted for the rest
-(0.9.13), grittier on the owner's word ("a little filthier, a little more adult"), with a handful
+(0.9.13, every line approved by the owner), grittier on the owner's word ("a little filthier, a little more adult"), with a handful
 of faces weirdly filthy for their type on purpose and the children kept clean. Casting a new face
 means giving it all 13 moments first. The docs mirror covers all three: `dialogue.md` is
 grouped The speaker / The cast / Customers.

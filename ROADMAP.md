@@ -32,6 +32,12 @@ owner's open judgement calls and operator settings. 1.0.0 is the owner's call.
       **Drafted 2026-11-09** (owner: "you can draft the lines"): 720 lines, two per face per
       moment, on branch `personal-lines`. The owner reviewed them and said "I'm happy. Cut it."
       (2026-11-09).
+- [x] **Every character's own lines, 13 moments, no shared lines** (owner, 2026-11-09). *Shipped in
+      0.9.13*: 4,689 lines, all approved by the owner; four new moments (perfect, nearmiss, fender,
+      nailed). Plan: `docs/superpowers/plans/2026-11-09-character-lines.md`.
+- [x] **Far less traffic** (owner: level 1 had ten times too many cars, which boxed the car in).
+      *Shipped in 0.9.13*: `traffic` per difficulty in `content/difficulty.json` (easy 3), a Service
+      Mode setting. If cars still box the player in, waiting cars could back off after a few seconds.
 - [x] **Service Mode's Music tab in three batches** (Not converted / Converted / In game), songs
       approved by decade, shift and a "from" year like faces, shuffled per play. **Built in 0.9.11**
       (`docs/superpowers/specs/2026-11-09-music-library-design.md`, plan beside it). Not yet

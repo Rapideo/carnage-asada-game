@@ -8,6 +8,19 @@ Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch li
 counts on: 0.9.10, 0.9.11 and so on (owner, 2026-11-09).
 **1.0.0** is when the owner calls it released.
 
+## 0.9.13 (2026-11-09): everybody talks, and the roads clear
+
+- **Every customer says only their own lines**, at 13 moments: an on-time delivery, a
+  **perfect** toss, a late one, a miss, a **near miss** (you nearly ran them down), a
+  **fender bender** (you hit their car, or they hit yours), and in the kitchen arriving,
+  waiting, the line backing up, a wrong pick, a served ticket, a ticket **nailed** (clean
+  and fast) and walking out. 4,689 lines across 120 customers, at least 3 at every moment;
+  the old shared lines are gone. Grittier and saltier by the owner's word, with a few
+  characters weirdly filthy on purpose and the kids kept clean. The owner approved every line.
+- **A wrong pick always gets a reaction** (it was 3 times in 10).
+- **Far less traffic:** Level 1 had 30 cars around you; now 3 on Easy, 8 on Medium, 14 on
+  Hard and 20 on Supreme, set per difficulty in Service Mode (Difficulty, Road).
+
 ## 0.9.12 (2026-11-09): customers who say thank you
 
 - **Every customer has lines of their own for the happy moments:** two each for an on-time
