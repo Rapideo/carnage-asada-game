@@ -460,6 +460,16 @@ A customer face's own lines. Said about 3 times in 4 when the face has one for t
 
 
 
+#### Delivered
+
+1. "OH, BLESS YOU! THE CASSEROLE CAN WAIT."
+2. "RIGHT ON TIME. I MAY NOT EVEN YELL TODAY."
+
+#### Arrive
+
+1. "THREE KIDS IN THE CAR. MAKE IT SNAPPY, SUGAR!"
+2. "ONE SOFT TACO, AND DON'T MAKE ME ASK TWICE."
+
 #### Wait
 
 1. "I HAVE A CASSEROLE IN THE OVEN AT HOME, YOUNG MAN!"
@@ -474,6 +484,11 @@ A customer face's own lines. Said about 3 times in 4 when the face has one for t
 
 1. "I'M GONNA EAT AT TACO BELL AND I'M GONNA ENJOY IT!"
 
+#### Served
+
+1. "NOW THAT'S HOW MOMMY LIKES IT, SUGAR."
+2. "PERFECT. I'M TELLING ALL THE PTA MOMS."
+
 #### Wrong
 
 1. "OH. OH. WELL. THAT'S... DIFFERENT."
@@ -481,6 +496,11 @@ A customer face's own lines. Said about 3 times in 4 when the face has one for t
 ### c70leisure
 
 
+
+#### Delivered
+
+1. "HALLELUJAH! IT CAME, AND IT CAME HOT!"
+2. "NOT BAD. NEARLY TEXAS-SIZED, EVEN."
 
 #### Missed
 
@@ -491,6 +511,8 @@ A rival sees the bag miss.
 #### Arrive
 
 1. "CAN I GET A HALLELUJAH FOR A FAST TACO?!"
+2. "GIVE ME THE BIGGEST BURRITO YOU GOT, FRIEND!"
+3. "SALES MEETING AT ONE. HOP TO IT!"
 
 #### Wait
 
@@ -499,6 +521,11 @@ A rival sees the bag miss.
 #### Walkout
 
 1. "FORGET ABOUT IT. I SAID FORGET ABOUT IT."
+
+#### Served
+
+1. "NOW THAT IS A TACO A MAN CAN TESTIFY TO!"
+2. "I'D SAY FORGET ABOUT IT, BUT I WON'T."
 
 #### Wrong
 
@@ -509,9 +536,16 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "WELL NOW, PARTNER, THAT'S MIGHTY QUICK."
+2. "I DIDN'T EVEN HAVE TIME TO AGE. THANKS!"
+
 #### Arrive
 
 1. "I GOT A JACKHAMMER WAITING FOR ME!"
+2. "LUNCH WHISTLE BLEW. BEAN BURRITO, PRONTO!"
+3. "MY FOREMAN GAVE ME TWENTY MINUTES, PARTNER."
 
 #### Wait
 
@@ -523,9 +557,24 @@ A rival sees the bag miss.
 1. "YOU WILL HEAR FROM MY ATTORNEY! ...AS SOON AS I GET ONE!"
 2. "NAMA-STAY OUT OF MY WAY, I'M LEAVING!"
 
+#### Served
+
+1. "I CAME IN HUNGRY AND I LEAVE AT PEACE."
+2. "CALL OFF MY ATTORNEY. ONCE I GET ONE."
+
 ### c70teacher
 
 
+
+#### Delivered
+
+1. "WELL. PUNCTUAL. I'LL MAKE A NOTE OF IT."
+2. "GOLD STAR, YOUNG MAN. GOLD STAR."
+
+#### Arrive
+
+1. "I HAVE PAPERS TO GRADE. ONE TACO, PLEASE."
+2. "RECESS ENDS IN TEN MINUTES. CHOP CHOP."
 
 #### Queue
 
@@ -537,6 +586,11 @@ A rival sees the bag miss.
 1. "I'M CALLING THE BETTER BUSINESS BUREAU!"
 2. "I'LL BE ADDRESSING THIS IN MY BOOK CLUB."
 
+#### Served
+
+1. "A+ FOR PRESENTATION, YOUNG MAN."
+2. "MY BOOK CLUB WILL HEAR ABOUT THIS. NICELY."
+
 #### Wrong
 
 1. "YOUR FATHER WOULD BE ASHAMED!"
@@ -546,9 +600,19 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "THAT'S A BIG TEN-FOUR ON A HOT TACO!"
+2. "YOU DRIVE LIKE YOU GOT A LOAD DUE IN OMAHA."
+
 #### Late
 
 1. "THERE'S A HEARTBREAK IN EVERY COUNTRY SONG - THIS IS MINE!"
+
+#### Arrive
+
+1. "GOT A RIG FULL OF CATTLE. MAKE IT QUICK!"
+2. "THREE COMBO BURRITOS FOR THE ROAD, BUDDY."
 
 #### Wait
 
@@ -560,6 +624,11 @@ A rival sees the bag miss.
 
 1. "BREAKER ONE-NINE, I'M LEAVIN' YOUR PARKING LOT! OVER AND OUT!"
 
+#### Served
+
+1. "NOW THAT'S A TRUCK-STOP TACO DONE RIGHT."
+2. "WORTH GETTING OFF I-70 FOR, GOOD BUDDY."
+
 #### Wrong
 
 1. "YOU SALSA-FINGERED FENCEPOST!"
@@ -568,6 +637,11 @@ A rival sees the bag miss.
 ### c70waitress
 
 
+
+#### Delivered
+
+1. "HEAVENS, STILL WARM! YOU'RE A DEAR."
+2. "MY BRIDGE CLUB WILL BE SO JEALOUS, HONEY."
 
 #### Missed
 
@@ -579,6 +653,11 @@ A rival sees the bag miss.
 
 1. "MY HUSBAND WOULD HAVE A WORD WITH YOU, IF HE WERE STILL ALIVE!"
 
+#### Arrive
+
+1. "BRIDGE STARTS AT TWO, DEAR. HURRY ALONG."
+2. "A SOFT TACO, AND SOMETHING FOR MY SISTER."
+
 #### Wait
 
 1. "LORD HAVE MERCY ON THIS SLOW KITCHEN!"
@@ -588,6 +667,11 @@ A rival sees the bag miss.
 
 1. "I LEFT MY BRIDGE CLUB FOR THIS DISASTER!"
 
+#### Served
+
+1. "NOW THAT'S A KITCHEN I CAN BE PROUD OF."
+2. "I WAITED TABLES THIRTY YEARS. THAT'S RIGHT."
+
 #### Wrong
 
 1. "HEAVENS TO BETSY!"
@@ -596,6 +680,11 @@ A rival sees the bag miss.
 ### c70discoking
 
 
+
+#### Delivered
+
+1. "SOLD! TO THE DRIVER WITH THE GOOD ARM!"
+2. "THE STARS FORETOLD THIS. HOT AND ON TIME."
 
 #### Missed
 
@@ -607,6 +696,11 @@ A rival sees the bag miss.
 
 1. "MY MERCURY IS IN RETROGRADE AND SO ARE YOU!"
 
+#### Arrive
+
+1. "DO I HEAR TWO TACOS? I DO! I DO!"
+2. "MAKE IT FABULOUS. I HAVE AN ENTRANCE TO MAKE."
+
 #### Walkout
 
 1. "I CAME IN GOOD FAITH. I CAME IN GOOD FAITH!"
@@ -615,16 +709,28 @@ A rival sees the bag miss.
 #### Served
 
 1. "YOUR SECRET RECIPE WILL BE MINE!"
+2. "MAGNIFICENT. I STILL WANT THAT RECIPE."
+3. "THE PLANETS ALIGN, AND SO DOES THIS TACO."
 
 ### c70newsman
 
 
+
+#### Delivered
+
+1. "WELL, I'LL BE. RIGHT TO THE DOORSTEP."
+2. "FASTEST SERVICE I'VE SEEN SINCE V-E DAY."
 
 #### Missed
 
 A rival sees the bag miss.
 
 1. "WELL, I'LL BE A MONKEY'S UNCLE!"
+
+#### Arrive
+
+1. "I GO ON THE AIR AT SIX. ONE BEEF BURRITO."
+2. "BREAKING NEWS: I'M HUNGRY. FILM AT ELEVEN."
 
 #### Wait
 
@@ -636,6 +742,11 @@ A rival sees the bag miss.
 1. "I CAME IN HERE A YOUNG MAN!"
 2. "I'VE WAITED LONGER THAN THE WAR, KID!"
 
+#### Served
+
+1. "FOR THE LOVE OF PETE, THAT'S A GOOD ONE."
+2. "GOOD EVENING. TONIGHT'S TOP STORY: THIS TACO."
+
 #### Wrong
 
 1. "OH, I'M SORRY - YOU DIDN'T PHRASE IT IN THE FORM OF A TACO!"
@@ -644,9 +755,19 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "MISSION ACCOMPLISHED, PRIVATE. CARRY ON."
+2. "RIGHT ON TARGET. THE ARMY COULD USE YOU."
+
 #### Late
 
 1. "IN THE ARMY, A TACO TOOK THIRTY SECONDS!"
+
+#### Arrive
+
+1. "RECON SAYS YOUR NACHOS ARE THE BEST."
+2. "UP SINCE OH-FIVE-HUNDRED. FEED ME, SON."
 
 #### Wait
 
@@ -659,9 +780,24 @@ A rival sees the bag miss.
 2. "I HAVE WAITED LONGER THAN BASIC TRAINING!"
 3. "I'VE BEEN IN FOXHOLES MORE COMFORTABLE THAN THIS LINE!"
 
+#### Served
+
+1. "BEATS C-RATIONS BY A COUNTRY MILE, SON."
+2. "SQUARED AWAY. I'D EAT AT YOUR MESS HALL."
+
 ### c70hippiedude
 
 
+
+#### Delivered
+
+1. "RIGHT ON, MAN. THE UNIVERSE PROVIDES."
+2. "FAR OUT. AND THE MAN DIDN'T STOP YOU."
+
+#### Arrive
+
+1. "BEAN BURRITO, MAN. NO BEEF. PEACE."
+2. "PARKED THE VAN ON THE CURB. BE COOL, MAN."
 
 #### Wait
 
@@ -677,9 +813,24 @@ A rival sees the bag miss.
 1. "I DROVE MY VAN HERE, MAN. I DROVE MY VAN."
 2. "MY HEALER IS GOING TO HEAR ABOUT THIS!"
 
+#### Served
+
+1. "GOOD VIBES, MAN. GOOD BEANS, TOO."
+2. "THIS BURRITO IS A REVOLUTION, MAN."
+
 ### c70pornstar
 
 
+
+#### Delivered
+
+1. "NOW THAT'S SERVICE FIT FOR A STAR, BABY."
+2. "ON TIME? KID, YOU'VE GOT STAR QUALITY."
+
+#### Arrive
+
+1. "DO YOU KNOW WHO I AM? HARD TACO SUPREME."
+2. "MY CADILLAC'S DOUBLE-PARKED, BABY. HUSTLE."
 
 #### Wait
 
@@ -691,6 +842,11 @@ A rival sees the bag miss.
 
 1. "I KNOW A GUY WHO KNOWS A GUY WHO COULD MAKE THIS TACO FASTER!"
 
+#### Served
+
+1. "MAGNIFICENT. TELL THE CHEF I'M IMPRESSED."
+2. "KEEP THE CHANGE. I'M A HOMEOWNER, BABY."
+
 #### Wrong
 
 1. "TELL THE CHEF I WANT TO SEE HIM. NO - I DEMAND TO SEE HIM."
@@ -699,11 +855,21 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "BEHOLD! THE BAG APPEARS UPON MY PORCH!"
+2. "ABRACADABRA, AND IT'S STILL WARM!"
+
 #### Missed
 
 A rival sees the bag miss.
 
 1. "BY DAVY JONES' SOMBRERO!"
+
+#### Arrive
+
+1. "PICK A TACO, ANY TACO. I'LL HAVE THAT ONE."
+2. "MAKE A BURRITO APPEAR, AND QUICKLY!"
 
 #### Wait
 
@@ -715,6 +881,11 @@ A rival sees the bag miss.
 1. "CURSED BE YE AND YOUR DESCENDANTS UNTO THE SEVENTH GENERATION!"
 2. "I SUMMON THE SPIRIT OF MOCTEZUMA UPON YOU ALL!"
 
+#### Served
+
+1. "A TRICK WORTHY OF HOUDINI HIMSELF!"
+2. "BY THE SANDALS OF ZEUS, THAT'S DELICIOUS!"
+
 #### Wrong
 
 1. "BY THE BEARD OF ZEUS!"
@@ -723,10 +894,20 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "PERFECT TIMING. RIGHT ON THE DOWNBEAT."
+2. "SMOOTH. YOU'VE GOT A REAL FEEL FOR THIS."
+
 #### Late
 
 1. "YOU ARE VERY, VERY SLOW, MY FRIEND!"
 2. "I TRAINED AT JUILLIARD FOR THIS?!"
+
+#### Arrive
+
+1. "SORRY TO BE A BOTHER. I'M ON IN TWENTY."
+2. "ONE SANCHO, PLEASE. THE BAND IS WAITING."
 
 #### Wait
 
@@ -736,6 +917,11 @@ A rival sees the bag miss.
 
 1. "I'M AFRAID I'LL HAVE TO GIVE THIS EXPERIENCE ZERO STARS."
 
+#### Served
+
+1. "THAT'S A TACO IN PERFECT TUNE, MY FRIEND."
+2. "BRAVO. A STANDING-OVATION SANCHO."
+
 #### Wrong
 
 1. "WHAT A LOAD OF HORSE FEATHERS!"
@@ -744,12 +930,22 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "AHOY! FAIR WINDS BROUGHT YE RIGHT TO ME!"
+2. "LANDED SQUARE ON THE DECK. WELL THROWN!"
+
 #### Missed
 
 A rival sees the bag miss.
 
 1. "YOU FUSTILUGS!"
 2. "SHIVER ME TORTILLAS!"
+
+#### Arrive
+
+1. "ALL HANDS! ONE BEEF BURRITO, ON THE DOUBLE!"
+2. "DOCKED MY BOAT AT CEDAR BLUFF FOR THIS."
 
 #### Wait
 
@@ -760,6 +956,11 @@ A rival sees the bag miss.
 1. "I REMEMBER WHEN THIS WHOLE PLACE WAS A FIELD!"
 2. "I'VE SAILED THE SEVEN SEAS IN LESS TIME THAN THIS!"
 
+#### Served
+
+1. "A FINE CATCH, COOK. FINEST IN PORT."
+2. "I'VE EATEN IN EVERY PORT. THIS ONE'LL DO."
+
 #### Wrong
 
 1. "AVAST YE! AVAST I SAY!"
@@ -768,11 +969,21 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "LAND SAKES, STILL WARM! YOU'RE A GEM."
+2. "OPE! RIGHT ON THE MAT. THANKS A BUNCH!"
+
 #### Missed
 
 A rival sees the bag miss.
 
 1. "LAND SAKES ALIVE!"
+
+#### Arrive
+
+1. "BEES ARE SWARMING. QUICK, ONE SOFT TACO!"
+2. "OPE, JUST GONNA SNEAK IN AN ORDER HERE."
 
 #### Wait
 
@@ -785,9 +996,19 @@ A rival sees the bag miss.
 1. "OPE! SORRY! JUST GONNA SQUEEZE PAST YA TO THE DAIRY QUEEN!"
 2. "GOIN' ONCE, GOIN' TWICE, GOIN' OUT THE DOOR!"
 
+#### Served
+
+1. "SWEETER THAN CLOVER HONEY. YOU BETCHA."
+2. "I'LL SING THIS TACO'S PRAISES AFTER ALL!"
+
 ### c70surferdude
 
 
+
+#### Delivered
+
+1. "WHOA, YOU TOTALLY CAUGHT THAT WAVE, DUDE!"
+2. "RIGHTEOUS TOSS, BRAH. RIGHT ON THE STEP."
 
 #### Late
 
@@ -797,6 +1018,8 @@ A rival sees the bag miss.
 #### Arrive
 
 1. "I'M GETTING MARRIED IN TWENTY MINUTES!"
+2. "NO WAVES IN KANSAS, DUDE. GOT TACOS, THOUGH?"
+3. "NACHOS, BRAH. MY BOARD'S ON THE ROOF RACK."
 
 #### Wait
 
@@ -806,15 +1029,30 @@ A rival sees the bag miss.
 
 1. "I HOPE A SEAGULL STEALS YOUR KEYS!"
 
+#### Served
+
+1. "STOKED, DUDE. TOTALLY STOKED."
+2. "THIS TACO IS LIKE A PERFECT SET, MAN."
+
 ### c70rollerskater
 
 
+
+#### Delivered
+
+1. "IT'S FINE! IT'S MORE THAN FINE! THANKS!"
+2. "MY BABIES ARE GONNA EAT TONIGHT! YAY!"
 
 #### Missed
 
 A rival sees the bag miss.
 
 1. "WHAT A TURKEY!"
+
+#### Arrive
+
+1. "SKATED HERE FROM THE RINK! TWO TACOS!"
+2. "ROLL ME A BURRITO, I'M ON A BREAK!"
 
 #### Wait
 
@@ -826,6 +1064,11 @@ A rival sees the bag miss.
 
 1. "GOING TO... THAT GREAT... TACO STAND... IN THE SKY..."
 
+#### Served
+
+1. "PERFECT! I'M DOING A VICTORY LAP!"
+2. "YOU'RE NO TURKEY. YOU'RE A TACO HERO!"
+
 #### Wrong
 
 1. "YOU SCALLYWAG OF A SALSA-SLINGER!"
@@ -833,6 +1076,11 @@ A rival sees the bag miss.
 ### c70photographer
 
 
+
+#### Delivered
+
+1. "HOLD IT! SMILE! THAT'S A KEEPER, KID."
+2. "HOME BY SIX AFTER ALL. MY WIFE OWES ME."
 
 #### Missed
 
@@ -846,20 +1094,40 @@ A rival sees the bag miss.
 2. "FAILURE TO DELIVER! FAILURE TO COMMUNICATE! FAILURE TO COOK!"
 3. "THE TACO WAS A NO-SHOW. LIKE A WITNESS WHO'S BEEN GOTTEN TO."
 
+#### Arrive
+
+1. "I GOT A WEDDING TO SHOOT AT FOUR. HURRY!"
+2. "QUICK, BEFORE I LOSE MY LIGHT. ONE TACO."
+
 #### Wait
 
 1. "WELL, I S'POSE I'LL JUST GROW ROOTS HERE THEN. I S'POSE."
 2. "OPERATORS ARE STANDING BY... UNLIKE YOUR TACO MAKER!"
 
+#### Served
+
+1. "THAT'S PICTURE PERFECT. FRAME IT."
+2. "THE LIGHT ON THESE NACHOS? GORGEOUS."
+
 ### c70stagehand
 
 
+
+#### Delivered
+
+1. "CUE THE TACO! RIGHT ON THE MARK!"
+2. "BRAVO! YOU HIT YOUR MARK ON THE PORCH."
 
 #### Missed
 
 A rival sees the bag miss.
 
 1. "WHAT A MAROON!"
+
+#### Arrive
+
+1. "INTERMISSION'S FIFTEEN MINUTES. GO!"
+2. "PLACES, EVERYONE! ONE COMBO BURRITO!"
 
 #### Wait
 
@@ -874,9 +1142,24 @@ A rival sees the bag miss.
 
 1. "TELL... MY TACO... I... LOVED... IT..."
 
+#### Served
+
+1. "NOW THAT'S A SHOW-STOPPER, CHEF."
+2. "CURTAIN CALL! TAKE A BOW, CHEF."
+
 ### c70racecardriver
 
 
+
+#### Delivered
+
+1. "NOW THAT'S A PIT STOP! CHECKERED FLAG!"
+2. "YOU DRIVE LIKE YOU MEAN IT. RESPECT."
+
+#### Arrive
+
+1. "QUALIFYING'S AT THREE. HAMMER DOWN!"
+2. "GREEN FLAG! ONE HARD TACO, FLAT OUT!"
 
 #### Wait
 
@@ -888,6 +1171,11 @@ A rival sees the bag miss.
 
 1. "SADDLE UP, FRIEND - WE'RE RIDIN' BACK TO TACO BELL!"
 
+#### Served
+
+1. "FASTER THAN MY PIT CREW! HOT DOG!"
+2. "THAT'S VICTORY LANE MATERIAL, FRIEND."
+
 #### Wrong
 
 1. "YOU SOUR CREAM SCOUNDREL!"
@@ -897,6 +1185,16 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "NOW THAT'S A DELIVERY WITH SOME SOUL!"
+2. "SMOOTH MOVE, MY MAN. SMOOTH MOVE."
+
+#### Arrive
+
+1. "DANCE CONTEST AT EIGHT. LET'S GO!"
+2. "SOMETHING WITH SOUL, PLEASE. A SANCHO!"
+
 #### Wait
 
 1. "HONEST TO GOD, THIS IS A JOKE!"
@@ -904,6 +1202,8 @@ A rival sees the bag miss.
 #### Served
 
 1. "YOUR SALSA HAS NO CHUNKS AND NO SOUL!"
+2. "NOW THIS SALSA'S GOT CHUNKS AND SOUL!"
+3. "MERCY ME, THAT'S GOOD. I GOTTA DANCE."
 
 #### Wrong
 
@@ -914,9 +1214,19 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "WHOA. IT CAME. IS ANYTHING REAL? THIS IS."
+2. "GROOVY, MAN. I'LL WRITE A HAPPY SONG NOW."
+
 #### Late
 
 1. "THE MOON LANDING WASN'T REAL AND NEITHER IS THIS TACO!"
+
+#### Arrive
+
+1. "I'M HERE. I THINK. ONE SOFT TACO, MAN."
+2. "WHAT TIME IS IT? DOESN'T MATTER. NACHOS."
 
 #### Wait
 
@@ -928,9 +1238,24 @@ A rival sees the bag miss.
 
 1. "I'M GONNA WRITE A SAD SONG ABOUT THIS TACO SHOP!"
 
+#### Served
+
+1. "WHAT IS A TACO? THIS. THIS IS A TACO."
+2. "TOTALLY GROOVY. MY MIND IS BLOWN, MAN."
+
 ### c70flowerchild
 
 
+
+#### Delivered
+
+1. "PEACE AND LOVE, DELIVERY FRIEND!"
+2. "MY CHAKRAS ARE ALIGNED. THANK YOU!"
+
+#### Arrive
+
+1. "I MADE YOU A DAISY CHAIN. ONE TACO?"
+2. "NO MEAT, PLEASE. JUST BEANS AND GOOD VIBES."
 
 #### Wait
 
@@ -946,18 +1271,38 @@ A rival sees the bag miss.
 2. "I'M BOYCOTTING THIS RESTAURANT!"
 3. "PEACE, LOVE AND LEAVING - THAT'S WHAT I'M DOING!"
 
+#### Served
+
+1. "THIS BEAN BURRITO HAS A BEAUTIFUL AURA."
+2. "PEACE, LOVE AND TACOS. YOU GET IT."
+
 ### c70taxman
 
 
+
+#### Delivered
+
+1. "WELL, OKAY THEN. FULL TIP. YOU BETCHA."
+2. "ON TIME. THAT'S ONE DEDUCTION I WON'T TAKE."
 
 #### Late
 
 1. "YOU LITTLE WHIPPERSNAPPER!"
 2. "YOU BETCHA THAT'S COMING OUT OF THE TIP. OH BOY."
 
+#### Arrive
+
+1. "APRIL FIFTEENTH IS COMING. ONE TACO, QUICK."
+2. "I'LL NEED A RECEIPT FOR THAT, OKAY?"
+
 #### Walkout
 
 1. "I'D LIKE TO FILE A POLITE COMPLAINT, SORRY."
+
+#### Served
+
+1. "THE NUMBERS ADD UP. THAT'S A GOOD TACO."
+2. "SORRY, JUST... THAT'S REAL GOOD. SORRY."
 
 #### Wrong
 
@@ -968,11 +1313,21 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "HE TOSSES... IT'S ON THE PORCH! TOUCHDOWN!"
+2. "WHAT A THROW, FOLKS! RIGHT ON THE NUMBERS!"
+
 #### Missed
 
 A rival sees the bag miss.
 
 1. "HOLY COW! HOLY COW, I SAY!"
+
+#### Arrive
+
+1. "WE'RE LIVE IN TEN, FOLKS! ONE SANCHO!"
+2. "IT'S HALFTIME! I GOT TWELVE MINUTES, KID!"
 
 #### Wait
 
@@ -987,6 +1342,11 @@ A rival sees the bag miss.
 
 1. "AND HE'S OUTTA HERE, FOLKS! THE CUSTOMER HAS LEFT THE BUILDING!"
 
+#### Served
+
+1. "THE CROWD GOES WILD, FOLKS! WHAT A TACO!"
+2. "A HALL OF FAME BURRITO! HOLY COW!"
+
 #### Wrong
 
 1. "OFFENSIVE HOLDING ON THE TACO MAKER, FIFTEEN YARDS!"
@@ -995,12 +1355,22 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "NOT BAD, DADDY-O. YOU'RE ALRIGHT."
+2. "COLLECTED ON MY BET. KEEP THE CHANGE."
+
 #### Missed
 
 A rival sees the bag miss.
 
 1. "SWEET MOTHER MARY AND JOSEPH!"
 2. "I HAD MONEY ON THIS TACO, DUDE!"
+
+#### Arrive
+
+1. "MY HOT ROD'S RUNNING. MAKE IT SNAPPY."
+2. "HARD TACO. EXTRA HARD. LIKE ME."
 
 #### Wait
 
@@ -1014,6 +1384,11 @@ A rival sees the bag miss.
 
 1. "I'LL SEE YA IN THE PARKING LOT, TACO BOY!"
 
+#### Served
+
+1. "NOW THAT'S A TACO WITH SOME ATTITUDE."
+2. "YOU'RE ALRIGHT, TACO BOY. YOU'RE ALRIGHT."
+
 #### Wrong
 
 1. "WHAT'S THE MATTER WITH YOU? WHAT'S THE MATTER?!"
@@ -1022,11 +1397,21 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "WELL, I DECLARE! RIGHT ON THE STOOP!"
+2. "OH HONEY, YOU'RE A STAR. A REAL LEO."
+
 #### Missed
 
 A rival sees the bag miss.
 
 1. "MAMMA MIA! WHAT IS THIS?!"
+
+#### Arrive
+
+1. "I'M DUE ON THE DANCE FLOOR AT NINE, HONEY!"
+2. "SOMETHING SPARKLY, DARLING. A SUPREME!"
 
 #### Wait
 
@@ -1037,6 +1422,11 @@ A rival sees the bag miss.
 
 1. "I'M GOING HOME AND HAVING A STRONG ICED TEA, I DECLARE!"
 
+#### Served
+
+1. "THE STARS LOVE THIS TACO, HONEY. SO DO I."
+2. "HONEY, THIS IS THE BEST THING IN KANSAS."
+
 #### Wrong
 
 1. "WHAT AN OUTRAGE!"
@@ -1046,6 +1436,11 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "THE BOUQUET IS... COMPLEX. I APPROVE."
+2. "PROMPT. HOW WONDERFULLY UNPRETENTIOUS."
+
 #### Late
 
 1. "THE BOUQUET OF THIS PLACE IS... DISAPPOINTMENT."
@@ -1054,6 +1449,8 @@ A rival sees the bag miss.
 #### Arrive
 
 1. "ARE THESE TACOS ORGANIC? ARE THE BEANS UNION-PICKED?!"
+2. "DO YOU HAVE ANYTHING... HANDMADE? I'LL WAIT."
+3. "I'LL HAVE THE SOFT TACO. IT'S HONEST."
 
 #### Wait
 
@@ -1064,13 +1461,28 @@ A rival sees the bag miss.
 
 1. "I'VE BEEN WAITING SINCE THE TIME OF MOCTEZUMA!"
 
+#### Served
+
+1. "THE MOUTHFEEL. THE TEXTURE. A MASTERPIECE."
+2. "I MAY PAINT THIS SANCHO. IT SPEAKS TO ME."
+
 ### c70easyrider
 
 
 
+#### Delivered
+
+1. "WELL ALRIGHT. THAT'S A CLEAN RUN, PARTNER."
+2. "MY HOG COULDN'T HAVE DONE IT FASTER."
+
 #### Late
 
 1. "I GOT 5 YEARS OF FREEZE-DRIED FOOD AT HOME AND I CAME HERE!"
+
+#### Arrive
+
+1. "MY HOG'S RESTLESS. TWO BURRITOS, PARTNER."
+2. "RODE IN ON I-70 AND I'M STARVIN'."
 
 #### Wait
 
@@ -1085,18 +1497,38 @@ A rival sees the bag miss.
 
 1. "I'D LOSE MY WOMAN, MY HAT, AND MY DOG BEFORE I'D COME BACK HERE!"
 
+#### Served
+
+1. "I HAVE KNOWN FAMINE. THIS IS THE CURE."
+2. "NOW THAT'S WORTH THE RIDE FROM WAKEENEY."
+
 ### c70discodude
 
 
+
+#### Delivered
+
+1. "NOW THAT'S A PRIZE WORTH SPINNING FOR!"
+2. "OUTTA SIGHT! YOU'RE A REAL PRO, FRIEND."
 
 #### Late
 
 1. "TELL THEM WHAT THEY DON'T GET, BOB!"
 
+#### Arrive
+
+1. "THE CLUB OPENS AT TEN. LET'S BOOGIE!"
+2. "MAKE IT QUICK. MY POLYESTER'S STARTING TO MELT."
+
 #### Walkout
 
 1. "I'LL HAVE MY GUY AT THE CHAMBER OF COMMERCE HEAR ABOUT THIS!"
 2. "I'LL BE BACK TOMORROW, AND I'LL STILL BE UPSET!"
+
+#### Served
+
+1. "FAR OUT. I'M TELLING THE WHOLE CLUB."
+2. "THAT TACO'S GOT MORE MOVES THAN I DO."
 
 #### Wrong
 
@@ -1107,11 +1539,21 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "WHOA. THE TACO CAME TO ME. FAR OUT."
+2. "RIGHT ON, BROTHER. YOU'RE A LIFESAVER."
+
 #### Missed
 
 A rival sees the bag miss.
 
 1. "YOU OVERBAKED FRABJOUS DINGUS!"
+
+#### Arrive
+
+1. "NACHOS, MAN. LIKE, A WHOLE LOT OF NACHOS."
+2. "I FORGOT WHY I CAME IN. OH RIGHT. TACOS."
 
 #### Wait
 
@@ -1120,6 +1562,11 @@ A rival sees the bag miss.
 #### Queue
 
 1. "THIS IS EXACTLY WHAT THEY WANT US TO DO - WAIT!"
+
+#### Served
+
+1. "WHOA. I JUST WITNESSED A TACO MIRACLE."
+2. "NO BUM VIBES HERE. THAT'S PERFECT, MAN."
 
 #### Wrong
 
@@ -1130,11 +1577,21 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "STOP THE PRESSES! IT ARRIVED ON TIME!"
+2. "THIS GETS A GLOWING COLUMN, MY FRIEND."
+
 #### Missed
 
 A rival sees the bag miss.
 
 1. "OH, THE HUMANITY!"
+
+#### Arrive
+
+1. "DEADLINE AT FIVE. ONE COMBO BURRITO!"
+2. "QUICK, I'M ON DEADLINE AND OUT OF IDEAS."
 
 #### Wait
 
@@ -1145,6 +1602,11 @@ A rival sees the bag miss.
 1. "I'LL WRITE A COLUMN SO DEVASTATING YOUR KIDS WILL FEEL IT!"
 2. "I'LL BE UNPACKING THIS IN MY SEMINAR ON PERSONAL POWER!"
 
+#### Served
+
+1. "THE REVIEW IS IN, AND IT IS A RAVE."
+2. "I'LL TEACH THIS TACO IN MY SEMINAR."
+
 #### Wrong
 
 1. "HOLY MOLY! THIS IS AN ABOMINATION!"
@@ -1153,11 +1615,21 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "WELL. I SUPPOSE I WON'T CALL CORPORATE."
+2. "MY SEVEN CATS AND I ACCEPT THIS DELIVERY."
+
 #### Missed
 
 A rival sees the bag miss.
 
 1. "I'LL SMACK YOU WITH MY PURSE, SEE IF I DON'T!"
+
+#### Arrive
+
+1. "I'LL BE TIMING YOU, DEAR. DON'T TEST ME."
+2. "SOFT TACO SUPREME. NOT SOFTER. NOT HARDER."
 
 #### Wait
 
@@ -1173,9 +1645,19 @@ A rival sees the bag miss.
 
 1. "MARK MY WORDS, THIS SHOP WILL RUE THE DAY!"
 
+#### Served
+
+1. "FINALLY, SOMEONE COMPETENT. MY COMPLIMENTS."
+2. "TELL YOUR MANAGER I'M NOT ANGRY. TODAY."
+
 ### c70bellbottomguy
 
 
+
+#### Delivered
+
+1. "BRENDA! GET OUT HERE, THE TACOS CAME!"
+2. "NOW THAT'S DOING IT RIGHT. COOL, MAN."
 
 #### Missed
 
@@ -1190,6 +1672,8 @@ A rival sees the bag miss.
 #### Arrive
 
 1. "MY CONCRETE'S SETTING WITHOUT ME! MOVE IT!"
+2. "BRENDA'S IN THE CAR. TWO SOFT TACOS, QUICK!"
+3. "I GOT A SLAB TO POUR AT ONE. HUSTLE!"
 
 #### Wait
 
@@ -1203,9 +1687,19 @@ A rival sees the bag miss.
 
 1. "BRENDA! GET IN THE CAR, WE'RE GOING TO PIZZA HUT!"
 
+#### Served
+
+1. "BETTER THAN MY MOTHER-IN-LAW'S. DON'T TELL HER."
+2. "COOL, MAN. REAL COOL. BRENDA WILL LOVE IT."
+
 ### c70foxylady
 
 
+
+#### Delivered
+
+1. "SHE ORDERED. SHE RECEIVED. SHE IS PLEASED."
+2. "WHY, I DO DECLARE. AN ANGEL WITH A BAG."
 
 #### Missed
 
@@ -1213,6 +1707,11 @@ A rival sees the bag miss.
 
 1. "MOTHER OF GOD AND ALL THE SAINTS!"
 2. "WHY, I DO DECLARE!"
+
+#### Arrive
+
+1. "DARLING, I HAVE A PARTY. MAKE IT FABULOUS."
+2. "ONE TACO, PLEASE. AND MAKE IT DRAMATIC."
 
 #### Wait
 
@@ -1224,9 +1723,19 @@ A rival sees the bag miss.
 
 1. "SHE CAME IN FOR A MEAL. SHE LEFT WITH NOTHING BUT DISAPPOINTMENT."
 
+#### Served
+
+1. "SAINT ANTHONY FOUND MY ORDER AT LAST!"
+2. "MERCURY IS DIRECT, AND SO IS THIS TACO."
+
 ### c70bowlcutkid
 
 
+
+#### Delivered
+
+1. "WOW! I'M TELLING MY MOMMY YOU'RE THE BEST!"
+2. "YEEHAW! FASTEST DRIVER IN THE WEST!"
 
 #### Missed
 
@@ -1240,9 +1749,19 @@ A rival sees the bag miss.
 1. "IT'S FINE. I'M FINE. WE'RE ALL FINE HERE, NOW."
 2. "MAY THE FORCE BE WITH YOU, BECAUSE THE SPEED CLEARLY ISN'T!"
 
+#### Arrive
+
+1. "MY MOM GAVE ME A DOLLAR! ONE TACO, PODNER!"
+2. "I RODE MY BIKE HERE ALL BY MYSELF!"
+
 #### Wait
 
 1. "DRAW, PODNER! DRAW, I SAY! QUICKER THAN THAT!"
+
+#### Served
+
+1. "JIMINY! THAT'S THE BEST TACO EVER MADE!"
+2. "I'M GONNA BE A TACO MAN WHEN I GROW UP!"
 
 #### Wrong
 
@@ -1253,9 +1772,19 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "NO SMOKEY IN SIGHT AND STILL HOT. NICE."
+2. "YOU'D MAKE A FINE TEAMSTER, KID."
+
 #### Late
 
 1. "MY RIG'S IDLING OUT THERE AND SO AM I, FRIEND!"
+
+#### Arrive
+
+1. "RIG'S IDLING. TWO BEEF BURRITOS TO GO!"
+2. "HAULING WHEAT TO SALINA. FEED ME FAST."
 
 #### Queue
 
@@ -1267,9 +1796,19 @@ A rival sees the bag miss.
 1. "I'M TAKING MY BUSINESS TO THE TACO JOHN'S DOWN THE STREET!"
 2. "SMOKEY'S GOT NOTHIN' ON ME - TEN-NINE-NINE THIS TACO OUT!"
 
+#### Served
+
+1. "SIX STATES HUNGRY, AND THIS FIXED IT."
+2. "BEST GRUB BETWEEN DENVER AND K.C., FRIEND."
+
 ### c70flightattendant
 
 
+
+#### Delivered
+
+1. "WELCOME ABOARD! AND RIGHT ON SCHEDULE."
+2. "MR. WHISKERS AND I ARE DELIGHTED, DEAR."
 
 #### Missed
 
@@ -1281,6 +1820,11 @@ A rival sees the bag miss.
 
 1. "I'VE EATEN WITH JULIA CHILD, AND SHE WOULD NEVER!"
 
+#### Arrive
+
+1. "I HAVE A LAYOVER, DEAR. DO BE QUICK."
+2. "FASTEN YOUR APRON, DEAR. ONE SANCHO."
+
 #### Wait
 
 1. "CABIN TO TACO BOY, COME IN TACO BOY!"
@@ -1291,13 +1835,28 @@ A rival sees the bag miss.
 
 1. "THIS WOULDN'T FLY IN HOUSTON!"
 
+#### Served
+
+1. "JULIA CHILD WOULD APPROVE, DEAR. TRULY."
+2. "NOW THIS WOULD FLY IN HOUSTON, DEAR."
+
 ### c80aerobics
 
 
 
+#### Delivered
+
+1. "HOT AT THE DOOR! I'LL DO EXTRA SIT-UPS."
+2. "WELL! SOMEBODY IN THIS TOWN HUSTLES."
+
 #### Late
 
 1. "NO PAIN, NO GAIN - AND SO FAR IT'S ALL PAIN AND ZERO TACOS!"
+
+#### Arrive
+
+1. "I JUST DID AN HOUR OF HIGH KICKS. FEED ME."
+2. "TWO HARD TACOS. MY CLASS STARTS AT ONE."
 
 #### Wait
 
@@ -1313,18 +1872,38 @@ A rival sees the bag miss.
 
 1. "I'M PUTTING THIS IN THE CHURCH BULLETIN!"
 
+#### Served
+
+1. "NOW THAT IS WORTH THE CALORIES, HON."
+2. "I'LL TELL THE WHOLE CHURCH. NICELY."
+
 ### c80breaker
 
 
+
+#### Delivered
+
+1. "YO, THAT TOSS HAD MOVES! RESPECT."
+2. "SPIN ON THAT, DRIVER! RIGHT ON THE MAT!"
 
 #### Late
 
 1. "I COULD GET A TACO FASTER ON THE F TRAIN AT 3 AM!"
 2. "MY GRANDMA WOULD WEEP AT THIS SERVICE!"
 
+#### Arrive
+
+1. "GOTTA EAT BEFORE I HIT THE CARDBOARD!"
+2. "BATTLE AT THE ROLLER RINK IN TEN, MAN!"
+
 #### Wait
 
 1. "MY WIFE IS IN LABOR! SHE WANTS A TACO! IT'S HER ONE REQUEST!"
+
+#### Served
+
+1. "THAT'S FRESH! STRAIGHT-UP FRESH!"
+2. "MY CREW'S GONNA HEAR ABOUT THIS ONE."
 
 #### Wrong
 
@@ -1334,6 +1913,16 @@ A rival sees the bag miss.
 ### c80dad
 
 
+
+#### Delivered
+
+1. "DOLORES! THE TACOS ARE HERE! AND HOT!"
+2. "ATTA BOY. WISH MY KIDS MOVED THAT FAST."
+
+#### Arrive
+
+1. "FAMILY OF FIVE. THE KIDS ARE IN THE WAGON."
+2. "SIX BEAN BURRITOS. DON'T ASK ME WHY SIX."
 
 #### Wait
 
@@ -1350,13 +1939,28 @@ A rival sees the bag miss.
 1. "I'M CANCELLING THE FAMILY VACATION OVER THIS!"
 2. "BOY. BOY. WAIT'LL I TELL DOLORES ABOUT THIS ONE."
 
+#### Served
+
+1. "NOW THAT'S A TACO A MAN CAN RESPECT."
+2. "TELL YOUR FATHER HE RAISED A GOOD COOK."
+
 ### c80preppy
 
 
 
+#### Delivered
+
+1. "WHY, HOW PERFECTLY PROMPT OF YOU!"
+2. "ON THE MAT AND STILL WARM. I'M ASTONISHED."
+
 #### Late
 
 1. "HEAVENS TO BETSY, THIS IS JUST AWFUL!"
+
+#### Arrive
+
+1. "ONE SOFT TACO. I'M DUE AT THE CLUB AT TWO."
+2. "DO HURRY, DEAR. MY TENNIS LESSON AWAITS."
 
 #### Wait
 
@@ -1369,9 +1973,19 @@ A rival sees the bag miss.
 2. "I SHAN'T BE RETURNING. I SHAN'T!"
 3. "YOU'LL BE HEARING FROM MY LETTER TO THE EDITOR."
 
+#### Served
+
+1. "SIMPLY DIVINE. I SHALL TELL MOTHER."
+2. "MY COMPLIMENTS. I DON'T GIVE THEM OFTEN."
+
 ### c80valley
 
 
+
+#### Delivered
+
+1. "OH MY GOD, YOU'RE LIKE, A HERO."
+2. "IT'S STILL HOT? THAT IS SO TOTALLY RAD."
 
 #### Missed
 
@@ -1384,9 +1998,19 @@ A rival sees the bag miss.
 1. "MY GRANDMOTHER IS ROLLING IN HER GRAVE AT THIS SERVICE!"
 2. "THIS IS NOT MY LUCKY DAY AND YOU ARE NOT HELPING!"
 
+#### Arrive
+
+1. "HI! I NEED NACHOS, LIKE, IMMEDIATELY."
+2. "MY MOM'S DOUBLE-PARKED AND SHE'S FREAKING."
+
 #### Wait
 
 1. "I LITERALLY CANNOT DEAL RIGHT NOW!"
+
+#### Served
+
+1. "THIS IS LIKE, THE BEST TACO EVER. EVER."
+2. "OKAY, I TAKE BACK LIKE, HALF OF IT."
 
 #### Wrong
 
@@ -1396,9 +2020,19 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "YOU ARRIVED LIKE A SYNTH SOLO. ON CUE."
+2. "A WARM BAG IN A COLD WORLD. HOW RARE."
+
 #### Late
 
 1. "I'D WEEP, BUT MY TEARS WOULD BE OVER-SALTED."
+
+#### Arrive
+
+1. "ONE SANCHO. AND SOMETHING FOR THE ENNUI."
+2. "I MUST EAT BEFORE MY SYNTH WARMS UP."
 
 #### Wait
 
@@ -1412,6 +2046,8 @@ A rival sees the bag miss.
 #### Served
 
 1. "I SHALL STEAL THE VERY SOUL OF THIS RESTAURANT!"
+2. "EXQUISITE. I MAY WEAR LESS BLACK TOMORROW."
+3. "AT LAST, A TACO THAT UNDERSTANDS ME."
 
 #### Wrong
 
@@ -1421,6 +2057,16 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "PACKAGE SECURED! OUTSTANDING WORK, DRIVER!"
+2. "DIRECT HIT ON THE LANDING ZONE! HOO-AH!"
+
+#### Arrive
+
+1. "REQUESTING RATIONS! SIX HARD TACOS!"
+2. "I'M ON A SUPPLY RUN. MAKE IT SNAPPY!"
+
 #### Wait
 
 1. "I HAVE A BUNKER FULL OF MRES AND I SHOULD'VE STAYED THERE!"
@@ -1428,6 +2074,11 @@ A rival sees the bag miss.
 #### Queue
 
 1. "I SHALL NOT REST UNTIL MY TACO IS IN HAND!"
+
+#### Served
+
+1. "MISSION ACCOMPLISHED. AT EASE, COOK."
+2. "THAT IS A TACO FIT FOR THE TROOPS!"
 
 #### Wrong
 
@@ -1439,6 +2090,11 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "HAIL THE DRIVER! THE BAG HATH LANDED!"
+2. "RIGHT ON THE PORCH! YOU RULE, DUDE!"
+
 #### Missed
 
 A rival sees the bag miss.
@@ -1449,6 +2105,11 @@ A rival sees the bag miss.
 
 1. "MY FOREMAN'S GONNA HAVE MY HIDE!"
 
+#### Arrive
+
+1. "CHILI CHEESE NACHOS! FOR THE HORDE!"
+2. "I GOT TEN MINUTES BEFORE MY SHIFT, MAN!"
+
 #### Wait
 
 1. "WHERE'S MY TACO, YOU BARNACLE-ENCRUSTED SWINE?!"
@@ -1456,6 +2117,11 @@ A rival sees the bag miss.
 #### Walkout
 
 1. "I HEREBY CURSE THIS SHOP WITH STALE CHIPS FOR A THOUSAND YEARS!"
+
+#### Served
+
+1. "THIS TACO SHREDS! TOTALLY METAL!"
+2. "I SHALL SING OF THIS CHILI BURRITO!"
 
 #### Wrong
 
@@ -1466,11 +2132,21 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "WHOA, BONUS ROUND! YOU'RE ACE, MAN!"
+2. "PERFECT LANDING! THAT'S A NEW HIGH SCORE!"
+
 #### Missed
 
 A rival sees the bag miss.
 
 1. "YOU SNORK-FACED FLIBBERGIBBET!"
+
+#### Arrive
+
+1. "QUICK, I GOT A QUARTER ON THE MACHINE!"
+2. "NACHOS, PLEASE! MY MOM'S IN THE CAR!"
 
 #### Wait
 
@@ -1481,6 +2157,11 @@ A rival sees the bag miss.
 
 1. "MINE! MINE! MINE! THAT TACO IS MINE!"
 
+#### Served
+
+1. "THIS TACO IS ACE! THAT'S AN EXTRA LIFE!"
+2. "I'D PUT MY INITIALS ON THIS TACO."
+
 #### Wrong
 
 1. "WHAT'RE YOU, NUTS?!"
@@ -1490,9 +2171,19 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "NOW THAT'S A SATISFYING ENDING."
+2. "FIVE STARS. NO, SIX. I'M ALLOWED."
+
 #### Late
 
 1. "HE'S DEAD, JIM. AND BY 'HE' I MEAN MY APPETITE."
+
+#### Arrive
+
+1. "QUICK SANCHEZ. THE NEW RELEASES CAME IN."
+2. "I'M ON BREAK. THE RETURNS WON'T SHELVE THEMSELVES."
 
 #### Wait
 
@@ -1503,6 +2194,11 @@ A rival sees the bag miss.
 1. "TWO THUMBS DOWN! WAY DOWN! NEVER AGAIN!"
 2. "I'LL TAKE 'PLACES I'M NEVER COMING BACK TO' FOR FIVE HUNDRED!"
 
+#### Served
+
+1. "THIS IS GOING ON MY STAFF PICKS SHELF."
+2. "A STRONG SEQUEL TO LAST WEEK'S TACO."
+
 #### Wrong
 
 1. "YOU COULDN'T FOLD A BURRITO WITH A MAP AND A TUTORIAL!"
@@ -1512,9 +2208,19 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "RIGHT ON, BRAH! TOTALLY TUBULAR TOSS!"
+2. "DUDE, IT'S STILL WARM. STOKED!"
+
 #### Late
 
 1. "BOGUS, BRAH. TOTALLY BOGUS."
+
+#### Arrive
+
+1. "SURF'S FLAT IN KANSAS, BRAH. TACO TIME."
+2. "DAVE, I'M ORDERING FOR YOU TOO, MAN!"
 
 #### Wait
 
@@ -1528,10 +2234,22 @@ A rival sees the bag miss.
 #### Served
 
 1. "THIS VIBE IS RANCID, BRAH."
+2. "THIS VIBE IS RADICAL NOW, BRAH."
+3. "GNARLY TACO, DUDE. THE GOOD GNARLY."
 
 ### c80yuppiegirl
 
 
+
+#### Delivered
+
+1. "ON TIME AND ON BUDGET. I LIKE YOU."
+2. "FINALLY, SOMEONE WHO RESPECTS A DEADLINE."
+
+#### Arrive
+
+1. "TWO SOFT TACOS. I HAVE A ONE O'CLOCK."
+2. "I'M PENCILED IN FOR TEN MINUTES. GO."
 
 #### Wait
 
@@ -1543,6 +2261,11 @@ A rival sees the bag miss.
 1. "I'M TAKING THIS TO THE BOARD!"
 2. "I'M GOING TO CALL CHANNEL 7 ABOUT THIS!"
 
+#### Served
+
+1. "EFFICIENT. I'M PENCILING YOU IN AGAIN."
+2. "THIS IS THE BEST DEAL I'VE CLOSED ALL DAY."
+
 #### Wrong
 
 1. "YOUR NAME, YOUR BOSS'S NAME, AND HIS BOSS'S NAME. NOW!"
@@ -1551,6 +2274,11 @@ A rival sees the bag miss.
 ### c80newromantic
 
 
+
+#### Delivered
+
+1. "OH, HOW TERRIBLY ROMANTIC. A WARM TACO."
+2. "SPLENDID TOSS! I SHALL WRITE YOU AN ODE."
 
 #### Missed
 
@@ -1562,9 +2290,19 @@ A rival sees the bag miss.
 
 1. "I NO LONGER BELIEVE IN A BENEVOLENT GOD!"
 
+#### Arrive
+
+1. "A SANCHO, DARLING. I'M MEETING THE BAND."
+2. "QUICKLY NOW. MY HAIR WON'T HOLD ALL DAY."
+
 #### Wait
 
 1. "MIRROR, MIRROR, ON THE WALL - WHERE IS MY TACO, AFTER ALL?!"
+
+#### Served
+
+1. "BRILLIANT. ABSOLUTELY BRILLIANT, DARLING."
+2. "I'M QUITE MOVED. MY EYELINER IS RUNNING."
 
 #### Wrong
 
@@ -1574,6 +2312,16 @@ A rival sees the bag miss.
 ### c80jock
 
 
+
+#### Delivered
+
+1. "TOUCHDOWN! RIGHT IN THE END ZONE, BUDDY!"
+2. "NOW THAT'S A CANNON ARM! NICE TOSS!"
+
+#### Arrive
+
+1. "THREE CHILI BURRITOS. I'M BULKING!"
+2. "PRACTICE IN TWENTY! LET'S HUSTLE, SKIPPY!"
 
 #### Wait
 
@@ -1586,6 +2334,11 @@ A rival sees the bag miss.
 
 1. "AND THAT, SPORTS FANS, IS HOW YOU LOSE A CUSTOMER!"
 
+#### Served
+
+1. "THAT'S A WINNER, COACH! HIGH FIVE!"
+2. "MY CARB-LOADING IS BACK ON TRACK!"
+
 #### Wrong
 
 1. "VINCE LOMBARDI WOULD BENCH YA FOR THIS!"
@@ -1595,9 +2348,16 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "MISSION COMPLETE. THE PACKAGE IS SAFE."
+2. "YOU DRIVE LIKE A HERO. I APPROVE."
+
 #### Arrive
 
 1. "THERE'S A NEW SHERIFF IN TOWN, AND HIS NAME IS STARVIN' MARVIN!"
+2. "I NEED FUEL. BEEF NACHO SUPREME. NOW."
+3. "I DO MY OWN STUNTS. I ORDER MY OWN TACOS."
 
 #### Wait
 
@@ -1613,15 +2373,30 @@ A rival sees the bag miss.
 1. "TONIGHT, I DINE IN HELL... BECAUSE I'M CLEARLY NOT EATING HERE!"
 2. "I'LL BE BACK. AND I'LL BE HUNGRY. AND I'LL BE ANGRY."
 
+#### Served
+
+1. "THIS TACO JUST SAVED THE DAY."
+2. "MY MUSCLES THANK YOU, COOK. ALL OF THEM."
+
 ### c80girlrocker
 
 
+
+#### Delivered
+
+1. "WHOA! THAT TOSS TOTALLY ROCKED!"
+2. "STILL HOT? YOU'RE MY HERO, DRIVER!"
 
 #### Missed
 
 A rival sees the bag miss.
 
 1. "YOU MISERABLE LITTLE SNORF-BUCKET!"
+
+#### Arrive
+
+1. "SOUR CREAM SANCHO! MY BAND'S ON AT EIGHT!"
+2. "FEED ME FAST. MY HAIR TOOK TWO HOURS."
 
 #### Wait
 
@@ -1631,6 +2406,11 @@ A rival sees the bag miss.
 
 1. "I'LL GET YOU, MY PRETTY - AND YOUR LITTLE TACO TOO!"
 
+#### Served
+
+1. "THAT'S A TACO WITH SOME ATTITUDE! LOVE IT!"
+2. "ENCORE! I'LL BE BACK AFTER SOUND CHECK!"
+
 #### Wrong
 
 1. "GET OUTTA HERE WITH THIS - GET OUT!"
@@ -1639,6 +2419,16 @@ A rival sees the bag miss.
 ### c80computernerd
 
 
+
+#### Delivered
+
+1. "DELIVERY TIME WITHIN TOLERANCE. ACCEPTABLE."
+2. "YOUR ARC WAS NEARLY OPTIMAL. NEARLY."
+
+#### Arrive
+
+1. "ONE HARD TACO. MY PROGRAM IS COMPILING."
+2. "I ESTIMATE TWELVE MINUTES. PROVE ME WRONG."
 
 #### Wait
 
@@ -1653,6 +2443,11 @@ A rival sees the bag miss.
 1. "I WILL BE NOTING THIS IN MY NEWSLETTER."
 2. "I'M ROLLING FOR INITIATIVE ON MY WALKOUT!"
 
+#### Served
+
+1. "OUTPUT MATCHES SPECIFICATIONS. DELIGHTFUL."
+2. "THIS GETS A GLOWING ENTRY IN MY NEWSLETTER."
+
 #### Wrong
 
 1. "YOU ABSOLUTE SCHMENDRICK!"
@@ -1662,11 +2457,21 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "IT'S WARM. LIKE HOPE. HOW STRANGE."
+2. "YOU CAME. NOBODY EVER COMES. THANKS."
+
 #### Missed
 
 A rival sees the bag miss.
 
 1. "UGH, OF COURSE. THE UNIVERSE HATES ME."
+
+#### Arrive
+
+1. "I HAVE DETENTION AT THREE. FEED ME FIRST."
+2. "ONE BEAN BURRITO. AND A LITTLE DARKNESS."
 
 #### Wait
 
@@ -1678,13 +2483,28 @@ A rival sees the bag miss.
 
 1. "I'M PUTTING THIS IN MY POETRY JOURNAL. IN BLACK INK."
 
+#### Served
+
+1. "OKAY. THIS IS ACTUALLY NOT TERRIBLE."
+2. "I'LL WRITE A POEM ABOUT THESE NACHOS. A NICE ONE."
+
 ### c80dj
 
 
 
+#### Delivered
+
+1. "AND IT LANDS ON THE MAT! THE CROWD GOES WILD!"
+2. "THIS ONE GOES OUT TO MY DRIVER! ON TIME!"
+
 #### Late
 
 1. "YOU FAJITA-FOOTED FRAUD!"
+
+#### Arrive
+
+1. "I'M ON AIR IN FIFTEEN! TACOS FOR THE BOOTH!"
+2. "REQUEST LINE IS OPEN: ONE SANCHEZ, PLEASE!"
 
 #### Wait
 
@@ -1693,6 +2513,11 @@ A rival sees the bag miss.
 #### Walkout
 
 1. "I'M TELLING ALL MY LISTENERS ABOUT THIS!"
+
+#### Served
+
+1. "THIS TACO IS NUMBER ONE ON MY CHART!"
+2. "AND THE COOK STICKS THE LANDING! WHAT A PLAY!"
 
 #### Wrong
 
@@ -1703,6 +2528,11 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "SOLID EXECUTION, PAL. THE TIP IS YOURS."
+2. "PROMPT. DADDY WOULD HIRE YOU."
+
 #### Late
 
 1. "WHAT'S THE ROI ON THIS WAIT TIME, PAL?"
@@ -1710,6 +2540,8 @@ A rival sees the bag miss.
 #### Arrive
 
 1. "I HAVE A TEE TIME!"
+2. "ONE SANCHO. I'M DUE ON THE BACK NINE."
+3. "MY RACQUETBALL COURT IS BOOKED AT TWO."
 
 #### Wait
 
@@ -1719,6 +2551,8 @@ A rival sees the bag miss.
 #### Served
 
 1. "THE TERROIR HERE IS OFF, I CAN SENSE IT."
+2. "THE TERROIR IS SPOT ON TODAY. BRAVO."
+3. "MY PLEDGES COULD LEARN FROM YOU, PAL."
 
 #### Wrong
 
@@ -1728,10 +2562,20 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "OH YEAH, BROTHER! THAT BAG HIT THE MARK!"
+2. "THE GODS OF THUNDER SMILE ON YOU, DRIVER!"
+
 #### Late
 
 1. "EVEN THE DEVIL WOULD HAVE MY TACO BY NOW!"
 2. "I DEMAND TRIAL BY COMBAT FOR MY TACO!"
+
+#### Arrive
+
+1. "CHILI CHEESE NACHOS! BRING THE THUNDER!"
+2. "I RODE IN ON A HOWLING WIND. FEED ME!"
 
 #### Wait
 
@@ -1742,9 +2586,19 @@ A rival sees the bag miss.
 1. "I'LL MAKE YOU DANCE THE HEMPEN JIG, YOU SALSA-SOAKED SCURVY DOG!"
 2. "OH! IT'S ME, BROTHER! IT'S ME, THE GUY WHO IS LEAVING!"
 
+#### Served
+
+1. "THIS TACO IS PURE HEAVY METAL, BROTHER!"
+2. "VICTORY! I SALUTE THEE, MIGHTY COOK!"
+
 ### c80businessman
 
 
+
+#### Delivered
+
+1. "NOW THAT'S A PRODUCTIVE DELIVERY."
+2. "I'M BUYING STOCK IN YOU, KID."
 
 #### Late
 
@@ -1754,6 +2608,8 @@ A rival sees the bag miss.
 #### Arrive
 
 1. "I'M A BUSY MAN, UNDERSTAND?"
+2. "I'VE GOT A CLIENT IN THE CAR. LET'S MOVE."
+3. "BEEF NACHO SUPREME. CLOSE THE DEAL FAST."
 
 #### Queue
 
@@ -1765,9 +2621,24 @@ A rival sees the bag miss.
 1. "I'LL CALL CORPORATE SO HARD THEIR FAX MACHINE EXPLODES!"
 2. "I'M SHORTING THIS TACO SHOP!"
 
+#### Served
+
+1. "THIS IS A POWER LUNCH, AND YOU NAILED IT."
+2. "BULLISH ON TACOS. VERY BULLISH."
+
 ### c80punkrocker
 
 
+
+#### Delivered
+
+1. "OKAY. THAT WAS PRETTY PUNK OF YOU."
+2. "YOU BEAT THE MAN TO MY DOOR. RESPECT."
+
+#### Arrive
+
+1. "ONE BEAN BURRITO. NO, I WON'T SMILE."
+2. "GOT A GIG IN THE GARAGE TONIGHT. HURRY UP."
 
 #### Wait
 
@@ -1780,6 +2651,11 @@ A rival sees the bag miss.
 2. "I HAVE DRUNK FROM ROYALTY. I WILL NOT BE IGNORED."
 3. "I HATE YOU AND I HATE THIS PLACE AND I HATE EVERYTHING!"
 
+#### Served
+
+1. "FINE. IT'S GOOD. DON'T TELL ANYONE."
+2. "THIS TACO IS ANTI-ESTABLISHMENT. I DIG IT."
+
 #### Wrong
 
 1. "YOU ABSOLUTE MUPPET! A RIGHT BERK, YOU ARE!"
@@ -1788,9 +2664,19 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "OH, BEAUTY! WARM TACOS! YOU'RE A LEGEND!"
+2. "SHREDDED THAT DELIVERY, DUDE. PURE FLOW."
+
 #### Late
 
 1. "OH, BEAUTY. COLD TACOS. JUST BEAUTY, YOU GUYS."
+
+#### Arrive
+
+1. "JUST GOT BACK FROM THE MOUNTAINS. STARVING!"
+2. "I'M DRIVING TO COLORADO TONIGHT. TACOS!"
 
 #### Wait
 
@@ -1799,9 +2685,19 @@ A rival sees the bag miss.
 3. "ARE YOU LIVING YOUR DREAM, TACO MAKER?! ARE YOU?!"
 4. "OK FINE, FORGET THE LETTUCE. JUST GIVE IT TO ME."
 
+#### Served
+
+1. "THAT'S A POWDER-DAY TACO, MAN."
+2. "TOTALLY LIVING THE DREAM NOW, TACO MAKER."
+
 ### c80valleyguy
 
 
+
+#### Delivered
+
+1. "WHOA, RIGHT ON THE MAT. THAT'S RAD."
+2. "NOT BOGUS AT ALL. LIKE, THE OPPOSITE."
 
 #### Missed
 
@@ -1813,6 +2709,11 @@ A rival sees the bag miss.
 
 1. "THIS IS BOGUS TO THE MAX!"
 
+#### Arrive
+
+1. "HEY, NACHOS? BUT LIKE, FAST NACHOS?"
+2. "I SKIPPED SECOND PERIOD FOR THIS, MAN."
+
 #### Wait
 
 1. "NOT RAGEFUL, JUST CONCERNED... AND ALSO RAGEFUL!"
@@ -1820,6 +2721,11 @@ A rival sees the bag miss.
 #### Walkout
 
 1. "I CAME HERE IN PEACE. I LEAVE IN PIECES OF DISAPPOINTMENT."
+
+#### Served
+
+1. "THIS IS LIKE, PEACE IN TACO FORM."
+2. "I CAME IN PEACE. I LEAVE IN FULLNESS."
 
 #### Wrong
 
@@ -1829,11 +2735,21 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "CAPTAIN, THE PACKAGE HAS ARRIVED! WARM!"
+2. "BULLSEYE! TEN THOUSAND POINTS!"
+
 #### Missed
 
 A rival sees the bag miss.
 
 1. "EAT IT, GRAVY DRAWERS!"
+
+#### Arrive
+
+1. "ONE HARD TACO! I'M ON MY LAST LIFE!"
+2. "MY BIKE'S OUT FRONT. NO LOCK. HURRY!"
 
 #### Wait
 
@@ -1849,9 +2765,19 @@ A rival sees the bag miss.
 
 1. "I HOPE YOU STEP ON A LEGO EVERY DAY FOR A YEAR!"
 
+#### Served
+
+1. "BY MY SWORD, THIS IS A GOOD TACO!"
+2. "SENSORS DETECT MAXIMUM TACO. HOORAY!"
+
 ### c80newsanchor
 
 
+
+#### Delivered
+
+1. "THIS JUST IN: DINNER ARRIVED ON TIME."
+2. "IN LOCAL NEWS, A DRIVER DOES IT RIGHT."
 
 #### Late
 
@@ -1859,6 +2785,11 @@ A rival sees the bag miss.
 2. "AS A FOOD JOURNALIST... SORT OF... I'M DEEPLY DISAPPOINTED."
 3. "BEAR MARKET ON TACOS TODAY, APPARENTLY!"
 4. "WHAT A COLOSSAL COLLAPSE FROM THIS TACO SHOP!"
+
+#### Arrive
+
+1. "I GO ON AT SIX. I NEED NACHOS AT FIVE."
+2. "SOFT TACO, PLEASE. MY MAKEUP IS SETTING."
 
 #### Queue
 
@@ -1868,9 +2799,24 @@ A rival sees the bag miss.
 
 1. "THIS IS GOING IN THE PAPER! AND ON THE LOCAL NEWS!"
 
+#### Served
+
+1. "AND THAT'S THE TACO OF THE DAY. BACK TO YOU."
+2. "I GIVE THIS SANCHO A GLOWING REPORT."
+
 ### c80miamigirl
 
 
+
+#### Delivered
+
+1. "WELL, BLESS YOUR SWEET LITTLE WHEELS!"
+2. "HOT AND ON TIME? HONEY, YOU'RE A DOLL."
+
+#### Arrive
+
+1. "PHOTO SHOOT IN AN HOUR. SOFT TACO, HON."
+2. "I'M HALF DONE WITH MY NAILS. MAKE IT QUICK."
 
 #### Wait
 
@@ -1878,6 +2824,11 @@ A rival sees the bag miss.
 2. "I HAVE A PHOTO SHOOT IN AN HOUR AND YOU'RE KILLING ME!"
 3. "I HAVE HALF A GLASS OF PINOT AND A WHOLE LOT OF RAGE!"
 4. "I CAN NOT GET THE DRY CLEANING! I'M A HOSTAGE OF SLOW TACO PEOPLE!"
+
+#### Served
+
+1. "NOW THIS IS A TACO WORTH POSING WITH."
+2. "YOU JUST SAVED MY WHOLE AFTERNOON, SUGAR."
 
 #### Wrong
 
@@ -1888,9 +2839,16 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "THAT'S HOW YOU THROW A SPIRAL, BUDDY!"
+2. "RIGHT ON THE NUMBERS! I LOVE IT!"
+
 #### Arrive
 
 1. "I'M LATE FOR THE TAILGATE, BUDDY!"
+2. "SIX CHILI BURRITOS FOR THE TAILGATE!"
+3. "COACH SAYS EAT BIG. SO I'M EATING BIG!"
 
 #### Wait
 
@@ -1903,13 +2861,28 @@ A rival sees the bag miss.
 
 1. "TAKE A LONG WALK OFF A SHORT PIER, YOU ABSOLUTE MELVIN!"
 
+#### Served
+
+1. "WHOO! I COULD BENCH THIS TACO TWICE!"
+2. "THAT'S GAME DAY FOOD, MY FRIEND!"
+
 ### c80preppygirl
 
 
 
+#### Delivered
+
+1. "THANK YOU KINDLY. MANNERS AND SPEED!"
+2. "OH, HOW THOUGHTFUL. I'LL TELL THE PASTOR."
+
 #### Late
 
 1. "WHERE I COME FROM, WE SERVE TACOS WITH MANNERS!"
+
+#### Arrive
+
+1. "ONE SOFT TACO. I'M LATE FOR CHOIR."
+2. "FELLOWSHIP SUPPER'S AT SIX. I NEED NACHOS."
 
 #### Wait
 
@@ -1920,6 +2893,11 @@ A rival sees the bag miss.
 1. "I'M TELLING THE PASTOR!"
 2. "I'M GOING TO MY BIG SISTER ABOUT THIS!"
 
+#### Served
+
+1. "THAT IS JUST LOVELY. SIMPLY LOVELY."
+2. "WAIT TILL I TELL MY BIG SISTER. SHE'LL DIE."
+
 #### Wrong
 
 1. "YOU GUACAMOLE-BRAINED NINCOMPOOP!"
@@ -1929,11 +2907,21 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "A CRITICAL HIT! RIGHT ON THE DOORMAT!"
+2. "THE SCROLL OF DINNER HAS ARRIVED. HUZZAH!"
+
 #### Missed
 
 A rival sees the bag miss.
 
 1. "YOU COMPLETE AND TOTAL FLARGUS!"
+
+#### Arrive
+
+1. "OUR CAMPAIGN STARTS AT SEVEN. NACHOS!"
+2. "THE PARTY SENT ME FOR SUPPLIES. FOUR TACOS."
 
 #### Wait
 
@@ -1947,6 +2935,11 @@ A rival sees the bag miss.
 
 1. "BEAM ME UP, SCOTTY - I'M LEAVING!"
 
+#### Served
+
+1. "I AWARD THIS COOK FIFTY EXPERIENCE POINTS."
+2. "OH GEEZ, THIS IS GOOD. LIKE, REALLY GOOD."
+
 #### Wrong
 
 1. "I CAST MAGIC MISSILE ON THE TACO COOK!"
@@ -1955,9 +2948,16 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "STILL WARM! I'LL GO TO CHURCH THIS SUNDAY!"
+2. "YOU'RE ALL RIGHT, DRIVER. YOU'RE ALL RIGHT."
+
 #### Arrive
 
 1. "MY UNCLE'S FUNERAL STARTS IN TEN MINUTES! HE LOVED TACOS!"
+2. "LUNCH BREAK FROM THE BODY SHOP. HURRY!"
+3. "CHILI SANCHO. I GOT A GARAGE GIG TONIGHT."
 
 #### Wait
 
@@ -1971,6 +2971,11 @@ A rival sees the bag miss.
 
 1. "I'LL DEMO THIS PLACE WITH A SLEDGEHAMMER, SEE IF I WON'T!"
 
+#### Served
+
+1. "UNCLE RAY WOULD'VE LOVED THIS TACO."
+2. "MY HAIR GREW BACK JUST LOOKING AT THIS."
+
 #### Wrong
 
 1. "YOU'RE A REAL PISSER, YOU KNOW THAT?"
@@ -1978,6 +2983,16 @@ A rival sees the bag miss.
 ### c80businessguy
 
 
+
+#### Delivered
+
+1. "THAT'S HOW YOU RUN A BUSINESS. ON TIME."
+2. "YOU'RE GOING PLACES, KID. KEEP HUSTLING."
+
+#### Arrive
+
+1. "I GOT PEOPLE WAITING. TWO SANCHOS."
+2. "I'M ON THE CLOCK, PAL. CHILI BURRITO."
 
 #### Wait
 
@@ -1995,9 +3010,19 @@ A rival sees the bag miss.
 2. "I'M TAKING MY CAPITAL ELSEWHERE!"
 3. "SUCCESSFUL PEOPLE DON'T WAIT FOR TACOS! THEY MAKE THEIR OWN!"
 
+#### Served
+
+1. "NOW THAT'S DIGNITY IN A TORTILLA."
+2. "I'D PUT THIS COOK IN THE CORNER OFFICE."
+
 ### c80valleyguy2
 
 
+
+#### Delivered
+
+1. "BRO! THAT'S LIKE, THE MOST STOKED I'VE BEEN!"
+2. "FORSOOTH, THE BAG HAS LANDED, BRO!"
 
 #### Missed
 
@@ -2009,6 +3034,11 @@ A rival sees the bag miss.
 
 1. "YOU ABSOLUTE SHMORGASBORD OF DISAPPOINTMENT!"
 
+#### Arrive
+
+1. "SUP, BRO. NACHOS. ALL THE NACHOS."
+2. "BRO, I'M SO HUNGRY I COULD EAT A SURFBOARD."
+
 #### Wait
 
 1. "I'LL NAME MY FIRSTBORN AFTER YOU! BOY OR GIRL, I DON'T CARE!"
@@ -2016,6 +3046,11 @@ A rival sees the bag miss.
 #### Queue
 
 1. "LOOK, KIDS! IT'S HUNGER! WAVE HELLO TO HUNGER!"
+
+#### Served
+
+1. "BRO. BRO. THIS TACO IS A NATURAL TWENTY."
+2. "BRO. THIS TACO IS, LIKE, A TEN."
 
 #### Wrong
 
@@ -2026,10 +3061,25 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "HUH. THE SYSTEM WORKS. FOR ONCE."
+2. "NOT BAD. I'LL KEEP YOU OFF MY LIST."
+
+#### Arrive
+
+1. "BEAN BURRITO. I'M BOYCOTTING EVERYTHING ELSE."
+2. "MY BAND PRACTICES AT FOUR. MOVE IT."
+
 #### Walkout
 
 1. "I'M PUTTING THIS PLACE ON MY LIST!"
 2. "I'M GETTING A BAGEL ACROSS THE STREET, YOU BUM!"
+
+#### Served
+
+1. "OKAY, THIS IS NOT BUSH-LEAGUE. RESPECT."
+2. "TAKE THAT, BAGEL SHOP ACROSS THE STREET."
 
 #### Wrong
 
@@ -2041,6 +3091,11 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "NOW THAT'S A HIGH PERFORMER, CHAMP."
+2. "ON TIME. YOU'D LAST A WEEK ON MY FLOOR."
+
 #### Late
 
 1. "YOUR CUSTOMER SATISFACTION IS IN THE TOILET, PAL!"
@@ -2049,6 +3104,8 @@ A rival sees the bag miss.
 #### Arrive
 
 1. "IS THIS TACO GOURMET? I NEED IT GOURMET."
+2. "I'M BILLING THIS LUNCH TO A CLIENT. GO."
+3. "SOUR CREAM SANCHO. MAKE IT GOURMET."
 
 #### Wait
 
@@ -2060,9 +3117,19 @@ A rival sees the bag miss.
 1. "YOU'VE BEEN GONGED! GOODBYE!"
 2. "I HAVE VERY SPECIAL SKILLS... AND ONE OF THEM IS COMPLAINING!"
 
+#### Served
+
+1. "IT'S BASICALLY GOURMET. I'LL ALLOW IT."
+2. "THIS IS A BUY RATING, PAL. STRONG BUY."
+
 ### c80biker
 
 
+
+#### Delivered
+
+1. "ALL RIGHT. YOU GOT GUTS, KID."
+2. "HOT TACOS AND A GOOD TOSS. RIDE ON."
 
 #### Missed
 
@@ -2075,9 +3142,19 @@ A rival sees the bag miss.
 1. "YOU'RE A REAL PIECE OF WORK, YOU KNOW THAT, BARNEY?"
 2. "MY DOG DIED, MY TRUCK BROKE DOWN, AND NOW THIS!"
 
+#### Arrive
+
+1. "RODE IN FROM SALINA. CHILI BURRITO."
+2. "MY HOG'S PARKED CROOKED. MAKE IT QUICK."
+
 #### Walkout
 
 1. "YOU HAVEN'T SEEN THE LAST OF ME!"
+
+#### Served
+
+1. "NOW THAT'S A TACO WORTH THE RIDE."
+2. "BEST THING THAT'S HAPPENED TO ME ALL WEEK."
 
 #### Wrong
 
@@ -2086,6 +3163,16 @@ A rival sees the bag miss.
 ### c80newwaveguy2
 
 
+
+#### Delivered
+
+1. "OH. YOU CAME. SORRY, I'M JUST... TOUCHED."
+2. "MY DARK SOUL GROWS SLIGHTLY LIGHTER."
+
+#### Arrive
+
+1. "SORRY, HI, SORRY. ONE SOFT TACO? SORRY."
+2. "THE RECORD STORE CLOSES AT SIX. SORRY."
 
 #### Wait
 
@@ -2098,6 +3185,11 @@ A rival sees the bag miss.
 2. "I CAME IN HUNGRY. I LEFT EMPTY. STORY OF EVERY TACO SHOP IN TOWN."
 3. "I WILL OUTLIVE THIS RESTAURANT, AND ITS SUNS!"
 
+#### Served
+
+1. "THE MISE EN PLACE IS IMMACULATE. SORRY. WOW."
+2. "I CAME IN HUNGRY. I LEAVE CONTENT. ODD."
+
 #### Wrong
 
 1. "THE MISE EN PLACE HERE IS IN ABSOLUTE SHAMBLES!"
@@ -2106,9 +3198,16 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "WHOO! PERFECT FORM ON THAT TOSS!"
+2. "YOU HUSTLED! I CAN TELL! GREAT CARDIO!"
+
 #### Arrive
 
 1. "MY BOOK CLUB STARTS IN 20 AND SO HELP ME GOD!"
+2. "BOOK CLUB IN TWENTY! CHILI ENCHILADA!"
+3. "I'M STILL IN MY LEOTARD. DON'T JUDGE."
 
 #### Wait
 
@@ -2121,6 +3220,11 @@ A rival sees the bag miss.
 
 1. "I'M GONNA TELL EVERYONE AT JAZZERCISE ABOUT THIS!"
 
+#### Served
+
+1. "MY HEART RATE IS EXACTLY WHERE I WANT IT."
+2. "I'M TELLING EVERYONE AT CLASS. GOOD THINGS!"
+
 #### Wrong
 
 1. "DROP AND GIVE ME TWENTY... TACOS!"
@@ -2129,11 +3233,21 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "THAT WAS A RAD TOSS, DUDE. TOTALLY GNARLY!"
+2. "STOKED! YOU SHRED THE STREETS, MAN!"
+
 #### Missed
 
 A rival sees the bag miss.
 
 1. "CHOKE ON A JOLT COLA, YOU LOSER!"
+
+#### Arrive
+
+1. "I KICKFLIPPED HERE. NACHOS, PLEASE!"
+2. "MY DECK'S OUTSIDE. HARD TACO, QUICK!"
 
 #### Queue
 
@@ -2144,6 +3258,11 @@ A rival sees the bag miss.
 
 1. "I CAME FOR THE GNAR. I'M LEAVING WITH NADA."
 
+#### Served
+
+1. "THIS TACO HAS SERIOUS GNAR, DUDE."
+2. "RADICAL. I'M TELLING THE WHOLE SKATE PARK."
+
 #### Wrong
 
 1. "EVEN MY ARCH-NEMESIS MAKES BETTER TACOS THAN THIS!"
@@ -2152,6 +3271,16 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "IT'S... IT'S HERE? ON TIME? WELL, GOSH."
+2. "AND THE TWIST? IT'S STILL HOT!"
+
+#### Arrive
+
+1. "I'M ON BREAK. THE LATE FEES CAN WAIT."
+2. "QUICK SANCHO. WE'RE SHORT A CLERK TODAY."
+
 #### Queue
 
 1. "THE DINOSAURS WAITED LESS FOR THE METEOR!"
@@ -2159,6 +3288,11 @@ A rival sees the bag miss.
 #### Walkout
 
 1. "I'M REPORTING YOU TO THE TACO COUNCIL!"
+
+#### Served
+
+1. "I'M NOT GONNA SAY IT. OKAY: IT'S GREAT."
+2. "THIS ONE GETS THE FRONT SHELF. TOP RENTAL."
 
 #### Wrong
 
@@ -2170,9 +3304,19 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "YOU'RE LIKE, THE BEST? LIKE, FOR REAL?"
+2. "HI KIDS! TODAY WE LEARN GRATITUDE! THANKS!"
+
 #### Late
 
 1. "YOU GUYS ARE LIKE, THE WORST? LIKE, LIT-ER-AL-LY?"
+
+#### Arrive
+
+1. "DANCE CLASS IN TEN! LEG WARMERS ARE ON!"
+2. "SOFT TACO, PLEASE! I'M MID-ROUTINE!"
 
 #### Wait
 
@@ -2183,6 +3327,11 @@ A rival sees the bag miss.
 1. "I HOPE YOUR SHOELACES ARE PERMANENTLY UNTIED!"
 2. "I SHALL WRITE A ONE-WOMAN-SHOW ABOUT THIS EXPERIENCE!"
 
+#### Served
+
+1. "I'M PUTTING YOU IN MY ONE-WOMAN SHOW!"
+2. "THIS IS SO GOOD I COULD DANCE. AND I WILL."
+
 #### Wrong
 
 1. "GAG ME WITH A SPOON."
@@ -2190,6 +3339,16 @@ A rival sees the bag miss.
 ### c80miamiviceguy
 
 
+
+#### Delivered
+
+1. "IT WAS A HOT NIGHT. THE TACOS WERE HOTTER."
+2. "SMOOTH MOVE, DRIVER. REAL SMOOTH."
+
+#### Arrive
+
+1. "I'M ON A STAKEOUT. TWO SANCHOS, TO GO."
+2. "NO SOCKS, NO TIME. CHILI BURRITO, PAL."
 
 #### Wait
 
@@ -2203,6 +3362,11 @@ A rival sees the bag miss.
 1. "I'LL SEE YOU IN COURT, YOU SOUR CREAM SCOUNDREL!"
 2. "MY BUG-OUT BAG IS IN THE CAR, RUNNING!"
 
+#### Served
+
+1. "CASE CLOSED. THIS TACO IS CLEAN."
+2. "HONEY, I'M AT THE TACO PLACE. IT'S GREAT."
+
 #### Wrong
 
 1. "YOU'VE GOTTA BE PULLING MY LEG, PAL!"
@@ -2211,11 +3375,21 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "PROMPT AND WARM. YOUR VITALS ARE GOOD."
+2. "FASTER THAN AN AMBULANCE. WELL DONE."
+
 #### Late
 
 1. "I BOUGHT A HOUSE FOR A NICKEL AND WAITED LESS THAN THIS!"
 2. "SLOWER THAN A THREE-LEGGED MULE IN MOLASSES!"
 3. "MY PORTFOLIO IS HEMORRHAGING AND YOU MADE IT WORSE!"
+
+#### Arrive
+
+1. "I'M ON CALL. ONE BEAN BURRITO, STAT."
+2. "I HAVE A PATIENT AT ONE. SOFT TACO."
 
 #### Wait
 
@@ -2226,9 +3400,24 @@ A rival sees the bag miss.
 
 1. "I'VE SEEN PRIVATES MOVE FASTER WITH PNEUMONIA!"
 
+#### Served
+
+1. "DOCTOR'S ORDERS: ANOTHER ONE NEXT WEEK."
+2. "MY DIAGNOSIS? A FINE CHILI ENCHILADA."
+
 ### c80rockerchick
 
 
+
+#### Delivered
+
+1. "I LIFT THE HEX! YOU MAY LIVE, DRIVER!"
+2. "THE SPIRITS FAVOR YOU. IT'S STILL HOT."
+
+#### Arrive
+
+1. "I MUST FEAST BEFORE THE SUN GOES DOWN."
+2. "ONE CHILI SANCHO. THE MOON WILL NOT WAIT."
 
 #### Wait
 
@@ -2244,6 +3433,11 @@ A rival sees the bag miss.
 2. "I HEX YOU! I HEX THIS ESTABLISHMENT!"
 3. "YOUR INSOLENCE SHALL BE PUNISHED, WITH THUNDER AND LIGHTNING!"
 
+#### Served
+
+1. "I BLESS THEE WITH COOL SOUR CREAM!"
+2. "BY THE FULL MOON, THIS IS DELICIOUS!"
+
 #### Wrong
 
 1. "I HEX THEE WITH WARM SOUR CREAM!"
@@ -2251,6 +3445,16 @@ A rival sees the bag miss.
 ### c90club
 
 
+
+#### Delivered
+
+1. "YOU'RE ON THE LIST, DRIVER. FOREVER."
+2. "THAT TOSS HAD A BEAT TO IT. RESPECT."
+
+#### Arrive
+
+1. "DOORS OPEN AT TEN. FEED ME BY NINE!"
+2. "VIP ORDER! VERY IMPORTANT PARTIER!"
 
 #### Wait
 
@@ -2263,13 +3467,28 @@ A rival sees the bag miss.
 2. "I'M TAKING YOU OFF THE GUEST LIST!"
 3. "WE COME IN PEACE. WE LEAVE IN PROTEST."
 
+#### Served
+
+1. "THIS SANCHO IS THE AFTER-PARTY."
+2. "THE DJ SAYS THANK YOU. I AM THE DJ."
+
 ### c90jock
 
 
 
+#### Delivered
+
+1. "TOUCHDOWN! RIGHT ON THE PORCH, BRO!"
+2. "NICE ARM! YOU EVER PLAY QUARTERBACK?"
+
 #### Late
 
 1. "YOU COULDN'T MOVE THE CHAINS IF YOUR LIFE DEPENDED ON IT!"
+
+#### Arrive
+
+1. "TWO-A-DAYS START AT THREE. HUSTLE!"
+2. "CARB-LOADING FOR THE BIG GAME, BRO!"
 
 #### Wait
 
@@ -2277,6 +3496,11 @@ A rival sees the bag miss.
 2. "I'M MISSING THE ROYALS GAME OVER HERE!"
 3. "I AM ENTERING MY CATABOLIC STATE!"
 4. "HAIL MARY, FULL OF GRACE, WHERE IS MY TACO FROM THIS PLACE?"
+
+#### Served
+
+1. "THAT'S PROTEIN, BABY! STRAIGHT TO THE PECS!"
+2. "COACH WOULD CALL THAT A CLEAN REP."
 
 #### Wrong
 
@@ -2286,11 +3510,21 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "THE PLUNDER ARRIVES! HUZZAH, COURIER!"
+2. "A WORTHY TOSS, ROAD KNIGHT!"
+
 #### Missed
 
 A rival sees the bag miss.
 
 1. "YOU GORGON-FACED BLAGGART!"
+
+#### Arrive
+
+1. "MY LONGSHIP SAILS AT NOON, COOK!"
+2. "FEED THE HORDE! WE RIDE AT DUSK!"
 
 #### Wait
 
@@ -2302,9 +3536,19 @@ A rival sees the bag miss.
 2. "I SHALL REGALE THE BARDS WITH TALES OF THIS SLOW SERVICE!"
 3. "MAY YOUR GUACAMOLE ALWAYS BROWN PREMATURELY!"
 
+#### Served
+
+1. "THIS SANCHEZ IS FIT FOR A WARLORD!"
+2. "I SHALL SPARE THIS KITCHEN. FOR NOW."
+
 ### c90rocker
 
 
+
+#### Delivered
+
+1. "HUH. SOMETHING WENT RIGHT. WEIRD."
+2. "ON TIME? THAT'S SO NOT PUNK. THANKS."
 
 #### Missed
 
@@ -2316,10 +3560,20 @@ A rival sees the bag miss.
 
 1. "THIS. IS. NPR. ...JUST KIDDING. THIS IS BAD SERVICE."
 
+#### Arrive
+
+1. "SOUNDCHECK AT FIVE. CHILI CHEESE NACHOS."
+2. "I SOLD THREE TAPES TODAY. I'M BUYING."
+
 #### Walkout
 
 1. "I KNEW THIS PLACE WAS OVER WHEN THEY GOT AN ESPRESSO MACHINE!"
 2. "MAY YOUR ONIONS MAKE YOU WEEP, ETERNALLY!"
+
+#### Served
+
+1. "IT'S GOOD. DON'T TELL ANYONE I SAID IT."
+2. "THIS TACO RULES. I HATE THAT IT RULES."
 
 #### Wrong
 
@@ -2329,15 +3583,30 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "YOU'VE SAVED ME! CUE THE STRINGS!"
+2. "DARLING, YOU HAVE IMPECCABLE TIMING."
+
 #### Late
 
 1. "BITE ME, YOU SLACKER!"
 2. "THIS IS A TRAGEDY IN THREE ACTS!"
 
+#### Arrive
+
+1. "I'M DUE ON SET FOR MY AMNESIA SCENE!"
+2. "MY EVIL TWIN IS PARKED OUTSIDE. HURRY!"
+
 #### Wait
 
 1. "I AM LITERALLY SWOONING OVER HERE!"
 2. "THIS IS RUINING MY WHOLE LOOK!"
+
+#### Served
+
+1. "THE ROLE OF A LIFETIME, ON A PLATE!"
+2. "BRAVO! BRAVO! AN EMMY FOR THE COOK!"
 
 #### Wrong
 
@@ -2347,9 +3616,19 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "YO, THAT TOSS WAS FRESH! FOR REAL!"
+2. "MY MOM SAYS THANK YOU. I SAY PHAT!"
+
 #### Late
 
 1. "MY GRANDMA MAKES TACOS FASTER AND SHE'S NINETY!"
+
+#### Arrive
+
+1. "MY BUS LEAVES IN FIVE MINUTES!"
+2. "I GOT A DOLLAR AND SOME DIMES. A TACO!"
 
 #### Wait
 
@@ -2360,6 +3639,11 @@ A rival sees the bag miss.
 
 1. "IF I COULD GIVE NEGATIVE STARS, I WOULD GIVE NEGATIVE TWELVE STARS."
 
+#### Served
+
+1. "THIS TACO IS ALL THAT AND A BAG OF CHIPS!"
+2. "TEN STARS! I'M GIVING YOU TEN STARS!"
+
 #### Wrong
 
 1. "GET OUT OF HERE WITH THIS TACO NONSENSE!"
@@ -2368,9 +3652,16 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "THANK YOU! SORRY! THANK YOU SO MUCH!"
+2. "MY HOROSCOPE SAID GOOD NEWS TODAY!"
+
 #### Arrive
 
 1. "MY CHART WARNED ME ABOUT TODAY!"
+2. "SORRY, HI! CAN I GET A SOFT TACO? SORRY!"
+3. "SLEEPOVER AT SIX! WE NEED SNACKS!"
 
 #### Wait
 
@@ -2381,6 +3672,11 @@ A rival sees the bag miss.
 1. "I'M TELLING MY ENTIRE HOMEROOM."
 2. "THIS IS GOING IN MY DIARY!"
 
+#### Served
+
+1. "THIS IS GOING IN MY DIARY. THE GOOD PART."
+2. "YOU'RE MY HERO! SORRY, IS THAT WEIRD?"
+
 #### Wrong
 
 1. "CAN YOU SPELL DISAPPOINTMENT? BECAUSE I CAN!"
@@ -2388,6 +3684,11 @@ A rival sees the bag miss.
 ### c90nintendokid
 
 
+
+#### Delivered
+
+1. "QUEST COMPLETE! +100 EXPERIENCE!"
+2. "TACO GET! YOU'RE A HIGH SCORE, DUDE!"
 
 #### Missed
 
@@ -2399,9 +3700,19 @@ A rival sees the bag miss.
 
 1. "I HAVE +5 TO PATIENCE AND I'VE BURNED THROUGH ALL OF IT!"
 
+#### Arrive
+
+1. "I PAUSED MY GAME. THE CLOCK IS TICKING!"
+2. "MY BROTHER HAS THE CONTROLLER. HURRY!"
+
 #### Walkout
 
 1. "I'LL SEE YOU AT HIGH NOON, TACO MAKER!"
+
+#### Served
+
+1. "THIS HARD TACO RESTORES FULL HEALTH!"
+2. "LEVEL UP! YOU ARE NOW A MASTER CHEF!"
 
 #### Wrong
 
@@ -2412,9 +3723,19 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "OOH, BABY, RIGHT ON TIME. RIGHT ON TIME."
+2. "THAT TOSS WAS SMOOTH. SMOOTH LIKE ME."
+
 #### Late
 
 1. "YOU'RE BREAKING MY HEART. YOU'RE BREAKING MY HEART OVER HERE."
+
+#### Arrive
+
+1. "STUDIO TIME AT TWO. I NEED MY VOICE FED."
+2. "CHICKEN SOFT TACO. GENTLE, LIKE A BALLAD."
 
 #### Wait
 
@@ -2425,6 +3746,11 @@ A rival sees the bag miss.
 
 1. "ENCORE? MORE LIKE ENCORE-NOT-COMING-BACK!"
 
+#### Served
+
+1. "THIS ENCHILADA? FIVE OCTAVES OF FLAVOR."
+2. "I MIGHT WRITE A SLOW JAM ABOUT THIS."
+
 #### Wrong
 
 1. "YOU WET HABANERO OF A HUMAN BEING!"
@@ -2432,6 +3758,16 @@ A rival sees the bag miss.
 ### c90grungechick
 
 
+
+#### Delivered
+
+1. "THE TACO CAME. HOPE IS REAL. GROSS."
+2. "CORRECT DOOR. I'M ALMOST IMPRESSED."
+
+#### Arrive
+
+1. "I HAVE A POETRY SLAM IN TWENTY MINUTES."
+2. "BEAN BURRITO. NO SMILE, PLEASE."
 
 #### Wait
 
@@ -2445,6 +3781,8 @@ A rival sees the bag miss.
 #### Served
 
 1. "YOUR TORTILLAS ARE STORE-BOUGHT AND YOUR SOUL IS EMPTY!"
+2. "FINE. IT'S GOOD. I FEEL SOMETHING. UGH."
+3. "THE LEAST SELLOUT THING IN THIS TOWN."
 
 #### Wrong
 
@@ -2454,9 +3792,19 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "FOR YOU, A SIGNED PHOTO! AND A TIP!"
+2. "MY FANS WILL HEAR ABOUT YOU. GOOD THINGS!"
+
 #### Late
 
 1. "HONKING RIDICULOUS, THIS IS!"
+
+#### Arrive
+
+1. "THE TOUR BUS IS IDLING! SANCHO, PLEASE!"
+2. "SUNGLASSES ON. NOBODY KNOWS IT'S ME."
 
 #### Wait
 
@@ -2472,9 +3820,24 @@ A rival sees the bag miss.
 
 1. "THIS PLACE IS OVER. I'M CANCELLING MY ORDER."
 
+#### Served
+
+1. "THAT'S A NUMBER ONE TACO, RIGHT THERE!"
+2. "I'D PUT THIS ON MY TOUR RIDER."
+
 ### c90miamiclubkid
 
 
+
+#### Delivered
+
+1. "SLICK MOVE, PAL! YOU'RE ALRIGHT!"
+2. "I'M CALLING MY GUY ON THE CAR PHONE. YOU'RE GOOD."
+
+#### Arrive
+
+1. "MY FLIGHT TO MIAMI LEAVES AT SIX!"
+2. "THE CLUB OPENS AT NINE AND I'M STARVING!"
 
 #### Wait
 
@@ -2490,9 +3853,19 @@ A rival sees the bag miss.
 2. "THIS STAYS BETWEEN US... BUT YOU'RE DEAD TO ME."
 3. "WHERE'S MY CAR PHONE?! I'M CALLING SOMEONE!"
 
+#### Served
+
+1. "THIS IS SOUTH BEACH GOOD. IN KANSAS!"
+2. "PASTEL SUIT SAFE. NO DRIPS. YOU'RE GOLDEN."
+
 ### c90skater
 
 
+
+#### Delivered
+
+1. "RADICAL TOSS, BRO! TOTALLY STUCK IT!"
+2. "BRO. BRO! YOU LANDED IT, BRO!"
 
 #### Missed
 
@@ -2505,18 +3878,38 @@ A rival sees the bag miss.
 1. "YOU'RE A REAL PRO... NOT! PLUS YOU'RE SLOW."
 2. "THIS IS WICKED LAME, KID!"
 
+#### Arrive
+
+1. "BRO, I SNAPPED MY DECK. NEED A TACO."
+2. "SKATE PARK CLOSES AT SIX, BRO!"
+
 #### Wait
 
 1. "BRO. BRO. BROOOOO!"
 2. "THIS IS SO NOT CHILL, BRO!"
 
+#### Served
+
+1. "THIS TACO IS WICKED GNARLY. GOOD GNARLY."
+2. "SO CHILL. YOU'RE SO CHILL, BRO."
+
 ### c90alternativegirl
 
 
 
+#### Delivered
+
+1. "OKAY, THAT WAS NOT LAME. WHATEVER."
+2. "I'LL PUT YOU ON A MIXTAPE. SIDE B."
+
 #### Late
 
 1. "I AM MORE CORPOREAL THAN YOUR COMMITMENT TO FAST SERVICE!"
+
+#### Arrive
+
+1. "THE RECORD STORE CLOSES AT SIX."
+2. "SOFT TACO. NO IRONY ON IT, PLEASE."
 
 #### Wait
 
@@ -2527,6 +3920,11 @@ A rival sees the bag miss.
 
 1. "WHATEVER. THIS WHOLE PLACE IS DEAD TO ME ANYWAY."
 
+#### Served
+
+1. "THIS IS ACTUALLY GOOD. DON'T MAKE IT WEIRD."
+2. "AUTHENTIC. I CAN TELL. MOSTLY."
+
 #### Wrong
 
 1. "YOU ENCHILADA-EARED ENABLER!"
@@ -2535,6 +3933,16 @@ A rival sees the bag miss.
 ### c90rapper
 
 
+
+#### Delivered
+
+1. "BABE. BABE! IT CAME. ON THE PORCH, BABE!"
+2. "RIGHT ON TIME. YOU GOT A FAN FOR LIFE."
+
+#### Arrive
+
+1. "I GOT STUDIO TIME AND A RHYME ABOUT YOU."
+2. "BABE'S IN THE CAR. TWO SANCHOS, QUICK!"
 
 #### Wait
 
@@ -2546,6 +3954,11 @@ A rival sees the bag miss.
 1. "MAY YOUR CHEESE NEVER MELT EVENLY!"
 2. "SERVICE: ZERO STARS. FOOD: NEVER ARRIVED. ATMOSPHERE: APOCALYPTIC."
 
+#### Served
+
+1. "YOU'RE NOT CLOWNING. RESPECT, CHEF."
+2. "CHEESE MELTED EVEN. YOU HEARD ME."
+
 #### Wrong
 
 1. "YOU CARNITAS-CRANIUMED CLOWN!"
@@ -2554,10 +3967,20 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "PUNCTUAL. HOW REFRESHINGLY UNIRONIC."
+2. "YOU'VE RESTORED MY FAITH. SLIGHTLY."
+
 #### Late
 
 1. "YOU'RE THE CRUNCH AT THE BOTTOM OF THE TACO BAG!"
 2. "I HAVE A MASTER'S DEGREE, YOU KNOW!"
+
+#### Arrive
+
+1. "MY TEMP JOB WANTS ME BACK AT ONE."
+2. "I'M BETWEEN CAREERS. ALSO, LUNCH."
 
 #### Wait
 
@@ -2569,9 +3992,24 @@ A rival sees the bag miss.
 
 1. "I KNEW THIS PLACE BEFORE IT WAS COOL. NOW IT'S JUST SLOW."
 
+#### Served
+
+1. "THIS IS THE ONE AUTHENTIC THING LEFT."
+2. "I COULD WRITE A WHOLE ZINE ABOUT THIS."
+
 ### c90itguy
 
 
+
+#### Delivered
+
+1. "ZERO DOWNTIME! I'LL FAX A COMMENDATION!"
+2. "JANET! IT'S HERE! TELL EVERYBODY!"
+
+#### Arrive
+
+1. "THE SERVER'S REBOOTING. I HAVE TEN MINUTES!"
+2. "THE MAINFRAME IS DOWN AND SO AM I."
 
 #### Wait
 
@@ -2588,9 +4026,24 @@ A rival sees the bag miss.
 2. "WHEN THE GRID GOES DOWN, I'M GONNA LAUGH AT YOU ALL!"
 3. "THIS IS A GROWTH OPPORTUNITY... FOR ME TO LEAVE!"
 
+#### Served
+
+1. "FLAWLESS. I'M ADDING YOU TO MY ROLODEX."
+2. "BUG-FREE. NOT A SINGLE ERROR. BEAUTIFUL."
+
 ### c90ravergirl
 
 
+
+#### Delivered
+
+1. "SENDING YOU POSITIVE ENERGY, DRIVER!"
+2. "YOUR AURA IS, LIKE, GLOWING RIGHT NOW!"
+
+#### Arrive
+
+1. "THE BUS TO THE PARTY LEAVES AT NINE!"
+2. "NEW BATTERIES FOR MY DISCMAN. AND NACHOS!"
 
 #### Wait
 
@@ -2606,9 +4059,24 @@ A rival sees the bag miss.
 2. "PLUR IS DEAD, AND THIS TACO SHOP KILLED IT!"
 3. "DOT DOT DOT... I... HAD... AN... EXPERIENCE..."
 
+#### Served
+
+1. "THIS QUESO MELT IS PURE HAPPY VIBES!"
+2. "HERE, HAVE A BRACELET. YOU EARNED IT."
+
 ### c90technerd
 
 
+
+#### Delivered
+
+1. "LATENCY: ACCEPTABLE. ACCURACY: OPTIMAL."
+2. "A CRITICAL HIT! RIGHT ON THE PORCH!"
+
+#### Arrive
+
+1. "I'M COMPILING. I HAVE FOUR MINUTES!"
+2. "MY CAMPAIGN STARTS AT SEVEN. GO, GO!"
 
 #### Wait
 
@@ -2619,6 +4087,11 @@ A rival sees the bag miss.
 1. "I'VE SEEN DUKE NUKEM WITH BETTER CUSTOMER SERVICE!"
 2. "THIS IS NOT SCALABLE!"
 
+#### Served
+
+1. "THIS PROCESS IS SCALABLE! I APPROVE!"
+2. "I ROLL TO EAT. NATURAL TWENTY!"
+
 #### Wrong
 
 1. "YOU BLITHERING MUMPSIMUS!"
@@ -2627,6 +4100,16 @@ A rival sees the bag miss.
 ### c90preppycollegekid
 
 
+
+#### Delivered
+
+1. "EFFICIENT DELIVERY! I'LL TELL THE HOUSE."
+2. "BRAVO, DRIVER! A TRIUMPH IN ONE ACT!"
+
+#### Arrive
+
+1. "MIDTERMS AT ONE! FEED THE SCHOLAR!"
+2. "DAD'S CARD. LET'S GO BIG. SANCHEZ, PLEASE."
 
 #### Wait
 
@@ -2642,6 +4125,11 @@ A rival sees the bag miss.
 2. "EXEUNT, PURSUED BY HUNGER!"
 3. "I'M RUSHING OUT OF HERE, TACO BRO!"
 
+#### Served
+
+1. "SPLENDID. WORTH THE TUITION, FRANKLY."
+2. "TOP MARKS. I SHALL INFORM THE DEAN."
+
 #### Wrong
 
 1. "METHINKS THOU ART THE SLOWEST COOK IN ALL THE LAND!"
@@ -2650,11 +4138,21 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "OH MY GOSH, YOU'RE, LIKE, A TOTAL HERO!"
+2. "ON TIME? THAT IS SO NOT A CRISIS!"
+
 #### Missed
 
 A rival sees the bag miss.
 
 1. "EW. EW. LIKE, EW."
+
+#### Arrive
+
+1. "THE MALL CLOSES AT NINE. THIS IS URGENT!"
+2. "DADDY'S JEEP IS DOUBLE-PARKED!"
 
 #### Wait
 
@@ -2666,6 +4164,11 @@ A rival sees the bag miss.
 1. "AS IF!"
 2. "YOU'VE MADE A POWERFUL ENEMY TODAY, TACO PEASANT!"
 
+#### Served
+
+1. "THIS TACO IS, LIKE, TOTALLY SUPREME!"
+2. "I'M TELLING EVERYONE AT THE MALL. GOOD NEWS!"
+
 #### Wrong
 
 1. "THIS IS, LIKE, TOTALLY... INCOMPETENT."
@@ -2673,6 +4176,16 @@ A rival sees the bag miss.
 ### c90rbsinger2
 
 
+
+#### Delivered
+
+1. "PRAISE BE! IT'S HERE AND IT'S HOT!"
+2. "STRAIGHT-UP RESPECT, DRIVER. RESPECT!"
+
+#### Arrive
+
+1. "REHEARSAL AT TWO! I CANNOT SING HUNGRY!"
+2. "SORRY, SORRY! I'M IN A RUSH, BLESS YOU!"
 
 #### Wait
 
@@ -2685,13 +4198,28 @@ A rival sees the bag miss.
 1. "SORRY, I REALLY AM SORRY, BUT I'M POLITELY GOING TO LOSE IT NOW."
 2. "REMEMBER ME... FONDLY... AT TACO TUESDAYS..."
 
+#### Served
+
+1. "OH, THIS IS HEAVENLY! I TELL YA!"
+2. "MY CHOIR'S GONNA HEAR ABOUT THIS ONE!"
+
 ### c90dopeybuddy
 
 
 
+#### Delivered
+
+1. "DUDE! THE TACO FOUND ME! HOW'D IT KNOW?"
+2. "WHOA. YOU THREW IT. AND IT LANDED. WHOA."
+
 #### Late
 
 1. "I KNEW IT. THEY DON'T WANT US TO HAVE FAST TACOS!"
+
+#### Arrive
+
+1. "MY BUDDY'S IN THE CAR. HE SAYS HURRY."
+2. "DUDE. I FORGOT WHAT I WANTED. A TACO?"
 
 #### Wait
 
@@ -2702,6 +4230,11 @@ A rival sees the bag miss.
 
 1. "I'VE SEEN CONCRETE SET FASTER THAN THIS!"
 
+#### Served
+
+1. "DUDE CAN COOK. LIKE, REALLY COOK, DUDE."
+2. "THIS TACO IS LIKE A HUG, DUDE."
+
 #### Wrong
 
 1. "YOU'VE GOT TO BE KIDDING ME, DUDE!"
@@ -2709,6 +4242,16 @@ A rival sees the bag miss.
 ### c90cyberpunkhacker
 
 
+
+#### Delivered
+
+1. "THE SYSTEM WORKED. FOR ONCE. NOTED."
+2. "PAYLOAD DELIVERED. NICE WORK, RUNNER."
+
+#### Arrive
+
+1. "THEY'RE WATCHING. ORDER FAST, ACT NORMAL."
+2. "I PAID CASH. NO RECORDS. CHICKEN BURRITO."
 
 #### Wait
 
@@ -2723,6 +4266,11 @@ A rival sees the bag miss.
 
 1. "BY THE OLD GODS AND THE NEW, I CURSE THIS KITCHEN!"
 
+#### Served
+
+1. "TACOS ARE REAL. I CHECKED. THANKS."
+2. "LAWFUL GOOD COOKING, DUDE. RESPECT."
+
 #### Wrong
 
 1. "YOU FRABBING SNARGLEPUSS!"
@@ -2733,9 +4281,16 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "YO, THAT'S FRESH! YOU'RE THE BEST, DRIVER!"
+2. "THIS IS NOT WACK. THIS IS THE OPPOSITE!"
+
 #### Arrive
 
 1. "I HAVE A JOB INTERVIEW! I NEED THIS TACO FOR COURAGE!"
+2. "MY RIDE IS OUTSIDE! NAME YOUR PRICE!"
+3. "BIG AUDITION TONIGHT. FUEL ME UP!"
 
 #### Queue
 
@@ -2745,6 +4300,8 @@ A rival sees the bag miss.
 #### Served
 
 1. "THIS IS WACK. THIS IS SO WACK."
+2. "OKAY, I TAKE IT BACK. THIS IS DEF."
+3. "PUT ME DOWN FOR THE NEXT GUY'S TOO!"
 
 #### Wrong
 
@@ -2753,6 +4310,16 @@ A rival sees the bag miss.
 ### c90riotgrrrl
 
 
+
+#### Delivered
+
+1. "RIGHT ON! YOU ROCK, DRIVER. LOUDLY!"
+2. "ON TIME AND UNSMASHED. I'M SHOCKED."
+
+#### Arrive
+
+1. "SHOW STARTS AT EIGHT. I'M ON FIRST!"
+2. "I'M MAKING ZINES ALL NIGHT. FUEL, PLEASE!"
 
 #### Wait
 
@@ -2764,6 +4331,11 @@ A rival sees the bag miss.
 2. "I WILL NOT BE SILENCED ABOUT THIS TACO!"
 3. "MAY YOUR SALSA SEPARATE IN THE FRIDGE!"
 
+#### Served
+
+1. "THIS TACO IS A REVOLUTION. I APPROVE."
+2. "FOLDED IT PERFECT. YOU'RE OKAY, COOK."
+
 #### Wrong
 
 1. "YOU UNWASHED CILANTRO STEM!"
@@ -2772,15 +4344,30 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "HELLA RAD, DUDE. HELLA ON TIME."
+2. "SICK TOSS! YOU SHOULD SKATE, DRIVER."
+
 #### Late
 
 1. "YOU QUESO-BRAINED QUITTER!"
+
+#### Arrive
+
+1. "I BAILED ON THE HALF-PIPE. NEED FOOD."
+2. "MY RIDE LEAVES IN TEN. HELLA HURRY!"
 
 #### Wait
 
 1. "SKETCHY, DUDE. HELLA SKETCHY."
 2. "CAN YOU SMELL WHAT THE TACO IS COOKING?! NO. BECAUSE IT ISN'T."
 3. "I WILL LITERALLY PAY TRIPLE IF YOU JUST HAND ME A TORTILLA NOW."
+
+#### Served
+
+1. "WINNER SHOP. WINNER COOK. WINNER VIBES."
+2. "THIS TACO IS NOT SKETCHY AT ALL. RAD."
 
 #### Wrong
 
@@ -2789,6 +4376,16 @@ A rival sees the bag miss.
 ### c90raver
 
 
+
+#### Delivered
+
+1. "THE UNIVERSE DELIVERED. COSMICALLY RAD."
+2. "I VISUALIZED IT AND HERE IT IS, MAN."
+
+#### Arrive
+
+1. "THE MOON IS FULL. I MUST EAT NOW."
+2. "I'VE BEEN DANCING ALL NIGHT. NACHOS!"
 
 #### Wait
 
@@ -2801,6 +4398,11 @@ A rival sees the bag miss.
 
 1. "STARS HAVE BEEN BORN AND DIED!"
 
+#### Served
+
+1. "COSMICALLY COOL, MY DUDE. COSMICALLY."
+2. "THIS SOMBRERO IS IN TUNE WITH THE STARS."
+
 #### Wrong
 
 1. "COSMICALLY UNCOOL, MY DUDE. COSMICALLY."
@@ -2809,9 +4411,19 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "THE VOID SENT A TACO. THE VOID CARES."
+2. "HUNGER, MY OLD COMPANION, IS GONE."
+
 #### Late
 
 1. "THE CLOCK TICKED. AND SO DID MY PATIENCE."
+
+#### Arrive
+
+1. "BAND PRACTICE IN THE GARAGE AT TWO."
+2. "BEAN BURRITO. FOR THE EMPTINESS."
 
 #### Wait
 
@@ -2823,15 +4435,30 @@ A rival sees the bag miss.
 
 1. "I DIED WAITING FOR A TACO. NOW I HAUNT THE LINE FOREVER."
 
+#### Served
+
+1. "PAIN IS STILL MY COMPANION. BUT FULLER."
+2. "THIS IS THE LEAST BLEAK THING I OWN."
+
 ### c90gangstarapper
 
 
+
+#### Delivered
+
+1. "YES YES YES YES YES YES YES!"
+2. "FIVE STARS. FIVE BIG STARS. YOU EARNED 'EM."
 
 #### Missed
 
 A rival sees the bag miss.
 
 1. "NO NO NO NO NO NO NO!"
+
+#### Arrive
+
+1. "I GOT A SHOW TONIGHT. FEED THE STAR!"
+2. "MY DRIVER'S CIRCLING THE BLOCK!"
 
 #### Wait
 
@@ -2845,6 +4472,11 @@ A rival sees the bag miss.
 
 1. "ONE STAR. ONE TINY STAR. AND ONLY BECAUSE I CAN'T GIVE ZERO."
 
+#### Served
+
+1. "NOW THAT'S A HARD SHELL THAT'S HARD!"
+2. "RESPECT. YOU HANDLED BUSINESS, CHEF."
+
 #### Wrong
 
 1. "YOU'RE SOFT SHELL PRETENDING TO BE HARD!"
@@ -2853,6 +4485,11 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "THE STARS ALIGNED! RIGHT ON TIME!"
+2. "THIS IS GOING IN MY SLAM BOOK. AS A YES!"
+
 #### Late
 
 1. "I HAD A WHOLE TACO SLUMBER PARTY PLANNED!"
@@ -2860,6 +4497,8 @@ A rival sees the bag miss.
 #### Arrive
 
 1. "MY CATS NEED TO BE FED AT FOUR O'CLOCK SHARP!"
+2. "MY MOM'S IN THE MINIVAN. QUICK, PLEASE!"
+3. "FIVE FRIENDS, FIVE TACOS. ONE EACH!"
 
 #### Wait
 
@@ -2873,13 +4512,28 @@ A rival sees the bag miss.
 
 1. "THIS IS GOING IN MY SLAM BOOK."
 
+#### Served
+
+1. "SLUMBER PARTY IS BACK ON! THANK YOU!"
+2. "THIS IS THE BEST DAY SINCE MY BIRTHDAY!"
+
 ### c90backpacker
 
 
 
+#### Delivered
+
+1. "GOOD KARMA COMES BACK AROUND, DRIVER."
+2. "YOUR AURA IS VERY PUNCTUAL, MAN."
+
 #### Late
 
 1. "POMPEII HAPPENED FASTER THAN THIS!"
+
+#### Arrive
+
+1. "I'M HITCHING TO DENVER AT DUSK, MAN."
+2. "BEAN BURRITO, PLEASE. I WALKED FROM SALINA."
 
 #### Wait
 
@@ -2893,6 +4547,8 @@ A rival sees the bag miss.
 #### Served
 
 1. "THERE'S CHEMICALS IN THE SALSA, I JUST KNOW IT!"
+2. "NO CHEMICALS. I CAN TELL. PEACE, MAN."
+3. "THIS SOFT TACO HAS A GENTLE SOUL."
 
 #### Wrong
 
@@ -2902,9 +4558,19 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "ON TIME. I'LL TRY TO CONTAIN MYSELF."
+2. "YOU FOUND THE HOUSE. A MODERN MIRACLE."
+
 #### Late
 
 1. "WHATEVER, MOM."
+
+#### Arrive
+
+1. "I'M HERE TO AVOID A PEP RALLY."
+2. "ONE TACO. HOLD THE ENTHUSIASM."
 
 #### Wait
 
@@ -2915,6 +4581,11 @@ A rival sees the bag miss.
 1. "I NO LONGER REMEMBER WHAT HUNGER FEELS LIKE."
 2. "EVEN THE RAVENS HAVE ABANDONED THIS PLACE."
 
+#### Served
+
+1. "IT'S ADEQUATE. THAT'S MY HIGHEST PRAISE."
+2. "I FELT A FLICKER OF JOY. IT PASSED."
+
 #### Wrong
 
 1. "THIS IS SO BENEATH ME."
@@ -2922,6 +4593,11 @@ A rival sees the bag miss.
 ### c90skaterkid
 
 
+
+#### Delivered
+
+1. "BEST DAY OF MY WHOLE ENTIRE LIFE!"
+2. "SWEET! YOU OLLIED IT RIGHT ONTO THE PORCH!"
 
 #### Missed
 
@@ -2933,6 +4609,11 @@ A rival sees the bag miss.
 
 1. "THIS IS THE WORST DAY OF MY WHOLE ENTIRE LIFE!"
 
+#### Arrive
+
+1. "SCHOOL'S OUT! GIMME A HARD TACO!"
+2. "I SPENT MY ALLOWANCE. MAKE IT COUNT!"
+
 #### Wait
 
 1. "BRO, MY BOARD HAS MORE PURPOSE THAN THIS KITCHEN!"
@@ -2942,6 +4623,11 @@ A rival sees the bag miss.
 1. "GO CHEW ON A HACKY SACK!"
 2. "EAT IT, TACO SHOP. EAT. IT."
 
+#### Served
+
+1. "YOU'RE THE BEST COOK IN THE WORLD!"
+2. "MY BOARD SALUTES YOU. SO DO I."
+
 #### Wrong
 
 1. "WITH GREAT POWER COMES GREAT TACOS - AND YOU'RE FAILING ME!"
@@ -2950,11 +4636,26 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "BRAVO! TAKE A BOW, DELIVERY PERSON!"
+2. "THAT LANDING DESERVED JAZZ HANDS!"
+
+#### Arrive
+
+1. "CURTAIN'S AT SEVEN! I CANNOT BELT HUNGRY!"
+2. "DANCE REHEARSAL IN TEN. FIVE, SIX, SEVEN, EIGHT!"
+
 #### Wait
 
 1. "HARK! DOTH THE KITCHEN SLUMBER?!"
 2. "I AM RENT, I AM EVITA, I AM UNFED!"
 3. "I'M GONNA LAY THE SMACKDOWN ON THIS WHOLE RESTAURANT!"
+
+#### Served
+
+1. "TODAY'S WORD IS DELICIOUS! SAY DELICIOUS!"
+2. "STANDING OVATION FOR THE KITCHEN!"
 
 #### Wrong
 
@@ -2965,9 +4666,16 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "HAILEY, WAVE TO THE NICE DRIVER!"
+2. "HOT FOOD, NO SPILLS. YOU'RE A LIFESAVER."
+
 #### Arrive
 
 1. "I HAVE A COUPON AND A COMPLAINT!"
+2. "NAPTIME'S AT ONE. WE ARE ON A CLOCK."
+3. "THE STROLLER'S IN THE DOORWAY. HURRY, HON."
 
 #### Wait
 
@@ -2979,6 +4687,11 @@ A rival sees the bag miss.
 
 1. "I COULD'VE RAISED A CHILD TO TACO-MAKING AGE BY NOW!"
 
+#### Served
+
+1. "WELL, ISN'T THAT JUST SOMETHING. THANKS!"
+2. "HAILEY, SAY THANK YOU. SHE SAYS THANKS."
+
 #### Wrong
 
 1. "DON'T MAKE ME COME BACK THERE, MISTER."
@@ -2987,10 +4700,20 @@ A rival sees the bag miss.
 
 
 
+#### Delivered
+
+1. "RETURNED ON TIME! NO LATE FEE FOR YOU!"
+2. "THAT TOSS HAD A BIG FINISH. ROLL CREDITS!"
+
 #### Late
 
 1. "YOU MAKE ENCINO MAN LOOK QUICK!"
 2. "ACT NOW AND YOU MIGHT GET YOUR TACO IN THIS LIFETIME!"
+
+#### Arrive
+
+1. "NEW RELEASES DUE BACK AT SIX. HURRY!"
+2. "I'M ON BREAK. TWENTY MINUTES. GO!"
 
 #### Wait
 
@@ -3000,3 +4723,8 @@ A rival sees the bag miss.
 #### Queue
 
 1. "I'M HERE ALL DAY WAITING FOR THIS MEAL!"
+
+#### Served
+
+1. "STAFF PICK OF THE WEEK. NO QUESTION."
+2. "I'D RENT THIS TACO AGAIN. TWICE."

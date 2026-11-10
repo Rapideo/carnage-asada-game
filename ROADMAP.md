@@ -29,6 +29,9 @@ owner's open judgement calls and operator settings. 1.0.0 is the owner's call.
       the moments heard most, so the shared lines dominate. Fix: personal `delivered`,
       `served` and `arrive` lines per face. The owner chooses: Claude drafts them for approval
       in the Dialogue tab, or the owner writes them.
+      **Drafted 2026-11-09** (owner: "you can draft the lines"): 720 lines, two per face per
+      moment, on branch `personal-lines` (not merged). Waiting on the owner's review in Service
+      Mode's Dialogue tab before they ship.
 - [x] **Service Mode's Music tab in three batches** (Not converted / Converted / In game), songs
       approved by decade, shift and a "from" year like faces, shuffled per play. **Built in 0.9.11**
       (`docs/superpowers/specs/2026-11-09-music-library-design.md`, plan beside it). Not yet

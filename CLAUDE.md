@@ -100,8 +100,9 @@ person to edit the file immediately exceeded it — **a note is not a guard.**
 
 **`content/dialogue.json`** holds every spoken line, and **`content/faces/*.json`** the baked character
 likenesses (see the Faces section below). Both are inlined the same way, becoming `DIALOGUE` and `FACES`.
-It has three parts: the shared pools by moment, **`people`** (670 personal lines on 120 customer faces,
-keyed by face) and **`cast`** (the 9 named characters: name, face, and lines by moment). The docs mirror
+It has three parts: the shared pools by moment, **`people`** (1390 personal lines on 120 customer faces,
+keyed by face: the 670 attributed ones, plus 720 Claude drafted on 2026-11-09 for the happy
+moments, two per face for `delivered`, `served` and `arrive`, for the owner to review) and **`cast`** (the 9 named characters: name, face, and lines by moment). The docs mirror
 covers all three: `dialogue.md` is grouped Shared / The cast / Customers.
 The dialogue width check is **not** the 384px one every other field uses: the portrait sits beside the
 bubble, so the limit is computed from the widest baked face (`dlgLimitPx` in `validate.mjs`). **A line
