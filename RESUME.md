@@ -1,21 +1,69 @@
 # Resume here
 
-*Written 2026-10-25, after the build that finished the 20-level game, and updated the same
-day once the admin overlay had been designed and planned. Updated 2026-11-06 with two
-pinned art threads, and 2026-11-07 with the art director's prep-board work (below), the
-kitchen surroundings, and version 0.9.0. Updated 2026-11-07 (evening) for Service Mode, version 0.9.1, and
-2026-11-08 for version 0.9.2 (the new customers, their lines, and the speaking cast), and again the same day for 0.9.3.*
+*Written 2026-10-25, after the build that finished the 20-level game, and kept up to date at
+the end of each session since; last at the end of 2026-11-17 (versions 0.9.14 and 0.9.15).*
 This is the starting point for a fresh session. It is a snapshot: **`ROADMAP.md` is the
 living plan**, and if the two disagree, the roadmap wins.
 
-**Start here (2026-11-17): 0.9.15 is live on Netlify and pushed (tag `v0.9.15`): shorter levels, 6 deliveries or tickets to clear one on Easy and Medium, 9 on Hard, 12 on Supreme (was 15; owner: "way too many"). The owner set these per difficulty; they are Service Mode's Difficulty target and maxExt (target = 3 x maxExt). Have the owner say how the shorter levels feel.** Before it, the same day, 0.9.14, the music release: **Next:** the open judgement calls in `ROADMAP.md`. `midi-autofill` is merged and deleted, locally and on GitHub.
-- **The setlist:** the owner picked 13 songs a level (10 + 3 alternates) in the Setlist picker (claude.ai artifact V7uyDA9qsqUDzXD376xMSS, db collection `picks`, one doc per `<year>-<stage>`), and all 260 went in, each converted by `midi2song.mjs` and placed in its decade and shift with `from` = the level year it was picked for. Since a level plays every song of its decade whose year has arrived, the third level of a decade plays 45-60 songs; the owner has not asked for per-level lists (that would need an "until" year).
-- **The doubles:** 24 titles were then in twice; the owner kept one of each on the Doubles page (claude.ai artifact VdQvRK99rPq2ZQMcJv2uro, db collection `keep`). The title screen plays the kept `reelin-in-the-years-2`.
-- **Only songs that play ship:** 282, all in game. Songs no level plays were deleted (their MIDIs stay, with catalog lines). The admin tests' frozen 0.9.11 library lives in `test/fixtures/` (`approved-0.9.11.json`, `music-0.9.11/`), so deleting a song from `content/` never breaks them. `taco-shop.html` is about 2.6 MB.
-- **The scraped library:** the 3,378 MIDIs the owner did not pick were **deleted on the owner's word** (2026-11-17); `reference/assets/midi/<decade>/<year>/` now holds only the 254 the songs are made from (git-ignored by name, so each was added with `-f`; do the same for any new one). The stale `picks-report.json` and `moves-2026-11-16*.json` logs and the `.wav` previews in `tools/music/preview/` (93 MB) were deleted too, on the owner's word; `midi2song.mjs --preview` writes new previews (and the folder) when wanted.
-- **The poster:** a gig poster of the whole setlist, claude.ai artifact Xs9qdeerbXF7Mx2u1W7jU1; the owner has it as a PDF.
+## Start here (end of 2026-11-17)
 
-**How the music got here (2026-11-10 to 11-17), for the record:** 15 songs converted by hand in Service Mode, whose Convert form fills itself from the MIDI's tags, `tools/music/midi-catalog.json` (add a line for any new old-library MIDI) and scrape names (`nameMeta`); then 4,155 scraped MIDIs imported by `tools/music/pick-best.mjs` (an explicit pointer from the owner), pruned by the owner, filed by level year and graded; then the Setlist picker. Service Mode is `node admin.mjs` from the owner's terminal, or Claude can start it outside the sandbox with the owner's approval (2026-11-09: that works, and Chrome sees it).
+**Where things stand.** **0.9.15 is live** at <https://carnage-asada.netlify.app>, tagged and
+pushed. `master` is the only branch, locally and on GitHub, and the working tree is clean apart
+from three folders the owner keeps out of git on purpose (`Art Director (Codex)/`, `Migrated/`, `reference/touch-concepts/`:
+never commit or open them unless the owner points at one). Both suites pass: `test/headless.mjs`
+about 620 checks, `test/admin.mjs` about 870.
+
+**Next session.** Nothing is in progress. In order of likelihood:
+1. **Ask how the shorter levels play** (0.9.15, below). The owner can retune them alone in
+   Service Mode (Difficulty: `target` and `maxExt`, target always 3 x maxExt), so this is a question,
+   not a task.
+2. **The owner's open judgement calls** in `ROADMAP.md` (its NOW section lists them): the shop
+   apron and kerbside restock, the speeding ticket's size, whether downtown plays too easy, what
+   happens when Hays PD catches you. All are "decide by playing", none is a bug.
+3. **Later, only on the owner's word:** the two release builds (Android, and arcade/PC) in
+   `ROADMAP.md` LATER, and Mode B on a real arcade stick (deferred by the owner). 1.0.0 is the owner's call.
+
+**What 2026-11-17 did** (all shipped):
+- **0.9.15, shorter levels** (owner: "way too many" deliveries): a level clears at **6** deliveries
+  or tickets on Easy and Medium, **9** on Hard, **12** on Supreme (was 15, and 12), with 2, 2, 3
+  and 4 extensions, so the longest shift is 6:00 / 6:00 / 7:30 / 7:00. Kitchen levels share it.
+- **0.9.14, the music release:**
+  - **The setlist:** the owner picked 13 songs a level (10 + 3 alternates) in the Setlist picker
+    (claude.ai artifact V7uyDA9qsqUDzXD376xMSS, db collection `picks`, one doc per `<year>-<stage>`),
+    and all 260 went in, each converted by `midi2song.mjs` and placed in its decade and shift with
+    `from` = the level year it was picked for. A level plays every song of its decade whose year has
+    arrived, so a decade's third level plays 45-60 songs; per-level lists would need an "until"
+    year, which the owner has not asked for.
+  - **The doubles:** 24 titles were then in twice; the owner kept one of each on the Doubles page
+    (claude.ai artifact VdQvRK99rPq2ZQMcJv2uro, db collection `keep`). The title screen plays
+    `reelin-in-the-years-2`.
+  - **Only songs that play ship:** 282, all in game; `taco-shop.html` is about 2.6 MB. A song no
+    level or title screen plays is deleted from `content/music/`. The admin tests' frozen 0.9.11
+    library is in `test/fixtures/` (`approved-0.9.11.json`, `music-0.9.11/`), so that never breaks them.
+- **Cleanup, on the owner's word:** the 3,378 scraped MIDIs nobody picked, the stale pick logs and
+  the 93 MB of `.wav` previews are deleted (all git-ignored; `midi2song.mjs --preview` makes previews
+  again). `reference/assets/midi/<decade>/<year>/` holds only the 254 MIDIs songs are made from,
+  each added with `git add -f` (the scrape names are git-ignored): do the same for any new one. 19
+  merged branches are deleted, `midi-autofill` and `admin-overlay` on GitHub too.
+- **A gig poster** of the whole setlist: claude.ai artifact Xs9qdeerbXF7Mx2u1W7jU1; the owner has
+  it as a PDF.
+
+**Working notes that mattered today.**
+- **The owner often dictates**, so a number or name can arrive garbled ("hard 6", "8 levels instead
+  of 9" meant deliveries, and the count was really 15). Check it against the content and ask
+  before changing anything when the two disagree.
+- **Release routine:** bump `content/release.json`, add a `CHANGELOG.md` entry, build, run both suites,
+  commit, `git tag v<version>`, then push and deploy **only on the owner's word** (the owner said
+  yes to both for 0.9.14 and 0.9.15). Deploying is below.
+- **The music, for the record (2026-11-10 to 11-17):** 15 songs converted by hand in Service Mode,
+  whose Convert form fills itself from the MIDI's tags, `tools/music/midi-catalog.json` (add a line
+  for any new old-library MIDI) and scrape names (`nameMeta`); then 4,155 scraped MIDIs imported by
+  `tools/music/pick-best.mjs` (an explicit pointer from the owner), pruned by the owner, filed by
+  level year and graded; then the Setlist picker. Service Mode is `node admin.mjs` from the owner's
+  terminal, or Claude can start it outside the sandbox with the owner's approval (that works, and
+  Chrome sees it).
+
+## Earlier sessions
 
 **Before that (2026-11-09, late): version 0.9.13 is live on Netlify and pushed (tag `v0.9.13`): every customer says only their own lines at 13 moments (4,689 lines, the owner approved them all), four new moments (perfect, near miss, fender, nailed), and traffic per difficulty (easy 3 cars, a Service Mode setting).** The owner's corner-aiming report was traffic boxing the car in, not the throw (the throw works on phone and pad). Before it: 0.9.12 (happy-moment lines) and 0.9.11 (the music library), both live. `content/music/approved.json` replaces `playlist.json`; songs are placed by decade, shift and "from" year like faces, and a level shuffles every song whose year has arrived. Service Mode's Music tab shows Not converted / Converted / In game, with Delete (`/admin/api/unport`). The owner has not tried the new tab yet. 0.9.9 added `?target=N`, 0.9.10 quieted the coworker.
 
@@ -274,7 +322,7 @@ owner calls them **rough** and wants them worked on. The roadmap's original inte
 cutout that exists. **Decided 2026-11-07: baked art from the art director**, one frame
 per distinct state (see **The art director and the prep board** above).
 
-## Where things stand
+## Where things stood after the 2026-10-25 build (history)
 
 The whole game is built: 20 levels alternating the Delivery Shift and the Kitchen Shift,
 from Summer 1972 to Winter 1999.
@@ -326,7 +374,7 @@ were copied in from the archive, so they are present here.
 - **Controls:** Modes A, B and C on a mode-select screen (`src/25_pad.js`).
 - **Attract:** title, winners, board, then a random-level demo (delivery or kitchen).
 
-## Verified
+## Verified at 0.9.1 (history; current counts are in Start here)
 
 | check | result |
 |---|---|
@@ -338,7 +386,7 @@ were copied in from the archive, so they are present here.
 | `node tools/render/sweep.mjs 2` | autoplayers clear every level; Hard deliveries 13 and 15 cleared 1 run in 2 |
 | browser | loads and runs in Chrome over `node serve.mjs`, no console errors; the owner has seen it running |
 
-## Next
+## Next, as of 0.9.1 (history; superseded by Start here)
 
 The Monday playtest and the 0.9.x list above. **Service Mode is done** (0.9.1). Not done by
 design, per its spec: city zoning (`hays*.json`) is not editable in it, and it never commits.
@@ -346,7 +394,7 @@ design, per its spec: city zoning (`hays*.json`) is not editable in it, and it n
 The remaining era faces' eyes beyond the 15 decade faces, and the nine new cast faces once
 baked, are set by the owner in the Faces tab.
 
-## Still open
+## Still open, as of 0.9.1 (history; the roadmap is current)
 
 1. **Depth of playtest.** The kitchen numbers are still the paper estimates from
    `difficulty.md`. The sweep says they are winnable, but nobody has played them long
@@ -368,7 +416,7 @@ Known soft spots:
 - In Mode C **portrait** the minimap sits under the on-screen stick (portrait is unchanged
   by ruling). In landscape (0.9.3) the stick is mid-left in the margin and clears it.
 
-## Deployment
+## Deployment (current)
 
 - **<https://carnage-asada.netlify.app>** is public and runs **0.9.15**, deployed
   2026-11-17 from the commit tagged `v0.9.15` (pushed to GitHub the same day), as was 0.9.14 earlier

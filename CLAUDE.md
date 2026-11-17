@@ -46,7 +46,7 @@ folder is not a pointer.
 ```bash
 node build.mjs           # bundle src/*.js -> taco-shop.html (ship) + index.html (dev)
 node serve.mjs           # static server on http://localhost:8123 (no-store; edits are live in dev)
-node test/headless.mjs   # full test suite (about 560 assertions); exits non-zero on failure
+node test/headless.mjs   # full test suite (about 620 assertions); exits non-zero on failure
 node admin.mjs           # Service Mode: the dev game plus the content editor on http://127.0.0.1:8124
 node test/admin.mjs      # Service Mode's suite (about 870 assertions): validator, server, panels, docs, test hooks
 ```
@@ -142,9 +142,8 @@ elsewhere, put it here and widen the validation rather than hard-coding strings 
 - **`RESUME.md` — read this first when starting a session.** Where the last session
   left off, what the next one is for, the state of the repo, and what is still open. A
   snapshot: where it and `ROADMAP.md` disagree, the roadmap wins.
-- `ROADMAP.md` — **starts with the current priority** (as of 2026-11-07: Service Mode is built and ships as 0.9.1;
-  the queued 0.9.x work follows it, from the owner's rulings that day. Two kitchen-art threads pinned on 2026-11-06 —
-  real ingredient art for the wells, and the rough assembly pictures — are still open). Then the open
+- `ROADMAP.md` — **starts with the current priority**: its NOW section says what is live and what is next
+  (kept current at the end of each session, so read it rather than trusting a summary here). Then the open
   punch list, and the tiered plan for reshaping the city into the real
   neighbourhood. **Read before touching the street grid**: it records which six modules assume a uniform
   block pitch, and which tiers are safe versus which are a rewrite.
@@ -900,7 +899,7 @@ keep redrawing the frozen state. Restore it afterwards or the game stays stuck.
 ## Testing
 
 `test/headless.mjs` runs the real modules in a `node:vm` sandbox against a Proxy-based stub 2D context, so
-every drawing call is a no-op but all logic executes. About 560 assertions (as of 0.9.3) covering city invariants (address
+every drawing call is a no-op but all logic executes. About 620 assertions (as of 0.9.15) covering city invariants (address
 uniqueness, porch reachability), HUD text widths, wedge escapability, 250 solved routes, 9000 fuzzed
 simulation frames checked for NaN and out-of-world drift, the attract rotation and 85s of autonomous
 demo driving, the full scoring loop, heat/cop behaviour, and the railway.

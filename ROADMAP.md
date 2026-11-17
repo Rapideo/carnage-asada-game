@@ -22,7 +22,12 @@ finished the owner's 0.9.x list, and the owner's full playtest on 2026-11-09 (33
 live site) passed 30, the other three fixed in 0.9.4 (the Xbox Series X|S pad) and 0.9.5
 (brighter faces, no windsock, a gust warning that shows on snow).
 
-**Next:** what is left below, chiefly the owner's open judgement calls. 1.0.0 is the owner's call.
+**Next:** first, how the shorter levels play (0.9.15). Then the owner's open judgement calls, all
+to be decided by playing rather than arithmetic: the shop apron and kerbside restock (Punch list,
+Bugs), and under Open questions the speeding ticket's size, whether downtown plays too easy, and
+what happens when Hays PD catches you. Mode B on a real arcade stick waits on the owner (Still needs
+a human), and the two release builds (LATER) are not to be started until the owner says so. 1.0.0
+is the owner's call.
 
 ## OPEN: dialogue and music (owner, 2026-11-09)
 
