@@ -7,3 +7,11 @@ Carnage_Resume.pdf
 Pixel-Art Taco Shop Ingredient Grid.png
 # the Netlify CLI's local state (deploys are manual: see RESUME.md)
 .netlify/
+# the owner's scraped MIDI library (2026-11-14), copied in by tools/music/pick-best.mjs:
+# kept local, never tracked. Its names are "Artist - Title (Year).mid"; the older
+# library's are not, so this matches only the scrape. A song converted from one
+# of these needs `git add -f` on its MIDI so --batch can rebuild it.
+# Since 2026-11-16 they sit in a folder per level year (70s/1975/...), hence **.
+reference/assets/midi/**/* - *(*).mid
+reference/assets/midi/moves-*.json
+reference/assets/midi/picks-report.json

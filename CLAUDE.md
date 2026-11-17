@@ -803,7 +803,7 @@ a speaker picker (the bubble name, each of the nine cast, each customer face, al
   filled in by `tools/music/midi-meta.mjs` `bestMeta`: labelled `Title:` / `Artist:` / `Year:` text in
   the file first, then **`tools/music/midi-catalog.json`** (Claude's title, artist and year for every
   library MIDI, `guess: true` where a name could be another song or a cover, and the form says so;
-  add a line for a new MIDI), then an "Artist - Title" track name or a "made famous by" line that agrees with
+  add a line for a new MIDI), then a **scrape name** (`nameMeta`: "Artist - Title (Year).mid"), then an "Artist - Title" track name or a "made famous by" line that agrees with
   the file name, then the file name; the server names the song from the title, `-2` if taken, and
   a song's `month` is optional), Converted (not in the game: Listen, Approve…, Delete)
   and In game (per decade, a strip of songs per level year, shift and from editable in place,
@@ -811,6 +811,23 @@ a speaker picker (the bubble name, each of the nine cast, each customer face, al
   its `tools/music/songs.json` entry and its preview `.wav`, and refuses (409 in game) a song
   the approved file **on disk** still names, so a take-out has to be saved first.
   `store.forget(rel)` drops a deleted file from the working copy.
+- **The scraped library (owner, 2026-11-14).** 4,155 MIDIs from the owner's scrape were copied
+  into `reference/assets/midi/70s|80s|90s/` by **`tools/music/pick-best.mjs`**: 1970-1999 only,
+  one file per song, the version picked by a quality gate that runs each one through the
+  converter's own `arrange()` and scores the result (lead, bass, harmony, drums, loop window,
+  grid fit, parse warnings; the header has the weights). Their names say artist, title and year,
+  so they need no catalog lines. **Since 2026-11-16 they sit in a folder per level year**
+  (`70s/1972/` ... `90s/1999/`, each with empty `delivery/` and `kitchen/` for the owner's
+  picks: 10 a level plus 3 alternates), in the **earliest level year on or after the release**,
+  so a 1979 song is in `80s/1981/`; the 202 older-library files stay loose in their decade folder.
+  Each name leads with a **grade**, the letter and pick-best's score (`A92 - Artist - Title
+  (Year).mid`; A 90+, B 80+, C 70+, D 55+, F below), which `nameMeta` skips. `moves-2026-11-16*.json`
+  beside them (ignored) undoes both. The owner is choosing what goes in the game from these.
+  **They are git-ignored** (the `* - *(*).mid` rule in
+  `.gitignore`, which the older library's names never match), so a song converted from one
+  needs `git add -f` on its MIDI. `picks-report.json` beside them (also ignored) has every
+  version's score. The Music tab's MIDI list caches each file's metadata (`metaCache` in
+  `server.mjs`), since reading them all took about 6 s.
 - **`test/admin.mjs`** is the suite. `test/fixtures/` holds the hand-edited `menu.md` from
   before the 0.9.1 regeneration, because the migration tests need a doc that still differs from
   its render (the `music.md` fixture went with `playlist.json` in 0.9.11).

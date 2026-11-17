@@ -156,14 +156,31 @@ export function readMidiLabels(buf) {
   return { title: title ? gameText(tidy(title)) : '', artist: artist ? gameText(tidy(artist)) : '', year };
 }
 
+/* The owner's scraped library (2026-11-14, copied in by tools/music/pick-best.mjs)
+   is named "Artist - Title (Year).mid", the year a confident release year. A name
+   in that shape is read as such; any other name gives null.
+   "80s/a-ha - Take On Me (1984).mid" -> { title: 'TAKE ON ME', artist: 'A-HA', year: 1984 }
+   Since 2026-11-16 the library's copies also lead with a quality grade, the letter
+   and pick-best.mjs's score ("A92 - Toto - Africa (1982).mid"), so the owner can
+   sort a year's folder best first. The grade is skipped: it is not the artist. */
+export const GRADE_RX = /^[A-F]\d{2} - /;
+export function nameMeta(file) {
+  const base = String(file || '').split(/[\\/]/).pop().replace(GRADE_RX, '');
+  const m = /^(.+?) - (.+) \((\d{4})\)(?: v\d+)?\.midi?$/i.exec(base);
+  if (!m) return null;
+  const title = gameText(m[2]), artist = gameText(m[1]);
+  return title && artist ? { title, artist, year: +m[3] } : null;
+}
+
 /* What the Convert form starts from, field by field: the file's labelled tags,
    then the catalog (tools/music/midi-catalog.json: Claude's title, artist and
-   year for each library MIDI), then what the file's other text and name suggest.
+   year for each library MIDI), then a scrape name ("Artist - Title (Year).mid",
+   nameMeta), then what the file's other text and name suggest.
    `guess` is true when a catalog guess is shown and the tags did not settle it. */
 export function bestMeta(buf, file, catalog) {
-  const L = readMidiLabels(buf), c = (catalog && catalog[file]) || null, r = readMidiMeta(buf, file);
-  const title = L.title || (c && c.title) || r.title;
-  const artist = L.artist || (c && c.artist) || r.artist;
-  const year = L.year !== null ? L.year : c && Number.isInteger(c.year) ? c.year : r.year;
+  const L = readMidiLabels(buf), c = (catalog && catalog[file]) || null, n = nameMeta(file), r = readMidiMeta(buf, file);
+  const title = L.title || (c && c.title) || (n && n.title) || r.title;
+  const artist = L.artist || (c && c.artist) || (n && n.artist) || r.artist;
+  const year = L.year !== null ? L.year : c && Number.isInteger(c.year) ? c.year : n ? n.year : r.year;
   return { title, artist, year, guess: !!(c && c.guess && !(L.title && L.artist && L.year !== null)) };
 }

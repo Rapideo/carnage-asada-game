@@ -266,6 +266,7 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
   /* GET /admin/api/midis -> [{ file: '70s/X.mid', ids: [...] }]: every .mid
      and .midi under reference/assets/midi/, sorted, with the ids of the songs
      songs.json arranges from it (none: not ported yet). */
+  const metaCache = new Map();   // file -> { key, meta }, for midis()
   async function midis() {
     const out = [];
     const walk = async (dir, rel) => {
@@ -292,8 +293,16 @@ export async function startAdmin({ root, host = '127.0.0.1', port = 8124, render
       /* a MIDI with a song made from it needs no form; one songs.json names but whose
          song file is gone does, so it is judged by the files */
       for (const id of ids) if (await songFile(id)) return { file, ids };
+      /* cached by size, time and catalog entry: the library is thousands of files since
+         the 2026-11-14 scrape, and reading them all made every Reload take seconds */
+      const p = join(lib, ...file.split('/'));
+      let key = null;
+      try { const st = await stat(p); key = st.size + ':' + st.mtimeMs + ':' + JSON.stringify(catalog[file] || null); } catch { key = null; }
+      const hit = key && metaCache.get(file);
+      if (hit && hit.key === key) return { file, ids, meta: hit.meta };
       let meta;
-      try { meta = bestMeta(await readFile(join(lib, ...file.split('/'))), file, catalog); } catch { meta = bestMeta(null, file, catalog); }
+      try { meta = bestMeta(await readFile(p), file, catalog); } catch { meta = bestMeta(null, file, catalog); }
+      if (key) metaCache.set(file, { key, meta });
       return { file, ids, meta };
     }));
   }

@@ -26,6 +26,9 @@ owner's open judgement calls and operator settings. 1.0.0 is the owner's call.
       songs in Service Mode (6 approved so far, 10-15 expected, more MIDIs coming). The Convert form
       fills itself from tags, the library catalog (`tools/music/midi-catalog.json`) and the file; add
       catalog lines for new MIDIs. Cut 0.9.14 when the owner says go.
+      **2026-11-14:** 4,155 scraped MIDIs imported (`tools/music/pick-best.mjs`, git-ignored); the
+      owner is pruning ~80% by hand, then a song-review artifact (year > artist > song, in-game
+      preview, thumbs up/down) feeds the Converted batch. See RESUME.md.
 
 - [x] **Personal lines for the happy moments.** *Shipped in 0.9.12.* All 120 customers are active and every one has
       personal lines (670), used 3 times in 4 when a face has a line for the moment. But the
