@@ -44,7 +44,7 @@ the 0.9.x list (police cost, downtown targets, the Hard delivery levels 13 and 1
 with doctype, charset, `viewport-fit=cover` and the manifest link, beside `deploy/manifest.webmanifest`,
 the two icons and `deploy/_headers`, then `netlify deploy --prod` (see Deployment below).
 
-`docs/art-direction-welcome.md` holds the owner's own uncommitted edits: leave it alone.
+`docs/art-direction-welcome.md`: the owner's 2026-11-07 log entries were committed on the owner's word (2026-11-17).
 
 Before that, 0.9.2 was on `master`, tagged `v0.9.2`, pushed and deployed to Netlify. It added:
 - 104 new customers, growing through each decade;
