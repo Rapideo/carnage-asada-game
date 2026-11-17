@@ -385,7 +385,8 @@ As built (owner's ruling, 2026-10-25: arrange the real MIDIs):
   Converted (listen, approve or delete) and In game.
 - **The song list is in `music.md`** (and in `approved.json`).
 - **Because no agent can listen,** the arrangements were chosen by structural heuristics.
-  `tools/music/preview/*.wav` holds renders to check by ear.
+  `node tools/music/midi2song.mjs --batch tools/music/songs.json --preview` renders them to
+  `tools/music/preview/*.wav` to check by ear.
 
 ### M. Authored Content
 

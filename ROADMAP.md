@@ -28,7 +28,7 @@ live site) passed 30, the other three fixed in 0.9.4 (the Xbox Series X|S pad) a
       and picked 13 a level in a Setlist picker; all 260 went in, then one version of each double
       was kept. See RESUME.md.
 - [x] **The unpicked scraped MIDIs:** 3,378 deleted on the owner's word, 2026-11-17 (the library is
-      34 MB now). `tools/music/preview/` (164 MB of `.wav`, git-ignored) was kept.
+      29 MB now), with the stale pick logs and the `.wav` previews in `tools/music/preview/`.
 
 - [x] **Personal lines for the happy moments.** *Shipped in 0.9.12.* All 120 customers are active and every one has
       personal lines (670), used 3 times in 4 when a face has a line for the moment. But the
@@ -326,7 +326,8 @@ Every owner ruling and every invention is recorded in `docs/PURE-CARNAGE-DECISIO
 - [x] **The music, by ear.** The owner's 2026-11-09 playtest found no song to swap. The notes
       below stay for when one is. The arrangements were chosen by structural heuristics,
       because no agent can listen.
-      - Renders to listen to are in `tools/music/preview/*.wav`.
+      - Renders to listen to: `node tools/music/midi2song.mjs --batch tools/music/songs.json --preview`
+        writes them to `tools/music/preview/*.wav` (git-ignored; deleted 2026-11-17, make them again).
       - To swap a song, edit `tools/music/songs.json`, then run
         `node tools/music/midi2song.mjs --batch tools/music/songs.json`.
 - [x] **Mode B with the owner's Xbox Series X|S pad** (2026-11-09): the throw did not fire on

@@ -821,17 +821,16 @@ a speaker picker (the bubble name, each of the nine cast, each customer face, al
   picks: 10 a level plus 3 alternates), in the **earliest level year on or after the release**,
   so a 1979 song is in `80s/1981/`; the 202 older-library files stay loose in their decade folder.
   Each name leads with a **grade**, the letter and pick-best's score (`A92 - Artist - Title
-  (Year).mid`; A 90+, B 80+, C 70+, D 55+, F below), which `nameMeta` skips. `moves-2026-11-16*.json`
-  beside them (ignored) undoes both. **The owner chose from these on 2026-11-17**: 13 a level in a
+  (Year).mid`; A 90+, B 80+, C 70+, D 55+, F below), which `nameMeta` skips. **The owner chose from these on 2026-11-17**: 13 a level in a
   Setlist picker artifact (not by moving files, so the `delivery/` and `kitchen/` folders stayed
   empty), all 260 converted and approved with `from` = the level year picked for. **The unpicked
   3,378 were deleted on the owner's word (2026-11-17)**: a year folder now holds only the
   MIDIs songs are made from, all tracked with `-f`. The originals are still in the owner's scrape
-  folder.
+  folder, and the moves' undo logs and `picks-report.json` went with them.
   **They are git-ignored** (the `* - *(*).mid` rule in
   `.gitignore`, which the older library's names never match), so a song converted from one
-  needs `git add -f` on its MIDI. `picks-report.json` beside them (also ignored) has every
-  version's score. The Music tab's MIDI list caches each file's metadata (`metaCache` in
+  needs `git add -f` on its MIDI. (`pick-best.mjs` writes a `picks-report.json` of every
+  version's score when it is run.) The Music tab's MIDI list caches each file's metadata (`metaCache` in
   `server.mjs`), since reading them all took about 6 s.
 - **`test/admin.mjs`** is the suite. `test/fixtures/` holds the hand-edited `menu.md` from
   before the 0.9.1 regeneration, because the migration tests need a doc that still differs from
