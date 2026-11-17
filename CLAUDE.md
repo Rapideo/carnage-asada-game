@@ -48,7 +48,7 @@ node build.mjs           # bundle src/*.js -> taco-shop.html (ship) + index.html
 node serve.mjs           # static server on http://localhost:8123 (no-store; edits are live in dev)
 node test/headless.mjs   # full test suite (about 560 assertions); exits non-zero on failure
 node admin.mjs           # Service Mode: the dev game plus the content editor on http://127.0.0.1:8124
-node test/admin.mjs      # Service Mode's suite (about 800 assertions): validator, server, panels, docs, test hooks
+node test/admin.mjs      # Service Mode's suite (about 870 assertions): validator, server, panels, docs, test hooks
 ```
 
 **`node admin.mjs` and `node serve.mjs` must be run from the owner's own terminal.** A server started
@@ -822,7 +822,10 @@ a speaker picker (the bubble name, each of the nine cast, each customer face, al
   so a 1979 song is in `80s/1981/`; the 202 older-library files stay loose in their decade folder.
   Each name leads with a **grade**, the letter and pick-best's score (`A92 - Artist - Title
   (Year).mid`; A 90+, B 80+, C 70+, D 55+, F below), which `nameMeta` skips. `moves-2026-11-16*.json`
-  beside them (ignored) undoes both. The owner is choosing what goes in the game from these.
+  beside them (ignored) undoes both. **The owner chose from these on 2026-11-17**: 13 a level in a
+  Setlist picker artifact (not by moving files, so the `delivery/` and `kitchen/` folders stayed
+  empty), all 260 converted and approved with `from` = the level year picked for. The rest are
+  unpicked and still on disk.
   **They are git-ignored** (the `* - *(*).mid` rule in
   `.gitignore`, which the older library's names never match), so a song converted from one
   needs `git add -f` on its MIDI. `picks-report.json` beside them (also ignored) has every
@@ -830,7 +833,12 @@ a speaker picker (the bubble name, each of the nine cast, each customer face, al
   `server.mjs`), since reading them all took about 6 s.
 - **`test/admin.mjs`** is the suite. `test/fixtures/` holds the hand-edited `menu.md` from
   before the 0.9.1 regeneration, because the migration tests need a doc that still differs from
-  its render (the `music.md` fixture went with `playlist.json` in 0.9.11).
+  its render (the `music.md` fixture went with `playlist.json` in 0.9.11). It also holds **the
+  frozen 0.9.11 music library** the song-counting tests run on (`BASE_SONGS`, `baseFiles`,
+  `freezeTmp`): `approved-0.9.11.json`, and in `music-0.9.11/` the 0.9.11 songs the game no
+  longer ships plus that library's `songs.json` entries. **Only songs that play ship** (since
+  2026-11-17): a song no level or title screen plays is deleted from `content/music/`, and the
+  fixture is why that never breaks the suite.
 
 ### The level card
 
@@ -966,7 +974,7 @@ the card.
 
 ## Publishing
 
-`taco-shop.html` is the shippable artifact: one self-contained file, about 1.3 MB since the 120 customer faces (2026-11-08; the faces, music, lattice and board tables are most of it).
+`taco-shop.html` is the shippable artifact: one self-contained file, about 2.6 MB since the owner's setlist (2026-11-17, 282 songs; the music and the faces are most of it).
 
 **Versioning.** The version is `content/release.json` (`version` MAJOR.MINOR.PATCH, `date`
 YYYY-MM-DD), inlined as `RELEASE` and drawn by `G.versionTag` in the corner of the title and

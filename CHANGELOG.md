@@ -8,14 +8,23 @@ Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch li
 counts on: 0.9.10, 0.9.11 and so on (owner, 2026-11-09).
 **1.0.0** is when the owner calls it released.
 
-## Unreleased (0.9.14, on branch `midi-autofill`)
+## 0.9.14 (2026-11-17): the setlist
 
-- **New songs** from the owner's library, approved in Service Mode (in progress; list them when
-  cut). Red Red Wine now plays from 1987.
+- **The owner's setlist: 260 new songs, 13 for every level.** Picked level by level from a
+  library of about 3,600 period MIDIs (1970-1999, the best version of each chosen by how well it
+  arranges for the chip), 10 songs and 3 alternates per level, each joining its decade's
+  rotation in the year it was picked for. The game now plays 282 songs, from Suffragette City
+  to Why Does It Always Rain on Me?; a decade's last levels shuffle 45 to 60 of them.
+- **One version of every song.** Where the setlist brought in a song the game already had, the
+  owner heard both and kept one (24 songs, 26 versions out). The title screen plays the kept
+  Reelin' in the Years.
+- **Only songs that play ship**, which takes the 28 that no level played out of the file.
 - **Service Mode, Convert:** the form asks only title, artist and year, and fills them in: from
-  tags in the MIDI, then from a catalog of the whole library (tools/music/midi-catalog.json), then
-  from the file. The song's internal name comes from its title, and a release month is no longer
-  needed. A guessed entry says to check it.
+  tags in the MIDI, then from a catalog of the older library (tools/music/midi-catalog.json),
+  then from a scraped file's name. The song's internal name comes from its title, and a release
+  month is no longer needed. A guessed entry says to check it.
+- Earlier on this branch: Red Red Wine plays from 1987, and five songs the owner converted by hand
+  (Anarchy in the UK, Ramble On, Dream Police, Bizarre Love Triangle, All I Need Is a Miracle).
 
 ## 0.9.13 (2026-11-09): everybody talks, and the roads clear
 

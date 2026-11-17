@@ -7,28 +7,30 @@ Checkboxes render as a live task list on GitHub:
 
 ---
 
-## NOW: 0.9.5 live; the owner's playtest passed (2026-11-09)
+## NOW: 0.9.14 cut, the owner's setlist (2026-11-17); 0.9.13 live
 
-The game is **feature-complete** (0.9.0), **0.9.1 added Service Mode**, **0.9.3** finished the
-owner's 0.9.x list, and on 2026-11-09 the owner's full playtest (a 33-item checklist on the live
-site) passed 30 of 33. Its three findings shipped the same day:
-- **0.9.4:** the owner's Xbox Series X|S pad (the throw did not fire) and the triggers as gas
-  and brake;
-- **0.9.5:** brighter faces (the strip drawn over the vignette and grade), no windsock, and a
-  gust warning that shows on snow.
+**0.9.14**, the music release, is on `master` and tagged, **not pushed or deployed** until the
+owner says so: the owner's setlist of 260 songs (13 a level), one version of each song that was
+in twice, and only the 282 songs that play shipped. The live site is 0.9.13 (every character's
+own lines, far less traffic).
 
-All on `master`, tagged, pushed and deployed. **Next:** what is left below, chiefly the
-owner's open judgement calls and operator settings. 1.0.0 is the owner's call.
+Before that: the game was **feature-complete** at 0.9.0, **0.9.1 added Service Mode**, **0.9.3**
+finished the owner's 0.9.x list, and the owner's full playtest on 2026-11-09 (33 checks on the
+live site) passed 30, the other three fixed in 0.9.4 (the Xbox Series X|S pad) and 0.9.5
+(brighter faces, no windsock, a gust warning that shows on snow).
+
+**Next:** push and deploy 0.9.14 on the owner's word; then what is left below, chiefly the
+owner's open judgement calls. 1.0.0 is the owner's call.
 
 ## OPEN: dialogue and music (owner, 2026-11-09)
 
-- [ ] **The owner's songs, then 0.9.14.** On branch `midi-autofill`: the owner converts and approves
-      songs in Service Mode (6 approved so far, 10-15 expected, more MIDIs coming). The Convert form
-      fills itself from tags, the library catalog (`tools/music/midi-catalog.json`) and the file; add
-      catalog lines for new MIDIs. Cut 0.9.14 when the owner says go.
-      **2026-11-14:** 4,155 scraped MIDIs imported (`tools/music/pick-best.mjs`, git-ignored); the
-      owner is pruning ~80% by hand, then a song-review artifact (year > artist > song, in-game
-      preview, thumbs up/down) feeds the Converted batch. See RESUME.md.
+- [x] **The owner's songs, then 0.9.14.** *Cut 2026-11-17.* The owner converted songs in Service
+      Mode (its Convert form fills itself from tags, `tools/music/midi-catalog.json` and the file
+      name), imported 4,155 scraped MIDIs (`tools/music/pick-best.mjs`, git-ignored), pruned them,
+      and picked 13 a level in a Setlist picker; all 260 went in, then one version of each double
+      was kept. See RESUME.md.
+- [ ] **The unpicked scraped MIDIs** (~3,370, 181 MB with the reports) and `tools/music/preview/`
+      (164 MB of `.wav`), both git-ignored. Delete or keep: the owner's call.
 
 - [x] **Personal lines for the happy moments.** *Shipped in 0.9.12.* All 120 customers are active and every one has
       personal lines (670), used 3 times in 4 when a face has a line for the moment. But the
