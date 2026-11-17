@@ -27,8 +27,8 @@ live site) passed 30, the other three fixed in 0.9.4 (the Xbox Series X|S pad) a
       name), imported 4,155 scraped MIDIs (`tools/music/pick-best.mjs`, git-ignored), pruned them,
       and picked 13 a level in a Setlist picker; all 260 went in, then one version of each double
       was kept. See RESUME.md.
-- [ ] **The unpicked scraped MIDIs** (~3,370, 181 MB with the reports) and `tools/music/preview/`
-      (164 MB of `.wav`), both git-ignored. Delete or keep: the owner's call.
+- [x] **The unpicked scraped MIDIs:** 3,378 deleted on the owner's word, 2026-11-17 (the library is
+      34 MB now). `tools/music/preview/` (164 MB of `.wav`, git-ignored) was kept.
 
 - [x] **Personal lines for the happy moments.** *Shipped in 0.9.12.* All 120 customers are active and every one has
       personal lines (670), used 3 times in 4 when a face has a line for the moment. But the

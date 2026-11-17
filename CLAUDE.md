@@ -824,8 +824,10 @@ a speaker picker (the bubble name, each of the nine cast, each customer face, al
   (Year).mid`; A 90+, B 80+, C 70+, D 55+, F below), which `nameMeta` skips. `moves-2026-11-16*.json`
   beside them (ignored) undoes both. **The owner chose from these on 2026-11-17**: 13 a level in a
   Setlist picker artifact (not by moving files, so the `delivery/` and `kitchen/` folders stayed
-  empty), all 260 converted and approved with `from` = the level year picked for. The rest are
-  unpicked and still on disk.
+  empty), all 260 converted and approved with `from` = the level year picked for. **The unpicked
+  3,378 were deleted on the owner's word (2026-11-17)**: a year folder now holds only the
+  MIDIs songs are made from, all tracked with `-f`. The originals are still in the owner's scrape
+  folder.
   **They are git-ignored** (the `* - *(*).mid` rule in
   `.gitignore`, which the older library's names never match), so a song converted from one
   needs `git add -f` on its MIDI. `picks-report.json` beside them (also ignored) has every
