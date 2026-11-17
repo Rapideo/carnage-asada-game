@@ -30,9 +30,16 @@ const disk = validateContent(fsSource('content'));
    additions never trip them (2026-11-09). Rules are still checked on the real content. */
 const BASE_SONGS = ["africa","alec-eiffel","big-time","bitter-sweet-symphony","black-dog","bohemian-opera","bohemian-rock","cannonball","common-people","do-it-again","dont-bring-me-down","dont-you-want-me","dyer-maker","everything-about-you","here-comes-your-man","house-of-fun","i-think-im-paranoid","if-you-leave","immigrant-song","just-cant-get-enough","just-what-i-needed","kashmir","lovely-day","lump","mr-blue-sky","never-gonna-give-you-up","one-step-beyond","peaches","peg","red-red-wine","reelin-in-the-years","regulate","rock-the-casbah","song-2","stand-and-deliver","steal-my-sunshine","straight-up","sweet-child-o-mine","take-on-me","two-princes","walk-on-the-wild-side","where-is-my-mind"];
 const FROZEN_APPROVED = JSON.parse(readFileSync(new URL('./fixtures/approved-0.9.11.json', import.meta.url), 'utf8'));
+/* the 0.9.11 songs the game no longer ships (2026-11-17: the owner's setlist replaced
+   them), and the library's songs.json entries, kept here so the frozen library is whole */
+const FROZEN_DIR = new URL('./fixtures/music-0.9.11/', import.meta.url);
+const FROZEN_SONGS = JSON.parse(readFileSync(new URL('songs.json', FROZEN_DIR), 'utf8')).songs;
+const FROZEN_MUSIC = Object.fromEntries(readdirSync(FROZEN_DIR).filter((n) => n.endsWith('.json') && n !== 'songs.json')
+  .map((n) => ['music/' + n, JSON.parse(readFileSync(new URL(n, FROZEN_DIR), 'utf8'))]));
 const baseFiles = (src) => {
   const f = structuredClone(src);
   for (const r of Object.keys(f)) if (/^music\/[^/]+\.json$/.test(r) && r !== 'music/approved.json' && !BASE_SONGS.includes(r.slice(6, -5))) delete f[r];
+  for (const [r, s] of Object.entries(FROZEN_MUSIC)) if (!(r in f)) f[r] = structuredClone(s);
   /* the placement is frozen too (test/fixtures/approved-0.9.11.json): filtering the live
      file stopped working when the 2026-11-17 setlist took old songs out of the game */
   if (f['music/approved.json']) f['music/approved.json'] = structuredClone(FROZEN_APPROVED);
@@ -47,13 +54,14 @@ globalThis.__allFiles = files;
    dont-fear-the-reaper, bizarre-love-triangle) without one again */
 function freezeTmp(tmp) {
   const rd = readdirSync, rm = rmFreeze, wf = writeFreeze, rf = readFileSync;
-  const ORPHANS = ['anarchy-in-the-uk', 'dont-fear-the-reaper', 'bizarre-love-triangle'];
   const md = join(tmp, 'content/music');
   for (const n of rd(md)) if (n.endsWith('.json') && n !== 'approved.json' && !BASE_SONGS.includes(n.slice(0, -5))) rm(join(md, n));
+  for (const [r, s] of Object.entries(FROZEN_MUSIC)) wf(join(tmp, 'content', r), JSON.stringify(s));
   wf(join(md, 'approved.json'), JSON.stringify(FROZEN_APPROVED, null, 2));
+  /* the 0.9.11 entries, three of them (anarchy-in-the-uk, dont-fear-the-reaper,
+     bizarre-love-triangle) names with no song file, as they were then */
   const SJ = join(tmp, 'tools/music/songs.json'), sj = JSON.parse(rf(SJ, 'utf8'));
-  sj.songs = sj.songs.filter((s) => BASE_SONGS.includes(s.id) || ORPHANS.includes(s.id));
-  wf(SJ, JSON.stringify(sj, null, 2));
+  wf(SJ, JSON.stringify({ ...sj, songs: structuredClone(FROZEN_SONGS) }, null, 2));
 }
 ok(JSON.stringify(validateContent(memSource(files))) === JSON.stringify(disk), 'memory and disk agree');
 
@@ -181,16 +189,17 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
 
 /* a song's release month: required (Task 14), an integer 1-12 */
 {
-  const monthErr = (m) => { const f = structuredClone(files); if (m === undefined) delete f['music/kashmir.json'].month; else f['music/kashmir.json'].month = m; let x = null; try { validateContent(memSource(f)); } catch (y) { x = y; } return x; };
+  const monthErr = (m) => { const f = baseFiles(files); if (m === undefined) delete f['music/kashmir.json'].month; else f['music/kashmir.json'].month = m; let x = null; try { validateContent(memSource(f)); } catch (y) { x = y; } return x; };
   ok([0, 13, 2.5, '3', null].every((m) => { const x = monthErr(m); return x instanceof ContentError && x.file === 'content/music/kashmir.json' && x.path.join() === 'month'; }),
      'a song month of 0, 13, 2.5, "3" or null is refused on [month] (' + (monthErr(13) && monthErr(13).message) + ')');
   ok(monthErr(1) === null && monthErr(12) === null, 'months 1 and 12 are accepted');
   /* the month is optional since 2026-11-09 (owner: "remove month because that's ambiguous"); one given must be 1-12 */
   ok(monthErr(undefined) === null, 'a song with no month validates');
-  ok(BASE_SONGS.every((id) => disk.music[id] && Number.isInteger(disk.music[id].month)) && Object.values(disk.music).every((s) => s.month === undefined || (Number.isInteger(s.month) && s.month >= 1 && s.month <= 12)),
+  const BM = validateContent(memSource(baseFiles(files))).music;   // the 42, some of them now from the fixture
+  ok(BASE_SONGS.every((id) => BM[id] && Number.isInteger(BM[id].month)) && Object.values(disk.music).every((s) => s.month === undefined || (Number.isInteger(s.month) && s.month >= 1 && s.month <= 12)),
      'the 42 original songs keep their release month, and any song with a month has one of 1-12');
   const sj = JSON.parse(readFileSync('tools/music/songs.json', 'utf8')).songs;
-  ok(BASE_SONGS.every((id) => { const s = sj.find((x) => x.id === id); return s && s.month === disk.music[id].month && typeof s._month === 'string' && s._month.length > 10; })
+  ok(BASE_SONGS.every((id) => { const s = FROZEN_SONGS.find((x) => x.id === id); return s && s.month === BM[id].month && typeof s._month === 'string' && s._month.length > 10; })
      && sj.every((s) => !disk.music[s.id] || s.month === disk.music[s.id].month),
      'songs.json carries the same month as each song, and a _month note naming its source for the original 42');
 }
@@ -203,7 +212,7 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
      'levelMonth: L1 7, L2 12, L3 1, L4 7, L9 1, L15 1, L20 12 (' + (typeof levelMonth === 'function' ? [0, 1, 2, 3, 8, 14, 19].map((i) => levelMonth(LV, i)).join() : 'none') + ')');
   ok(typeof levelMonth === 'function' && LV.every((l, i) => (l.season === 'summer' ? levelMonth(LV, i) === 7 : [1, 12].includes(levelMonth(LV, i)))),
      'every summer is July, every winter January or December');
-  const late = structuredClone(files); late['music/kashmir.json'].month = 12;
+  const late = baseFiles(files); late['music/kashmir.json'].month = 12;
   e = null; try { validateContent(memSource(late)); } catch (x) { e = x; }
   ok(e === null, 'a song\'s release month is recorded, never checked against a level (Kashmir in December)');
 }
@@ -255,7 +264,7 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
   ok(typeof V.songDecade === 'function' && V.songDecade(AP, 'africa') === '2' && V.songDecade(AP, 'one-step-beyond') === null, 'songDecade: Africa is the \'80s');
   ok(typeof V.songStart === 'function' && V.songStart(AP, LV, 'dont-bring-me-down') === 1981 && V.songDecade(AP, 'dont-bring-me-down') === '2', 'Don\'t Bring Me Down (1979) is \'80s from the start');
   ok(typeof V.inGame === 'function' && V.inGame(AP, 'one-step-beyond') && V.inGame(AP, 'africa') && !V.inGame(AP, 'no-such-song'), 'inGame: title-only and decade songs are in, others out');
-  const ids = new Set([...(AP.title || []), ...['1', '2', '3'].flatMap((d) => V.SHIFTS ? V.SHIFTS.flatMap((s) => (AP[d] || {})[s] || []) : [])]);
+  const ids = new Set([...(disk.approved.title || []), ...['1', '2', '3'].flatMap((d) => V.SHIFTS ? V.SHIFTS.flatMap((s) => (disk.approved[d] || {})[s] || []) : [])]);
   ok(ids.size >= 1 && [...ids].every((id) => disk.music[id]), 'every song in game has its song file (' + ids.size + ' in game)');
 }
 
@@ -859,17 +868,17 @@ const diskBuilt = validateContent(fsSource('content'));
     const tick = (secs) => { actx.currentTime += secs; MU._tick(); };
     threw = null;
     try {
-      const f3 = setL1(files2(), ['immigrant-song', 'black-dog', 'walk-on-the-wild-side']);
+      const f3 = setL1(files2(), ['immigrant-song', 'black-dog', 'walk-on-the-wild-side-2']);
       A.applyBuilt(validateContent(memSource(f3)), G);
       G.startRun(1); G.beginShift(); frames(10);
       const set = (q) => [...q].sort().join();
-      ok(G.state === 'play' && MU.playing() && set(MU.queue) === 'black-dog,immigrant-song,walk-on-the-wild-side', 'level 1 plays its 3 songs, shuffled (' + MU.queue.join() + ')');
+      ok(G.state === 'play' && MU.playing() && set(MU.queue) === 'black-dog,immigrant-song,walk-on-the-wild-side-2', 'level 1 plays its 3 songs, shuffled (' + MU.queue.join() + ')');
       let guard = 0;
       while (MU.idx !== 2 && guard++ < 50) tick(20);
       const third = MU.queue[2];
       ok(MU.idx === 2 && MU.now().id === third, 'and walks it into the third song (' + MU.idx + ')');
       /* Review Focus 4: an edit that leaves level 1's songs as they are keeps the order and the song playing */
-      const fsame = setL1(files2(), ['immigrant-song', 'black-dog', 'walk-on-the-wild-side']); fsame['music/approved.json'].from.kashmir = 1978;   // level 4 changes, so the refresher replays level 1
+      const fsame = setL1(files2(), ['immigrant-song', 'black-dog', 'walk-on-the-wild-side-2']); fsame['music/approved.json'].from['kashmir-2'] = 1978;   // level 4 changes, so the refresher replays level 1
       const q3 = MU.queue.join();
       A.applyBuilt(validateContent(memSource(fsame)), G);
       for (let i = 0; i < 10; i++) { tick(0.5); frames(1); }
@@ -888,18 +897,18 @@ const diskBuilt = validateContent(fsSource('content'));
       const q0 = MU.queue.join(), realPlay = MU.play;
       const r0 = L.listen('no-such-song', G);
       MU.play = () => false;
-      const r1 = L.listen('kashmir', G);
+      const r1 = L.listen('kashmir-2', G);
       MU.play = realPlay;
       ok(r0 === false && r1 === false && L.listening === null && G.playMusic === orig && MU.queue.join() === q0,
          'a listen whose play fails (unknown song, or Music.play false) leaves G.playMusic, listening and the music as they were');
       L.stop(G);
       ok(G.playMusic === orig && MU.queue.join() === q0, 'and Stop with nothing listened to changes nothing');
-      L.listen('kashmir', G); tick(0.5);
-      ok(MU.queue.join() === 'kashmir' && MU.now().id === 'kashmir' && L.listening === 'kashmir', 'Listen plays one song through Music (' + MU.queue.join() + ')');
+      L.listen('kashmir-2', G); tick(0.5);
+      ok(MU.queue.join() === 'kashmir-2' && MU.now().id === 'kashmir-2' && L.listening === 'kashmir-2', 'Listen plays one song through Music (' + MU.queue.join() + ')');
       const f2b = setL1(files2(), ['immigrant-song', 'black-dog']);
       A.applyBuilt(validateContent(memSource(f2b)), G); tick(0.5);
       G.playMusic('title'); tick(0.5);
-      ok(MU.queue.join() === 'kashmir' && G.musicKey === 'title', 'while listening, a playlist edit or the game changing its music does not cut in, but the key is kept (' + MU.queue.join() + ' ' + G.musicKey + ')');
+      ok(MU.queue.join() === 'kashmir-2' && G.musicKey === 'title', 'while listening, a playlist edit or the game changing its music does not cut in, but the key is kept (' + MU.queue.join() + ' ' + G.musicKey + ')');
       G.playMusic(1);
       L.stop(G); tick(0.5);
       ok(L.listening === null && G.playMusic === orig && set(MU.queue) === 'black-dog,immigrant-song', 'Stop restores the level\'s music, its newest songs, through G.playMusic (' + MU.queue.join() + ')');
@@ -1013,7 +1022,7 @@ console.log('\n— store —');
 
     /* forget (2026-11-09): a song the server deleted leaves the working copy */
     {
-      const ks = structuredClone(store.files['music/kashmir.json']); ks.id = 'forget-me';
+      const ks = structuredClone(store.files['music/kashmir-2.json']); ks.id = 'forget-me';
       store.adopt('music/forget-me.json', ks, 1);
       store.set('music/forget-me.json', 'title', 'FORGET ME');
       ok(typeof store.forget === 'function', 'store.forget exists');
