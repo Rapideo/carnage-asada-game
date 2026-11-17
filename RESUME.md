@@ -8,7 +8,7 @@ kitchen surroundings, and version 0.9.0. Updated 2026-11-07 (evening) for Servic
 This is the starting point for a fresh session. It is a snapshot: **`ROADMAP.md` is the
 living plan**, and if the two disagree, the roadmap wins.
 
-**Start here (2026-11-17): 0.9.14 is cut on `master` (tag `v0.9.14`), not pushed and not deployed; the live site is still 0.9.13.** 0.9.14 is the music release. **Next: push and deploy it on the owner's word** (see Deploying below), then the open judgement calls in `ROADMAP.md`.
+**Start here (2026-11-17): 0.9.14, the music release, is live on Netlify and pushed (tag `v0.9.14`).** **Next:** the open judgement calls in `ROADMAP.md`, and the owner's answer on the unpicked scraped MIDIs (below). `midi-autofill` is merged; its local branch and its copy on GitHub can both be deleted when the owner likes.
 - **The setlist:** the owner picked 13 songs a level (10 + 3 alternates) in the Setlist picker (claude.ai artifact V7uyDA9qsqUDzXD376xMSS, db collection `picks`, one doc per `<year>-<stage>`), and all 260 went in, each converted by `midi2song.mjs` and placed in its decade and shift with `from` = the level year it was picked for. Since a level plays every song of its decade whose year has arrived, the third level of a decade plays 45-60 songs; the owner has not asked for per-level lists (that would need an "until" year).
 - **The doubles:** 24 titles were then in twice; the owner kept one of each on the Doubles page (claude.ai artifact VdQvRK99rPq2ZQMcJv2uro, db collection `keep`). The title screen plays the kept `reelin-in-the-years-2`.
 - **Only songs that play ship:** 282, all in game. Songs no level plays were deleted (their MIDIs stay, with catalog lines). The admin tests' frozen 0.9.11 library lives in `test/fixtures/` (`approved-0.9.11.json`, `music-0.9.11/`), so deleting a song from `content/` never breaks them. `taco-shop.html` is about 2.6 MB.
@@ -370,8 +370,9 @@ Known soft spots:
 
 ## Deployment
 
-- **<https://carnage-asada.netlify.app>** is public and runs **0.9.13**, deployed
-  2026-11-09 from the commit tagged `v0.9.13` (pushed to GitHub the same day). Earlier the same day,
+- **<https://carnage-asada.netlify.app>** is public and runs **0.9.14**, deployed
+  2026-11-17 from the commit tagged `v0.9.14` (pushed to GitHub the same day). 0.9.13 was deployed
+  2026-11-09 from `v0.9.13`. Earlier that day,
   0.9.12 was deployed from `v0.9.12`, 0.9.11 was deployed from `v0.9.11` and 0.9.3 from `v0.9.3`; 0.9.2 was
   deployed on 2026-11-08 from `v0.9.2`. 0.9.0 was
   deployed on 2026-11-07 from `d717fee`. The owner

@@ -7,20 +7,18 @@ Checkboxes render as a live task list on GitHub:
 
 ---
 
-## NOW: 0.9.14 cut, the owner's setlist (2026-11-17); 0.9.13 live
+## NOW: 0.9.14 live, the owner's setlist (2026-11-17)
 
-**0.9.14**, the music release, is on `master` and tagged, **not pushed or deployed** until the
-owner says so: the owner's setlist of 260 songs (13 a level), one version of each song that was
-in twice, and only the 282 songs that play shipped. The live site is 0.9.13 (every character's
-own lines, far less traffic).
+**0.9.14**, the music release, is on `master`, tagged, pushed and deployed (2026-11-17): the owner's setlist of 260 songs (13 a level), one version of each song that was
+in twice, and only the 282 songs that play shipped. Before it, 0.9.13 brought every
+character's own lines and far less traffic.
 
 Before that: the game was **feature-complete** at 0.9.0, **0.9.1 added Service Mode**, **0.9.3**
 finished the owner's 0.9.x list, and the owner's full playtest on 2026-11-09 (33 checks on the
 live site) passed 30, the other three fixed in 0.9.4 (the Xbox Series X|S pad) and 0.9.5
 (brighter faces, no windsock, a gust warning that shows on snow).
 
-**Next:** push and deploy 0.9.14 on the owner's word; then what is left below, chiefly the
-owner's open judgement calls. 1.0.0 is the owner's call.
+**Next:** what is left below, chiefly the owner's open judgement calls. 1.0.0 is the owner's call.
 
 ## OPEN: dialogue and music (owner, 2026-11-09)
 
