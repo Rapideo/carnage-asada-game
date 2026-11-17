@@ -8,7 +8,7 @@ kitchen surroundings, and version 0.9.0. Updated 2026-11-07 (evening) for Servic
 This is the starting point for a fresh session. It is a snapshot: **`ROADMAP.md` is the
 living plan**, and if the two disagree, the roadmap wins.
 
-**Start here (2026-11-17): 0.9.14, the music release, is live on Netlify and pushed (tag `v0.9.14`).** **Next:** the open judgement calls in `ROADMAP.md`. `midi-autofill` is merged and deleted, locally and on GitHub.
+**Start here (2026-11-17): 0.9.15 is live on Netlify and pushed (tag `v0.9.15`): shorter levels, 6 deliveries or tickets to clear one on Easy and Medium, 9 on Hard, 12 on Supreme (was 15; owner: "way too many"). The owner set these per difficulty; they are Service Mode's Difficulty target and maxExt (target = 3 x maxExt). Have the owner say how the shorter levels feel.** Before it, the same day, 0.9.14, the music release: **Next:** the open judgement calls in `ROADMAP.md`. `midi-autofill` is merged and deleted, locally and on GitHub.
 - **The setlist:** the owner picked 13 songs a level (10 + 3 alternates) in the Setlist picker (claude.ai artifact V7uyDA9qsqUDzXD376xMSS, db collection `picks`, one doc per `<year>-<stage>`), and all 260 went in, each converted by `midi2song.mjs` and placed in its decade and shift with `from` = the level year it was picked for. Since a level plays every song of its decade whose year has arrived, the third level of a decade plays 45-60 songs; the owner has not asked for per-level lists (that would need an "until" year).
 - **The doubles:** 24 titles were then in twice; the owner kept one of each on the Doubles page (claude.ai artifact VdQvRK99rPq2ZQMcJv2uro, db collection `keep`). The title screen plays the kept `reelin-in-the-years-2`.
 - **Only songs that play ship:** 282, all in game. Songs no level plays were deleted (their MIDIs stay, with catalog lines). The admin tests' frozen 0.9.11 library lives in `test/fixtures/` (`approved-0.9.11.json`, `music-0.9.11/`), so deleting a song from `content/` never breaks them. `taco-shop.html` is about 2.6 MB.
@@ -370,8 +370,9 @@ Known soft spots:
 
 ## Deployment
 
-- **<https://carnage-asada.netlify.app>** is public and runs **0.9.14**, deployed
-  2026-11-17 from the commit tagged `v0.9.14` (pushed to GitHub the same day). 0.9.13 was deployed
+- **<https://carnage-asada.netlify.app>** is public and runs **0.9.15**, deployed
+  2026-11-17 from the commit tagged `v0.9.15` (pushed to GitHub the same day), as was 0.9.14 earlier
+  that day from `v0.9.14`. 0.9.13 was deployed
   2026-11-09 from `v0.9.13`. Earlier that day,
   0.9.12 was deployed from `v0.9.12`, 0.9.11 was deployed from `v0.9.11` and 0.9.3 from `v0.9.3`; 0.9.2 was
   deployed on 2026-11-08 from `v0.9.2`. 0.9.0 was

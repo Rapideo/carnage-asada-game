@@ -7,7 +7,11 @@ Checkboxes render as a live task list on GitHub:
 
 ---
 
-## NOW: 0.9.14 live, the owner's setlist (2026-11-17)
+## NOW: 0.9.15 live, shorter levels (2026-11-17)
+
+**0.9.15** is live: a level clears at 6 deliveries or tickets on Easy and Medium, 9 on Hard and
+12 on Supreme (it was 15, and 12 on Supreme), with 2, 2, 3 and 4 extensions. The owner's ruling.
+How it feels is still to be played.
 
 **0.9.14**, the music release, is on `master`, tagged, pushed and deployed (2026-11-17): the owner's setlist of 260 songs (13 a level), one version of each song that was
 in twice, and only the 282 songs that play shipped. Before it, 0.9.13 brought every
