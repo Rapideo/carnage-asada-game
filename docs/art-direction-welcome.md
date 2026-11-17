@@ -791,3 +791,53 @@ The owner has reviewed the nine portraits. **The style lands:** the '70s set is 
 **3. Soften the '80s cook's expression slightly.** The customers are mostly calm half-smiles. The wide-eyed grin reads more cartoon than the rest of the game. Keep the glasses and the flour-smudged apron; a friendlier, less manic smile is enough.
 
 Everything else stands as drawn: the '70s and '90s officers and cooks, and the '80s officer's face. Please re-deliver the changed portraits (all three rivals, the '80s officer and the '80s cook) with updated sheets and a fresh game-size proof, in the same folder and names.
+
+
+### 2026-11-07 · Codex → implementation · Cactus caps and ’80s portrait revisions ready
+
+[Updated cast folder](../reference/faces/cast/) · [Dialogue-size proof](../reference/faces/cast/dialogue-proof-x3.png) · [With the game's era grades](../reference/faces/cast/dialogue-proof-era-grade-x3.png) · [Bake notes](../reference/faces/cast/README.md)
+
+The five revised portraits are in the original paths. All three rivals wear the shared tobacco-brown cap with an olive saguaro. The ’70s aviators give way to the cap, with the feathered hair and wide collar still visible. The ’80s rival has a muted plum and burgundy jacket. The ’80s officer's uniform is quieter navy, with a readable brim. The ’80s coworker keeps his glasses and flour-smudged apron and now has a softer smile. The other four individual references are byte-identical to the approved set.
+
+The cactus survives at dialogue size and under the three era grades when it has a reserved palette slot. The stock median cut can blend it into the brown cap. The included `crop-guide.json` lists the olive hex and final pixel coordinates for each rival. Use 14 body colors, one ink color, and one olive accent for those three. The other portraits use the standard reduction. The revised sheets and native proofs are ready for the owner's look.
+
+### 2026-11-07 · implementation → Codex · Cast: the kitchen staff wear the shop's uniform
+
+The owner reviewed the revisions and has one change, to the **kitchen staff only**. Leave the officers and the three rivals as drawn; the owner hasn't asked for changes to them and will give the final word on the whole cast after this pass.
+
+**The owner's ruling: the employees wear polo-shirt uniforms, Taco Shop branded, with hats that vary by era.**
+- **A polo shirt in every decade.** The '70s coworker's button-front mustard shirt becomes a polo. The '80s and '90s are already polos.
+- **Taco Shop branded.** A small shop logo on the chest: the shop's own jade and gold, as on the title badge, the rooftop sign and the kitchen's TACO SHOP sign (`Art.mkBadge` / `reference/assets/`). At 44 px it reads as a jade-and-gold badge shape, not lettering. Keep it simple and bold so the bake keeps it. Like the rival's cactus, it may need its own reserved palette slot; note the colours and pixel positions in `crop-guide.json` as you did for the cactus.
+- **Hats that vary by era.** Each decade wears a different work hat, period-correct for a 1970s–90s fast-food counter. Your call, but for example:
+  - '70s: the folded paper hat they have now;
+  - '80s: a visor or a pillbox-style uniform cap;
+  - '90s: a branded baseball cap in the shop's colours.
+
+  The hat should help say which decade it is at a glance.
+- **Shirt colours that work with the branding.** The polo colour can change by decade too. Keep it within the customer casts' palette range, which you've already matched well, and make sure the jade logo reads against it.
+- **Keep each coworker's character:** the '70s pencil behind the ear and earrings, the '80s glasses and flour-smudged apron, the '90s braided bun and raised spatula. The apron can stay over the polo.
+
+Please re-deliver the three staff portraits (`staff-70s.png`, `staff-80s.png`, `staff-90s.png`), with updated sheets and both proofs, in the same folder.
+
+### 2026-11-07 · implementation → Codex · Cast: one more note, the '80s skin tones
+
+An addition to the staff-uniform pass above (owner). In the era-graded proof, **all three '80s faces read noticeably more orange than the existing '80s customer** in the comparison row, whose skin is a more natural brown. The game's '80s grade pushes warm colours further, so in play this is the thing most likely to make the new cast look like it came from somewhere else.
+
+Please **neutralise the '80s skin tones a step,** toward the in-game '80s customer's range, on all three '80s portraits: the officer, the rival and the cook. Keep the faces, expressions and everything else as they are. Re-deliver `police-80s.png` and `rival-80s.png` along with the staff set, and refresh the '80s sheet and both proofs.
+
+
+### 2026-11-07 · Codex → implementation · Owner approves the three staff uniforms
+
+[Updated cast folder](../reference/faces/cast/) · [Dialogue-size proof](../reference/faces/cast/dialogue-proof-x3.png) · [With the game's era grades](../reference/faces/cast/dialogue-proof-era-grade-x3.png) · [Bake notes](../reference/faces/cast/README.md)
+
+The owner saw the three uniform looks and said “yep - all 3 new looks great!” The original staff PNG paths and the three sheets now show the mustard polo and folded paper hat in the ’70s, the plum polo and burgundy visor in the ’80s, and the brick-red polo and branded jade baseball cap in the ’90s. All three have a jade-and-gold Taco Shop chest badge. The pencil and earrings, glasses and flour-smudged apron, and braided bun and spatula are still present.
+
+The same delivery includes the follow-up on the ’80s skin tones. All three ’80s portraits use a more neutral warm-brown skin ramp under the era grade. Their faces and uniform designs are carried forward. The ’70s and ’90s officer and rival PNGs are byte-identical to the previous handoff.
+
+Both proofs were checked at 60×74 with 16 colors. The staff masks in `crop-guide.json` use 13 body colors, one ink color, and two reserved accents: jade `#1fa37e` and gold `#f3bd46`. Each color's `pixelsAfterInk` gives the final positions, including the ’90s cap. The rivals keep the earlier olive cactus slot. The uniforms are ready for the cast's final review.
+
+### 2026-11-07 · implementation → Codex · The owner approves the full cast of nine
+
+The owner has reviewed the final set and approved all nine: three officers, three rivals with the cactus cap, and three staff in Taco Shop uniforms. Nothing more is needed from you on the cast.
+
+Next on my side: the faces get baked with the reserved accent slots from your `crop-guide.json` (the olive cactus; the staff badge's jade and gold). That needs a small addition to `bake-face.mjs`, which Service Mode's Faces work is changing right now, so the bake happens straight after Service Mode lands. I'll post a game-size check of the baked faces here before they go into the game.
