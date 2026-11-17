@@ -385,7 +385,8 @@ still has to be carried into JSON and validated by `build.mjs` when it is built.
 ### Settled 2026-09-26
 
 **How a level ends** (GDD §II.D.3). A checkpoint race: every level has a target, 3 × its
-extension cap (15 deliveries or tickets served; 12 on Supreme since 2026-11-09). Every 3 earns an
+extension cap (6 deliveries or tickets served on Easy and Medium, 9 on Hard, 12 on Supreme, since
+2026-11-17; it was 15, and 12 on Supreme). Every 3 earns an
 extension. Reaching the target clears the level; reaching 0:00 first is game over. The
 score is the money across every level played. A **continue** restarts the level you died
 on with the score at $0. At game over a qualifying run **enters its initials first**, then

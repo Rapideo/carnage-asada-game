@@ -28,9 +28,9 @@ Levels 1-6, the 1970s.
   - Every third delivery or ticket served earns one, wherever they came from: the three
     need not be from one load, and a miss only delays the next one
 
-- Maximum Extensions Per Shift : 5
+- Maximum Extensions Per Shift : 2
 
-- Level Target : 15 deliveries / 15 tickets served (3 x the extension cap; see GDD §II.D.3).
+- Level Target : 6 deliveries / 6 tickets served (3 x the extension cap; see GDD §II.D.3).
   Reaching it clears the level; 0:00 first is game over. Medium and Hard: also 15.
   Supreme: 9
 
@@ -200,7 +200,9 @@ these numbers. Anything not listed here is the same as Medium.
 
 - Every 3 Completed : +1:30 Time Bonus (same as Easy and Medium since 2026-11-09; it was +1:00)
 
-- Maximum Extensions Per Shift : 5 (longest shift 10:30, as Easy and Medium)
+- Maximum Extensions Per Shift : 3 (longest shift 7:30; Easy and Medium 6:00)
+
+- Level Target : 9 deliveries / 9 tickets served
 
 #### 2. Points Bonus
 
@@ -262,9 +264,9 @@ as Hard.
 
 - Every 3 Completed : +1:00 Time Bonus (Hard +1:30)
 
-- Maximum Extensions Per Shift : 4 (longest shift 7:00; Hard 10:30)
+- Maximum Extensions Per Shift : 4 (longest shift 7:00; Hard 7:30)
 
-- Level Target : 12 deliveries / 12 tickets served (Easy to Hard: 15)
+- Level Target : 12 deliveries / 12 tickets served (Easy and Medium: 6, Hard: 9)
 
 #### 2. Points Bonus
 

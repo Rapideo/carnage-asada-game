@@ -8,6 +8,16 @@ Numbering: **0.9.x** is the run-up to release, with fixes from playtest punch li
 counts on: 0.9.10, 0.9.11 and so on (owner, 2026-11-09).
 **1.0.0** is when the owner calls it released.
 
+## 0.9.15 (2026-11-17): shorter levels
+
+- **Fewer deliveries and tickets to clear a level** (owner: "way too many"): **6** on Easy and
+  Medium (levels 1-12), **9** on Hard (13-18), and Supreme (19-20) stays at **12**. It was 15
+  everywhere but Supreme. The kitchen levels follow the same numbers.
+- **Fewer time extensions to match** (every third completion still earns +1:30): 2 on Easy and
+  Medium, 3 on Hard, so the longest shift is 6:00 on Easy and Medium and 7:30 on Hard (it was
+  10:30). The clock still starts at 3:00. Both are set per difficulty in Service Mode
+  (Difficulty: target and maxExt, the target always 3 x maxExt).
+
 ## 0.9.14 (2026-11-17): the setlist
 
 - **The owner's setlist: 260 new songs, 13 for every level.** Picked level by level from a

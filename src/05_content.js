@@ -7,7 +7,7 @@ const CONTENT = {
   "credit": "CREDIT: 0"
 };
 
-const RELEASE = {"version":"0.9.14","date":"2026-11-17"};
+const RELEASE = {"version":"0.9.15","date":"2026-11-17"};
 
 /* one map per era; LEVELS[i].map picks one. HAYS is Map 1, kept for the
    modules that read it directly. */
@@ -2084,8 +2084,8 @@ const DIFFICULTY = {
   "easy": {
     "start": 180,
     "extend": 90,
-    "maxExt": 5,
-    "target": 15,
+    "maxExt": 2,
+    "target": 6,
     "tipStart": 2000,
     "tipFloor": 200,
     "tipDecay": 33.333333333333336,
@@ -2125,8 +2125,8 @@ const DIFFICULTY = {
   "medium": {
     "start": 180,
     "extend": 90,
-    "maxExt": 5,
-    "target": 15,
+    "maxExt": 2,
+    "target": 6,
     "tipStart": 2000,
     "tipFloor": 200,
     "tipDecay": 40,
@@ -2166,8 +2166,8 @@ const DIFFICULTY = {
   "hard": {
     "start": 180,
     "extend": 90,
-    "maxExt": 5,
-    "target": 15,
+    "maxExt": 3,
+    "target": 9,
     "tipStart": 2000,
     "tipFloor": 200,
     "tipDecay": 50,

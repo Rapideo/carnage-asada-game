@@ -1292,7 +1292,8 @@ console.log('\n— docs —');
       ok(has(at(dout, 'Medium', 'Bonus Structure'), '- Same as Easy'), 'with Medium equal to Easy, "Same as Easy" in Medium Bonus Structure survives');
       const pb = DF.render(dfx((d) => { d.medium.perfectBonus = 600; }), dold), mb = at(pb, 'Medium', 'Bonus Structure');
       ok(!mb.lines.some((l) => /Same as/.test(l)) && has(mb, '- Perfect Delivery : +6.00') && has(mb, '- Every 3 Completed : +1:30 Time Bonus')
-         && has(mb, '- Maximum Extensions Per Shift : 5') && has(mb, '- Level Target : 15 deliveries / 15 tickets served') && has(mb, '- Clean Ticket : +5.00'),
+         && has(mb, '- Maximum Extensions Per Shift : ' + files['difficulty.json'].medium.maxExt)
+         && has(mb, '- Level Target : ' + files['difficulty.json'].medium.target + ' deliveries / ' + files['difficulty.json'].medium.target + ' tickets served') && has(mb, '- Clean Ticket : +5.00'),
          'with them different it is replaced by the section\'s fields (' + JSON.stringify(mb.lines) + ')');
       ok(has(at(pb, 'Hard', 'Bonus Structure', 'Points Bonus'), '- Same as Easy'), 'Hard\'s Points Bonus still names Easy, which it still equals');
       ok(DF.render(dfx((d) => { d.medium.perfectBonus = 600; }), pb) === pb, 'and that render is idempotent');
