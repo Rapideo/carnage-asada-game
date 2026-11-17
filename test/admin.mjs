@@ -29,15 +29,13 @@ const disk = validateContent(fsSource('content'));
    count songs or list positions run on this frozen library instead, so the owner's
    additions never trip them (2026-11-09). Rules are still checked on the real content. */
 const BASE_SONGS = ["africa","alec-eiffel","big-time","bitter-sweet-symphony","black-dog","bohemian-opera","bohemian-rock","cannonball","common-people","do-it-again","dont-bring-me-down","dont-you-want-me","dyer-maker","everything-about-you","here-comes-your-man","house-of-fun","i-think-im-paranoid","if-you-leave","immigrant-song","just-cant-get-enough","just-what-i-needed","kashmir","lovely-day","lump","mr-blue-sky","never-gonna-give-you-up","one-step-beyond","peaches","peg","red-red-wine","reelin-in-the-years","regulate","rock-the-casbah","song-2","stand-and-deliver","steal-my-sunshine","straight-up","sweet-child-o-mine","take-on-me","two-princes","walk-on-the-wild-side","where-is-my-mind"];
+const FROZEN_APPROVED = JSON.parse(readFileSync(new URL('./fixtures/approved-0.9.11.json', import.meta.url), 'utf8'));
 const baseFiles = (src) => {
   const f = structuredClone(src);
   for (const r of Object.keys(f)) if (/^music\/[^/]+\.json$/.test(r) && r !== 'music/approved.json' && !BASE_SONGS.includes(r.slice(6, -5))) delete f[r];
-  const a = f['music/approved.json'];
-  if (a) {
-    for (const k of ['1', '2', '3']) if (a[k]) for (const s of ['delivery', 'kitchen']) a[k][s] = (a[k][s] || []).filter((id) => BASE_SONGS.includes(id));
-    a.title = (a.title || []).filter((id) => BASE_SONGS.includes(id));
-    for (const id of Object.keys(a.from || {})) if (!BASE_SONGS.includes(id)) delete a.from[id];
-  }
+  /* the placement is frozen too (test/fixtures/approved-0.9.11.json): filtering the live
+     file stopped working when the 2026-11-17 setlist took old songs out of the game */
+  if (f['music/approved.json']) f['music/approved.json'] = structuredClone(FROZEN_APPROVED);
   return f;
 };
 ok(disk.levels.length === 20, 'validates the shipped content from disk');
@@ -52,7 +50,7 @@ function freezeTmp(tmp) {
   const ORPHANS = ['anarchy-in-the-uk', 'dont-fear-the-reaper', 'bizarre-love-triangle'];
   const md = join(tmp, 'content/music');
   for (const n of rd(md)) if (n.endsWith('.json') && n !== 'approved.json' && !BASE_SONGS.includes(n.slice(0, -5))) rm(join(md, n));
-  wf(join(md, 'approved.json'), JSON.stringify(baseFiles({ 'music/approved.json': JSON.parse(rf(join(md, 'approved.json'), 'utf8')) })['music/approved.json'], null, 2));
+  wf(join(md, 'approved.json'), JSON.stringify(FROZEN_APPROVED, null, 2));
   const SJ = join(tmp, 'tools/music/songs.json'), sj = JSON.parse(rf(SJ, 'utf8'));
   sj.songs = sj.songs.filter((s) => BASE_SONGS.includes(s.id) || ORPHANS.includes(s.id));
   wf(SJ, JSON.stringify(sj, null, 2));
@@ -223,12 +221,12 @@ ok(Array.isArray(validateContent(memSource((() => { const f = structuredClone(fi
   const n1d = files[A] ? files[A]['1'].delivery.length : 0, n2k = files[A] ? files[A]['2'].kitchen.length : 0;
   let r = run((a) => a['1'].delivery.push('no-such-song'));
   ok(at(r, '1,delivery,' + n1d), 'an id with no song file is refused at [1,delivery,j] (' + (r.x && r.x.message) + ')');
-  r = run((a) => a['2'].kitchen.push('kashmir'));
+  r = run((a) => a['2'].kitchen.push('kashmir-2'));   // the in-game Kashmir since the 2026-11-17 setlist
   ok(at(r, '2,kitchen,' + n2k), 'a song in two decades is refused at its second place (' + (r.x && r.x.message) + ')');
-  r = run((a) => { a.from.kashmir = 1976; });
-  ok(at(r, 'from,kashmir'), 'a "from" that is not a level year of its decade is refused (' + (r.x && r.x.message) + ')');
-  r = run((a) => { delete a.from.kashmir; });
-  ok(at(r, 'from,kashmir') && /1975/.test(r.x.message) && /1972/.test(r.x.message), 'a song starting before its release (Kashmir 1975 from 1972) is refused, naming both years (' + (r.x && r.x.message) + ')');
+  r = run((a) => { a.from['kashmir-2'] = 1976; });
+  ok(at(r, 'from,kashmir-2'), 'a "from" that is not a level year of its decade is refused (' + (r.x && r.x.message) + ')');
+  r = run((a) => { delete a.from['kashmir-2']; });
+  ok(at(r, 'from,kashmir-2') && /1975/.test(r.x.message) && /1972/.test(r.x.message), 'a song starting before its release (Kashmir 1975 from 1972) is refused, naming both years (' + (r.x && r.x.message) + ')');
   r = run((a) => { a['1'].kitchen = []; });
   ok(at(r, '1,kitchen') && /level 2/i.test(r.x.message) && /WINTER 1972/.test(r.x.message) && /kitchen/i.test(r.x.message),
      'a level left with no song for its shift is refused, naming the level and the shift (' + (r.x && r.x.message) + ')');
